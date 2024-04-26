@@ -19,7 +19,7 @@ The XRF-Explorer backend is a Flask app served by waitress. The `xrf_explorer` f
 
 The `client` folder contains the frontend project that will be served to the user as part of the Flask backend.
 
-The 'server' folder contains all python code necessary for the backend of the app.
+The `server` folder contains all python code necessary for the backend of the app.
 
 ### Frontend
 
