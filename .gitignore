@@ -1,0 +1,6 @@
+# Ignore the environment
+env/
+**/.vscode/
+
+# Ignore dependencies
+**/__pycache__/
