@@ -1,6 +1,10 @@
 # Ignore the environment
 env/
 **/.vscode/
+.idea
 
 # Ignore dependencies
 **/__pycache__/
+
+# Ignore sphinx documentation builds
+documentation/sphinx/_build
