@@ -3,3 +3,5 @@ dependencies:
   - pip
   - flask
   - waitress
+  - pip:
+      - -r requirements.txt
