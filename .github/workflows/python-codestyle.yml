@@ -1,0 +1,22 @@
+name: Check Python codestyle when pushing
+
+on: push
+
+jobs:
+  code_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: 3.12
+
+      - name: wemake-python-styleguide
+        uses: wemake-services/wemake-python-styleguide@0.19.2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
