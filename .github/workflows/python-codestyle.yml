@@ -1,0 +1,24 @@
+name: Add Python code style comments to PR
+
+on: push
+
+jobs:
+  code_check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: 3.12
+
+      - name: Wemake Code Style Check
+        uses: wemake-services/wemake-python-syleguide@latest
+        continue-on-error: true
+#        with:
+#          reporter: 'github-pr-review'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
