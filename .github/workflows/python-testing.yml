@@ -34,4 +34,4 @@ jobs:
           emoji: false
           verbose: false
           job-summary: true
-          report-title: 'Test Report on branch: ${{ steps.extract_branch.outputs.branch }}'
+          report-title: 'Test Report on branch `'${{ steps.extract_branch.outputs.branch }}`''
