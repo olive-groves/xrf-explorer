@@ -4,10 +4,11 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: Run Tests
+    name: Run all Python Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out Repository
+        uses: actions/checkout@v4
 
       - name: Extract branch name
         shell: bash
@@ -27,7 +28,8 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
-      - uses: pavelzw/pytest-action@v2.2.0
+      - name: Run PyTest
+        uses: pavelzw/pytest-action@v2.2.0
         with:
           emoji: false
           verbose: false
