@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Wemake Code Style Check
-        uses: wemake-services/wemake-python-syleguide@latest
+      - name: wemake-python-styleguide
+        uses: wemake-services/wemake-python-styleguide@0.19.2
         continue-on-error: true
 #        with:
 #          reporter: 'github-pr-review'
