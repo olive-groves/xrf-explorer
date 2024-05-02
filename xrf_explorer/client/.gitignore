@@ -1,2 +1,12 @@
 # Generated dependencies
 node_modules/
+
+# Generated client, should only be updated when publishing development to main
+dist/
+
+# Files for testing
+**/*.tif
+**/*.tiff
+**/*.dds
+**/*.jpg
+**/*.png
