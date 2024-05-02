@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ChevronDownIcon, Cross2Icon } from "@radix-icons/vue";
 
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { WindowContainer } from "@/components/ui/window"
 import { clamp, useDraggable, useElementBounding, useParentElement } from "@vueuse/core";
 import { window_state } from "@/components/ui/window/state";
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   Menubar,
-  MenubarCheckboxItem,
+  // MenubarCheckboxItem,
   MenubarContent,
   MenubarItem,
   MenubarMenu,

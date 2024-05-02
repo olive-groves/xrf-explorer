@@ -1,5 +1,5 @@
-<script setup>
-import { Window, WindowContainer } from "@/components/ui/window";
+<script setup lang="ts">
+import { Window } from "@/components/ui/window";
 </script>
 
 <template>
