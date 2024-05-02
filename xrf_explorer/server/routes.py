@@ -1,7 +1,7 @@
-from flask import render_template
+from flask import jsonify
 
 from xrf_explorer import app
-from file_system.file_upload import UploadFileForm, upload_file
+from xrf_explorer.server.file_system.file_upload import UploadFileForm, upload_file
 
 
 @app.route('/api')
@@ -19,4 +19,4 @@ def upload_file():
     form: UploadFileForm = UploadFileForm()
     if form.validate_on_submit():
         return upload_file(form.file.data, app.config['UPLOAD_FOLDER'])
-    return render_template('client/index.html', form=form)
+    return jsonify(form.serialize())
