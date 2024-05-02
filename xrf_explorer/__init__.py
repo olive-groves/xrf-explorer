@@ -1,9 +1,13 @@
-from flask import Flask, send_from_directory
 from pathlib import Path
 
-app = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
+from flask import Flask, send_from_directory
 
 from xrf_explorer.server import routes
+
+app = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
+app.config['SECRET_KEY'] = 'insert-more-secure-key'
+app.config['UPLOAD_FOLDER'] = 'server/files'
+
 
 # All routes not matched in the server are forwarded to the client
 @app.route('/', defaults={'path': 'index.html'})
