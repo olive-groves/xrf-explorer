@@ -11,3 +11,9 @@ provide("draggable_container", container);
     <slot />
   </div>
 </template>
+
+<style scoped>
+:slotted(*) {
+  pointer-events: all;
+}
+</style>
