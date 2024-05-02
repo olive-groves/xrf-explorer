@@ -7,7 +7,6 @@ from wtforms.validators import InputRequired
 
 
 class UploadFileForm(FlaskForm):
-
     file: FileField = FileField("File", validators=[InputRequired()])
     submit: SubmitField = SubmitField("Upload File")
 
@@ -17,7 +16,6 @@ class UploadFileForm(FlaskForm):
             "file": self.file,
             "submit": self.submit
         }
-
 
 
 def upload_file(file, upload_folder: str) -> str:
