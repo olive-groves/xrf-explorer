@@ -1,106 +1,90 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import { ChevronDownIcon, Cross2Icon } from "@radix-icons/vue";
-
-import { computed, ref } from "vue";
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
-  CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { clamp, useDraggable, useElementBounding, useParentElement } from "@vueuse/core";
-import { window_state } from "@/components/ui/window/state";
+import { CollapsibleContent } from "radix-vue";
+import { Draggable } from "@/components/functional/draggable";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { inject, ref, toRef } from "vue";
+import { window_state } from "./state";
+import { useElementBounding, useWindowSize } from '@vueuse/core';
+import { remToPx } from '@/lib/utils';
 
-const props = withDefaults(defineProps<{
-  id: string,
-  title: string;
-  opened?: boolean;
-  closed_width?: number;
-  width?: number;
-}>(), {
-  closed_width: 18,
-  width: 25,
-  opened: false
-});
-
-if (props.id == undefined) {
-  throw new Error("Window ID must be defined")
-}
-
-window_state.windows[props.id] = {
-  is_opened: props.opened,
-  z_index: 0
-};
-
-const isOpen = computed(() => {
-  return window_state.windows[props.id].is_opened;
-});
-const zIndex = computed(() => {
-  return window_state.windows[props.id].z_index;
-})
-const isMaximized = ref(true);
-
-const container = useParentElement();
-const draggable = ref<HTMLElement | null>(null);
 const handle = ref<HTMLElement | null>(null);
+const container = inject<HTMLElement | null>("draggable_container")!;
+const props = defineProps<{
+  title: string,
+  opened?: boolean,
+  width?: number,
+  height?: number,
+  top?: number,
+  left?: number,
+  bottom?: number,
+  right?: number
+}>();
 
-const { left, right, top, bottom } = useElementBounding(container);
-const { width, height } = useElementBounding(draggable);
-
-const { x, y } = useDraggable(draggable, {
-  handle: handle,
-  initialValue: {
-    x: 20,
-    y: 52.5,
-  },
-});
-
-const restrictedX = computed(() =>
-  clamp(left.value, x.value, right.value - width.value)
-);
-const restrictedY = computed(() =>
-  clamp(top.value, y.value, bottom.value - height.value)
-);
-
-function moveForwards() {
-  let count = Object.keys(window_state.windows).length;
-  for (let window in window_state.windows) {
-    if (window_state.windows[window].z_index > window_state.windows[props.id].z_index) {
-      window_state.windows[window].z_index--;
-    }
-  }
-  window_state.windows[props.id].z_index = count - 1;
+window_state[props.title] = {
+  title: props.title,
+  opened: props.opened
 }
+
+const state = toRef(window_state, props.title);
+
+// TODO: Refactor into a separate component?
+const windowSize = useWindowSize();
+const initialW = props.width ?? 20;
+const initialH = props.height ?? 15;
+let initialX = remToPx(0.5);
+if (props.left) { initialX = remToPx(props.left!) }
+if (props.right) { initialX = windowSize.width.value - remToPx(props.right! + initialW) }
+let initialY = remToPx(3.25);
+if (props.top) { initialY = remToPx(props.top!) }
+if (props.bottom) { initialY = windowSize.height.value - remToPx(props.bottom! + initialH) }
+const containerSize = useElementBounding(container);
+const content = ref<HTMLElement | null>(null);
+const min_width = 12;
+const maximized = ref(true);
 </script>
 
 <template>
-  <div ref="draggable" class="fixed rounded-xl border bg-card text-card-foreground shadow select-none" :style="{
-    top: `${restrictedY}px`,
-    left: `${restrictedX}px`,
-    'z-index': zIndex
-  }" :class="{ 'hidden': !isOpen }" @mousedown="moveForwards()">
-    <Collapsible v-model:open="isMaximized" class="transition-all duration-300"
-      :style="{ 'width': isMaximized ? props.width + 'em' : props.closed_width + 'em' }">
-      <div ref="handle" class="p-2 cursor-move flex items-center justify-between space-x-4">
-        <div class="font-bold select-none">
+  <Draggable :id="state.title" :container="container" :handle="handle" :class="{ hidden: !state.opened }" :x="initialX"
+    :y="initialY">
+    <Collapsible v-model:open="maximized" class="border rounded-lg bg-card overflow-hidden" :style="{
+      'min-width':
+        `${min_width}rem`, 'max-width': `${containerSize.width.value}px`, 'max-height':
+        `${containerSize.height.value}px`,
+    }">
+      <div ref="handle" class="flex justify-between space-x-4 h-8 cursor-move transition-all duration-300">
+        <div class="select-none font-bold flex items-center pl-2">
           {{ props.title }}
         </div>
-        <div>
+        <div class="p-1">
           <CollapsibleTrigger>
             <Button variant="ghost" class="h-6 w-6 p-0">
-              <ChevronDownIcon class="transition-all duration-300" :class="{ 'rotate-180': isMaximized }" />
+              <ChevronDownIcon class="transition-transform duration-300" :class="{ 'rotate-180': maximized }" />
             </Button>
           </CollapsibleTrigger>
-          <Button variant="ghost" class="h-6 w-6 p-0" @click="window_state.windows[id].is_opened = false">
+          <Button variant="ghost" @click="state.opened = false" class="h-6 w-6 p-0">
             <Cross2Icon />
           </Button>
         </div>
       </div>
-      <CollapsibleContent>
-        <div class="border-t p-2 overflow-hidden" :style="{ 'width': props.width + 'em' }">
-          <slot />
+      <CollapsibleContent force-mount class="max-h-full data-[state=closed]:hidden transition-all duration-300">
+        <div ref="content" class="border-t resize overflow-hidden max-h-full" :style="{
+          'min-width': `${min_width}rem`,
+          'width': `${initialW}rem`,
+          'height': `${initialH - 2}rem`
+        }">
+          <ScrollArea class="h-full">
+            <div class="p-2">
+              <slot />
+            </div>
+          </ScrollArea>
         </div>
       </CollapsibleContent>
     </Collapsible>
-  </div>
+  </Draggable>
 </template>

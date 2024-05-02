@@ -1,12 +1,10 @@
 import { reactive } from 'vue';
 
+export type WindowState = {
+    title: string,
+    opened: boolean
+};
+
 export const window_state = reactive<{
-    windows: {
-        [key: string]: {
-            is_opened: boolean,
-            z_index: number
-        }
-    }
-}>({
-    windows: {}
-})
+    [key: string]: WindowState
+}>({});
