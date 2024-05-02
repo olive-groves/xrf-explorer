@@ -1,4 +1,5 @@
 from waitress import serve
+
 from xrf_explorer import app
 
 PORT = 8001
