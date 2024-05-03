@@ -1,7 +1,7 @@
-from flask import jsonify
+from flask import request
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.file_upload import UploadFileForm, upload_file
+from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 
 
 @app.route('/api')
@@ -14,9 +14,18 @@ def info():
     return "adding more routes is quite trivial"
 
 
-@app.route('/upload', methods=['GET', 'POST'])
+@app.route('/upload', methods=['POST'])
 def upload_file():
-    form: UploadFileForm = UploadFileForm()
-    if form.validate_on_submit():
-        return upload_file(form.file.data, app.config['UPLOAD_FOLDER'])
-    return jsonify(form.serialize())
+    if request.method == 'POST':
+
+        if 'fileUpload' not in request.files:
+            return "No file part"
+
+        file = request.files['fileUpload']
+        if file.filename == '':     # user did not upload a file
+            return "No file selected"
+
+        if file:
+            return upload_file_to_server(file, app.config['TEMP_FOLDER'])
+
+    return "File upload page"
