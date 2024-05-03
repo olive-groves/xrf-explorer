@@ -25,6 +25,8 @@ The `server` folder contains all python code necessary for the backend of the ap
 
 The frontend is stored in the `xrf_explorer/client` directory. The frontend is based on Vue. For developing the frontend `npm` is required (check `xrf_explorer/client/package.json` for which version you need to install).
 
-From the `xrf_explorer/client/` directory: `npm run dev` starts a development server and `npm run build` compiles the website to the `xrf_explorer/client/dist` directory from which it can be served by the Flask backend.
+From the `xrf_explorer/client/` directory: 
+- `npm run dev` starts a development server; 
+- `npm run build` compiles the website to the `xrf_explorer/client/dist` directory from which it can be served by the Flask backend.
 
 UI components are taken from the [shadcn-vue](https://www.shadcn-vue.com) project, documentation for which can be found [here](https://www.shadcn-vue.com/docs).
