@@ -8,7 +8,7 @@ from paramiko import AutoAddPolicy, SFTPClient, SSHClient
 from werkzeug.utils import secure_filename
 
 
-def upload_file_to_server(file, temp_folder: str) -> str:
+def upload_file_to_server(file, temp_folder: str) -> bool:
 
     # store file locally (maybe can be skipped?)
     file_name: str = secure_filename(file.filename)
@@ -21,7 +21,8 @@ def upload_file_to_server(file, temp_folder: str) -> str:
         try:
             backend_config: dict = yaml.safe_load(config_file)
         except yaml.YAMLError as e:
-            return "Failed to upload file: \n" + e.__str__()
+            print(f"Failed to upload file: \n{e}")
+            return False
 
     # transfer file to server
     storage_server: dict = backend_config["storage-server"]
@@ -36,7 +37,7 @@ def upload_file_to_server(file, temp_folder: str) -> str:
     # TODO: find somewhere to store password
     # establish sftp connection to server
     sftp_client: SFTPClient = ssh_connection.open_sftp()
-    sftp_client.put(path_to_file, f"{storage_server["path"]}/{file_name}")
+    sftp_client.put(path_to_file, f"{storage_server['path']}/{file_name}")
     sftp_client.close()
     ssh_connection.close()
     print("sent to server :)")
@@ -44,8 +45,8 @@ def upload_file_to_server(file, temp_folder: str) -> str:
     # remove from temp folder
     if exists(path_to_file):
         remove(path_to_file)
-        return "Uploaded file"
+        return True
 
     print("ayo, where'd me file go???")
 
-    return "Whoops"
+    return False
