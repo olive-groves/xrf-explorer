@@ -12,4 +12,3 @@ import Button from "./ui/button/Button.vue";
 </template>
 
 <style scoped></style>
-
