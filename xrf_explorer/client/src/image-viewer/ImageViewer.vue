@@ -116,8 +116,6 @@ function addLayer(id: string, image: string) {
 
   new THREE.TextureLoader().loadAsync(image).then((texture) => {
     texture.colorSpace = THREE.NoColorSpace;
-    texture.magFilter = THREE.LinearFilter;
-    texture.minFilter = THREE.LinearMipMapLinearFilter;
 
     const shape = new THREE.Shape();
 
