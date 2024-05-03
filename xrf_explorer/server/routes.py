@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, redirect
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
@@ -26,6 +26,8 @@ def upload_file():
             return "No file selected"
 
         if file:
-            return upload_file_to_server(file, app.config['TEMP_FOLDER'])
+            if upload_file_to_server(file, app.config['TEMP_FOLDER']):
+                return redirect("/")
+            return "Failed to upload file."
 
     return "File upload page"
