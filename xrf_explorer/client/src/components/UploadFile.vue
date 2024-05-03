@@ -1,22 +1,15 @@
 <script setup lang="ts">
-
-import {Button} from "@/components/ui/button";
+import Button from "./ui/button/Button.vue";
 </script>
 
 <template>
-  <head>
-    <Title>Upload a File here!</Title>
-  </head>
-  <body>
-    <form method="POST" enctype="multipart/form-data">
-      {{ form.hidden_tag() }}
-      {{ form.file() }}
-      {{ form.submit() }}
-    </form>
-    <button type="button" class="btn btn-success">Upload</button>
-  </body>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input style="display: block" type="file" name="fileUpload" />
+    <Button style="margin-top: 10px">
+      <input type="submit" value="Upload file" />
+    </Button>
+  </form>
 </template>
 
-<style scoped>
+<style scoped></style>
 
-</style>
