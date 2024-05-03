@@ -1,16 +1,9 @@
-<template>
-  <div ref="glcontainer" class="w-full h-full">
-    <canvas ref="glcanvas" @mousedown="onMouseDown" @mouseup="onMouseUp" @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove" @wheel="onWheel" />
-  </div>
-</template>
-
-<!-- Renderer -->
 <script setup lang="ts">
+import { Toolbar } from '@/image-viewer';
 import { onMounted, ref } from 'vue';
 import * as THREE from 'three';
 
-import { Layer, LayerUniform } from './types';
+import { Layer, LayerUniform, ToolState } from './types';
 import { useResizeObserver } from '@vueuse/core';
 
 const vertex = `
@@ -67,6 +60,11 @@ const viewport: {
   zoom: 0
 }
 
+const toolState = ref<ToolState>({
+  movementSpeed: [2.0],
+  scrollSpeed: [1.0]
+});
+
 let scene: THREE.Scene;
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
@@ -79,7 +77,8 @@ const layers: Layer[] = [];
 onMounted(() => {
   setup();
 
-  addLayer("https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg");
+  addLayer("/image.png");
+  // addLayer("https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg");
   // addLayer("https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/8192px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg");
 
   render(0);
@@ -102,7 +101,7 @@ function setup() {
 }
 
 function addLayer(image: string) {
-  new THREE.TextureLoader().load(image, (texture) => {
+  new THREE.TextureLoader().loadAsync(image).then((texture) => {
     const shape = new THREE.Shape();
 
     shape.moveTo(0, 0);
@@ -179,29 +178,40 @@ function render(time: number) {
   requestAnimationFrame(render);
 }
 
-let dragging = false;
+let dragging = ref(false);
 
 function onMouseDown() {
-  dragging = true;
+  dragging.value = true;
 }
 
 function onMouseUp() {
-  dragging = false;
+  dragging.value = false;
 }
 
 function onMouseLeave() {
-  dragging = false;
+  dragging.value = false;
 }
 
 function onMouseMove(event: MouseEvent) {
-  if (dragging) {
-    const scale = Math.exp(viewport.zoom) * 2.0;
+  if (dragging.value) {
+    const scale = Math.exp(viewport.zoom) * toolState.value.movementSpeed[0];
     viewport.center.x += event.movementX * scale;
     viewport.center.y += event.movementY * scale;
   }
 }
 
 function onWheel(event: WheelEvent) {
-  viewport.zoom += event.deltaY / 500.0;
+  viewport.zoom += event.deltaY / 500.0 * toolState.value.scrollSpeed[0];
 }
 </script>
+
+<template>
+  <Toolbar v-model:state="toolState" />
+  <div ref="glcontainer" class="w-full h-full" :class="{
+    'cursor-grab': !dragging,
+    'cursor-grabbing': dragging
+  }">
+    <canvas ref="glcanvas" @mousedown="onMouseDown" @mouseup="onMouseUp" @mouseleave="onMouseLeave"
+      @mousemove="onMouseMove" @wheel="onWheel" />
+  </div>
+</template>
