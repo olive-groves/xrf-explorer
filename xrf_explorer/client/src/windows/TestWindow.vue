@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { Window } from '@/components/ui/window';
-import { ref } from 'vue';
-import { Button } from '@/components/ui/button';
-
-const count = ref(0);
 </script>
 
 <template>

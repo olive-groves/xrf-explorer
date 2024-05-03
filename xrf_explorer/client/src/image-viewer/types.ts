@@ -1,18 +1,17 @@
 import * as THREE from 'three';
-import { Ref } from 'vue';
 
 export type Layer = {
+    id: string,
     image: string,
-    mesh: THREE.Mesh,
-    uniform: LayerUniform,
-
+    mesh?: THREE.Mesh,
+    uniform: LayerUniform
 }
 
 export type LayerUniform = {
-    iTime: { value: number },
-    iResolution: { value: THREE.Vector3 },
+    iIndex: { value: number },
     iViewport: { value: THREE.Vector4 },
-    tImage: { value: THREE.Texture, type: 't' }
+    tImage?: { value: THREE.Texture, type: 't' },
+    mRegister: { value: THREE.Matrix3 }
 }
 
 export type ToolState = {
