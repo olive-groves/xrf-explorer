@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+// import Button from "@/components/ui/button/Button.vue";
+import Menu from "@/components/custom/Menu.vue";
 </script>
 
 <template>
-  <HelloWorld />
+  <Menu />
 </template>
 
-<style scoped>
+<!-- Global styles -->
+<style>
+body {
+  background-color: #443c3c;
+}
 </style>
