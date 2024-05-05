@@ -1,6 +1,8 @@
 # Ignore the environment
 env/
 **/.vscode/
+**/poetry.lock
+**/pyproject.toml
 
 # Ignore dependencies
 **/__pycache__/
