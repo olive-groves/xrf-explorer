@@ -1,8 +1,6 @@
 storage-server:
-#  user: ROOT
-  user: "massimo"
-#  ip: 194.180.188.105
-  ip: "127.0.0.1"
+  user: ROOT
+  ip: 194.180.188.105
   path: "/tmp"
 
 backend:
