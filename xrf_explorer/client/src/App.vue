@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { Header } from "@/components";
 import { TestWindow } from "@/windows";
-import { DraggableContainer } from "@/components/functional/draggable";
+import { WindowContainer } from "@/components/ui/window";
 </script>
 
 <template>
-  <div class="w-[100vw] h-[100vh]">
-    <img
-      src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/2048px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg"
-      class="w-full h-full -z-20 fixed left-0 top-0" />
+  <div class="w-[100vw] h-[100vh] grid grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
-    <DraggableContainer class="w-full h-full fixed left-0 top-0">
+    <WindowContainer>
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/2048px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg"
+        class="size-full" />
       <TestWindow />
-    </DraggableContainer>
+    </WindowContainer>
   </div>
 </template>
