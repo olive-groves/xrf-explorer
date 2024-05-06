@@ -8,7 +8,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         basic:
-          "border border-input bg-background shadow-sm hover:bg-neutral-900 hover:text-accent-foreground font-bold text-lg",
+          "bg-background shadow-sm hover:bg-neutral-900 hover:text-accent-foreground font-bold text-lg",
       },
       size: {
         default: "h-9 px-4 py-2",
