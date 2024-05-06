@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// import Button from "@/components/ui/button/Button.vue";
-import Menu from "@/components/custom/Menu.vue";
+import Menu from "./components/Menu.vue";
 </script>
 
 <template>
@@ -11,5 +10,9 @@ import Menu from "@/components/custom/Menu.vue";
 <style>
 body {
   background-color: #443c3c;
+}
+
+.bg-buttons {
+  background-color: #231f20;
 }
 </style>
