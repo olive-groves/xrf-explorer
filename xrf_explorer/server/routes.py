@@ -1,7 +1,12 @@
+import logging
+
 from flask import request, redirect
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
+
+
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 @app.route('/api')
@@ -19,6 +24,7 @@ def upload_file():
     if request.method == 'POST':
 
         if 'fileUpload' not in request.files:
+            LOG.error("failed to retrieve upload file")
             return "No file part"
 
         file = request.files['fileUpload']

@@ -1,3 +1,5 @@
+import logging
+
 from os import remove
 from os.path import abspath, exists, join
 from pathlib import Path
@@ -6,6 +8,9 @@ import yaml
 
 from paramiko import AutoAddPolicy, SFTPClient, SSHClient
 from werkzeug.utils import secure_filename
+
+
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def upload_file_to_server(file, temp_folder: str) -> bool:
@@ -17,16 +22,16 @@ def upload_file_to_server(file, temp_folder: str) -> bool:
     file.save(path_to_file)
 
     # load backend config
-    with open('config/backend.yml', 'r') as config_file:
+    config_path: str = "config/backend.yml"
+    with open(config_path, 'r') as config_file:
         try:
             backend_config: dict = yaml.safe_load(config_file)
-        except yaml.YAMLError as e:
-            print(f"Failed to upload file: \n{e}")
+        except yaml.YAMLError:
+            LOG.exception("Failed to access backend config at {config/backend.yml}")
             return False
 
     # transfer file to server
     storage_server: dict = backend_config["storage-server"]
-    print("sending to server...")
     ssh_connection: SSHClient = SSHClient()
     ssh_connection.set_missing_host_key_policy(AutoAddPolicy)
     # establish ssh connection to server
@@ -37,16 +42,17 @@ def upload_file_to_server(file, temp_folder: str) -> bool:
     # TODO: find somewhere to store password
     # establish sftp connection to server
     sftp_client: SFTPClient = ssh_connection.open_sftp()
-    sftp_client.put(path_to_file, f"{storage_server['path']}/{file_name}")
+    destination: str = f"{storage_server['path']}/{file_name}"
+    sftp_client.put(path_to_file, destination)
+    LOG.info("uploaded {%s} to {%s}", file.filename, destination)
     sftp_client.close()
     ssh_connection.close()
-    print("sent to server :)")
 
     # remove from temp folder
     if exists(path_to_file):
         remove(path_to_file)
         return True
 
-    print("ayo, where'd me file go???")
+    LOG.error("Could not find temporary file {%s} for removal", path_to_file)
 
     return False
