@@ -11,8 +11,4 @@ import Menu from "./components/Menu.vue";
 body {
   background-color: #443c3c;
 }
-
-.bg-buttons {
-  background-color: #231f20;
-}
 </style>
