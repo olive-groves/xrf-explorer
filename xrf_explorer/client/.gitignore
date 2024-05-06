@@ -1,5 +1,6 @@
 # Generated dependencies
 node_modules/
+package-lock.json
 
 # Generated client, should only be updated when publishing development to main
 dist/
