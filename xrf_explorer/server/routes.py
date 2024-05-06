@@ -24,7 +24,7 @@ def upload_file():
     if request.method == 'POST':
 
         if 'fileUpload' not in request.files:
-            LOG.error("failed to retrieve upload file")
+            LOG.error("Failed to retrieve upload file")
             return "No file part"
 
         file = request.files['fileUpload']

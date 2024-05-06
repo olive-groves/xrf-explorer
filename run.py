@@ -19,5 +19,5 @@ if __name__ == '__main__':
         format="%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"
         )
 
-    print('Serving on http://localhost:' + str(PORT))
+    LOG.info('Serving on http://localhost:' + str(PORT))
     serve(app, host=BIND_ADDRESS, port=PORT, max_request_body_size=1073741824000000, max_request_header_size=85899345920000)

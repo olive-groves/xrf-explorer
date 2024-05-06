@@ -27,7 +27,7 @@ def upload_file_to_server(file, temp_folder: str) -> bool:
     # store file locally (maybe can be skipped?)
     file_name: str = secure_filename(file.filename)
     if file_name == '':
-        LOG.error("could not parse provided file name")
+        LOG.error("Could not parse provided file name")
         return False
     path_to_file: str = abspath(join(Path(temp_folder), file_name))
     file.save(path_to_file)
@@ -59,7 +59,7 @@ def upload_file_to_server(file, temp_folder: str) -> bool:
         sftp_client: SFTPClient = ssh_connection.open_sftp()
         destination: str = f"{storage_server['path']}/{file_name}"
         sftp_client.put(path_to_file, destination)
-        LOG.info("uploaded {%s} to {%s}", file.filename, destination)
+        LOG.info("Uploaded {%s} to {%s}", file.filename, destination)
         file_transfer_complete = True
 
         # close session
