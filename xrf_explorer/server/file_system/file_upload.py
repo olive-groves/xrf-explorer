@@ -1,6 +1,6 @@
 import logging
 
-from os import remove
+from os import remove, environ
 from os.path import abspath, exists, join
 from pathlib import Path
 from socket import error
@@ -52,9 +52,8 @@ def upload_file_to_server(file) -> bool:
         # establish ssh connection to server
         ssh_connection.connect(hostname=storage_server["ip"],
                                username=storage_server["user"],
-                               password='giveaccess',
+                               password=environ.get('XRF_EXPLORER__CREDENTIALS__STORAGE_SERVER'),
                                port=22)
-        # TODO: find somewhere to store password
 
         # establish sftp connection to server
         sftp_client: SFTPClient = ssh_connection.open_sftp()

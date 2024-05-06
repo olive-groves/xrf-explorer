@@ -27,6 +27,11 @@ All dependencies needed to run and contribute to the project are located in the 
 The file can easily be updated by running `pip freeze > requirements.txt`.
 WARNING: this command will place all the dependencies you have currently installed in the `requirements.txt` file, so make sure you have removed any unnecessary dependencies from your environment beforehand.
 
+#### Environment Variables
+
+In order for the backend server to run, you will need to configure the following values in your environment variables:
+- `XRF_EXPLORER__CREDENTIALS__STORAGE_SERVER`: the password to access the server where files will be stored
+
 #### Development Process
 
 To start the backend, you can simply run `python run.py` from the root directory.
