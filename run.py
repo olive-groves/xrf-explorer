@@ -16,7 +16,7 @@ if __name__ == '__main__':
         level=logging.INFO,             # lowest logging level used
         # filename="logs/log.log",        # path to log file to output instead of console
         # filemode="w",                   # access mdoe to file specified in `filename`
-        format="%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s"
         )
 
     LOG.info('Serving on http://localhost:' + str(PORT))
