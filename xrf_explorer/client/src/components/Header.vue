@@ -16,17 +16,49 @@ import {
   //   MenubarSubContent,
   //   MenubarSubTrigger,
   MenubarTrigger,
-} from '@/components/ui/menubar'
-import { WindowMenu } from '@/components/ui/window'
+} from '@/components/ui/menubar';
+import { WindowMenu } from '@/components/ui/window';
+
+import { useColorMode } from '@vueuse/core';
+
+const colorMode = useColorMode({
+  initialValue: "dark"
+});
 </script>
 
 <template>
-  <Menubar class="w-min m-2 z-50 fixed">
-    <div>
-      <div class="h-full content-center font-bold text-nowrap px-3">
+  <Menubar class="w-full h-min m-0 rounded-none border-0 border-b">
+    <MenubarMenu>
+      <MenubarTrigger class="font-bold">
         XRF-Explorer
-      </div>
-    </div>
+      </MenubarTrigger>
+      <MenubarContent>
+        <MenubarItem>
+          Github
+        </MenubarItem>
+        <MenubarSeparator />
+        <MenubarItem>
+          Preferences
+        </MenubarItem>
+        <MenubarSub>
+          <MenubarSubTrigger>
+            Theme
+          </MenubarSubTrigger>
+          <MenubarSubContent>
+            <MenubarItem @click="colorMode = 'light'">
+              Light mode
+            </MenubarItem>
+            <MenubarItem @click="colorMode = 'dark'">
+              Dark mode
+            </MenubarItem>
+          </MenubarSubContent>
+        </MenubarSub>
+        <MenubarSeparator />
+        <MenubarItem>
+          Documentation
+        </MenubarItem>
+      </MenubarContent>
+    </MenubarMenu>
     <MenubarMenu>
       <MenubarTrigger>
         Workspace
