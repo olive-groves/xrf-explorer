@@ -32,7 +32,7 @@ def upload_file():
             return "No file selected"
 
         if file:
-            if not upload_file_to_server(file, app.config['TEMP_FOLDER']):
+            if not upload_file_to_server(file):
                 LOG.error("Failed to upload file")
             return redirect("/")
 

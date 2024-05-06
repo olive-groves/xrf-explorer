@@ -1,6 +1,9 @@
 storage-server:
 #  user: ROOT
-  user: massimo
+  user: "massimo"
 #  ip: 194.180.188.105
-  ip: 127.0.0.1
-  path: /tmp
+  ip: "127.0.0.1"
+  path: "/tmp"
+
+backend:
+  temp-folder: "xrf_explorer/server/temp"

@@ -23,14 +23,7 @@ def remove_local_file(path: str) -> bool:
     return False
 
 
-def upload_file_to_server(file, temp_folder: str) -> bool:
-    # store file locally (maybe can be skipped?)
-    file_name: str = secure_filename(file.filename)
-    if file_name == '':
-        LOG.error("Could not parse provided file name")
-        return False
-    path_to_file: str = abspath(join(Path(temp_folder), file_name))
-    file.save(path_to_file)
+def upload_file_to_server(file) -> bool:
 
     # load backend config
     config_path: str = "config/backend.yml"
@@ -40,6 +33,14 @@ def upload_file_to_server(file, temp_folder: str) -> bool:
         except yaml.YAMLError:
             LOG.exception("Failed to access backend config at {config/backend.yml}")
             return False
+
+    # store file locally (maybe can be skipped?)
+    file_name: str = secure_filename(file.filename)
+    if file_name == '':
+        LOG.error("Could not parse provided file name")
+        return False
+    path_to_file: str = abspath(join(Path(backend_config['backend']['temp-folder']), file_name))
+    file.save(path_to_file)
 
     # transfer file to server
     storage_server: dict = backend_config["storage-server"]
