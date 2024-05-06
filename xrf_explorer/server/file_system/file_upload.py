@@ -26,7 +26,9 @@ def remove_local_file(path: str) -> bool:
 def upload_file_to_server(file, temp_folder: str) -> bool:
     # store file locally (maybe can be skipped?)
     file_name: str = secure_filename(file.filename)
-    # TODO: secure_filename may return empty filename
+    if file_name == '':
+        LOG.error("could not parse provided file name")
+        return False
     path_to_file: str = abspath(join(Path(temp_folder), file_name))
     file.save(path_to_file)
 
