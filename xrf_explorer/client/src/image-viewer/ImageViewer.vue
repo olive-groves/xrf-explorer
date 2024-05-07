@@ -70,7 +70,7 @@ let renderer: THREE.WebGLRenderer;
 let width: number;
 let height: number;
 
-type Point2f = {x: number, y:number}
+type Point2D = {x: number, y:number}
 
 const layers: {
   [key: string]: Layer
@@ -131,15 +131,15 @@ function addLayer(id: string, image: string) {
 
     // Transform geometry in accordance to recipe
     // TODO: Get recipe and pass it to transformGeometry(...)
-    //const src: Point2f[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }];
-    //const dst: Point2f[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1.5, y: 1.5 }, { x: 0, y: 1 }];
-    //transformGeometry(geometry, src, dst);
+    //const src: Point2D[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }];
+    //const dst: Point2D[] = [{ x: 0.1, y: 0.2 }, { x: 0.9, y: 0.1 }, { x: 1.2, y: 0.9 }, { x: -0.2, y: 1.1 }];
+    //transformGeometry(geometry, src, dst, 800, 400, 1600, 1000);
 
     // Temporary implementation:
     let mat = new THREE.Matrix4();
     mat.set(
-      width, 0, 0, 0,
-      0, height, 0, 0,
+      texture.image.width, 0, 0, 0,
+      0, texture.image.height, 0, 0,
       0, 0, 1, 0,
       0, 0, 0, 1
     );
@@ -167,16 +167,41 @@ function addLayer(id: string, image: string) {
   });
 }
 
-function transformGeometry(geometry: THREE.ShapeGeometry, src: Point2f[], dst: Point2f[]) {
-  // Matrices for system Ax=B
+
+/**
+ * TODO: write function description
+ *
+ * @param {THREE.ShapeGeometry} geometry - A ShapeGeometry to be transformed
+ * @param {Point2D[]} src - An array of 4 points representing the source quadrilateral's corners.
+ * @param {Point2D[]} dst - An array of 4 points representing the destination quadrilateral's corners.
+ * @param {number} srcWidth - width of source image
+ * @param {number} srcHeight - height of source image
+ * @param {number} dstWidth - width of destination image
+ * @param {number} dstHeight - height of destination image
+ */
+function transformGeometry(geometry: THREE.ShapeGeometry, src: Point2D[], dst: Point2D[], srcWidth: number, srcHeight: number, dstWidth: number, dstHeight: number) {
+  // Unscale the points of the src image
+  const scale = Math.min(dstWidth / srcWidth, dstHeight / srcHeight);
+  src.forEach(point => {
+    point.x = point.x / scale,
+    point.y = point.y / scale
+  });
+
+  // Matrices for Ax=B
   const A = []; // 8 x 8
   const B = []; // 8 x 1
   for (let i = 0; i < 4; i++) {
     A.push(
       [src[i].x, src[i].y, 1, 0, 0, 0, -src[i].x * dst[i].x, -src[i].y * dst[i].x],
+    );
+    B.push(dst[i].x);
+  }
+  for (let i = 0; i < 4; i++) {
+    A.push(
       [0, 0, 0, src[i].x, src[i].y, 1, -src[i].x * dst[i].y, -src[i].y * dst[i].y]
     );
-    B.push(dst[i].x, dst[i].y);
+    B.push(dst[i].y);
+
   }
 
   // Solve Ax = B and extract solution
