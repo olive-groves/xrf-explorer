@@ -4,10 +4,8 @@ import FileInput from "./ui/file-input/FileInput.vue";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 </script>
 
@@ -15,7 +13,9 @@ import {
   <div class="modal" @click.self="$emit('close-upload-modal')">
     <Card class="w-8/12 mx-auto mt-52 bg-neutral-700">
       <CardHeader class="text-center text-2xl">Upload files</CardHeader>
-      <CardContent class="px-32"> <FileInput /> </CardContent>
+      <CardContent class="px-32">
+        <FileInput />
+      </CardContent>
       <CardFooter class="flex justify-center">
         <Button>Upload</Button>
       </CardFooter>
@@ -25,13 +25,19 @@ import {
 
 <style scoped>
 .modal {
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
+  position: fixed;
+  /* Stay in place */
+  z-index: 1;
+  /* Sit on top */
   left: 0;
   top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
+  width: 100%;
+  /* Full width */
+  height: 100%;
+  /* Full height */
+  overflow: auto;
+  /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.7);
+  /* Black w/ opacity */
 }
 </style>
