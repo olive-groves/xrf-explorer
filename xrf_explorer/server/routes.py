@@ -20,7 +20,7 @@ def info():
     return "adding more routes is quite trivial"
 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_file():
     if request.method == 'POST':
 
