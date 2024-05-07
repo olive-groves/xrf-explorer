@@ -13,7 +13,7 @@ import {
 
 <template>
   <div class="modal" @click="$emit('close-upload-modal')">
-    <Card class="w-8/12 mx-auto mt-20 bg-neutral-700">
+    <Card class="w-8/12 mx-auto mt-52 bg-neutral-700">
       <CardHeader class="text-center text-2xl">Upload files</CardHeader>
       <CardContent class="px-32"> <FileInput /> </CardContent>
       <CardFooter class="flex justify-center">
@@ -21,7 +21,6 @@ import {
       </CardFooter>
     </Card>
   </div>
-  div class="modal" @click="$emit('close-upload-modal')"
 </template>
 
 <style scoped>
@@ -33,6 +32,6 @@ import {
   width: 100%; /* Full width */
   height: 100%; /* Full height */
   overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+  background-color: rgba(0, 0, 0, 0.7); /* Black w/ opacity */
 }
 </style>

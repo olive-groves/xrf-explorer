@@ -22,13 +22,13 @@ const isFilesHovered = ref(false);
         v-show="isFilesHovered"
         class="flex flex-col absolute bg-[#2b2828] w-72"
       >
-        <div class="p-1 hover:bg-stone-700" @click="$emit('open-upload-modal')">
+        <div class="dropdown-element" @click="$emit('open-upload-modal')">
           Upload new source
         </div>
         <hr class="bg-white h-0.5" />
-        <div class="p-1 hover:bg-stone-700">Small pear tree</div>
-        <div class="p-1 hover:bg-stone-700">Some other example</div>
-        <div class="p-1 hover:bg-stone-700">Damn</div>
+        <div class="dropdown-element">Small pear tree</div>
+        <div class="dropdown-element">Some other example</div>
+        <div class="dropdown-element">Damn</div>
       </div>
     </div>
     <Button size="lg"> Channels </Button>
@@ -46,6 +46,6 @@ Button {
 }
 
 .dropdown-element {
-  padding: 4px;
+  @apply p-1 hover:bg-stone-700 select-none;
 }
 </style>
