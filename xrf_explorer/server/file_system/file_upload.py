@@ -1,30 +1,14 @@
 import logging
 
-from os import remove
 from os.path import basename, exists, join
 from pathlib import Path
-
-import yaml
 
 from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 
+from xrf_explorer.server.file_system.config_handler import load_yml
+
 LOG: logging.Logger = logging.getLogger(__name__)
-
-
-def remove_local_file(path: str) -> bool:
-    """Delete a file on the local machine
-
-    :param path: path to the file to be removed
-    :return: True if successfully removed the file
-    """
-    # remove from temp folder
-    if exists(path):
-        remove(path)
-        return True
-
-    LOG.error("Could not find temporary file {%s} for removal", path)
-    return False
 
 
 def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.yml") -> bool:
@@ -36,12 +20,9 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
     """
 
     # load backend config
-    with open(config_path, 'r') as config_file:
-        try:
-            backend_config: dict = yaml.safe_load(config_file)
-        except yaml.YAMLError:
-            LOG.exception("Failed to access backend config at {%s}", config_path)
-            return False
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        return False
 
     # store file on the server
     file_name: str = secure_filename(basename(file.filename))
