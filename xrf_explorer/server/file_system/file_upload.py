@@ -14,6 +14,11 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def remove_local_file(path: str) -> bool:
+    """Delete a file on the local machine
+
+    :param path: path to the file to be removed
+    :return: True if successfully removed the file
+    """
     # remove from temp folder
     if exists(path):
         remove(path)
@@ -24,6 +29,11 @@ def remove_local_file(path: str) -> bool:
 
 
 def upload_file_to_server(file) -> bool:
+    """Upload a local client file to a remote server as specified in the project's configuration.
+
+    :param file: The file as obtained from the POST request. Can be obtained from ``flask.request.files[<name>]``
+    :return: True if the local file was successfully uploaded to the server AND the temporary file removed
+    """
 
     # load backend config
     config_path: str = "config/backend.yml"
