@@ -1,25 +1,29 @@
 <script setup lang="ts">
 import { Teleport, toRef } from "vue";
-import { window_state } from "./state";
+import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
 const props = defineProps<{
   title: string,
-  opened?: boolean
+  opened?: boolean,
+  noScroll?: boolean,
+  location?: WindowLocation
 }>();
 
 const id = snakeCase(props.title);
 
-if (!(id in window_state)) {
-  window_state[id] = {
+if (!(id in windowState)) {
+  windowState[id] = {
     id: id,
     title: props.title,
-    opened: props.opened,
+    scrollable: !props.noScroll ?? true,
+    opened: props.opened ?? false,
+    location: props.location ?? 'left',
     portalMounted: false
   }
 }
 
-const state = toRef(window_state, id);
+const state = toRef(windowState, id);
 </script>
 
 <template>

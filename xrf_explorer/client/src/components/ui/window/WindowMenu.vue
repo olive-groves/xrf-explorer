@@ -5,7 +5,7 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from '@/components/ui/menubar'
-import { window_state } from './state';
+import { windowState } from './state';
 </script>
 
 <template>
@@ -14,7 +14,7 @@ import { window_state } from './state';
       View
     </MenubarTrigger>
     <MenubarContent>
-      <MenubarCheckboxItem v-for="window in window_state" v-model:checked="window.opened">
+      <MenubarCheckboxItem v-for="window in windowState" v-model:checked="window.opened">
         {{ window.title }}
       </MenubarCheckboxItem>
     </MenubarContent>

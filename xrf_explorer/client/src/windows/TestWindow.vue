@@ -54,7 +54,7 @@ const count = ref(0);
   <Window title="Second window">
     Hello there
   </Window>
-  <Window title="Button window">
+  <Window title="Button window" no-scroll>
     <Button @click="count++">{{ count }}</Button>
     <Button @click="count++">{{ count }}</Button>
     <Button @click="count++">{{ count }}</Button>
