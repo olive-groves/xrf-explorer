@@ -2,6 +2,7 @@
 import { Toolbar } from '@/image-viewer';
 import { onMounted, ref } from 'vue';
 import * as THREE from 'three';
+import * as math from 'mathjs';
 
 import { Layer, ToolState } from './types';
 import { useResizeObserver } from '@vueuse/core';
@@ -53,8 +54,8 @@ const viewport: {
   center: { x: number, y: number },
   zoom: number
 } = {
-  center: { x: 8191, y: 0 },
-  zoom: 0
+  center: { x: 4000, y: 3000 },
+  zoom: 2
 }
 
 const toolState = ref<ToolState>({
@@ -68,6 +69,8 @@ let renderer: THREE.WebGLRenderer;
 
 let width: number;
 let height: number;
+
+type Point2f = {x: number, y:number}
 
 const layers: {
   [key: string]: Layer
@@ -127,17 +130,22 @@ function addLayer(id: string, image: string) {
     const geometry = new THREE.ShapeGeometry(shape);
 
     // Transform geometry in accordance to recipe
-    // TODO: Do it according to recipe
-    // TODO: Separate this into an independent function to allow updating
+    // TODO: Get recipe and pass it to transformGeometry(...)
+    //const src: Point2f[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }];
+    //const dst: Point2f[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1.5, y: 1.5 }, { x: 0, y: 1 }];
+    //transformGeometry(geometry, src, dst);
+
+    // Temporary implementation:
     let mat = new THREE.Matrix4();
     mat.set(
-      texture.image.width, 0, 0, 0,
-      0, texture.image.height, 0, 0,
+      width, 0, 0, 0,
+      0, height, 0, 0,
       0, 0, 1, 0,
       0, 0, 0, 1
     );
 
     geometry.applyMatrix4(mat);
+
 
     layer.uniform.tImage = {
       type: "t",
@@ -157,6 +165,31 @@ function addLayer(id: string, image: string) {
 
     scene.add(mesh);
   });
+}
+
+function transformGeometry(geometry: THREE.ShapeGeometry, src: Point2f[], dst: Point2f[]) {
+  // Matrices for system Ax=B
+  const A = []; // 8 x 8
+  const B = []; // 8 x 1
+  for (let i = 0; i < 4; i++) {
+    A.push(
+      [src[i].x, src[i].y, 1, 0, 0, 0, -src[i].x * dst[i].x, -src[i].y * dst[i].x],
+      [0, 0, 0, src[i].x, src[i].y, 1, -src[i].x * dst[i].y, -src[i].y * dst[i].y]
+    );
+    B.push(dst[i].x, dst[i].y);
+  }
+
+  // Solve Ax = B and extract solution
+  const x = math.lusolve(A, B); // 8 x 1
+
+  let mat = new THREE.Matrix4();
+  mat.set(
+    x[0][0], x[1][0], x[2][0],
+    x[3][0], x[4][0], x[5][0],
+    x[6][0], x[7][0], 1
+  );
+
+  geometry.applyMatrix4(mat);
 }
 
 function render() {
