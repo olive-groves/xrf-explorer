@@ -44,7 +44,7 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
             return False
 
     # store file locally (maybe can be skipped?)
-    file_name: str = basename(secure_filename(file.filename))   # basename needed?
+    file_name: str = secure_filename(basename(file.filename))
     if file_name == '':
         LOG.error("Could not parse provided file name: {%s}", file.filename)
         return False
