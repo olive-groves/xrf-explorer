@@ -4,7 +4,6 @@ from waitress import serve
 
 from xrf_explorer import app
 
-
 LOG: logging.Logger = logging.getLogger(__name__)
 
 PORT = 8001
