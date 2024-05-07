@@ -4,8 +4,15 @@ import {
   MenubarContent,
   MenubarMenu,
   MenubarTrigger,
+  MenubarSeparator
 } from '@/components/ui/menubar'
 import { windowState } from './state';
+import { computed, useSlots } from 'vue';
+
+const slots = useSlots();
+const hasSlot = computed(() => {
+  return ('default' in slots);
+})
 </script>
 
 <template>
@@ -17,6 +24,8 @@ import { windowState } from './state';
       <MenubarCheckboxItem v-for="window in windowState" v-model:checked="window.opened">
         {{ window.title }}
       </MenubarCheckboxItem>
+      <MenubarSeparator v-if="hasSlot" />
+      <slot />
     </MenubarContent>
   </MenubarMenu>
 </template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Header } from "@/components";
-import { TestWindow } from "@/windows";
 import { WindowContainer } from "@/components/ui/window";
+import { TestWindow } from "@/windows";
+import { UploadFileDialog } from "@/dialogs";
 </script>
 
 <template>
@@ -13,5 +14,6 @@ import { WindowContainer } from "@/components/ui/window";
         class="size-full" />
       <TestWindow />
     </WindowContainer>
+    <UploadFileDialog />
   </div>
 </template>

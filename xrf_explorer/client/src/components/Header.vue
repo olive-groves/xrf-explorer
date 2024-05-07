@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import {
   Menubar,
-  // MenubarCheckboxItem,
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  //   MenubarRadioGroup,
-  //   MenubarRadioItem,
   MenubarSeparator,
   MenubarSub,
   MenubarSubContent,
   MenubarSubTrigger,
-  //   MenubarShortcut,
-  //   MenubarSub,
-  //   MenubarSubContent,
-  //   MenubarSubTrigger,
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { WindowMenu } from '@/components/ui/window';
+import { DialogMenuItem } from '@/components/ui/dialog';
 
 import { useColorMode } from '@vueuse/core';
 
@@ -61,52 +55,18 @@ const colorMode = useColorMode({
     </MenubarMenu>
     <MenubarMenu>
       <MenubarTrigger>
-        Workspace
+        File
       </MenubarTrigger>
       <MenubarContent>
-        <MenubarItem>
-          Recent #1
-        </MenubarItem>
-        <MenubarItem>
-          Recent #2
-        </MenubarItem>
-        <MenubarItem>
-          Recent #3
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem>
-          Open workspace
-        </MenubarItem>
-        <MenubarSub>
-          <MenubarSubTrigger>
-            Open recent
-          </MenubarSubTrigger>
-          <MenubarSubContent>
-            <MenubarItem>
-              Recent #1
-            </MenubarItem>
-            <MenubarItem>
-              Recent #2
-            </MenubarItem>
-            <MenubarItem>
-              Recent #3
-            </MenubarItem>
-            <MenubarItem>
-              Recent #4
-            </MenubarItem>
-            <MenubarItem>
-              Recent #5
-            </MenubarItem>
-            <MenubarItem>
-              Recent #6
-            </MenubarItem>
-          </MenubarSubContent>
-        </MenubarSub>
-        <MenubarItem>
-          New workspace
-        </MenubarItem>
+        <DialogMenuItem id="upload_file">
+          Upload files
+        </DialogMenuItem>
       </MenubarContent>
     </MenubarMenu>
-    <WindowMenu />
+    <WindowMenu>
+      <MenubarItem>
+        Reset views
+      </MenubarItem>
+    </WindowMenu>
   </Menubar>
 </template>
