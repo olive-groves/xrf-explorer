@@ -1,0 +1,7 @@
+storage-server:
+  user: "user"
+  ip: 0.0.0.0
+  path: "/target"
+
+backend:
+  temp-folder: "/temp"

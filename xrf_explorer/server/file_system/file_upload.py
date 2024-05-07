@@ -1,13 +1,14 @@
 import logging
 
 from os import remove, environ
-from os.path import abspath, exists, join
+from os.path import abspath, basename, exists, join
 from pathlib import Path
 from socket import error
 
 import yaml
 
 from paramiko import AutoAddPolicy, SFTPClient, SSHClient, ssh_exception
+from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -28,28 +29,28 @@ def remove_local_file(path: str) -> bool:
     return False
 
 
-def upload_file_to_server(file) -> bool:
+def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.yml") -> bool:
     """Upload a local client file to a remote server as specified in the project's configuration.
 
-    :param file: The file as obtained from the POST request. Can be obtained from ``flask.request.files[<name>]``
+    :param file: the file as obtained from the POST request. Can be obtained from ``flask.request.files[<name>]``
+    :param config_path: path to the backend config file
     :return: True if the local file was successfully uploaded to the server AND the temporary file removed
     """
 
     # load backend config
-    config_path: str = "config/backend.yml"
     with open(config_path, 'r') as config_file:
         try:
             backend_config: dict = yaml.safe_load(config_file)
         except yaml.YAMLError:
-            LOG.exception("Failed to access backend config at {config/backend.yml}")
+            LOG.exception("Failed to access backend config at {%s}", config_path)
             return False
 
     # store file locally (maybe can be skipped?)
-    file_name: str = secure_filename(file.filename)
+    file_name: str = basename(secure_filename(file.filename))   # basename needed?
     if file_name == '':
         LOG.error("Could not parse provided file name")
         return False
-    path_to_file: str = abspath(join(Path(backend_config['backend']['temp-folder']), file_name))
+    path_to_file: str = join(Path(backend_config['backend']['temp-folder']), file_name)
     file.save(path_to_file)
 
     # transfer file to server

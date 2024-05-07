@@ -1,6 +1,7 @@
 import logging
 
 from flask import request, redirect
+from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
@@ -27,7 +28,7 @@ def upload_file():
             LOG.error("Failed to retrieve upload file")
             return "No file part"
 
-        file = request.files['fileUpload']
+        file: FileStorage = request.files['fileUpload']
         if file.filename == '':     # user did not upload a file
             return "No file selected"
 
