@@ -12,7 +12,7 @@ import {
 </script>
 
 <template>
-  <div class="modal">
+  <div class="modal" @click="$emit('close-upload-modal')">
     <Card class="w-8/12 mx-auto mt-20 bg-neutral-700">
       <CardHeader class="text-center text-2xl">Upload files</CardHeader>
       <CardContent class="px-32"> <FileInput /> </CardContent>
@@ -21,6 +21,7 @@ import {
       </CardFooter>
     </Card>
   </div>
+  div class="modal" @click="$emit('close-upload-modal')"
 </template>
 
 <style scoped>

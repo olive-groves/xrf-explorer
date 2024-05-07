@@ -22,7 +22,9 @@ const isFilesHovered = ref(false);
         v-show="isFilesHovered"
         class="flex flex-col absolute bg-[#2b2828] w-72"
       >
-        <div class="p-1 hover:bg-stone-700">Upload new source</div>
+        <div class="p-1 hover:bg-stone-700" @click="$emit('open-upload-modal')">
+          Upload new source
+        </div>
         <hr class="bg-white h-0.5" />
         <div class="p-1 hover:bg-stone-700">Small pear tree</div>
         <div class="p-1 hover:bg-stone-700">Some other example</div>
