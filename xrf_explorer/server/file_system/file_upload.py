@@ -43,7 +43,7 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
             LOG.exception("Failed to access backend config at {%s}", config_path)
             return False
 
-    # store file locally (maybe can be skipped?)
+    # store file on the server
     file_name: str = secure_filename(basename(file.filename))
     if file_name == '':
         LOG.error("Could not parse provided file name: {%s}", file.filename)
