@@ -1,7 +1,2 @@
-storage-server:
-  user: ROOT
-  ip: 194.180.188.105
-  path: "/tmp"
-
-backend:
-  temp-folder: "xrf_explorer/server/temp"
+uploads-folder: "xrf_explorer/server/temp"
+upload-buffer-size: 16384

@@ -1,13 +1,11 @@
 import logging
 
-from os import remove, environ
-from os.path import abspath, basename, exists, join
+from os import remove
+from os.path import basename, exists, join
 from pathlib import Path
-from socket import error
 
 import yaml
 
-from paramiko import AutoAddPolicy, SFTPClient, SSHClient, ssh_exception
 from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 
@@ -48,39 +46,14 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
     # store file locally (maybe can be skipped?)
     file_name: str = basename(secure_filename(file.filename))   # basename needed?
     if file_name == '':
-        LOG.error("Could not parse provided file name")
+        LOG.error("Could not parse provided file name: {%s}", file.filename)
         return False
-    path_to_file: str = join(Path(backend_config['backend']['temp-folder']), file_name)
-    file.save(path_to_file)
+    path_to_file: str = join(Path(backend_config['uploads-folder']), file_name)     # store under session key folder?
+    file.save(path_to_file, backend_config['upload-buffer-size'])
 
-    # transfer file to server
-    storage_server: dict = backend_config["storage-server"]
-    file_transfer_complete: bool = False
-    try:
-        ssh_connection: SSHClient = SSHClient()
-        ssh_connection.set_missing_host_key_policy(AutoAddPolicy)
+    # verify
+    if exists(path_to_file):
+        LOG.info("Uploaded {%s} to {%s}", file_name, path_to_file)
+        return True
 
-        # establish ssh connection to server
-        ssh_connection.connect(hostname=storage_server["ip"],
-                               username=storage_server["user"],
-                               password=environ.get('XRF_EXPLORER__CREDENTIALS__STORAGE_SERVER'),
-                               port=22)
-
-        # establish sftp connection to server
-        sftp_client: SFTPClient = ssh_connection.open_sftp()
-        destination: str = f"{storage_server['path']}/{file_name}"
-        sftp_client.put(path_to_file, destination)
-        LOG.info("Uploaded {%s} to {%s}", file.filename, destination)
-        file_transfer_complete = True
-
-        # close session
-        sftp_client.close()
-        ssh_connection.close()
-    except (ssh_exception.AuthenticationException, ssh_exception.SSHException, error):
-        LOG.exception("Failed to establish SSH connection to remote storage server")
-        file_transfer_complete = False
-    finally:
-        local_file_removed: bool = remove_local_file(path_to_file)
-        file_transfer_complete = file_transfer_complete and local_file_removed
-
-    return file_transfer_complete
+    return False
