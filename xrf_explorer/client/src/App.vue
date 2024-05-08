@@ -2,7 +2,7 @@
 import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
 import { TestWindow } from "@/windows";
-import { UploadFileDialog } from "@/dialogs";
+import { UploadFileDialog } from "@/components/dialogs";
 </script>
 
 <template>

@@ -16,7 +16,7 @@ if (!(id in windowState)) {
   windowState[id] = {
     id: id,
     title: props.title,
-    scrollable: !props.noScroll ?? true,
+    scrollable: !props.noScroll,
     opened: props.opened ?? false,
     location: props.location ?? 'left',
     portalMounted: false
