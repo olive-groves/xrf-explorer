@@ -1,0 +1,1 @@
+export { default as TestWindow } from './TestWindow.vue';
