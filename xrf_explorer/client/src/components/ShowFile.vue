@@ -1,48 +1,23 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { computed } from 'vue'
+import { useFetch } from '@vueuse/core';
 
 // Constants
 const API_URL = 'http://localhost:8001/api'
 
-// Reactive array
-var file_names: string[] = reactive([]);
-
-// Fetch data from the server
-async function fetchdata() {
-  try {
-    // Try fethcing data from the server
-    const response = await fetch(`${API_URL}/files`, {
-    method:"GET",
-    headers: {
-      "Content-Type":"application/json"
-    }
-  });
-
-  // Convert the response to JSON
-  const data = await response.json() as Array<string>;
-
-  // Add files to the list 
-  data.forEach((file) => {
-    file_names.push(file);
-  });
-
-  } catch (error) {
-    console.log("Fetching files gave error: ", error);
-  }
-}
-
+// Fetch files
+const { data } = useFetch(`${API_URL}/files`).get().json()
+const files = computed(() => {
+  return data.value as Array<string>;
+})
 </script>
 
 <template>
-  <Button  @click="fetchdata()" style="margin-top: 10px">
-    Show files
-  </Button>
   <ul>
-    <li v-for="file in file_names">
+    <li v-for="file in files">
       {{ file }}
     </li>
   </ul>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
