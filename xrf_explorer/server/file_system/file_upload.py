@@ -86,16 +86,28 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
     return file_transfer_complete
 
 def stored_files(config_path: str = "config/backend.yml") -> list[str]:
+    """Return a list of all files stored in the data folder on the remote server as 
+    specified in the project's configuration.
+
+    :param config_path: path to the backend config file
+    :return: list of all files stored in the folder on the server
+    """
+
     # load backend config
     with open(config_path, 'r') as config_file:
         try:
             backend_config: dict = yaml.safe_load(config_file)
         except yaml.YAMLError:
             LOG.exception("Failed to access backend config at {%s}", config_path)
-            return False
+            return [""]
 
     # Path to folder where files are stored
     path = Path(backend_config['backend']['temp-folder'])
 
-    # Return list of file names in folder
-    return [f for f in listdir(path) if isfile(join(path, f))]
+    # Return list of all file names in the folder
+    files = [f for f in listdir(path) if isfile(join(path, f))]
+
+    # Remove unwanted files
+    files.remove(".gitignore")
+
+    return files
