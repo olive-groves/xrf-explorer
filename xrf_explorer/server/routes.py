@@ -5,7 +5,8 @@ from flask import request, redirect
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.file_upload import upload_file_to_server, stored_files
+from xrf_explorer.server.file_system.file_upload import upload_file_to_server
+from xrf_explorer.server.file_system.get_files import get_files
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def info():
 
 @app.route('/api/files')
 def accessible_files():
-    return json.dumps(stored_files())
+    return json.dumps(get_files())
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
