@@ -1,8 +1,11 @@
+from os import remove
 from os.path import join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
+from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
+from xrf_explorer.server.file_system.get_files import get_files
 
 RESOURCES_PATH: Path = Path('tests/resources')
 
@@ -40,3 +43,37 @@ class TestUploadFileToServer:
         # validate
         assert not result
         assert expected_output in caplog.text
+    
+    def test_get_file_names(self):
+        # constants
+        FILENAME = "test_file_name.txt"
+
+        # open file
+        f = open(self.UPLOAD_FILE_PATH, "rb")
+        
+        # setup
+        file: FileStorage = FileStorage(f)
+        file.filename = FILENAME
+
+        # upload file
+        result: bool = upload_file_to_server(file, self.CUSTOM_CONFIG_PATH)
+        
+        # close file
+        file.close()
+
+        # check if upload file was succussful
+        assert bool
+
+        # get files from server
+        result: list[str] = get_files(self.CUSTOM_CONFIG_PATH)
+        
+        # Check if file was uploaded
+        assert FILENAME in result
+
+        # remove test file 
+        config = load_yml(self.CUSTOM_CONFIG_PATH)
+        
+        assert config
+
+        remove(Path(config['uploads-folder'], FILENAME))
+        
