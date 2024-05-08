@@ -24,7 +24,7 @@ def info():
 def accessible_files():
     return json.dumps(stored_files())
 
-@app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_file():
     if request.method == 'POST':
 

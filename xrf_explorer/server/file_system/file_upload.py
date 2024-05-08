@@ -1,32 +1,14 @@
 import logging
 
-from os import listdir, remove, environ
-from os.path import abspath, basename, isfile, exists, join
+from os.path import basename, exists, join
 from pathlib import Path
-from socket import error
 
-import yaml
-
-from paramiko import AutoAddPolicy, SFTPClient, SSHClient, ssh_exception
 from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 
+from xrf_explorer.server.file_system.config_handler import load_yml
+
 LOG: logging.Logger = logging.getLogger(__name__)
-
-
-def remove_local_file(path: str) -> bool:
-    """Delete a file on the local machine
-
-    :param path: path to the file to be removed
-    :return: True if successfully removed the file
-    """
-    # remove from temp folder
-    if exists(path):
-        remove(path)
-        return True
-
-    LOG.error("Could not find temporary file {%s} for removal", path)
-    return False
 
 
 def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.yml") -> bool:
@@ -38,52 +20,24 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
     """
 
     # load backend config
-    with open(config_path, 'r') as config_file:
-        try:
-            backend_config: dict = yaml.safe_load(config_file)
-        except yaml.YAMLError:
-            LOG.exception("Failed to access backend config at {%s}", config_path)
-            return False
-
-    # store file locally (maybe can be skipped?)
-    file_name: str = basename(secure_filename(file.filename))   # basename needed?
-    if file_name == '':
-        LOG.error("Could not parse provided file name")
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
         return False
-    path_to_file: str = join(Path(backend_config['backend']['temp-folder']), file_name)
-    file.save(path_to_file)
 
-    # transfer file to server
-    storage_server: dict = backend_config["storage-server"]
-    file_transfer_complete: bool = False
-    try:
-        ssh_connection: SSHClient = SSHClient()
-        ssh_connection.set_missing_host_key_policy(AutoAddPolicy)
+    # store file on the server
+    file_name: str = secure_filename(basename(file.filename))
+    if file_name == '':
+        LOG.error("Could not parse provided file name: {%s}", file.filename)
+        return False
+    path_to_file: str = join(Path(backend_config['uploads-folder']), file_name)     # store under session key folder?
+    file.save(path_to_file, backend_config['upload-buffer-size'])
 
-        # establish ssh connection to server
-        ssh_connection.connect(hostname=storage_server["ip"],
-                               username=storage_server["user"],
-                               password=environ.get('XRF_EXPLORER__CREDENTIALS__STORAGE_SERVER'),
-                               port=22)
+    # verify
+    if exists(path_to_file):
+        LOG.info("Uploaded {%s} to {%s}", file_name, path_to_file)
+        return True
 
-        # establish sftp connection to server
-        sftp_client: SFTPClient = ssh_connection.open_sftp()
-        destination: str = f"{storage_server['path']}/{file_name}"
-        sftp_client.put(path_to_file, destination)
-        LOG.info("Uploaded {%s} to {%s}", file.filename, destination)
-        file_transfer_complete = True
-
-        # close session
-        sftp_client.close()
-        ssh_connection.close()
-    except (ssh_exception.AuthenticationException, ssh_exception.SSHException, error):
-        LOG.exception("Failed to establish SSH connection to remote storage server")
-        file_transfer_complete = False
-    finally:
-        local_file_removed: bool = remove_local_file(path_to_file)
-        file_transfer_complete = file_transfer_complete and local_file_removed
-
-    return file_transfer_complete
+    return False
 
 def stored_files(config_path: str = "config/backend.yml") -> list[str]:
     """Return a list of all files stored in the data folder on the remote server as 
@@ -94,20 +48,21 @@ def stored_files(config_path: str = "config/backend.yml") -> list[str]:
     """
 
     # load backend config
-    with open(config_path, 'r') as config_file:
-        try:
-            backend_config: dict = yaml.safe_load(config_file)
-        except yaml.YAMLError:
-            LOG.exception("Failed to access backend config at {%s}", config_path)
-            return [""]
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        return False
 
-    # Path to folder where files are stored
-    path = Path(backend_config['backend']['temp-folder'])
+    # store file on the server
+    file_name: str = secure_filename(basename(file.filename))
+    if file_name == '':
+        LOG.error("Could not parse provided file name: {%s}", file.filename)
+        return False
+    path_to_file: str = join(Path(backend_config['uploads-folder']), file_name)     # store under session key folder?
+    file.save(path_to_file, backend_config['upload-buffer-size'])
 
-    # Return list of all file names in the folder
-    files = [f for f in listdir(path) if isfile(join(path, f))]
+    # verify
+    if exists(path_to_file):
+        LOG.info("Uploaded {%s} to {%s}", file_name, path_to_file)
+        return True
 
-    # Remove unwanted files
-    files.remove(".gitignore")
-
-    return files
+    return False

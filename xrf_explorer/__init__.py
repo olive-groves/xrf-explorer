@@ -3,7 +3,6 @@ from pathlib import Path
 from flask import Flask, send_from_directory
 
 app = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
-app.config['SECRET_KEY'] = 'insert-more-secure-key'
 
 
 from xrf_explorer.server import routes
