@@ -1,11 +1,11 @@
 <script setup lang="ts">
-// import HelloWorld from './components/HelloWorld.vue'
 import UploadFile from "@/components/UploadFile.vue";
+import ShowFile from './components/ShowFile.vue';
 </script>
 
 <template>
-<!--  <HelloWorld />-->
   <UploadFile />
+  <ShowFile />
 </template>
 
 <style scoped>

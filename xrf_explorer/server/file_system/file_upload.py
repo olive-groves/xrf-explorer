@@ -1,7 +1,7 @@
 import logging
 
-from os import remove, environ
-from os.path import abspath, basename, exists, join
+from os import listdir, remove, environ
+from os.path import abspath, basename, isfile, exists, join
 from pathlib import Path
 from socket import error
 
@@ -84,3 +84,18 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
         file_transfer_complete = file_transfer_complete and local_file_removed
 
     return file_transfer_complete
+
+def stored_files(config_path: str = "config/backend.yml") -> list[str]:
+    # load backend config
+    with open(config_path, 'r') as config_file:
+        try:
+            backend_config: dict = yaml.safe_load(config_file)
+        except yaml.YAMLError:
+            LOG.exception("Failed to access backend config at {%s}", config_path)
+            return False
+
+    # Path to folder where files are stored
+    path = Path(backend_config['backend']['temp-folder'])
+
+    # Return list of file names in folder
+    return [f for f in listdir(path) if isfile(join(path, f))]
