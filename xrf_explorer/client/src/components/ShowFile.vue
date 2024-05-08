@@ -31,11 +31,12 @@ async function fetchdata() {
   }
 }
 
-fetchdata()
-
 </script>
 
 <template>
+  <Button  @click="fetchdata()" style="margin-top: 10px">
+    Show files
+  </Button>
   <ul>
     <li v-for="file in file_names">
       {{ file }}
