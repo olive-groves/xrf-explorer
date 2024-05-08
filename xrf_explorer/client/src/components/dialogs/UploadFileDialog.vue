@@ -6,6 +6,7 @@ import {
   DialogClose,
   DialogTitle
 } from '@/components/ui/dialog';
+import ShowFile from '@/components/ShowFile.vue';
 import { FileInput } from '@/components/ui/file-upload';
 </script>
 
@@ -25,5 +26,6 @@ import { FileInput } from '@/components/ui/file-upload';
       </DialogClose>
       <Button>Upload</Button>
     </DialogFooter>
+    <ShowFile />
   </ReusableDialog>
 </template>

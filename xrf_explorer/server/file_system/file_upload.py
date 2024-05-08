@@ -1,6 +1,7 @@
 import logging
 
-from os.path import basename, exists, join
+from os import listdir
+from os.path import basename, exists, isfile, join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
@@ -50,19 +51,15 @@ def stored_files(config_path: str = "config/backend.yml") -> list[str]:
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
-        return False
+        return [""]
 
-    # store file on the server
-    file_name: str = secure_filename(basename(file.filename))
-    if file_name == '':
-        LOG.error("Could not parse provided file name: {%s}", file.filename)
-        return False
-    path_to_file: str = join(Path(backend_config['uploads-folder']), file_name)     # store under session key folder?
-    file.save(path_to_file, backend_config['upload-buffer-size'])
+    # Path to folder where files are stored
+    path = Path(backend_config['uploads-folder'])
 
-    # verify
-    if exists(path_to_file):
-        LOG.info("Uploaded {%s} to {%s}", file_name, path_to_file)
-        return True
+    # Return list of all file names in the folder
+    files = [f for f in listdir(path) if isfile(join(path, f))]
 
-    return False
+    # Remove unwanted files
+    files.remove(".gitignore")
+
+    return files

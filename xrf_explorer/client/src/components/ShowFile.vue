@@ -13,6 +13,7 @@ const files = computed(() => {
 </script>
 
 <template>
+  Uploaded files:
   <ul>
     <li v-for="file in files">
       {{ file }}
