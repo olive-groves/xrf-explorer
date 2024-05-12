@@ -15,6 +15,18 @@ import { DialogMenuItem } from '@/components/ui/dialog';
 
 import { useColorMode } from '@vueuse/core';
 
+import { computed } from 'vue'
+import { useFetch } from '@vueuse/core';
+
+// FUNCTIONALITY FOR THE FILES MENU
+const API_URL = 'http://localhost:8001/api'
+
+// Fetch files
+const { data } = useFetch(`${API_URL}/files`).get().json()
+const files = computed(() => {
+  return data.value as Array<string>;
+})
+
 const colorMode = useColorMode({
   initialValue: "dark"
 });
@@ -61,6 +73,12 @@ const colorMode = useColorMode({
         <DialogMenuItem id="upload_file">
           Upload files
         </DialogMenuItem>
+        <MenubarSeparator />
+        <div>
+          <DialogMenuItem v-for="file in files" :key="file" :id="`open_file_${file}`">
+            {{ file }}
+          </DialogMenuItem>
+        </div>
       </MenubarContent>
     </MenubarMenu>
     <WindowMenu>
