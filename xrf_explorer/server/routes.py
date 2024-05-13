@@ -5,7 +5,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
-from xrf_explorer.server.dim_reduction.main import get_embedding
+from xrf_explorer.server.dim_reduction.main import get_embedding, get_overlay
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ def info():
 
 
 @app.route('/api/get_embedding')
-def get_dim_reduction():
+def get_dr_embedding():
     # verify arguments
     if 'element' not in request.args:
         return "Missing element number"
@@ -31,7 +31,12 @@ def get_dim_reduction():
 
 @app.route('/api/get_overlay')
 def get_dr_overlay():
-    return "Comming soon!"
+    # if 'type' not in request.args:
+    #     return "Missing overlay type"
+    # if request.args['type'] == 'element' and 'element' not in request.args:
+    #     return "Missing element number"
+    
+    return get_overlay(request.args)
 
 
 @app.route('/api/upload', methods=['POST'])

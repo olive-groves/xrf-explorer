@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
-import { TestWindow } from "@/windows";
+import { TestWindow, DRWindow } from "@/windows";
 import { UploadFileDialog } from "@/components/dialogs";
 </script>
 
@@ -13,6 +13,7 @@ import { UploadFileDialog } from "@/components/dialogs";
         src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/2048px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg"
         class="size-full" />
       <TestWindow />
+      <DRWindow />
     </WindowContainer>
     <UploadFileDialog />
   </div>

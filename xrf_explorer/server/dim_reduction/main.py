@@ -94,11 +94,12 @@ def create_embedding_image(config_path: str = "config/backend.yml"):
 
     # Create the plot
     plt.figure(figsize=(15, 12))
+    plt.axis('off')
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5/2, s=15)
-    plt.colorbar()
+    # plt.colorbar()
 
-    plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'))
+    plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'), bbox_inches='tight')
 
     return True
 
@@ -114,6 +115,17 @@ def get_embedding(args):
         LOG.error("Failed to create DR embedding image")
         return "Failed to create DR embedding image"
 
+    # Return the embedding
+    embedding_path = "server/temp/embedding.png" # TODO: Fix this path
+    return send_file(embedding_path, mimetype='image/png')
+
+
+def get_overlay(args):
+    # Create the embedding image
+    if not create_embedding_image():
+        LOG.error("Failed to create DR embedding image")
+        return "Failed to create DR embedding image"
+    
     # Return the embedding
     embedding_path = "server/temp/embedding.png" # TODO: Fix this path
     return send_file(embedding_path, mimetype='image/png')
