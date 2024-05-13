@@ -1,11 +1,11 @@
 import logging
 
-from flask import request, redirect, send_file
+from flask import request, redirect
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
-from xrf_explorer.server.dim_reduction.main import perform_dim_reduction, create_embedding_image
+from xrf_explorer.server.dim_reduction.main import get_embedding
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -21,15 +21,17 @@ def info():
     return "adding more routes is quite trivial"
 
 
-@app.route('/api/get_dim_reduction')
+@app.route('/api/get_embedding')
 def get_dim_reduction():
-    # Compute the embedding
-    perform_dim_reduction()
-    create_embedding_image()
+    # verify arguments
+    if 'element' not in request.args:
+        return "Missing element number"
+    return get_embedding(request.args)
 
-    # Return the embedding
-    embedding_path = "server/temp/embedding.png"
-    return send_file(embedding_path, mimetype='image/png')
+
+@app.route('/api/get_overlay')
+def get_dr_overlay():
+    return "Comming soon!"
 
 
 @app.route('/api/upload', methods=['POST'])

@@ -3,55 +3,73 @@ import logging
 from os.path import join
 from pathlib import Path
 
+from flask import send_file
+
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-# Constants
-ELEMENT = 9
-THRESHOLD = 100
+DR_ARGS = ['element', 'treshold', 'n_neighbors', 'min_dist', 'n_components', 'metric']
 
-def apply_umap(data):
-    from umap import UMAP 
+
+def apply_umap(data, parms):
+    from umap import UMAP
 
     return UMAP(
-        n_neighbors=10,
-        min_dist=0,
-        n_components=2, 
-        metric= 'cosine'
+        n_neighbors=int(parms['n_neighbors']),
+        min_dist=float(parms['min_dist']),
+        n_components=int(parms['n_components']), 
+        metric= parms['metric']
     ).fit_transform(data)
 
-def perform_dim_reduction(config_path: str = "config/backend.yml") -> bool:
+
+def compute_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
-        return None
-    
-    # get data cube path
-    data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy')
-    if not data_cube_path:
         return False
+    
+    # get default dim reduction config
+    dr_config: dict = backend_config['default_dim_reduction']
+    dr_config.update(args)
 
-    # load data cube
+    # Constants
+    element = int(dr_config['element'])
+    threshold = int(dr_config['threshold'])
+
+    # get data cube
+    data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
     data = np.load(data_cube_path)
 
+    # check if element is valid
+    if element < 0 or element >= data.shape[2]:
+        LOG.error(f"Invalid element: {element}")
+        return False
+
     # filter data
-    indices = np.argwhere(data[:, :, ELEMENT] >= THRESHOLD)
+    indices = np.argwhere(data[:, :, element] >= threshold)
 
     # get filtered data
     spectra = data[indices[:, 0], indices[:, 1], :]
 
     # compute embedding
-    embedded_data = apply_umap(spectra)
+    try:
+        embedded_data = apply_umap(spectra, dr_config)
+    except ValueError as e:
+        LOG.error(f"Failed to compute embedding: {e}")
+        return False
 
     # save indices and embedded data
     np.save(Path(backend_config['temp-folder'], 'indices.npy'), indices)
     np.save(Path(backend_config['temp-folder'], 'embedded_data.npy'), embedded_data)
 
     return True
+
 
 def create_embedding_image(config_path: str = "config/backend.yml"):
     # load backend config
@@ -83,3 +101,19 @@ def create_embedding_image(config_path: str = "config/backend.yml"):
     plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'))
 
     return True
+
+
+def get_embedding(args):
+    # Compute the embedding
+    if not compute_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
+        LOG.error("Failed to compute DR embedding")
+        return "Failed to compute DR embedding"
+    
+    # Create the embedding image
+    if not create_embedding_image():
+        LOG.error("Failed to create DR embedding image")
+        return "Failed to create DR embedding image"
+
+    # Return the embedding
+    embedding_path = "server/temp/embedding.png" # TODO: Fix this path
+    return send_file(embedding_path, mimetype='image/png')

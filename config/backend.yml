@@ -1,3 +1,9 @@
 uploads-folder: "xrf_explorer/server/temp"
 upload-buffer-size: 16384
 temp-folder: "xrf_explorer/server/temp"
+default_dim_reduction:
+  threshold: 100
+  n_neighbors: 10
+  min_dist: 0
+  n_components: 2
+  metric: 'cosine'
