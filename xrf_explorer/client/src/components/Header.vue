@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/menubar';
 import { WindowMenu } from '@/components/ui/window';
 import { DialogMenuItem } from '@/components/ui/dialog';
+import { FileMenu } from '@/components/menus';
 
 import { useColorMode } from '@vueuse/core';
 
@@ -74,11 +75,7 @@ const colorMode = useColorMode({
           Upload files
         </DialogMenuItem>
         <MenubarSeparator />
-        <div>
-          <DialogMenuItem v-for="file in files" :key="file" :id="`open_file_${file}`">
-            {{ file }}
-          </DialogMenuItem>
-        </div>
+        <FileMenu />
       </MenubarContent>
     </MenubarMenu>
     <WindowMenu>
