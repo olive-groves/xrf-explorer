@@ -1,13 +1,14 @@
 <script setup lang="ts">
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Teleport, toRef } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
 const props = defineProps<{
-  title: string,
-  opened?: boolean,
-  noScroll?: boolean,
-  location?: WindowLocation
+  title: string;
+  opened?: boolean;
+  noScroll?: boolean;
+  location?: WindowLocation;
 }>();
 
 const id = snakeCase(props.title);
@@ -18,9 +19,9 @@ if (!(id in windowState)) {
     title: props.title,
     scrollable: !props.noScroll,
     opened: props.opened ?? false,
-    location: props.location ?? 'left',
-    portalMounted: false
-  }
+    location: props.location ?? "left",
+    portalMounted: false,
+  };
 }
 
 const state = toRef(windowState, id);

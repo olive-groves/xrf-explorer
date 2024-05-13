@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import {
-  MenubarItem
-} from '../menubar';
-import { openDialog } from './utils';
+import { MenubarItem } from "../menubar";
+import { openDialog } from "./utils";
 
 const props = defineProps<{
-  id: string
+  id: string;
 }>();
 </script>
 

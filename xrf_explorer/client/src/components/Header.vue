@@ -9,64 +9,44 @@ import {
   MenubarSubContent,
   MenubarSubTrigger,
   MenubarTrigger,
-} from '@/components/ui/menubar';
-import { WindowMenu } from '@/components/ui/window';
-import { DialogMenuItem } from '@/components/ui/dialog';
+} from "@/components/ui/menubar";
+import { WindowMenu } from "@/components/ui/window";
+import { DialogMenuItem } from "@/components/ui/dialog";
 
-import { useColorMode } from '@vueuse/core';
+import { useColorMode } from "@vueuse/core";
 
 const colorMode = useColorMode({
-  initialValue: "dark"
+  initialValue: "dark",
 });
 </script>
 
 <template>
   <Menubar class="w-full h-min m-0 rounded-none border-0 border-b">
     <MenubarMenu>
-      <MenubarTrigger class="font-bold">
-        XRF-Explorer
-      </MenubarTrigger>
+      <MenubarTrigger class="font-bold"> XRF-Explorer </MenubarTrigger>
       <MenubarContent>
-        <MenubarItem>
-          Github
-        </MenubarItem>
+        <MenubarItem> Github </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem>
-          Preferences
-        </MenubarItem>
+        <MenubarItem> Preferences </MenubarItem>
         <MenubarSub>
-          <MenubarSubTrigger>
-            Theme
-          </MenubarSubTrigger>
+          <MenubarSubTrigger> Theme </MenubarSubTrigger>
           <MenubarSubContent>
-            <MenubarItem @click="colorMode = 'light'">
-              Light mode
-            </MenubarItem>
-            <MenubarItem @click="colorMode = 'dark'">
-              Dark mode
-            </MenubarItem>
+            <MenubarItem @click="colorMode = 'light'"> Light mode </MenubarItem>
+            <MenubarItem @click="colorMode = 'dark'"> Dark mode </MenubarItem>
           </MenubarSubContent>
         </MenubarSub>
         <MenubarSeparator />
-        <MenubarItem>
-          Documentation
-        </MenubarItem>
+        <MenubarItem> Documentation </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <MenubarMenu>
-      <MenubarTrigger>
-        File
-      </MenubarTrigger>
+      <MenubarTrigger> File </MenubarTrigger>
       <MenubarContent>
-        <DialogMenuItem id="upload_file">
-          Upload files
-        </DialogMenuItem>
+        <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
       </MenubarContent>
     </MenubarMenu>
     <WindowMenu>
-      <MenubarItem>
-        Reset views
-      </MenubarItem>
+      <MenubarItem> Reset views </MenubarItem>
     </WindowMenu>
   </Menubar>
 </template>

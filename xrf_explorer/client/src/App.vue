@@ -11,7 +11,8 @@ import { UploadFileDialog } from "@/components/dialogs";
     <WindowContainer>
       <img
         src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/2048px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg"
-        class="size-full" />
+        class="size-full"
+      />
       <TestWindow />
     </WindowContainer>
     <UploadFileDialog />
