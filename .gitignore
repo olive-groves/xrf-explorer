@@ -1,6 +1,7 @@
 # Ignore the environment
 env/
 **/.vscode/
+.idea/
 
 # Ignore dependencies
 **/__pycache__/
@@ -9,6 +10,9 @@ env/
 
 # Generated client, should only be updated when publishing development to main
 xrf_explorer/client/dist/
+
+# Generated documentation
+documentation/sphinx/_bui
 
 # Data files
 **/*.tif
