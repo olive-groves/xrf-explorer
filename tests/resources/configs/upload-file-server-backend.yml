@@ -1,0 +1,2 @@
+uploads-folder: "tests/temp"
+upload-buffer-size: 16384

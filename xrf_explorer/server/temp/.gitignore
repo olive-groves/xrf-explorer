@@ -1,0 +1,4 @@
+# Ignore everything in this directory, the directory is only meant for temporary files to be placed and immediately deleted
+*
+# Except this file
+!.gitignore

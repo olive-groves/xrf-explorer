@@ -1,0 +1,4 @@
+# Ignore everything in this directory, the directory is only meant for local logs to be stored
+*
+# Except this file
+!.gitignore

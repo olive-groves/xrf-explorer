@@ -8,16 +8,21 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
+  "engines": {
+    "npm": "^10.5.0"
+  },
   "dependencies": {
     "@radix-icons/vue": "^1.0.0",
     "@vee-validate/zod": "^4.12.6",
     "@vueuse/core": "^10.9.0",
+    "@vueuse/integrations": "^10.9.0",
+    "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "lucide-vue-next": "^0.378.0",
     "radix-vue": "^1.7.2",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
-    "vaul-vue": "^0.1.0",
     "vee-validate": "^4.12.6",
     "vue": "^3.4.21",
     "vue-sonner": "^1.1.2",

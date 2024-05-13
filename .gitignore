@@ -1,10 +1,21 @@
 # Ignore the environment
 env/
 **/.vscode/
-.idea
 
 # Ignore dependencies
 **/__pycache__/
+**/node_modules/
+**/package-lock.json
 
-# Ignore sphinx documentation builds
-documentation/sphinx/_build
+# Generated client, should only be updated when publishing development to main
+xrf_explorer/client/dist/
+
+# Data files
+**/*.tif
+**/*.tiff
+**/*.jpg
+**/*.png
+**/*.raw
+**/*.rpl
+**/*.csv
+**/*.dms
