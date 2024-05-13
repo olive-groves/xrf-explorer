@@ -76,4 +76,3 @@ class TestUploadFileToServer:
         assert config
 
         remove(Path(config['uploads-folder'], FILENAME))
-        

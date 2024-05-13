@@ -15,19 +15,6 @@ import { DialogMenuItem } from '@/components/ui/dialog';
 import { FileMenu } from '@/components/menus';
 
 import { useColorMode } from '@vueuse/core';
-
-import { computed } from 'vue'
-import { useFetch } from '@vueuse/core';
-
-// FUNCTIONALITY FOR THE FILES MENU
-const API_URL = 'http://localhost:8001/api'
-
-// Fetch files
-const { data } = useFetch(`${API_URL}/files`).get().json()
-const files = computed(() => {
-  return data.value as Array<string>;
-})
-
 const colorMode = useColorMode({
   initialValue: "dark"
 });
