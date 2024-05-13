@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Toolbar } from '@/image-viewer';
-import { onMounted, ref } from 'vue';
-import * as THREE from 'three';
-import * as math from 'mathjs';
+import { Toolbar } from "@/components/image-viewer";
+import { onMounted, ref } from "vue";
+import * as THREE from "three";
+import * as math from "mathjs";
 
-import { Layer, ToolState } from './types';
-import { useResizeObserver } from '@vueuse/core';
+import { Layer, ToolState } from "./types";
+import { useResizeObserver } from "@vueuse/core";
 
 const vertex = `
 precision highp float;
@@ -51,16 +51,16 @@ const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
 const viewport: {
-  center: { x: number, y: number },
-  zoom: number
+  center: { x: number; y: number };
+  zoom: number;
 } = {
   center: { x: 4000, y: 3000 },
-  zoom: 2
-}
+  zoom: 2,
+};
 
 const toolState = ref<ToolState>({
   movementSpeed: [2.0],
-  scrollSpeed: [1.0]
+  scrollSpeed: [1.0],
 });
 
 let scene: THREE.Scene;
@@ -70,10 +70,10 @@ let renderer: THREE.WebGLRenderer;
 let width: number;
 let height: number;
 
-type Point2D = {x: number, y:number}
+type Point2D = { x: number; y: number };
 
 const layers: {
-  [key: string]: Layer
+  [key: string]: Layer;
 } = {};
 
 // const layerStack: string[] = [];
@@ -81,8 +81,10 @@ const layers: {
 onMounted(() => {
   setup();
 
-  // addLayer("rgb", "https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg");
-  addLayer("rgb", "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/8192px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg");
+  addLayer(
+    "rgb",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg"
+  );
 
   render();
 });
@@ -90,14 +92,14 @@ onMounted(() => {
 useResizeObserver(glcontainer, (entries) => {
   const entry = entries[0];
   ({ width, height } = entry.contentRect);
-})
+});
 
 function setup() {
   scene = new THREE.Scene();
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
     alpha: true,
-    canvas: glcanvas.value!
+    canvas: glcanvas.value!,
   });
 
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
@@ -109,11 +111,10 @@ function addLayer(id: string, image: string) {
     image: image,
     uniform: {
       iIndex: { value: 0 },
-      iViewport: { value: new THREE.Vector4 },
-      mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) }
-    }
+      iViewport: { value: new THREE.Vector4() },
+      mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
+    },
   };
-
 
   layers[id] = layer;
 
@@ -121,7 +122,6 @@ function addLayer(id: string, image: string) {
     texture.colorSpace = THREE.NoColorSpace;
 
     const shape = new THREE.Shape();
-
     shape.moveTo(0, 0);
     shape.lineTo(1, 0);
     shape.lineTo(1, 1);
@@ -129,34 +129,39 @@ function addLayer(id: string, image: string) {
 
     const geometry = new THREE.ShapeGeometry(shape);
 
-    // Transform geometry in accordance to recipe
-    // TODO: Get recipe and pass it to transformGeometry(...)
-    //const src: Point2D[] = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }];
-    //const dst: Point2D[] = [{ x: 0.1, y: 0.2 }, { x: 0.9, y: 0.1 }, { x: 1.2, y: 0.9 }, { x: -0.2, y: 1.1 }];
-    //transformGeometry(geometry, src, dst, 800, 400, 1600, 1000);
-
     // Temporary implementation:
     let mat = new THREE.Matrix4();
     mat.set(
-      texture.image.width, 0, 0, 0,
-      0, texture.image.height, 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1
+      texture.image.width,
+      0,
+      0,
+      0,
+      0,
+      texture.image.height,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
     );
 
     geometry.applyMatrix4(mat);
 
-
     layer.uniform.tImage = {
       type: "t",
-      value: texture
+      value: texture,
     };
 
     const material = new THREE.RawShaderMaterial({
       vertexShader: vertex,
       fragmentShader: fragment,
       uniforms: layer.uniform,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -166,7 +171,6 @@ function addLayer(id: string, image: string) {
     scene.add(mesh);
   });
 }
-
 
 /**
  * TODO: write function description
@@ -179,29 +183,49 @@ function addLayer(id: string, image: string) {
  * @param {number} dstWidth - width of destination image
  * @param {number} dstHeight - height of destination image
  */
-function transformGeometry(geometry: THREE.ShapeGeometry, src: Point2D[], dst: Point2D[], srcWidth: number, srcHeight: number, dstWidth: number, dstHeight: number) {
+function transformGeometry(
+  geometry: THREE.ShapeGeometry,
+  src: Point2D[],
+  dst: Point2D[],
+  srcWidth: number,
+  srcHeight: number,
+  dstWidth: number,
+  dstHeight: number
+) {
   // Unscale the points of the src image
   const scale = Math.min(dstWidth / srcWidth, dstHeight / srcHeight);
-  src.forEach(point => {
-    point.x = point.x / scale,
-    point.y = point.y / scale
+  src.forEach((point) => {
+    (point.x = point.x / scale), (point.y = point.y / scale);
   });
 
   // Matrices for Ax=B
   const A = []; // 8 x 8
   const B = []; // 8 x 1
   for (let i = 0; i < 4; i++) {
-    A.push(
-      [src[i].x, src[i].y, 1, 0, 0, 0, -src[i].x * dst[i].x, -src[i].y * dst[i].x],
-    );
+    A.push([
+      src[i].x,
+      src[i].y,
+      1,
+      0,
+      0,
+      0,
+      -src[i].x * dst[i].x,
+      -src[i].y * dst[i].x,
+    ]);
     B.push(dst[i].x);
   }
   for (let i = 0; i < 4; i++) {
-    A.push(
-      [0, 0, 0, src[i].x, src[i].y, 1, -src[i].x * dst[i].y, -src[i].y * dst[i].y]
-    );
+    A.push([
+      0,
+      0,
+      0,
+      src[i].x,
+      src[i].y,
+      1,
+      -src[i].x * dst[i].y,
+      -src[i].y * dst[i].y,
+    ]);
     B.push(dst[i].y);
-
   }
 
   // Solve Ax = B and extract solution
@@ -209,9 +233,15 @@ function transformGeometry(geometry: THREE.ShapeGeometry, src: Point2D[], dst: P
 
   let mat = new THREE.Matrix4();
   mat.set(
-    x[0][0], x[1][0], x[2][0],
-    x[3][0], x[4][0], x[5][0],
-    x[6][0], x[7][0], 1
+    x[0][0],
+    x[1][0],
+    x[2][0],
+    x[3][0],
+    x[4][0],
+    x[5][0],
+    x[6][0],
+    x[7][0],
+    1
   );
 
   geometry.applyMatrix4(mat);
@@ -258,17 +288,27 @@ function onMouseMove(event: MouseEvent) {
 }
 
 function onWheel(event: WheelEvent) {
-  viewport.zoom += event.deltaY / 500.0 * toolState.value.scrollSpeed[0];
+  viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
 }
 </script>
 
 <template>
   <Toolbar v-model:state="toolState" />
-  <div ref="glcontainer" class="w-full h-full" :class="{
-    'cursor-grab': !dragging,
-    'cursor-grabbing': dragging
-  }">
-    <canvas ref="glcanvas" @mousedown="onMouseDown" @mouseup="onMouseUp" @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove" @wheel="onWheel" />
+  <div
+    ref="glcontainer"
+    class="w-full h-full"
+    :class="{
+      'cursor-grab': !dragging,
+      'cursor-grabbing': dragging,
+    }"
+  >
+    <canvas
+      ref="glcanvas"
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mouseleave="onMouseLeave"
+      @mousemove="onMouseMove"
+      @wheel="onWheel"
+    />
   </div>
 </template>
