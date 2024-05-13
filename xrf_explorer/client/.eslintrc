@@ -5,10 +5,15 @@
     "parser": "@typescript-eslint/parser",
     "sourceType": "module",
   },
-  "extends": ["@vue/typescript/recommended", "plugin:vue/vue3-strongly-recommended", "prettier"],
-  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "@vue/typescript/recommended",
+    "plugin:vue/vue3-strongly-recommended",
+    "plugin:jsdoc/recommended-typescript",
+    "prettier",
+  ],
+  "plugins": ["@typescript-eslint", "prettier", "jsdoc"],
   "rules": {
-    "prettier/prettier": "error",
+    "prettier/prettier": "warn",
     "vue/no-reserved-props": "off",
     "vue/no-v-model-argument": "off",
     "vue/multi-word-component-names": "off",
@@ -21,6 +26,31 @@
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_",
+      },
+    ],
+    "vue/require-prop-comment": [
+      "error",
+      {
+        "type": "JSDoc",
+      },
+    ],
+    "jsdoc/require-jsdoc": [
+      "error",
+      {
+        "publicOnly": {
+          "esm": true,
+          "cjs": true,
+          "window": true,
+        },
+        "require": {
+          "ArrowFunctionExpression": true,
+          "ClassDeclaration": true,
+          "ClassExpression": true,
+          "FunctionDeclaration": true,
+          "FunctionExpression": true,
+          "MethodDefinition": true,
+        },
+        "contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration", "TSEnumDeclaration", "TSPropertySignature"],
       },
     ],
   },

@@ -19,7 +19,7 @@ const hasSlot = computed(() => {
   <MenubarMenu>
     <MenubarTrigger> View </MenubarTrigger>
     <MenubarContent>
-      <MenubarCheckboxItem v-for="window in windowState" v-model:checked="window.opened" :key="window">
+      <MenubarCheckboxItem v-for="window in windowState" v-model:checked="window.opened" :key="window.id">
         {{ window.title }}
       </MenubarCheckboxItem>
       <MenubarSeparator v-if="hasSlot" />
