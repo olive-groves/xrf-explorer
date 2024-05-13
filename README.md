@@ -47,8 +47,8 @@ If you would like to test communication with a remote server, we recommend insta
 
 Generating the code documentation is very simple and only requires a couple of steps:
 - Navigate to the project's root folder
-- From the terminal run `sphinx-apidoc(.exe) -f -o .documentation/sphinx/source/ .` to generate the ReST files. _The .exe extension may be omitted in some environments._
-- Build the documentation in HTML format with `documentation/sphinx/make html` (run `documentation/sphinx/make` to see all available formats)
+- From the terminal run `sphinx-apidoc(.exe) -f -o ./documentation/sphinx/source/ .` to generate the ReST files. _The .exe extension may be omitted in some environments._
+- Build the documentation in HTML format with `./documentation/sphinx/make html` (run `./documentation/sphinx/make` to see all available formats)
 
 ### Frontend
 
