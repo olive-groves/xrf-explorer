@@ -16,7 +16,7 @@ import { FileInput } from '@/components/ui/file-upload';
     </DialogTitle>
 
     <FileInput />
-
+    
     <DialogFooter>
       <DialogClose>
         <Button variant="destructive">
