@@ -30,6 +30,7 @@ def list_accessible_files():
         LOG.error(f"Failed to serialize files: {str(e)}")
         return "Error occurred while listing files"
 
+
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if request.method == 'POST':
