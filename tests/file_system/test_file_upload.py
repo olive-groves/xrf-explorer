@@ -53,3 +53,10 @@ class TestUploadFileToServer:
         
         # validate
         assert filename in result
+    
+    def test_no_file_names(self):
+        # execute
+        result: list[str] = get_files('this-config-does-not-exist.yml')
+
+        # validate
+        assert result == [""]
