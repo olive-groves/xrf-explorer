@@ -1,6 +1,6 @@
 import logging
 
-from os.path import basename, exists, isfile, join
+from os.path import basename, exists, join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
