@@ -9,11 +9,11 @@ import {
   MenubarSubContent,
   MenubarSubTrigger,
   MenubarTrigger,
-} from '@/components/ui/menubar';
-import { WindowMenu } from '@/components/ui/window';
-import { DialogMenuItem } from '@/components/ui/dialog';
-import { FileMenu } from '@/components/menus';
-import { useColorMode } from '@vueuse/core';
+} from "@/components/ui/menubar";
+import { WindowMenu } from "@/components/ui/window";
+import { DialogMenuItem } from "@/components/ui/dialog";
+import { FileMenu } from "@/components/menus";
+import { useColorMode } from "@vueuse/core";
 
 const colorMode = useColorMode({
   initialValue: "dark",
@@ -42,9 +42,7 @@ const colorMode = useColorMode({
     <MenubarMenu>
       <MenubarTrigger> File </MenubarTrigger>
       <MenubarContent>
-        <DialogMenuItem id="upload_file">
-          Upload files
-        </DialogMenuItem>
+        <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
         <MenubarSeparator />
         <FileMenu />
       </MenubarContent>

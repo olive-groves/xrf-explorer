@@ -1,1 +1,1 @@
-export { default as FileMenu } from './FileMenu.vue';
+export { default as FileMenu } from "./FileMenu.vue";
