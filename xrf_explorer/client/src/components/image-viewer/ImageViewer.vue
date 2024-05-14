@@ -76,8 +76,6 @@ const layers: {
   [key: string]: Layer;
 } = {};
 
-// const layerStack: string[] = [];
-
 onMounted(() => {
   setup();
 
@@ -105,6 +103,12 @@ function setup() {
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
 }
 
+/**
+ * Creates a layer and adds the given image to it.
+ *
+ * @param {string} id - id given to the layer.
+ * @param {string} image - path to the image to be added.
+ */
 function addLayer(id: string, image: string) {
   const layer: Layer = {
     id: id,
@@ -173,7 +177,8 @@ function addLayer(id: string, image: string) {
 }
 
 /**
- * TODO: write function description
+ * Transforms the given geometry according to the registration of the src 
+ * image to the dst image.
  *
  * @param {THREE.ShapeGeometry} geometry - A ShapeGeometry to be transformed
  * @param {Point2D[]} src - An array of 4 points representing the source quadrilateral's corners.
