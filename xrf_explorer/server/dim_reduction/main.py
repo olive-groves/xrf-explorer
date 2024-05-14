@@ -93,8 +93,10 @@ def create_embedding_image(config_path: str = "config/backend.yml"):
     embedding = embedding[sorted_ind]
 
     # Create the plot
-    plt.figure(figsize=(15, 12))
+    fig = plt.figure(figsize=(15, 12))
+
     plt.axis('off')
+    fig.patch.set_facecolor(('black'))
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5/2, s=15)
     # plt.colorbar()
@@ -104,28 +106,22 @@ def create_embedding_image(config_path: str = "config/backend.yml"):
     return True
 
 
-def get_embedding(args):
-    # Compute the embedding
-    if not compute_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
-        LOG.error("Failed to compute DR embedding")
-        return "Failed to compute DR embedding"
-    
-    # Create the embedding image
-    if not create_embedding_image():
-        LOG.error("Failed to create DR embedding image")
-        return "Failed to create DR embedding image"
-
-    # Return the embedding
-    embedding_path = "server/temp/embedding.png" # TODO: Fix this path
-    return send_file(embedding_path, mimetype='image/png')
-
-
 def get_overlay(args):
     # Create the embedding image
     if not create_embedding_image():
         LOG.error("Failed to create DR embedding image")
-        return "Failed to create DR embedding image"
+        return "Failed to create DR embedding image", 400
     
     # Return the embedding
     embedding_path = "server/temp/embedding.png" # TODO: Fix this path
     return send_file(embedding_path, mimetype='image/png')
+
+
+def get_embedding(args):
+    # Compute the embedding
+    if not compute_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
+        LOG.error("Failed to compute DR embedding")
+        return "Failed to compute DR embedding", 400
+    
+    # Create the embedding image
+    return get_overlay(args)

@@ -25,7 +25,7 @@ def info():
 def get_dr_embedding():
     # verify arguments
     if 'element' not in request.args:
-        return "Missing element number"
+        return "Missing element number", 400
     return get_embedding(request.args)
 
 
