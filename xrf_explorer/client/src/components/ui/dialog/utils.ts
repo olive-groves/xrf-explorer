@@ -1,6 +1,10 @@
 import { snakeCase } from "change-case";
 import { dialogState } from "./state";
 
+/**
+ * Opens a dialog.
+ * @param id The id of the dialog that should be opened.
+ */
 export function openDialog(id: string) {
   const formattedId = snakeCase(id);
   console.log(formattedId, dialogState);
@@ -13,6 +17,10 @@ export function openDialog(id: string) {
   }
 }
 
+/**
+ * Closes a dialog.
+ * @param id The id of the dialog that should be closed.
+ */
 export function closeDialog(id: string) {
   const formattedId = snakeCase(id);
   dialogState[formattedId].open = false;

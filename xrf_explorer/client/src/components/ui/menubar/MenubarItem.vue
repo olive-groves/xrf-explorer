@@ -3,6 +3,7 @@ import { type HTMLAttributes, computed } from "vue";
 import { MenubarItem, type MenubarItemEmits, type MenubarItemProps, useForwardPropsEmits } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<MenubarItemProps & { class?: HTMLAttributes["class"]; inset?: boolean }>();
 
 const emits = defineEmits<MenubarItemEmits>();

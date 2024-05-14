@@ -4,6 +4,7 @@ import { MenubarSubTrigger, type MenubarSubTriggerProps, useForwardProps } from 
 import { ChevronRightIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<MenubarSubTriggerProps & { class?: HTMLAttributes["class"]; inset?: boolean }>();
 
 const delegatedProps = computed(() => {
@@ -27,6 +28,6 @@ const forwardedProps = useForwardProps(delegatedProps);
     "
   >
     <slot />
-    <ChevronRightIcon class="ml-auto h-4 w-4" />
+    <ChevronRightIcon class="ml-auto size-4" />
   </MenubarSubTrigger>
 </template>

@@ -3,6 +3,7 @@ import { type HTMLAttributes, computed } from "vue";
 import { MenubarContent, type MenubarContentProps, MenubarPortal, useForwardProps } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = withDefaults(defineProps<MenubarContentProps & { class?: HTMLAttributes["class"] }>(), {
   align: "start",
   alignOffset: -4,

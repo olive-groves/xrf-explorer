@@ -11,6 +11,7 @@ import {
 } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<DialogContentProps & { class?: HTMLAttributes["class"] }>();
 const emits = defineEmits<DialogContentEmits>();
 
@@ -48,8 +49,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       >
         <slot />
 
-        <DialogClose class="absolute top-4 right-4 p-0.5 transition-colors rounded-md hover:bg-secondary">
-          <Cross2Icon class="w-4 h-4" />
+        <DialogClose class="absolute right-4 top-4 rounded-md p-0.5 transition-colors hover:bg-secondary">
+          <Cross2Icon class="size-4" />
           <span class="sr-only">Close</span>
         </DialogClose>
       </DialogContent>

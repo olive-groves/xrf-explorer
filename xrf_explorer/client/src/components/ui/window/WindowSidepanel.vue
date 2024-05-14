@@ -7,6 +7,9 @@ import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
 
 const props = defineProps<{
+  /**
+   * An array of window ids indicating which windows should be displayed in this side panel.
+   */
   windows: string[];
 }>();
 
@@ -93,6 +96,10 @@ const mouseState: {
   dragging: false,
 };
 
+/**
+ * Either minimizes or maximizes a window.
+ * @param id The id of the window that should be minimized or maximized.
+ */
 function toggleTabSize(id: string) {
   if (state.value[id].minimized) {
     maximize(id);
@@ -101,6 +108,11 @@ function toggleTabSize(id: string) {
   }
 }
 
+/**
+ * Event handler that handles changes in the window height, making sure that the windows do not take up more vertical height than is visible.
+ * @param height The height of the side panel after resizing.
+ * @param oldHeight The height of the side panel before resizing.
+ */
 function onResize(height: number, oldHeight: number) {
   console.debug("onResize", height, oldHeight);
   const growth = height - oldHeight;
@@ -121,6 +133,11 @@ function onResize(height: number, oldHeight: number) {
   mounted.value = true;
 }
 
+/**
+ * Event handler that handles the resizing of the content of windows, used for setting the maximum height of windows.
+ * @param id The window of which the content has been resized.
+ * @param height The new size of the content.
+ */
 function onContentResize(id: string, height: number) {
   // Account for built in margin
   height += remToPx(0.5);
@@ -140,6 +157,10 @@ function onContentResize(id: string, height: number) {
   }
 }
 
+/**
+ * Maximize a specific window.
+ * @param id The id of the window to maximize.
+ */
 function maximize(id: string) {
   console.debug("maximize", id);
   const tab = state.value[id];
@@ -171,6 +192,10 @@ function maximize(id: string) {
   growTab(id, Math.max(desiredGrowth, availableHeight));
 }
 
+/**
+ * Minimize a specific window.
+ * @param id The id of the window to shrink.
+ */
 function minimize(id: string) {
   console.debug("minimize", id);
   const tab = state.value[id];
@@ -185,6 +210,12 @@ function minimize(id: string) {
   removeTarget(id);
 }
 
+/**
+ * Grows a specific window by a specific amount.
+ * @param id The id of the window to be grown.
+ * @param px The amount of pixels by which to grow the window.
+ * @returns The amount of pixels by which the window has actually grown.
+ */
 function growTab(id: string, px: number): number {
   console.debug(`Growing ${id} by ${px}px`);
 
@@ -203,6 +234,12 @@ function growTab(id: string, px: number): number {
   return actualGrowth;
 }
 
+/**
+ * Shrinks a specific window by a specific amount.
+ * @param id The id of the window to be shrunk.
+ * @param px The amount of pixels by which to shrink the window.
+ * @returns The amount of pixels by which the window has actually shrunk.
+ */
 function shrinkTab(id: string, px: number): number {
   console.debug(`Shrinking ${id} by ${px}px`);
 
@@ -226,6 +263,12 @@ function shrinkTab(id: string, px: number): number {
   return actualShrink;
 }
 
+/**
+ * Attempts to grow windows until the desired growth has been achieved.
+ * @param px The amount of pixels to grow windows by.
+ * @param from The index from which windows may be grown (from top to bottom).
+ * @returns The realized growth in pixels.
+ */
 function growAnyTab(px: number, from: number = -1): number {
   console.debug(`Growing any by ${px}px`);
   const targets = [...growthTargets].filter((id) => state.value[id].index > from);
@@ -239,6 +282,12 @@ function growAnyTab(px: number, from: number = -1): number {
   return px - remaining;
 }
 
+/**
+ * Attempts to shrink windows until the desired shrinkage has been achieved.
+ * @param px The amount of pixels to shrink windows by.
+ * @param from The index from which windows may be shrinked (from top to bottom).
+ * @returns The realized shrinkage in pixels.
+ */
 function shrinkAnyTab(px: number, from: number = -1): number {
   console.debug(`Shrinking any by ${px}px`);
   const targets = [...shrinkTargets].filter((id) => state.value[id].index > from);
@@ -252,6 +301,10 @@ function shrinkAnyTab(px: number, from: number = -1): number {
   return px - remaining;
 }
 
+/**
+ * Remove an id from both the growthTargets and shrinkTargets arrays.
+ * @param id The id to be removed.
+ */
 function removeTarget(id: string) {
   console.debug(`Removing ${id} from targets`);
   if (growthTargets.includes(id)) {
@@ -263,17 +316,28 @@ function removeTarget(id: string) {
   console.debug(growthTargets, shrinkTargets);
 }
 
+/**
+ * Start a dragging motion after pressing down on the drag-handle of a window.
+ * @param handle The id of the window corresponding to the selected handle.
+ */
 function startDragging(handle: string) {
   mouseState.dragging = true;
   mouseState.handle = handle;
   disableAnimation.value = true;
 }
 
+/**
+ * Stops the dragging movement.
+ */
 function stopDragging() {
   mouseState.dragging = false;
   disableAnimation.value = false;
 }
 
+/**
+ * Event handler for mouse movement.
+ * @param event The MouseEvent to handle.
+ */
 function handleDragMovement(event: MouseEvent) {
   if (mouseState.dragging) {
     const growth = event.movementY;
@@ -301,13 +365,12 @@ function handleDragMovement(event: MouseEvent) {
   >
     <!-- TODO: Replace this calc with headerSize --->
     <div
-      class="grid grid-cols-1 max-h-full"
+      class="grid max-h-full grid-cols-1"
       style="grid-template-rows: repeat(1, minmax(calc(1.75rem + 1px), max-content))"
     >
-      <template v-for="id in windows">
+      <template v-for="id in windows" :key="id">
         <div
-          class="z-0 duration-100 overflow-hidden"
-          :key="`window-panel-${id}`"
+          class="z-0 overflow-hidden duration-100"
           :style="{
             height: `${state[id].height}px`,
           }"
@@ -317,10 +380,10 @@ function handleDragMovement(event: MouseEvent) {
         >
           <div
             @click="toggleTabSize(id)"
-            class="w-full p-1 left-0 space-x-1 whitespace-nowrap flex items-center justify-start border-b cursor-pointer"
+            class="left-0 flex w-full cursor-pointer items-center justify-start space-x-1 whitespace-nowrap border-b p-1"
           >
             <ChevronRight
-              class="h-5 w-5 min-w-5 duration-100"
+              class="size-5 min-w-5 duration-100"
               :class="{
                 'rotate-90': !state[id].minimized,
               }"
@@ -330,7 +393,7 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="duration-100 overflow-hidden -mt-px"
+            class="-mt-px overflow-hidden duration-100"
             :style="{
               height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize - 1}px`}`,
             }"
@@ -338,7 +401,7 @@ function handleDragMovement(event: MouseEvent) {
               'transition-all': !disableAnimation,
             }"
           >
-            <div class="p-1 mt-px">
+            <div class="mt-px p-1">
               <WindowPortalTarget
                 ref="contentRefs"
                 :window-id="id"
@@ -348,13 +411,8 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
         </div>
-        <div
-          v-if="!state[id].minimized"
-          :key="`window-handle-${id}`"
-          @mousedown="startDragging(id)"
-          class="z-10 w-full h-2 -my-1 cursor-ns-resize"
-        >
-          <div class="h-px bg-border mt-[calc(0.25rem-1px)]" />
+        <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
+          <div class="mt-[calc(0.25rem-1px)] h-px bg-border" />
         </div>
       </template>
     </div>

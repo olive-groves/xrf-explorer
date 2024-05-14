@@ -2,7 +2,13 @@
 import { MenubarSub, type MenubarSubEmits, useForwardPropsEmits } from "radix-vue";
 
 interface MenubarSubRootProps {
+  /**
+   * Determines whether the submenu should be open by default.
+   */
   defaultOpen?: boolean;
+  /**
+   * Determines whether the submenu should be open or not, can be bound for more control.
+   */
   open?: boolean;
 }
 

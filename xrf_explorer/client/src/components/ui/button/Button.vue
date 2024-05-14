@@ -5,8 +5,15 @@ import { type ButtonVariants, buttonVariants } from ".";
 import { cn } from "@/lib/utils";
 
 interface Props extends PrimitiveProps {
+  /**
+   * The variant of the button, determines the look of the button.
+   */
   variant?: ButtonVariants["variant"];
+  /**
+   * The size of the button.
+   */
   size?: ButtonVariants["size"];
+  // eslint-disable-next-line vue/require-prop-comment
   class?: HTMLAttributes["class"];
 }
 

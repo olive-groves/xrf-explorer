@@ -5,9 +5,23 @@ import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
 const props = defineProps<{
+  /**
+   * The title of the window, must be unique.
+   */
   title: string;
+  /**
+   * Whether or not to open the window by default.
+   */
   opened?: boolean;
+  /**
+   * Whether or not to allow scrolling inside the window.
+   *
+   * Enabling noScroll could be useful for fixed size content such as charts.
+   */
   noScroll?: boolean;
+  /**
+   * The default location for the window.
+   */
   location?: WindowLocation;
 }>();
 

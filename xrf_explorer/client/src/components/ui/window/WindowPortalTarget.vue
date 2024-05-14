@@ -5,7 +5,13 @@ import { windowState } from "./state";
 import { useResizeObserver } from "@vueuse/core";
 
 const props = defineProps<{
+  /**
+   * The id of the window that should be displayed through this portal.
+   */
   windowId: string;
+  /**
+   * The current height of the window in the side panel, used for setting the height of the scroll area.
+   */
   areaHeight: number;
 }>();
 

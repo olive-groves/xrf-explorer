@@ -4,6 +4,7 @@ import { ScrollAreaCorner, ScrollAreaRoot, type ScrollAreaRootProps, ScrollAreaV
 import ScrollBar from "./ScrollBar.vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<ScrollAreaRootProps & { class?: HTMLAttributes["class"] }>();
 
 const delegatedProps = computed(() => {
@@ -15,7 +16,7 @@ const delegatedProps = computed(() => {
 
 <template>
   <ScrollAreaRoot v-bind="delegatedProps" :class="cn('relative overflow-hidden', props.class)">
-    <ScrollAreaViewport class="h-full w-full rounded-[inherit]">
+    <ScrollAreaViewport class="size-full rounded-[inherit]">
       <slot />
     </ScrollAreaViewport>
     <ScrollBar />

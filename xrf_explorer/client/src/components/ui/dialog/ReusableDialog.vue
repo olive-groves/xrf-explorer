@@ -5,6 +5,9 @@ import { snakeCase } from "change-case";
 import { dialogState } from "./state";
 
 const props = defineProps<{
+  /**
+   * The id of the ReusableDialog, must be unique.
+   */
   id: string;
 }>();
 

@@ -5,9 +5,21 @@ import { clamp, useDraggable, useElementBounding } from "@vueuse/core";
 
 const draggable = ref<HTMLElement | null>(null);
 const props = defineProps<{
+  /**
+   * The id of the draggable component, must be unique.
+   */
   id: string;
+  /**
+   * An element to use as handle for the draggable component.
+   */
   handle?: HTMLElement | null;
+  /**
+   * The default x coordinate of the draggable component.
+   */
   x?: number;
+  /**
+   * The default y coordinate of the draggable component.
+   */
   y?: number;
 }>();
 const handle = props.handle === undefined ? draggable : toRef(props, "handle");
@@ -15,6 +27,9 @@ const container = inject<HTMLElement | null>("draggable_container");
 
 z_state[props.id] = 0;
 
+/**
+ * Increases the z-index of this component and decreases the z-index of all others.
+ */
 function moveForwards() {
   const count = Object.keys(z_state).length;
 

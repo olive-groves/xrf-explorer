@@ -3,6 +3,7 @@ import { type HTMLAttributes, computed } from "vue";
 import { MenubarTrigger, type MenubarTriggerProps, useForwardProps } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<MenubarTriggerProps & { class?: HTMLAttributes["class"] }>();
 
 const delegatedProps = computed(() => {
