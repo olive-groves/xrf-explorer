@@ -11,5 +11,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm ci
-      - run: npm style:check
+      - name: Setup
+        working-directory: ./xrf_explorer/client
+        run: npm ci
+      - name: Check code
+        working-directory: ./xrf_explorer/client
+        run: npm style:check
