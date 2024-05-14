@@ -17,6 +17,7 @@ def get_files(config_path: str = "config/backend.yml") -> list[str]:
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         return [""]
+        LOG.error("Config is empty")
 
     # Path to folder where files are stored
     path = Path(backend_config['uploads-folder'])
@@ -31,4 +32,5 @@ def get_files(config_path: str = "config/backend.yml") -> list[str]:
         except Exception as e:
             LOG.error(f"Failed to remove .gitignore: {str(e)}")
 
+    LOG.info(f"Successful. Files in folder: {files}")
     return files
