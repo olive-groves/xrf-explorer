@@ -23,7 +23,11 @@ def info():
 
 @app.route('/api/files')
 def list_accessible_files():
-    return json.dumps(get_files())
+    try:
+        return json.dumps(get_files())
+    except Exception as e:
+        LOG.error(f"Failed to serialize files: {str(e)}")
+        return "Error occurred while listing files"
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():

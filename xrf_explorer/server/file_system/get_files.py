@@ -26,6 +26,9 @@ def get_files(config_path: str = "config/backend.yml") -> list[str]:
 
     # Remove unwanted files
     if ".gitignore" in files:
-        files.remove(".gitignore")
+        try:
+            files.remove(".gitignore")
+        except Exception as e:
+            LOG.error(f"Failed to remove .gitignore: {str(e)}")
 
     return files
