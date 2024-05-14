@@ -9,6 +9,7 @@
     "@vue/typescript/recommended",
     "plugin:vue/vue3-strongly-recommended",
     "plugin:jsdoc/recommended-typescript",
+    "plugin:tailwindcss/recommended",
     "prettier",
   ],
   "plugins": ["@typescript-eslint", "prettier", "jsdoc"],
