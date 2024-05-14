@@ -48,9 +48,6 @@ watch(
         }
         growTab(id, headerSize);
         removeTarget(id);
-
-        // TODO: Fix maximizing upon setup
-        // maximize(id);
       }
 
       // Update the index
@@ -363,7 +360,6 @@ function handleDragMovement(event: MouseEvent) {
     @mouseup="stopDragging"
     @mousemove="handleDragMovement"
   >
-    <!-- TODO: Replace this calc with headerSize --->
     <div
       class="grid max-h-full grid-cols-1"
       style="grid-template-rows: repeat(1, minmax(calc(1.75rem + 1px), max-content))"

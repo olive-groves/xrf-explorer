@@ -65,6 +65,7 @@
     "jsdoc/no-blank-blocks": "warn",
     "jsdoc/check-indentation": "warn",
     "jsdoc/check-line-alignment": "warn",
-    "jsdoc/require-asterisk-prefix": "warn"
+    "jsdoc/require-asterisk-prefix": "warn",
+    "no-warning-comments": "warn"
   },
 }
