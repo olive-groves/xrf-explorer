@@ -22,7 +22,7 @@ def info():
     return "adding more routes is quite trivial"
 
 @app.route('/api/files')
-def accessible_files():
+def list_accessible_files():
     return json.dumps(get_files())
 
 @app.route('/api/upload', methods=['POST'])
