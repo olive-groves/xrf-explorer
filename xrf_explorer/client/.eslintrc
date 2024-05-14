@@ -21,6 +21,11 @@
     "vue/require-default-prop": "off",
     "vue/script-setup-uses-vars": "error",
     "vue/no-v-for-template-key-on-child": "warn",
+    "vue/block-lang": ["error",{
+      "script": {
+        "lang": "ts"
+      }
+    }],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
