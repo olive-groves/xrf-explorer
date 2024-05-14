@@ -17,4 +17,4 @@ jobs:
         run: npm ci
       - name: Check code
         working-directory: ./xrf_explorer/client
-        run: npm run style:check
+        run: npx eslint . --max-warnings 1
