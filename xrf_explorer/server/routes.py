@@ -21,6 +21,7 @@ def api():
 def info():
     return "adding more routes is quite trivial"
 
+
 @app.route('/api/files')
 def list_accessible_files():
     try:
