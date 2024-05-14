@@ -16,7 +16,8 @@ const state = defineModel<ToolState>("state");
 
 <template>
   <div
-    class="fixed bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background p-1 shadow-sm"
+    class="fixed bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background p-1
+      shadow-sm"
   >
     <ToggleGroup type="single" v-model:model-value="selectedTool">
       <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">

@@ -10,8 +10,12 @@ import {
 import { CheckIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
-const props = defineProps<MenubarCheckboxItemProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  MenubarCheckboxItemProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 const emits = defineEmits<MenubarCheckboxItemEmits>();
 
 const delegatedProps = computed(() => {
@@ -28,7 +32,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     v-bind="forwarded"
     :class="
       cn(
-        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        `relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none
+        focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50`,
         props.class,
       )
     "
