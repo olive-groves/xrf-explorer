@@ -46,7 +46,7 @@ class TestUploadFileToServer:
     
     def test_get_file_names(self):
         # constants
-        FILENAME = "test_file_name.txt"
+        filename: str = "test_file_name.txt"
 
         # open file
         f = open(self.UPLOAD_FILE_PATH, "rb")
