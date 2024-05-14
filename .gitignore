@@ -8,10 +8,10 @@ compile.sh
 # Ignore dependencies
 **/__pycache__/
 **/node_modules/
-**/package-lock.json
 
 # Generated client, should only be updated when publishing development to main
 xrf_explorer/client/dist/
+xrf_explorer/client/docs/
 
 # Data files
 **/*.tif

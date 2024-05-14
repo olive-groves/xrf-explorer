@@ -11,7 +11,7 @@ import { UploadFileDialog } from "@/components/dialogs";
 </script>
 
 <template>
-  <div class="w-[100vw] h-[100vh] grid grid-cols-1 grid-rows-[min-content_1fr]">
+  <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
       <ImageViewer />
