@@ -1,6 +1,5 @@
 import logging 
 
-from os.path import join
 from pathlib import Path
 
 from flask import send_file
@@ -14,7 +13,8 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-DR_ARGS = ['element', 'treshold', 'n_neighbors', 'min_dist', 'n_components', 'metric']
+DR_ARGS = ['element', 'threshold', 'n_neighbors', 'min_dist', 'n_components', 'metric']
+OVERLAY_ARGS = ['type']
 
 
 def apply_umap(data, parms):
@@ -28,7 +28,7 @@ def apply_umap(data, parms):
     ).fit_transform(data)
 
 
-def compute_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
+def generate_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
@@ -58,6 +58,7 @@ def compute_embedding(args: dict[str, str], config_path: str = "config/backend.y
     spectra = data[indices[:, 0], indices[:, 1], :]
 
     # compute embedding
+    LOG.info(f"Generating embedding with: el {element}, tr {threshold}")
     try:
         embedded_data = apply_umap(spectra, dr_config)
     except ValueError as e:
@@ -71,7 +72,7 @@ def compute_embedding(args: dict[str, str], config_path: str = "config/backend.y
     return True
 
 
-def create_embedding_image(config_path: str = "config/backend.yml"):
+def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml"):
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
@@ -106,22 +107,23 @@ def create_embedding_image(config_path: str = "config/backend.yml"):
     return True
 
 
-def get_overlay(args):
+def get_embedding_image(args):
     # Create the embedding image
-    if not create_embedding_image():
+    if not create_embedding_image({key: args[key] for key in OVERLAY_ARGS if key in args.keys()}):
         LOG.error("Failed to create DR embedding image")
         return "Failed to create DR embedding image", 400
     
     # Return the embedding
+    LOG.info("Created embedding image successfully")
     embedding_path = "server/temp/embedding.png" # TODO: Fix this path
     return send_file(embedding_path, mimetype='image/png')
 
 
 def get_embedding(args):
     # Compute the embedding
-    if not compute_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
+    if not generate_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
         LOG.error("Failed to compute DR embedding")
         return "Failed to compute DR embedding", 400
     
-    # Create the embedding image
-    return get_overlay(args)
+    LOG.info("Generated embedding successfully")
+    return "Generated embedding successfully"

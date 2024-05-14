@@ -21,6 +21,7 @@ const currentError = ref("")
 // Dimensionality reduction parameters
 var threshold = ref(100)
 var selectedElement = ref(9)
+var selectedOverlay = ref("rgb")
 
 // Dimensionality reduction image
 const imageSourceUrl = ref("")
@@ -81,8 +82,15 @@ async function fetchBlob(url: string) {
 // For the rest it uses the fetchBlob function
 async function fetchDRImage() {
   status.value = Status.LOADING;
-  const succes = await fetchBlob(URL_IMAGE);
 
+  // Set the overlay type
+  var url = new URL(URL_IMAGE);
+  url.searchParams.set('type', selectedOverlay.value.toString());
+
+  // Fetch the image
+  const succes = await fetchBlob(url.toString());
+
+  // Set the status
   if (succes) {
     status.value = Status.SUCCESS;
   } else {
@@ -133,6 +141,15 @@ fetchDRImage()
     <span v-if="status == Status.ERROR">{{ currentError }}</span>
     <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR">
 
+    <p> Overlays {{ selectedOverlay }}: </p>
+    <select v-model="selectedOverlay">
+      <option value="rgb">rgb</option>
+      <option value="0">Element 0</option>
+      <option value="9">Element 9</option>
+    </select>
+    <br>
+    <Button @click="fetchDRImage">Show overlay</Button>
+    <p> Parameters: </p>
     <p>Threshold: {{ threshold }}</p>
     <input type="range" v-model="threshold" min=0 max=100>
     <br>
@@ -142,6 +159,7 @@ fetchDRImage()
       <option value="1">Element 1</option>
       <option value="9">Element 9</option>
     </select>
+    <br>
     <Button @click="updateEmbedding">Generate</Button>
   </Window>
 </template>
