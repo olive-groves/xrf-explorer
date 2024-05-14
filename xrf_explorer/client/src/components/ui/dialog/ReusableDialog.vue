@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import {
-  Dialog,
-  DialogContent
-} from '.';
-import { snakeCase } from 'change-case';
-import { dialogState } from './state';
+import { computed } from "vue";
+import { Dialog, DialogContent } from ".";
+import { snakeCase } from "change-case";
+import { dialogState } from "./state";
 
 const props = defineProps<{
-  id: string
+  /**
+   * The id of the ReusableDialog, must be unique.
+   */
+  id: string;
 }>();
 
 const id = snakeCase(props.id);
 
 if (!(id in dialogState)) {
   dialogState[id] = {
-    open: false
-  }
+    open: false,
+  };
 }
 
 const isOpen = computed(() => {
@@ -25,7 +25,7 @@ const isOpen = computed(() => {
 </script>
 
 <template>
-  <Dialog :open="isOpen" @update:open="(val) => dialogState[id].open = val">
+  <Dialog :open="isOpen" @update:open="(val) => (dialogState[id].open = val)">
     <DialogContent>
       <slot />
     </DialogContent>
