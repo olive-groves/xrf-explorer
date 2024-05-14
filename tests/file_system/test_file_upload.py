@@ -71,7 +71,7 @@ class TestUploadFileToServer:
         assert FILENAME in result
 
         # remove test file 
-        config = load_yml(self.CUSTOM_CONFIG_PATH)
+        config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
         
         assert config
 
