@@ -22,7 +22,7 @@ def get_files(config_path: str = "config/backend.yml") -> list[str]:
     path = Path(backend_config['uploads-folder'])
 
     # Return list of all file names in the folder
-    files = [f for f in listdir(path) if isfile(join(path, f))]
+    files: list[str] = [filename for filename in listdir(path) if isfile(join(path, filename))]
 
     # Remove unwanted files
     if ".gitignore" in files:
