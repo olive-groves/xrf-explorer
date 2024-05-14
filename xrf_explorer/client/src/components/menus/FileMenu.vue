@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useFetch } from '@vueuse/core';
 
 import { DialogMenuItem } from '@/components/ui/dialog';
 
-const API_URL = 'http://localhost:8001/api'
+import frontendConfig from '../../.././public/frontend.json';
+
+const { 'api-url': API_URL } = frontendConfig;
+console.log(API_URL);
 
 // Fetch files
-const { data } = useFetch(`${API_URL}/available_data_sources`).get().json()
+const { data } = useFetch(`${API_URL}/available_data_sources`).get().json();
 const files = computed(() => {
   return data.value as Array<string>;
 })
