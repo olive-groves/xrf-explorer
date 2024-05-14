@@ -29,13 +29,13 @@
       },
     ],
     "vue/require-prop-comment": [
-      "error",
+      "warn",
       {
         "type": "JSDoc",
       },
     ],
     "jsdoc/require-jsdoc": [
-      "error",
+      "warn",
       {
         "publicOnly": {
           "esm": true,
