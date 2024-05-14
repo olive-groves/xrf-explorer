@@ -11,6 +11,8 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          directory: ./xrf_explorer/client
+          cache-dependency-path: ./xrf_explorer/client/package-lock.json
       - name: Setup
         working-directory: ./xrf_explorer/client
         run: npm ci
