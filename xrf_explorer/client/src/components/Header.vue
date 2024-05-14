@@ -14,7 +14,9 @@ import { WindowMenu } from '@/components/ui/window';
 import { DialogMenuItem } from '@/components/ui/dialog';
 import { FileMenu } from '@/components/menus';
 
+// Color mode
 import { useColorMode } from '@vueuse/core';
+
 const colorMode = useColorMode({
   initialValue: "dark"
 });
