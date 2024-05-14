@@ -10,9 +10,10 @@
     "plugin:vue/vue3-strongly-recommended",
     "plugin:jsdoc/recommended-typescript",
     "plugin:tailwindcss/recommended",
+    "plugin:readable-tailwind/warning",
     "prettier",
   ],
-  "plugins": ["@typescript-eslint", "prettier", "jsdoc"],
+  "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic", "readable-tailwind"],
   "rules": {
     "prettier/prettier": "warn",
     "vue/no-reserved-props": "off",
@@ -66,6 +67,14 @@
     "jsdoc/check-indentation": "warn",
     "jsdoc/check-line-alignment": "warn",
     "jsdoc/require-asterisk-prefix": "warn",
-    "no-warning-comments": "warn"
+    "no-warning-comments": "warn",
+    "@stylistic/max-len": ["warn", {
+      "code": 120,
+      "ignoreComments": false,
+      "ignoreUrls": true,
+      "ignoreStrings": false,
+      "ignoreTemplateLiterals": false,
+      "ignoreRegExpLiterals": false
+    }]
   },
 }
