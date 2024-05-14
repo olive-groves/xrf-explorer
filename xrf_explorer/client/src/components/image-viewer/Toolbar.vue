@@ -3,11 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Slider } from "@/components/ui/slider";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Hand, Search, LassoSelect, Settings } from "lucide-vue-next";
 import { ref } from "vue";
@@ -20,35 +16,27 @@ const state = defineModel<ToolState>("state");
 
 <template>
   <div
-    class="w-min my-2 z-50 fixed bottom-0 flex bg-background border p-1 shadow-sm rounded-md space-x-1 left-1/2 -translate-x-1/2"
+    class="fixed bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background p-1 shadow-sm"
   >
     <ToggleGroup type="single" v-model:model-value="selectedTool">
-      <ToggleGroupItem value="grab" class="p-2 w-8 h-8" title="Grab">
+      <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
         <Hand />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lens" class="p-2 w-8 h-8" title="Lens">
+      <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
         <Search />
       </ToggleGroupItem>
-      <ToggleGroupItem
-        value="lasso"
-        class="p-2 w-8 h-8"
-        title="Lasso selection"
-      >
+      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
         <LassoSelect />
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
     <Popover>
       <PopoverTrigger as-child>
-        <Button
-          variant="ghost"
-          class="p-2 w-8 h-8 hover:text-muted-foreground"
-          title="Tool configuration"
-        >
+        <Button variant="ghost" class="size-8 p-2 hover:text-muted-foreground" title="Tool configuration">
           <Settings />
         </Button>
       </PopoverTrigger>
-      <PopoverContent class="w-60 m-2 space-y-4 p-2 pb-4">
+      <PopoverContent class="m-2 w-60 space-y-4 p-2 pb-4">
         <div class="grid gap-3">
           <div class="flex items-center justify-between">
             <Label for="movementspeed">Movement speed</Label>
@@ -56,13 +44,7 @@ const state = defineModel<ToolState>("state");
               {{ state!.movementSpeed[0] }}
             </div>
           </div>
-          <Slider
-            id="movementspeed"
-            :min="0.1"
-            :max="3.0"
-            :step="0.1"
-            v-model:model-value="state!.movementSpeed"
-          />
+          <Slider id="movementspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state!.movementSpeed" />
         </div>
         <div class="grid gap-3">
           <div class="flex items-center justify-between">
@@ -71,13 +53,7 @@ const state = defineModel<ToolState>("state");
               {{ state!.scrollSpeed[0] }}
             </div>
           </div>
-          <Slider
-            id="scrollspeed"
-            :min="0.1"
-            :max="3.0"
-            :step="0.1"
-            v-model:model-value="state!.scrollSpeed"
-          />
+          <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state!.scrollSpeed" />
         </div>
       </PopoverContent>
     </Popover>

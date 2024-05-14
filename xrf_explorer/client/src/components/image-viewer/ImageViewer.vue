@@ -184,6 +184,7 @@ function addLayer(id: string, image: string) {
  * @param dstWidth - Width of destination image.
  * @param dstHeight - Height of destination image.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setPerspectiveTransform(
   mat: THREE.Matrix3,
   src: Point2D[],
