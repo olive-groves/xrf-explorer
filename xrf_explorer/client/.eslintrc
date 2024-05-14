@@ -1,0 +1,71 @@
+{
+  "root": true,
+  "parser": "vue-eslint-parser",
+  "parserOptions": {
+    "parser": "@typescript-eslint/parser",
+    "sourceType": "module",
+  },
+  "extends": [
+    "@vue/typescript/recommended",
+    "plugin:vue/vue3-strongly-recommended",
+    "plugin:jsdoc/recommended-typescript",
+    "plugin:tailwindcss/recommended",
+    "prettier",
+  ],
+  "plugins": ["@typescript-eslint", "prettier", "jsdoc"],
+  "rules": {
+    "prettier/prettier": "warn",
+    "vue/no-reserved-props": "off",
+    "vue/no-v-model-argument": "off",
+    "vue/multi-word-component-names": "off",
+    "vue/require-default-prop": "off",
+    "vue/script-setup-uses-vars": "error",
+    "vue/no-v-for-template-key-on-child": "warn",
+    "vue/block-lang": ["error",{
+      "script": {
+        "lang": "ts"
+      }
+    }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+      },
+    ],
+    "vue/require-prop-comment": [
+      "warn",
+      {
+        "type": "JSDoc",
+      },
+    ],
+    "jsdoc/require-jsdoc": [
+      "warn",
+      {
+        "publicOnly": {
+          "esm": true,
+          "cjs": true,
+          "window": true,
+        },
+        "require": {
+          "ArrowFunctionExpression": true,
+          "ClassDeclaration": true,
+          "ClassExpression": true,
+          "FunctionDeclaration": true,
+          "FunctionExpression": true,
+          "MethodDefinition": true,
+        },
+        "contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration", "TSEnumDeclaration", "TSPropertySignature"],
+      },
+    ],
+    "jsdoc/require-description": "warn",
+    "jsdoc/require-description-complete-sentence": "warn",
+    "jsdoc/no-bad-blocks": "warn",
+    "jsdoc/no-blank-blocks": "warn",
+    "jsdoc/check-indentation": "warn",
+    "jsdoc/check-line-alignment": "warn",
+    "jsdoc/require-asterisk-prefix": "warn",
+    "no-warning-comments": "warn"
+  },
+}
