@@ -3,11 +3,22 @@ import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 
+const props = defineProps<{
+  /**
+   * The config to be used by the client.
+   */
+  config: FrontendConfig;
+}>();
+provide("config", props.config);
+console.log("Client created with configuration: ", props.config);
+
 // Import all windows
 import { TestWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
+import { FrontendConfig } from "./lib/config";
+import { provide } from "vue";
 </script>
 
 <template>
