@@ -10,10 +10,9 @@
     "plugin:vue/vue3-strongly-recommended",
     "plugin:jsdoc/recommended-typescript",
     "plugin:tailwindcss/recommended",
-    "plugin:readable-tailwind/warning",
     "prettier",
   ],
-  "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic", "readable-tailwind"],
+  "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic"],
   "rules": {
     "prettier/prettier": "warn",
     "vue/no-reserved-props": "off",
