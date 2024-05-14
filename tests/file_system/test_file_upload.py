@@ -1,11 +1,10 @@
-from os import remove
 from os.path import join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
-from xrf_explorer.server.file_system.config_handler import load_yml
+
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
-from xrf_explorer.server.file_system.get_files import get_files
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
 RESOURCES_PATH: Path = Path('tests/resources')
 
@@ -46,17 +45,17 @@ class TestUploadFileToServer:
     
     def test_get_file_names(self):
         # setup
-        filename: str = "test_file_name.txt"
+        data_source_name: str = "test_data_source"
 
         # execute
-        result: list[str] = get_files(self.CUSTOM_CONFIG_PATH)
+        result: list[str] = get_data_sources_names(self.CUSTOM_CONFIG_PATH)
         
         # validate
-        assert filename in result
+        assert data_source_name in result
     
     def test_no_file_names(self):
         # execute
-        result: list[str] = get_files('this-config-does-not-exist.yml')
+        result: list[str] = get_data_sources_names('this-config-does-not-exist.yml')
 
         # validate
-        assert result == [""]
+        assert result == []

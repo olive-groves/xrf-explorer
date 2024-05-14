@@ -6,7 +6,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
-from xrf_explorer.server.file_system.get_files import get_files
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -22,13 +22,13 @@ def info():
     return "adding more routes is quite trivial"
 
 
-@app.route('/api/files')
-def list_accessible_files():
+@app.route('/api/available_data_sources')
+def list_accessible_data_sources():
     try:
-        return json.dumps(get_files())
+        return json.dumps(get_data_sources_names())
     except Exception as e:
         LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing files", 500
+        return "Error occurred while listing data sources", 500
 
 
 @app.route('/api/upload', methods=['POST'])
