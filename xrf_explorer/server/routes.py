@@ -28,7 +28,7 @@ def list_accessible_files():
         return json.dumps(get_files())
     except Exception as e:
         LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing files"
+        return "Error occurred while listing files", 500
 
 
 @app.route('/api/upload', methods=['POST'])
