@@ -14,7 +14,7 @@
   ],
   "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic"],
   "rules": {
-    "prettier/prettier": "warn",
+    "prettier/prettier": ["warn"],
     "vue/no-reserved-props": "off",
     "vue/no-v-model-argument": "off",
     "vue/multi-word-component-names": "off",
