@@ -4,18 +4,9 @@ import cv2
 from colormath.color_objects import LabColor, sRGBColor
 from colormath.color_conversions import convert_color
 from colormath.color_diff import delta_e_cie2000
-
-
-def visualize_clusters(small_image, clusters):
-    k = len(clusters)
-    plt.figure()
-    for i, color in enumerate(clusters):
-        palette = np.zeros_like(small_image, dtype='uint8')
-        palette[:, :, :] = color
-        plt.subplot(1, k, i + 1)
-        plt.axis("off")
-        plt.imshow(palette)
-    plt.show()
+from sklearn.cluster import DBSCAN
+from PIL import Image
+from skimage import color
 
 
 def get_pixels_in_clusters(big_image, clusters):
@@ -26,8 +17,9 @@ def get_pixels_in_clusters(big_image, clusters):
             pixels_in_clusters[i].append((y, x))
 
 
-def get_clusters_using_dbscan(small_image):
-    return None
+########################################################################################################################
+# K-MEANS ##############################################################################################################
+########################################################################################################################
 
 
 def get_clusters_using_k_means(small_image, nr_of_attempts=20, k=-1):
@@ -43,32 +35,81 @@ def get_clusters_using_k_means(small_image, nr_of_attempts=20, k=-1):
     return label, center
 
 
-def visualize_segmented_image(small_image, clusters, label):
-    clusters = np.uint8(clusters)
-    res = clusters[label.flatten()]
-    result_image = res.reshape(small_image.shape)
-
-    figure_size = 15
-    plt.figure(figsize=(figure_size, figure_size))
-    plt.subplot(2, 3, 1), plt.imshow(small_image)
-    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    plt.subplot(2, 3, 2), plt.imshow(result_image)
-    plt.title('Segmented Image when K = %i' % len(clusters)), plt.xticks([]), plt.yticks([])
-    plt.show()
-
-
 def get_optimal_k(small_image):
     return 20
 
 
-def get_image_in_lab_format(rgb_image):
-    lab_image = np.zeros_like(rgb_image, dtype=np.float64)
+########################################################################################################################
+# DBSCAN ###############################################################################################################
+########################################################################################################################
 
-    for y in range(rgb_image.shape[0]):
-        for x in range(rgb_image.shape[1]):
-            lab_image[y, x, :] = rgb_to_lab(rgb_image[y, x, :])
 
-    return lab_image
+def get_clusters_using_dbscan(small_image, eps=1.5, min_samples=20):
+    lab_colors = image_to_lab(small_image)
+    data = np.array(lab_colors)
+
+    # Initialize DBSCAN
+    dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+    # Fit the model and predict clusters
+    labels = dbscan.fit_predict(data)
+
+    # Get unique cluster labels excluding noise (-1)
+    unique_labels = np.unique(labels[labels != -1])
+
+    # Compute the average LAB color of each cluster
+    cluster_averages = {}
+    for unique_label in unique_labels:
+        # Get indices of points belonging to the cluster
+        cluster_indices = np.where(labels == unique_label)[0]
+        # Get LAB colors of points in the cluster
+        cluster_lab_colors = data[cluster_indices]
+        # Compute the average LAB color of the cluster
+        average_lab_color = np.mean(cluster_lab_colors, axis=0)
+        cluster_averages[unique_label] = average_lab_color
+
+    print(cluster_averages)
+    return cluster_averages
+
+
+def get_rgb_clusters_using_dbscan(clusters_as_lab):
+
+    # Extract LAB color triples from the dictionary
+    lab_colors = list(clusters_as_lab.values())
+
+    # Convert the list of LAB colors to a NumPy array
+    lab_array = np.array(lab_colors, dtype=np.float64)
+
+    # Ensure the array is 3-dimensional with shape (1, N, 3) for skimage compatibility
+    lab_array = lab_array[np.newaxis, :, :]
+
+    # Convert the LAB array to an RGB array using skimage
+    rgb_array = color.lab2rgb(lab_array)[0]
+
+    # Scale the RGB values to the range [0, 255]
+    rgb_array = (rgb_array * 255).astype(np.uint8)
+
+    # Convert the RGB array back to a list of tuples
+    rgb_colors = [tuple(rgb) for rgb in rgb_array]
+
+    return rgb_colors
+
+
+########################################################################################################################
+# LAB METHODS ##########################################################################################################
+########################################################################################################################
+
+def image_to_lab(small_image):
+    small_image = small_image.convert("RGB")
+    width, height = small_image.size
+    lab_colors = []
+    for y in range(height):
+        for x in range(width):
+            # Get RGB color of pixel
+            rgb_pixel = small_image.getpixel((x, y))
+            # Convert RGB to Lab
+            lab_color = rgb_to_lab(rgb_pixel)
+            lab_colors.append(lab_color)
+    return lab_colors
 
 
 def find_closest_color_index(target_rgb, color_list):
@@ -76,8 +117,8 @@ def find_closest_color_index(target_rgb, color_list):
     min_diff = float('inf')
     closest_index = -1
 
-    for index, color in enumerate(color_list):
-        lab = rgb_to_lab(color)
+    for index, col in enumerate(color_list):
+        lab = rgb_to_lab(col)
         diff = calculate_color_difference(target_lab, lab)
         if diff < min_diff:
             min_diff = diff
@@ -97,13 +138,61 @@ def rgb_to_lab(rgb_triple):
     return convert_color(rgb_color, LabColor).get_value_tuple()
 
 
+########################################################################################################################
+# IMAGE FORMATTING #####################################################################################################
+########################################################################################################################
+
+
 def get_image_as_vector(small_image):
     return np.float32(small_image.reshape((-1, 3)))
 
 
-def get_small_image(big_image):
-    return cv2.resize(big_image, None, fx=0.1, fy=0.1)  # TODO: Change to fixed size rather than percentage.
+def get_small_image(big_image, max_side_length=300):
+    height = big_image.shape[0]
+    width = big_image.shape[1]
 
+    # Determine the scaling factor
+    if height > width:
+        scaling_factor = max_side_length / height
+    else:
+        scaling_factor = max_side_length / width
+
+    # Calculate the new dimensions
+    new_width = int(width * scaling_factor)
+    new_height = int(height * scaling_factor)
+
+    # Resize the image
+    return cv2.resize(big_image, (new_width, new_height))
+
+
+def get_small_image_as_pillow(big_image, max_side_length=200):
+    width, height = big_image.size
+
+    if width > height:
+        scale_factor = max_side_length / width
+    else:
+        scale_factor = max_side_length / height
+
+    # Calculate the new dimensions
+    new_width = int(width * scale_factor)
+    new_height = int(height * scale_factor)
+
+    # Resize and save
+    return big_image.resize((new_width, new_height))
+
+
+def get_image(image_file_path):
+    raw_image = cv2.imread(image_file_path)
+    return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
+
+
+def get_image_as_pillow(image_file_path):
+    return Image.open(image_file_path)
+
+
+########################################################################################################################
+# VISUALIZATION ########################################################################################################
+########################################################################################################################
 
 def visualize_image(image):
     plt.axis('off')
@@ -112,6 +201,27 @@ def visualize_image(image):
     plt.show()
 
 
-def get_image(image_file_path):
-    raw_image = cv2.imread(image_file_path)
-    return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
+def visualize_segmented_image(small_image, clusters, label):
+    clusters = np.uint8(clusters)
+    res = clusters[label.flatten()]
+    result_image = res.reshape(small_image.shape)
+
+    figure_size = 15
+    plt.figure(figsize=(figure_size, figure_size))
+    plt.subplot(2, 3, 1), plt.imshow(small_image)
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2, 3, 2), plt.imshow(result_image)
+    plt.title('Segmented Image when K = %i' % len(clusters)), plt.xticks([]), plt.yticks([])
+    plt.show()
+
+
+def visualize_clusters(small_image, clusters):
+    k = len(clusters)
+    plt.figure()
+    for i, col in enumerate(clusters):
+        palette = np.zeros_like(small_image, dtype='uint8')
+        palette[:, :, :] = col
+        plt.subplot(1, k, i + 1)
+        plt.axis("off")
+        plt.imshow(palette)
+    plt.show()
