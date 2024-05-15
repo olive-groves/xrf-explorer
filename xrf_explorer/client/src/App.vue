@@ -6,7 +6,7 @@ import { ImageViewer } from "@/components/image-viewer";
 import { FrontendConfig } from "./lib/config";
 
 // Import all windows
-import { TestWindow, LayerWindow } from "@/windows";
+import { LayerWindow } from "@/windows/layer-window";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
