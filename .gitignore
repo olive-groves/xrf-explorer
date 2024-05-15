@@ -3,7 +3,6 @@ env/
 **/.vscode/
 **/poetry.lock
 **/pyproject.toml
-compile.sh
 
 # Ignore dependencies
 **/__pycache__/
