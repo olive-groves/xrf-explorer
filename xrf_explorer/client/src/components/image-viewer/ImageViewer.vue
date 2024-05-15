@@ -336,7 +336,13 @@ function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
   if (layers["bottom"]) {
     // The 100.0 and dividing by simply viewport.zoom is arbitrary
-    layers["bottom"].uniform!.uRadius.value = 100.0 / viewport.zoom;
+    const rad = 100.0 / viewport.zoom;
+    // Temporary fix for lens disappearing if viewport.zoom becomes too large
+    if (rad < 0.01) {
+      layers["bottom"].uniform!.uRadius.value = 100.0;
+    } else {
+      layers["bottom"].uniform!.uRadius.value = rad;
+    }
   }
 }
 </script>
