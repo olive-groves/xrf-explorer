@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/menubar";
 import { WindowMenu } from "@/components/ui/window";
 import { DialogMenuItem } from "@/components/ui/dialog";
-
+import { FileMenu } from "@/components/menus";
 import { useColorMode } from "@vueuse/core";
 import { inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
@@ -46,6 +46,8 @@ const colorMode = useColorMode({
       <MenubarTrigger> File </MenubarTrigger>
       <MenubarContent>
         <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
+        <MenubarSeparator />
+        <FileMenu />
       </MenubarContent>
     </MenubarMenu>
     <WindowMenu>
