@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import cv2
 from colormath.color_objects import LabColor, sRGBColor
 from colormath.color_conversions import convert_color
+from colormath.color_diff import delta_e_cie2000
 
 
 def visualize_clusters(small_image, clusters):
@@ -15,6 +16,14 @@ def visualize_clusters(small_image, clusters):
         plt.axis("off")
         plt.imshow(palette)
     plt.show()
+
+
+def get_pixels_in_clusters(big_image, clusters):
+    pixels_in_clusters = [[] for _ in range(len(clusters))]
+    for y in range(big_image.shape[0]):
+        for x in range(big_image.shape[1]):
+            i = find_closest_color_index(big_image[y][x], clusters)
+            pixels_in_clusters[i].append((y, x))
 
 
 def get_clusters_using_dbscan(small_image):
@@ -37,7 +46,7 @@ def get_clusters_using_k_means(small_image, nr_of_attempts=20, k=-1):
 def visualize_segmented_image(small_image, clusters, label):
     clusters = np.uint8(clusters)
     res = clusters[label.flatten()]
-    result_image = res.reshape((small_image.shape))
+    result_image = res.reshape(small_image.shape)
 
     figure_size = 15
     plt.figure(figsize=(figure_size, figure_size))
@@ -60,6 +69,27 @@ def get_image_in_lab_format(rgb_image):
             lab_image[y, x, :] = rgb_to_lab(rgb_image[y, x, :])
 
     return lab_image
+
+
+def find_closest_color_index(target_rgb, color_list):
+    target_lab = rgb_to_lab(target_rgb)
+    min_diff = float('inf')
+    closest_index = -1
+
+    for index, color in enumerate(color_list):
+        lab = rgb_to_lab(color)
+        diff = calculate_color_difference(target_lab, lab)
+        if diff < min_diff:
+            min_diff = diff
+            closest_index = index
+
+    return closest_index
+
+
+def calculate_color_difference(lab1, lab2):
+    color1 = LabColor(lab1[0], lab1[1], lab1[2])
+    color2 = LabColor(lab2[0], lab2[1], lab2[2])
+    return delta_e_cie2000(color1, color2)
 
 
 def rgb_to_lab(rgb_triple):
