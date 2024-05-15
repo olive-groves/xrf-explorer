@@ -1,2 +1,2 @@
-uploads-folder: "tests/file_system"
+uploads-folder: "tests/resources/file_system"
 upload-buffer-size: 16384
