@@ -93,7 +93,7 @@ function uploadDataSource() {
       <label class="w-64" @click.prevent="test">Data source name</label>
       <input
         type="text"
-        class="bg-gray-50 text-gray-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-44 p-2 dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        class="bg-accent text-accent-foreground rounded-lg focus:ring-ring focus:border-border block w-44 p-2"
         placeholder="Data source"
         ref="dataSourceNameInput"
       />
@@ -101,7 +101,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">RGB file</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="rgb_input_help"
         type="file"
         ref="rgbImageInput"
@@ -110,7 +110,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">UV file</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="uv_input_help"
         type="file"
         ref="uvImageInput"
@@ -119,7 +119,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">XRAY file</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="xray_input_help"
         type="file"
         ref="xrayImageInput"
@@ -128,7 +128,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">Cube data</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="cube_input_help"
         type="file"
         ref="cubeDataInput"
@@ -137,7 +137,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">Raw data (.RAW)</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         ref="rawDataInput"
@@ -146,7 +146,7 @@ function uploadDataSource() {
     <div class="flex items-center">
       <label class="w-64">Raw data (.RPL)</label>
       <input
-        class="block w-44 text-gray-900 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-neutral-900 dark:border-gray-700 dark:placeholder-gray-400"
+        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         ref="rplDataInput"
