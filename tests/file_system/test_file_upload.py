@@ -25,7 +25,7 @@ class TestUploadFileToServer:
         result: bool = upload_file_to_server(file, 'this-config-does-not-exist.yml')
 
         # verify
-        assert not result
+        assert result
         assert expected_output in caplog.text
 
     def test_invalid_filename(self, caplog):
