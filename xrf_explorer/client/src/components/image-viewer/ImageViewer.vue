@@ -55,20 +55,30 @@ precision highp float;
 precision highp int;
 
 uniform sampler2D tImage;
-uniform vec2 uCircleCenter; 
+uniform vec2 uMouse; 
+uniform vec2 uResolution; 
 
 varying vec2 vUv;
 
 void main() {
   vec4 color = texture2D(tImage, vUv);
-  float d = distance(vUv, uCircleCenter);
+// Convert mouse position from [-1, 1] to [0, resolution]
+  vec2 mousePos = uMouse * uResolution;
 
-  // only render pixels inside the circle,
-  // otherwise set to transparent
-  if (d <= 0.05) {
+  // Calculate pixel position
+  vec2 pixelPos = gl_FragCoord.xy;
+
+  // Calculate distance from pixel to mouse position
+  float distance = distance(pixelPos, mousePos);
+
+  // Normalize the distance to the range [0, 1]
+  float normalizedDistance = distance / length(uResolution);
+
+  // Use the normalized distance for coloring (for example, a gradient effect)
+  if (normalizedDistance <= 0.1) {
     gl_FragColor = color;
   } else {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Use a different color for pixels outside the circle
   }
 }`;
 
@@ -130,10 +140,10 @@ function setup() {
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
 
   // Temporary, until layer system is in place and can handle the layers programmatically.
-  addLayer(
-    "rgb",
-    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
-  );
+  //addLayer(
+  //  "rgb",
+  //  "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+  //);
   addLayer(
     "bottom",
     "https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
@@ -155,7 +165,8 @@ function addLayer(id: string, image: string) {
       iIndex: { value: 0 },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
-      uCircleCenter: { value: new THREE.Vector2(0.5, 0.5) },
+      uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+      uResolution: { value: new THREE.Vector2(width, height) }, // Added resolution uniform
     },
   };
 
@@ -317,10 +328,10 @@ function onMouseMove(event: MouseEvent) {
   // Normalize mouse coordinates to [0,1]^2, reversing
   // y-axis to have (0,0) at bottom left
   const normalizedX = mouseX / rect.width;
-  const normalizedY = 1.0 - mouseY / rect.height;
+  const normalizedY = 1 - (mouseY / rect.height);
 
   if (layers["bottom"]) {
-    layers["bottom"].uniform!.uCircleCenter.value.set(normalizedX, normalizedY);
+    layers["bottom"].uniform!.uMouse.value.set(normalizedX, normalizedY);
   }
 }
 
