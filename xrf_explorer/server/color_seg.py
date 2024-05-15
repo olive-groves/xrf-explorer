@@ -14,40 +14,30 @@ def visualize_clusters(small_image, clusters):
         plt.subplot(1, k, i + 1)
         plt.axis("off")
         plt.imshow(palette)
+    plt.show()
 
 
 def get_clusters_using_dbscan(small_image):
     return None
 
 
-def get_clusters_using_k_means(small_image, nr_of_attempts=20):
+def get_clusters_using_k_means(small_image, nr_of_attempts=20, k=-1):
     vectorized_image = get_image_as_vector(small_image)
 
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
-    k = get_optimal_k(small_image)
+    if k == -1:
+        k = get_optimal_k(small_image)
 
     ret, label, center = cv2.kmeans(vectorized_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
-    return center
-
-
-def get_label_from_k_means(small_image, nr_of_attempts=20):
-    vectorized_image = get_image_as_vector(small_image)
-
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
-
-    k = get_optimal_k(small_image)
-
-    ret, label, center = cv2.kmeans(vectorized_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
-
-    return label
+    return label, center
 
 
 def visualize_segmented_image(small_image, clusters, label):
-    center = np.uint8(clusters)
-    res = center[label.flatten()]
-    result_image = res.reshape(small_image.shape)
+    clusters = np.uint8(clusters)
+    res = clusters[label.flatten()]
+    result_image = res.reshape((small_image.shape))
 
     figure_size = 15
     plt.figure(figsize=(figure_size, figure_size))
@@ -83,6 +73,13 @@ def get_image_as_vector(small_image):
 
 def get_small_image(big_image):
     return cv2.resize(big_image, None, fx=0.1, fy=0.1)  # TODO: Change to fixed size rather than percentage.
+
+
+def visualize_image(image):
+    plt.axis('off')
+    plt.imshow(image)
+    plt.title('Original Image')
+    plt.show()
 
 
 def get_image(image_file_path):
