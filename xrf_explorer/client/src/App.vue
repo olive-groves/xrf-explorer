@@ -3,13 +3,13 @@ import { provide } from "vue";
 import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
+import { FrontendConfig } from "./lib/config";
 
 // Import all windows
-import { TestWindow } from "@/windows";
+import { TestWindow, LayerWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
-import { FrontendConfig } from "./lib/config";
 
 // Provide configuration to app
 const props = defineProps<{
@@ -30,6 +30,7 @@ console.log("Client created with configuration: ", props.config);
 
       <!-- Place all windows below here -->
       <TestWindow />
+      <LayerWindow />
     </WindowContainer>
 
     <!-- Place all reusable dialogs here -->
