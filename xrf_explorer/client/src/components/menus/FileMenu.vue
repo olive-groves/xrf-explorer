@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { useFetch } from "@vueuse/core";
-
 import { DialogMenuItem } from "@/components/ui/dialog";
+import { FrontendConfig } from "@/lib/config";
 
-import frontendConfig from "../../.././public/frontend.json";
-
-const { "api-url": API_URL } = frontendConfig;
+const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
-const { data } = useFetch(`${API_URL}/available_data_sources`).get().json();
+const { data } = useFetch(`${config.api.endpoint}/available_data_sources`).get().json();
 const files = computed(() => {
   return data.value as Array<string>;
 });
