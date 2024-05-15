@@ -3,8 +3,12 @@ import { type HTMLAttributes, computed } from "vue";
 import { MenubarRoot, type MenubarRootEmits, type MenubarRootProps, useForwardPropsEmits } from "radix-vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
-const props = defineProps<MenubarRootProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  MenubarRootProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 const emits = defineEmits<MenubarRootEmits>();
 
 const delegatedProps = computed(() => {
