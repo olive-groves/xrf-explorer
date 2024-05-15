@@ -3,6 +3,7 @@ import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
 import { TestWindow } from "@/windows";
 import { UploadFileDialog } from "@/components/dialogs";
+import { SpectraWindow } from "@/windows";
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import { UploadFileDialog } from "@/components/dialogs";
         class="size-full"
       />
       <TestWindow />
+      <SpectraWindow />
     </WindowContainer>
     <UploadFileDialog />
   </div>
