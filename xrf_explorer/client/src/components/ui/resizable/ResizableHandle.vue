@@ -9,8 +9,16 @@ import {
 import { DragHandleDots2Icon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
-const props = defineProps<SplitterResizeHandleProps & { class?: HTMLAttributes["class"]; withHandle?: boolean }>();
+const props = defineProps<
+  SplitterResizeHandleProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+    /**
+     * Determines whether the resizehandle shows an icon.
+     */
+    withHandle?: boolean;
+  }
+>();
 const emits = defineEmits<SplitterResizeHandleEmits>();
 
 const delegatedProps = computed(() => {
@@ -26,7 +34,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     v-bind="forwarded"
     :class="
       cn(
-        'relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 [&[data-orientation=vertical]]:h-px [&[data-orientation=vertical]]:w-full [&[data-orientation=vertical]]:after:left-0 [&[data-orientation=vertical]]:after:h-1 [&[data-orientation=vertical]]:after:w-full [&[data-orientation=vertical]]:after:-translate-y-1/2 [&[data-orientation=vertical]]:after:translate-x-0 [&[data-orientation=vertical]>div]:rotate-90',
+        `relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2
+        after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+        focus-visible:ring-offset-1 [&[data-orientation=vertical]]:h-px [&[data-orientation=vertical]]:w-full
+        [&[data-orientation=vertical]]:after:left-0 [&[data-orientation=vertical]]:after:h-1
+        [&[data-orientation=vertical]]:after:w-full [&[data-orientation=vertical]]:after:-translate-y-1/2
+        [&[data-orientation=vertical]]:after:translate-x-0 [&[data-orientation=vertical]>div]:rotate-90`,
         props.class,
       )
     "

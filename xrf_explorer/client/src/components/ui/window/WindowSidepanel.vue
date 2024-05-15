@@ -106,7 +106,8 @@ function toggleTabSize(id: string) {
 }
 
 /**
- * Event handler that handles changes in the window height, making sure that the windows do not take up more vertical height than is visible.
+ * Event handler that handles changes in the window height, making sure that the windows do not take up more vertical
+ * height than is visible.
  * @param height The height of the side panel after resizing.
  * @param oldHeight The height of the side panel before resizing.
  */
@@ -376,7 +377,7 @@ function handleDragMovement(event: MouseEvent) {
         >
           <div
             @click="toggleTabSize(id)"
-            class="left-0 flex w-full cursor-pointer items-center justify-start space-x-1 whitespace-nowrap border-b p-1"
+            class="left-0 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
           >
             <ChevronRight
               class="size-5 min-w-5 duration-100"

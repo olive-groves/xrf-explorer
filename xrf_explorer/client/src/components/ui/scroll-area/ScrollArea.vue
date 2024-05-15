@@ -4,8 +4,12 @@ import { ScrollAreaCorner, ScrollAreaRoot, type ScrollAreaRootProps, ScrollAreaV
 import ScrollBar from "./ScrollBar.vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
-const props = defineProps<ScrollAreaRootProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  ScrollAreaRootProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

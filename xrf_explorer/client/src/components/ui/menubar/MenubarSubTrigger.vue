@@ -4,8 +4,16 @@ import { MenubarSubTrigger, type MenubarSubTriggerProps, useForwardProps } from 
 import { ChevronRightIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
-const props = defineProps<MenubarSubTriggerProps & { class?: HTMLAttributes["class"]; inset?: boolean }>();
+const props = defineProps<
+  MenubarSubTriggerProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+    /**
+     * Determines if the trigger should be inset.
+     */
+    inset?: boolean;
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;
@@ -21,7 +29,8 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
     :class="
       cn(
-        'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
+        `flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent
+        focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground`,
         inset && 'pl-8',
         props.class,
       )

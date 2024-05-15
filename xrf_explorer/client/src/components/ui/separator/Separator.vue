@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { type HTMLAttributes, computed } from "vue";
-import { MenubarSeparator, type MenubarSeparatorProps, useForwardProps } from "radix-vue";
+import { Separator, type SeparatorProps } from "radix-vue";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<
-  MenubarSeparatorProps & {
+  SeparatorProps & {
     // eslint-disable-next-line vue/require-prop-comment
     class?: HTMLAttributes["class"];
   }
@@ -15,10 +15,11 @@ const delegatedProps = computed(() => {
 
   return delegated;
 });
-
-const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <MenubarSeparator :class="cn('-mx-1 my-1 h-px bg-muted', props.class)" v-bind="forwardedProps" />
+  <Separator
+    v-bind="delegatedProps"
+    :class="cn('shrink-0 bg-border', props.orientation === 'vertical' ? 'w-px h-full' : 'h-px w-full', props.class)"
+  />
 </template>
