@@ -29,7 +29,6 @@ console.log("Client created with configuration: ", props.config);
       <ImageViewer />
 
       <!-- Place all windows below here -->
-      <TestWindow />
       <LayerWindow />
     </WindowContainer>
 
