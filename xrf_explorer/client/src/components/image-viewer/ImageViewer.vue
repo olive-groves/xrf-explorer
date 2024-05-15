@@ -56,29 +56,21 @@ precision highp int;
 
 uniform sampler2D tImage;
 uniform vec2 uMouse; 
-uniform vec2 uResolution; 
+uniform float uRadius;
 
 varying vec2 vUv;
 
 void main() {
   vec4 color = texture2D(tImage, vUv);
-// Convert mouse position from [-1, 1] to [0, resolution]
-  vec2 mousePos = uMouse * uResolution;
-
-  // Calculate pixel position
-  vec2 pixelPos = gl_FragCoord.xy;
 
   // Calculate distance from pixel to mouse position
-  float distance = distance(pixelPos, mousePos);
+  float distance = distance(gl_FragCoord.xy, uMouse);
 
-  // Normalize the distance to the range [0, 1]
-  float normalizedDistance = distance / length(uResolution);
-
-  // Use the normalized distance for coloring (for example, a gradient effect)
-  if (normalizedDistance <= 0.1) {
+  if (distance <= uRadius) {
     gl_FragColor = color;
   } else {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Use a different color for pixels outside the circle
+    // Transparent outside the circle
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0);
   }
 }`;
 
@@ -140,10 +132,10 @@ function setup() {
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
 
   // Temporary, until layer system is in place and can handle the layers programmatically.
-  //addLayer(
-  //  "rgb",
-  //  "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
-  //);
+  addLayer(
+    "rgb",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+  );
   addLayer(
     "bottom",
     "https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
@@ -166,7 +158,7 @@ function addLayer(id: string, image: string) {
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-      uResolution: { value: new THREE.Vector2(width, height) }, // Added resolution uniform
+      uRadius: { value: 100.0 },
     },
   };
 
@@ -325,10 +317,10 @@ function onMouseMove(event: MouseEvent) {
   const mouseX = event.layerX;
   const mouseY = event.layerY;
 
-  // Normalize mouse coordinates to [0,1]^2, reversing
-  // y-axis to have (0,0) at bottom left
-  const normalizedX = mouseX / rect.width;
-  const normalizedY = 1 - (mouseY / rect.height);
+  // Normalize mouse coordinates to [0,width] and [0,height],
+  // reversing y-axis to have (0,0) at bottom left
+  const normalizedX = (width * mouseX) / rect.width;
+  const normalizedY = height * (1 - mouseY / rect.height);
 
   if (layers["bottom"]) {
     layers["bottom"].uniform!.uMouse.value.set(normalizedX, normalizedY);
@@ -342,6 +334,10 @@ function onMouseMove(event: MouseEvent) {
  */
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
+  if (layers["bottom"]) {
+    // The 100.0 and dividing by simply viewport.zoom is arbitrary
+    layers["bottom"].uniform!.uRadius.value = 100.0 / viewport.zoom;
+  }
 }
 </script>
 
