@@ -7,7 +7,7 @@ const workspace = computed(() => appState.workspace);
 </script>
 
 <template>
-  <Window title="Layers">
+  <Window title="Workspace Setup">
     {{ workspace }}
   </Window>
 </template>

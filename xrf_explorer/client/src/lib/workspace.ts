@@ -1,7 +1,7 @@
 /**
  * Type describing the workspace and all relevant files in it.
  */
-export type Workspace = {
+export type WorkspaceConfig = {
   /**
    * The name of the workspace/datasource.
    */
