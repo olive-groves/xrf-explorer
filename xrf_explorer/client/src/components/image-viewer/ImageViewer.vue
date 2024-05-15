@@ -50,6 +50,28 @@ void main() {
   gl_FragColor = texture2D(tImage, vUv);
 }`;
 
+const lensFragment = `
+precision highp float;
+precision highp int;
+
+uniform sampler2D tImage;
+uniform vec2 uCircleCenter; 
+
+varying vec2 vUv;
+
+void main() {
+  vec4 color = texture2D(tImage, vUv);
+  float d = distance(vUv, uCircleCenter);
+
+  // only render pixels inside the circle,
+  // otherwise set to transparent
+  if (d <= 0.05) {
+    gl_FragColor = color;
+  } else {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+  }
+}`;
+
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
@@ -102,6 +124,8 @@ function setup() {
     alpha: true,
     canvas: glcanvas.value!,
   });
+  // Set transparent color
+  renderer.setClearColor(0x000000, 0);
 
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
 
@@ -109,6 +133,10 @@ function setup() {
   addLayer(
     "rgb",
     "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+  );
+  addLayer(
+    "bottom",
+    "https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
   );
 
   render();
@@ -127,6 +155,7 @@ function addLayer(id: string, image: string) {
       iIndex: { value: 0 },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
+      uCircleCenter: { value: new THREE.Vector2(0.5, 0.5) },
     },
   };
 
@@ -161,9 +190,11 @@ function addLayer(id: string, image: string) {
     // The fragment shader handles sampling colors from the texture.
     const material = new THREE.RawShaderMaterial({
       vertexShader: vertex,
-      fragmentShader: fragment,
+      fragmentShader: id == "bottom" ? lensFragment : fragment,
       uniforms: layer.uniform,
       side: THREE.DoubleSide,
+      transparent: true, // Enable transparency
+      blending: THREE.NormalBlending, // Use normal blending mode
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -271,6 +302,25 @@ function onMouseMove(event: MouseEvent) {
     const scale = Math.exp(viewport.zoom) * toolState.value.movementSpeed[0];
     viewport.center.x -= event.movementX * scale;
     viewport.center.y += event.movementY * scale;
+  }
+
+  // Update lens center based on mouse position
+
+  // rect to get dimensions of the canvas
+  const rect = glcanvas.value!.getBoundingClientRect();
+
+  // Mouse position from 0 to maxWidth or maxHeight
+  // with (0,0) at top left
+  const mouseX = event.layerX;
+  const mouseY = event.layerY;
+
+  // Normalize mouse coordinates to [0,1]^2, reversing
+  // y-axis to have (0,0) at bottom left
+  const normalizedX = mouseX / rect.width;
+  const normalizedY = 1.0 - mouseY / rect.height;
+
+  if (layers["bottom"]) {
+    layers["bottom"].uniform!.uCircleCenter.value.set(normalizedX, normalizedY);
   }
 }
 
