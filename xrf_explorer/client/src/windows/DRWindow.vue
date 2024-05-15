@@ -144,7 +144,10 @@ fetchDRImage()
     <p> Overlays {{ selectedOverlay }}: </p>
     <select v-model="selectedOverlay">
       <option value="rgb">rgb</option>
+      <option value="uv">uv</option>
+      <option value="xray">xray</option>
       <option value="0">Element 0</option>
+      <option value="1">Element 1</option>
       <option value="9">Element 9</option>
     </select>
     <br>
