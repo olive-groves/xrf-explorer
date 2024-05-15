@@ -1,61 +1,90 @@
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image
 import cv2
-from sklearn.cluster import KMeans
+from colormath.color_objects import LabColor, sRGBColor
+from colormath.color_conversions import convert_color
 
 
-image=cv2.imread("VGM_Package2024007_TUE_XrfExplorer2_Roulin_V20240424/196_1989_RGB.tif")
-image2=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-
-img_1 = cv2.resize(image2, None, fx = 0.1, fy = 0.1)
-
-vectorized = np.float32(img_1.reshape((-1,3)))
-
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
-
-K = 10
-attempts=10
-ret,label,center=cv2.kmeans(vectorized,K,None,criteria,attempts,cv2.KMEANS_PP_CENTERS)
-
-center = np.uint8(center)
-res = center[label.flatten()]
-result_image = res.reshape((img_1.shape))
-
-plt.figure()
-plt.imshow(img_1)
-plt.show()
-reshaped_im = img_1.reshape((-1, 3))
-print(reshaped_im.shape)
-
-k = 20
-kmeans = KMeans(k)
-
-kmeans.fit(reshaped_im)
-
-dominant_colors = kmeans.cluster_centers_.astype('uint8')
-dominant_colors
-
-plt.figure()
-for i,color in enumerate(dominant_colors):
-    palette = np.zeros_like(img_1, dtype='uint8')
-    palette[:,:,:] = color
-    plt.subplot(1,k,i+1)
-    plt.axis("off")
-    plt.imshow(palette)
-print(img_1.shape) 
-
-Sum_of_squared_distances = []
-K = range(1,20)
-for k in K:
-    km = KMeans(n_clusters=k)
-    km = km.fit(reshaped_im)
-    Sum_of_squared_distances.append(km.inertia_)
+def visualize_clusters(small_image, clusters):
+    k = len(clusters)
+    plt.figure()
+    for i, color in enumerate(clusters):
+        palette = np.zeros_like(small_image, dtype='uint8')
+        palette[:, :, :] = color
+        plt.subplot(1, k, i + 1)
+        plt.axis("off")
+        plt.imshow(palette)
 
 
-plt.plot(K, Sum_of_squared_distances, 'bx-')
-plt.xlabel('k')
-plt.ylabel('Sum_of_squared_distances')
-plt.title('Elbow Method For Optimal k')
-plt.show()    
+def get_clusters_using_dbscan(small_image):
+    return None
+
+
+def get_clusters_using_k_means(small_image, nr_of_attempts=20):
+    vectorized_image = get_image_as_vector(small_image)
+
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+
+    k = get_optimal_k(small_image)
+
+    ret, label, center = cv2.kmeans(vectorized_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+
+    return center
+
+
+def get_label_from_k_means(small_image, nr_of_attempts=20):
+    vectorized_image = get_image_as_vector(small_image)
+
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+
+    k = get_optimal_k(small_image)
+
+    ret, label, center = cv2.kmeans(vectorized_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+
+    return label
+
+
+def visualize_segmented_image(small_image, clusters, label):
+    center = np.uint8(clusters)
+    res = center[label.flatten()]
+    result_image = res.reshape(small_image.shape)
+
+    figure_size = 15
+    plt.figure(figsize=(figure_size, figure_size))
+    plt.subplot(2, 3, 1), plt.imshow(small_image)
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(2, 3, 2), plt.imshow(result_image)
+    plt.title('Segmented Image when K = %i' % len(clusters)), plt.xticks([]), plt.yticks([])
+    plt.show()
+
+
+def get_optimal_k(small_image):
+    return 20
+
+
+def get_image_in_lab_format(rgb_image):
+    lab_image = np.zeros_like(rgb_image, dtype=np.float64)
+
+    for y in range(rgb_image.shape[0]):
+        for x in range(rgb_image.shape[1]):
+            lab_image[y, x, :] = rgb_to_lab(rgb_image[y, x, :])
+
+    return lab_image
+
+
+def rgb_to_lab(rgb_triple):
+    rgb_color = sRGBColor(rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255)
+    return convert_color(rgb_color, LabColor).get_value_tuple()
+
+
+def get_image_as_vector(small_image):
+    return np.float32(small_image.reshape((-1, 3)))
+
+
+def get_small_image(big_image):
+    return cv2.resize(big_image, None, fx=0.1, fy=0.1)  # TODO: Change to fixed size rather than percentage.
+
+
+def get_image(image_file_path):
+    raw_image = cv2.imread(image_file_path)
+    return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
