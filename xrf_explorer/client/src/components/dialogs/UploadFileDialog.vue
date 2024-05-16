@@ -80,7 +80,7 @@ function uploadDataSource() {
     formData.append("xray", xrayImageFile);
   }
 
-  // fetch("/api/upload-source", { method: "POST", body: formData });
+  fetch("/api/upload-data-source", { method: "POST", body: formData });
 }
 </script>
 
@@ -89,8 +89,7 @@ function uploadDataSource() {
     <DialogTitle> Upload files </DialogTitle>
 
     <div class="flex items-center">
-      <!-- TODO: Remove after -->
-      <label class="w-64" @click.prevent="test">Data source name</label>
+      <label class="w-64">Data source name</label>
       <input
         type="text"
         class="bg-accent text-accent-foreground rounded-lg focus:ring-ring focus:border-border block w-44 p-2"
