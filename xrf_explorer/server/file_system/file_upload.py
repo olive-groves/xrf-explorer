@@ -1,17 +1,19 @@
 import logging
 
-from os.path import basename, exists, join
+from os.path import exists, join, splitext
+from os import makedirs
+
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
-from werkzeug.utils import secure_filename
-
-from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.yml") -> bool:
+# TODO change method descriptin
+def upload_file_to_server(
+    file: FileStorage, upload_dir: str, file_name: str, upload_buffer_size: int = 16384
+) -> bool:
     """Upload a local client file to a remote server as specified in the project's configuration.
 
     :param file: the file as obtained from the POST request. Can be obtained from ``flask.request.files[<name>]``
@@ -19,18 +21,13 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
     :return: True if the local file was successfully uploaded to the server AND the temporary file removed
     """
 
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        return False
+    # Create directory if it does not exist.
+    if not exists(upload_dir):
+        makedirs(upload_dir)
 
-    # store file on the server
-    file_name: str = secure_filename(basename(file.filename))
-    if file_name == '':
-        LOG.error("Could not parse provided file name: {%s}", file.filename)
-        return False
-    path_to_file: str = join(Path(backend_config['uploads-folder']), file_name)     # store under session key folder?
-    file.save(path_to_file, backend_config['upload-buffer-size'])
+    path_to_file: str = join(Path(upload_dir, file_name))
+
+    file.save(path_to_file, upload_buffer_size)
 
     # verify
     if exists(path_to_file):
@@ -38,3 +35,13 @@ def upload_file_to_server(file: FileStorage, config_path: str = "config/backend.
         return True
 
     return False
+
+
+# TODO add documentation
+def get_file_type(file: FileStorage):
+    file_name: str | None = file.filename
+
+    if file_name:
+        return splitext(file_name)[1]
+    else:
+        return None
