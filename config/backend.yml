@@ -1,2 +1,2 @@
-uploads-folder: "xrf_explorer/server/temp"
-upload-buffer-size: 16384
+uploads_folder: "xrf_explorer/server/temp"
+upload_buffer_size: 16384
