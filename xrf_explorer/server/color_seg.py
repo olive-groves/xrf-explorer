@@ -11,31 +11,21 @@ from skimage import color
 from matplotlib.colors import ListedColormap
 
 
-# Commented out is the old implementation that used the RGB colors 
-# for distances, it was a faster implementation using cv2.inRange() directly.
-# Instead I now use the LAB colors and their distances, and 
-# simply use np.sum() directly
 def get_pixels_in_clusters(big_image, clusters, threshold):
-    #mask_images = {}
-    #cluster_images = {}
+    cluster_images = {}
     bitmask = {}
     image = cv2.cvtColor(big_image, cv2.COLOR_RGB2LAB)
 
     for c in clusters: 
         target_color = cv2.cvtColor(np.uint8([[c]]), cv2.COLOR_RGB2LAB)[0][0]
-        # Computes distance for every pixel (quite quick)
-        distance = np.sum((image - target_color) ** 2, axis=-1)
-        bitmask[c] = (distance < threshold).astype(np.uint8)
-        # target_color = np.array(c, dtype=np.uint8)
-        # lower_bound = np.clip(target_color - 20, 0, 255)
-        # upper_bound = np.clip(target_color + 20, 0, 255)
-        # mask = cv2.inRange(big_image, lower_bound, upper_bound)
-        # result = cv2.bitwise_and(big_image, big_image, mask=mask)
-        # mask_images[c] = mask
-        # cluster_images[c] = result
+        lower_bound = np.clip(target_color - 20, 0, 255)
+        upper_bound = np.clip(target_color + 20, 0, 255)
+        mask = cv2.inRange(image, lower_bound, upper_bound)
+        result = cv2.bitwise_and(big_image, big_image, mask=mask)
+        bitmask[c] = mask
+        cluster_images[c] = result
 
-    # return (cluster_images, mask_images)
-    return bitmask
+    return (cluster_images, bitmask)
 
 ########################################################################################################################
 # K-MEANS ##############################################################################################################
@@ -247,42 +237,47 @@ def visualize_clusters(small_image, clusters):
     plt.show()
 
 
+### Get image(s)
 img_path = "/home/diego/Downloads/196_1989_RGB.tif"
 img_pillow = get_image_as_pillow(img_path)
 small_image_pillow = get_small_image_as_pillow(img_pillow, 200)
 img = get_image(img_path)
 small_image = get_small_image(img, 200)
 
+###
+# Start timer
 start = time.time()
 
+# Get clusters
 cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
 rgbClusters = get_rgb_clusters_using_dbscan(cluster)
 
-# 200 is the threshold for how "close" a pixel has to be to 
-# a color to be mapped to its cluster. Currently arbitarily chosen
-bitmask = get_pixels_in_clusters(img, rgbClusters, 200)
-# cluster_res, mask_res = get_pixels_in_clusters(img, rgbClusters)
+# 200 is the threshold for how "close" a pixel has to be to
+# a color to be mapped to its cluster. Currently arbitarily chosen:
+cluster_res, bitmask = get_pixels_in_clusters(img, rgbClusters, 200)
 
+# End timer
 end = time.time()
-
 print("Time taken: " + str(end - start))
+###
 
+## Visualize clusters
 for c in rgbClusters:
-    # Create a colormap
+    # Create a colormap with cluster color
     specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
     transparent = [1, 1, 1, 0]
     custom_cmap = ListedColormap([transparent, specific_color])
 
-    ### Plots bitmask
+    # Plot bitmask
     plt.subplot(1, 2, 1)
     plt.imshow(bitmask[c], cmap=custom_cmap)
-    # plt.imshow(mask_res[c], cmap=custom_cmap)
 
 
-    ### Plots image with bitmask applied to it
+    # Plots image with bitmask applied to it
+    # (makes pixels of cluster stand out)
     plt.subplot(1, 2, 2)
-    plt.imshow(img)
-    # plt.imshow(cluster_res[c])
+    # plt.imshow(img)
+    plt.imshow(cluster_res[c])
 
     plt.title(str(c), color = specific_color)
     plt.show()
