@@ -45,3 +45,30 @@ def get_file_type(file: FileStorage):
         return splitext(file_name)[1]
     else:
         return None
+
+
+def get_data_source_files_spec():
+    return [
+        {
+            "formDataName": "rgb",
+            "allowedTypes": [".tiff", ".tif", ".jpg", ".bmp", ".png"],
+            "uploadFileName": "rgb_image",
+        },
+        {
+            "formDataName": "uv",
+            "allowedTypes": [".tiff", ".tif", ".jpg", ".bmp", ".png"],
+            "uploadFileName": "uv_image",
+        },
+        {
+            "formDataName": "xray",
+            "allowedTypes": [".tiff", ".tif", ".jpg", ".bmp", ".png"],
+            "uploadFileName": "xray_image",
+        },
+        {"formDataName": "raw", "allowedTypes": [".raw"], "uploadFileName": "raw_data"},
+        {"formDataName": "rpl", "allowedTypes": [".rpl"], "uploadFileName": "rpl_data"},
+        {
+            "formDataName": "cube",
+            "allowedTypes": [".csv", ".dms"],
+            "uploadFileName": "cube_data",
+        },
+    ]
