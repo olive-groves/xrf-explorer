@@ -16,8 +16,6 @@ def get_pixels_in_clusters(big_image, clusters):
     cluster_images = {}
 
     for c in clusters: 
-        #low = np.array([c[0]-20, c[1]-20, c[2]-20], dtype=np.uint8)
-        #high = np.array([c[0]+20, c[1]+20, c[2]+20], dtype=np.uint8)
         target_color = np.array(c, dtype=np.uint8)
         lower_bound = np.clip(target_color - 20, 0, 255)
         upper_bound = np.clip(target_color + 20, 0, 255)
@@ -78,7 +76,7 @@ def get_clusters_using_dbscan(small_image, eps=1.5, min_samples=20):
         average_lab_color = np.mean(cluster_lab_colors, axis=0)
         cluster_averages[unique_label] = average_lab_color
 
-    print(cluster_averages)
+    #print(cluster_averages)
     return cluster_averages
 
 
@@ -239,26 +237,37 @@ def visualize_clusters(small_image, clusters):
 
 
 img_path = "/home/diego/Downloads/196_1989_RGB.tif"
-img = get_image_as_pillow(img_path)
-small_image = get_small_image_as_pillow(img, 200)
-cluster = get_clusters_using_dbscan(small_image, eps=1.5, min_samples=20)
-rgbClusters = get_rgb_clusters_using_dbscan(cluster)
-# visualize_clusters(small_image, rgbClusters)
-start = time.time()
-# visualize_image(small_image)
-cluster_res, mask_res = get_pixels_in_clusters(get_image(img_path), rgbClusters)
-end = time.time()
-print(end - start)
-for c in rgbClusters:
+img_pillow = get_image_as_pillow(img_path)
+small_image_pillow = get_small_image_as_pillow(img_pillow, 200)
+img = get_image(img_path)
+small_image = get_small_image(img, 200)
 
-    specific_color = [c[0], c[1], c[2], 1]  # RGBA for red
-    transparent = [1, 1, 1, 0]
+start = time.time()
+
+cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
+rgbClusters = get_rgb_clusters_using_dbscan(cluster)
+
+cluster_res, mask_res = get_pixels_in_clusters(img, rgbClusters)
+
+end = time.time()
+
+print("Time taken: " + str(end - start))
+
+for c in rgbClusters:
     # Create a colormap
+    specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
+    transparent = [1, 1, 1, 0]
     custom_cmap = ListedColormap([transparent, specific_color])
 
+    ### Plots bitmask
     plt.subplot(1, 2, 1)
     plt.imshow(mask_res[c], cmap=custom_cmap)
+
+
+    ### Plots image with bitmask applied to it
     plt.subplot(1, 2, 2)
-    #plt.imshow(cluster_res[c])
-    plt.imshow(get_image(img_path))
+    #plt.imshow(img)
+    plt.imshow(cluster_res[c])
+
+    plt.title(str(c), color = specific_color)
     plt.show()
