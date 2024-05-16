@@ -85,7 +85,7 @@ To get started with the development process, run:
 - `npm run build` compiles the website to the `xrf_explorer/client/dist` directory from which it can be served by the Flask backend.
 - `npm run dev` starts a development server
 
-To enfore consistency in the client code, prettier and eslint have been configured to check code style.
+To enforce consistency in the client code, prettier and eslint have been configured to check code style.
 
 - `npm run style:check` Checks if the client code conforms to the prettier and eslint rules.
 - `npm run style:fix` is able to fix some of the errors reported by `style:check`.
