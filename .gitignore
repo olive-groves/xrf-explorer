@@ -11,9 +11,6 @@ env/
 # Generated client, should only be updated when publishing development to main
 xrf_explorer/client/dist/
 
-# Generated documentation
-documentation/sphinx/_bui
-
 # Data files
 **/*.tif
 **/*.tiff
