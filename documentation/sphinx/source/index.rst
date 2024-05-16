@@ -140,6 +140,21 @@ To get started with the development process, run:
 
    $ npm run dev
 
+Frontend Codestyle
+^^^^^^^^^^^^^^^^^^
+
+To enforce consistency in the client code, ``prettier`` and ``eslint`` have been configured to the check code style.
+
+* Check if the client code conforms to the ``prettier`` and ``eslint`` rules:
+
+   $ npm run style:check
+
+* Fix some of the errors reported by ``style:check``:
+
+   $ npm run style:fix
+
+* Setting up the `prettier <https://prettier.io/>`_ formatter to automatically format on save can immediately remove large amounts of errors.
+
 Code Documentation
 ==================
 
