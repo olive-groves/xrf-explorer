@@ -20,7 +20,14 @@ release = '0.0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.todo', 'sphinx.ext.viewcode', 'sphinx.ext.autodoc']
+extensions = ['sphinx.ext.todo',                # allows TO-DO lists
+              'sphinx.ext.viewcode',            # shows source code in the documentation
+              'sphinx.ext.autodoc',             # automatically generate API documentation
+              'sphinx.ext.githubpages',         # generates GitHub pages
+              'sphinx.ext.imgmath',             # allows rendering math via LaTeX
+              'sphinx.ext.duration',            # measures time to build Sphinx documentation
+              'sphinx.ext.coverage',            # measures code coverage
+              ]
 
 templates_path = ['_templates']
 exclude_patterns = []
