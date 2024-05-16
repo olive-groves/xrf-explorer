@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 import cv2
 from colormath.color_objects import LabColor, sRGBColor
@@ -7,15 +8,25 @@ from colormath.color_diff import delta_e_cie2000
 from sklearn.cluster import DBSCAN
 from PIL import Image
 from skimage import color
+from matplotlib.colors import ListedColormap
 
 
 def get_pixels_in_clusters(big_image, clusters):
-    pixels_in_clusters = [[] for _ in range(len(clusters))]
-    for y in range(big_image.shape[0]):
-        for x in range(big_image.shape[1]):
-            i = find_closest_color_index(big_image[y][x], clusters)
-            pixels_in_clusters[i].append((y, x))
+    mask_images = {}
+    cluster_images = {}
 
+    for c in clusters: 
+        #low = np.array([c[0]-20, c[1]-20, c[2]-20], dtype=np.uint8)
+        #high = np.array([c[0]+20, c[1]+20, c[2]+20], dtype=np.uint8)
+        target_color = np.array(c, dtype=np.uint8)
+        lower_bound = np.clip(target_color - 20, 0, 255)
+        upper_bound = np.clip(target_color + 20, 0, 255)
+        mask = cv2.inRange(big_image, lower_bound, upper_bound)
+        result = cv2.bitwise_and(big_image, big_image, mask=mask)
+        mask_images[c] = mask 
+        cluster_images[c] = result
+
+    return (cluster_images, mask_images)
 
 ########################################################################################################################
 # K-MEANS ##############################################################################################################
@@ -130,7 +141,7 @@ def find_closest_color_index(target_rgb, color_list):
 def calculate_color_difference(lab1, lab2):
     color1 = LabColor(lab1[0], lab1[1], lab1[2])
     color2 = LabColor(lab2[0], lab2[1], lab2[2])
-    return delta_e_cie2000(color1, color2)
+    return (lab1[0] - lab2[0])**2 + (lab1[1] - lab2[1])**2 + (lab1[2] - lab2[2])**2
 
 
 def rgb_to_lab(rgb_triple):
@@ -224,4 +235,30 @@ def visualize_clusters(small_image, clusters):
         plt.subplot(1, k, i + 1)
         plt.axis("off")
         plt.imshow(palette)
+    plt.show()
+
+
+img_path = "/home/diego/Downloads/196_1989_RGB.tif"
+img = get_image_as_pillow(img_path)
+small_image = get_small_image_as_pillow(img, 200)
+cluster = get_clusters_using_dbscan(small_image, eps=1.5, min_samples=20)
+rgbClusters = get_rgb_clusters_using_dbscan(cluster)
+# visualize_clusters(small_image, rgbClusters)
+start = time.time()
+# visualize_image(small_image)
+cluster_res, mask_res = get_pixels_in_clusters(get_image(img_path), rgbClusters)
+end = time.time()
+print(end - start)
+for c in rgbClusters:
+
+    specific_color = [c[0], c[1], c[2], 1]  # RGBA for red
+    transparent = [1, 1, 1, 0]
+    # Create a colormap
+    custom_cmap = ListedColormap([transparent, specific_color])
+
+    plt.subplot(1, 2, 1)
+    plt.imshow(mask_res[c], cmap=custom_cmap)
+    plt.subplot(1, 2, 2)
+    #plt.imshow(cluster_res[c])
+    plt.imshow(get_image(img_path))
     plt.show()
