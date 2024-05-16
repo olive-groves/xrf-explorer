@@ -1,0 +1,20 @@
+name: Execute ESLint
+
+on: [push]
+
+jobs:
+  eslint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./xrf_explorer/client/package-lock.json
+      - name: Setup
+        working-directory: ./xrf_explorer/client
+        run: npm ci
+      - name: Check code
+        working-directory: ./xrf_explorer/client
+        run: npx eslint . --max-warnings 1

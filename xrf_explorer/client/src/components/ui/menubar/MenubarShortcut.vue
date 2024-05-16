@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { cn } from '@/lib/utils'
+import type { HTMLAttributes } from "vue";
+import { cn } from "@/lib/utils";
 
 const props = defineProps<{
-  class?: HTMLAttributes['class']
-}>()
+  // eslint-disable-next-line vue/require-prop-comment
+  class?: HTMLAttributes["class"];
+}>();
 </script>
 
 <template>

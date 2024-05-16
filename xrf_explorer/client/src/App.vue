@@ -1,19 +1,38 @@
 <script setup lang="ts">
+import { provide } from "vue";
 import { Header } from "@/components";
 import { WindowContainer } from "@/components/ui/window";
+import { ImageViewer } from "@/components/image-viewer";
+
+// Import all windows
 import { TestWindow } from "@/windows";
+
+// Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
+import { FrontendConfig } from "./lib/config";
+
+// Provide configuration to app
+const props = defineProps<{
+  /**
+   * The config to be used by the client.
+   */
+  config: FrontendConfig;
+}>();
+provide("config", props.config);
+console.log("Client created with configuration: ", props.config);
 </script>
 
 <template>
-  <div class="w-[100vw] h-[100vh] grid grid-cols-1 grid-rows-[min-content_1fr]">
+  <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg/2048px-Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg"
-        class="size-full" />
+      <ImageViewer />
+
+      <!-- Place all windows below here -->
       <TestWindow />
     </WindowContainer>
+
+    <!-- Place all reusable dialogs here -->
     <UploadFileDialog />
   </div>
 </template>

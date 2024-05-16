@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { MenubarLabel, type MenubarLabelProps } from 'radix-vue'
-import { cn } from '@/lib/utils'
+import type { HTMLAttributes } from "vue";
+import { MenubarLabel, type MenubarLabelProps } from "radix-vue";
+import { cn } from "@/lib/utils";
 
-const props = defineProps<MenubarLabelProps & { class?: HTMLAttributes['class'], inset?: boolean }>()
+const props = defineProps<
+  MenubarLabelProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+    /**
+     * Determines if the label should be inset.
+     */
+    inset?: boolean;
+  }
+>();
 </script>
 
 <template>
