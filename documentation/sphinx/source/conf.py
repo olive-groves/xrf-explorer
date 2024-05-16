@@ -17,7 +17,7 @@ copyright = ('2024, Pablo Benayas Penas, Jan Bulthuis, Dirk Burgers, Ivan Ivanov
              'Sonia Maxim, Diego Rivera Garrido, Ruben Savelkouls, Iliyan Teofilov, Adrien Verriéle')
 author = ('Pablo Benayas Penas, Jan Bulthuis, Dirk Burgers, Ivan Ivanov, Lotte Lakeman, Massimo Leal Martel, '
           'Sonia Maxim, Diego Rivera Garrido, Ruben Savelkouls, Iliyan Teofilov, Adrien Verriéle')
-release = '0.0.1'
+release = '0.2.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
