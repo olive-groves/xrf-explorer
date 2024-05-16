@@ -4,28 +4,50 @@ import matplotlib.pyplot as plt
 import cv2
 from colormath.color_objects import LabColor, sRGBColor
 from colormath.color_conversions import convert_color
-from colormath.color_diff import delta_e_cie2000
 from sklearn.cluster import DBSCAN
 from PIL import Image
 from skimage import color
 from matplotlib.colors import ListedColormap
+import colorgram
 
 
 def get_pixels_in_clusters(big_image, clusters, threshold):
-    cluster_images = {}
-    bitmask = {}
+    cluster_images = []
+    bitmask = []
     image = cv2.cvtColor(big_image, cv2.COLOR_RGB2LAB)
 
-    for c in clusters: 
-        target_color = cv2.cvtColor(np.uint8([[c]]), cv2.COLOR_RGB2LAB)[0][0]
+    for i in range(len(clusters)):
+        print(clusters[i])
+        target_color = cv2.cvtColor(np.uint8([[clusters[i]]]), cv2.COLOR_RGB2LAB)[0][0]
+        print(target_color)
+        print()
         lower_bound = np.clip(target_color - 20, 0, 255)
         upper_bound = np.clip(target_color + 20, 0, 255)
-        mask = cv2.inRange(image, lower_bound, upper_bound)
-        result = cv2.bitwise_and(big_image, big_image, mask=mask)
-        bitmask[c] = mask
-        cluster_images[c] = result
+        bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
+        cluster_images.append(cv2.bitwise_and(big_image, big_image, mask=bitmask[i]))
 
     return (cluster_images, bitmask)
+
+def merge_similar_colors(bitmask, clusters, t):
+    for i in range(len(clusters)):
+        if (i >= len(clusters)):
+            break
+        col1 = rgb_to_lab(clusters[i])
+        for j in range(len(clusters)):
+            if (j >= len(clusters)):
+                break
+            col2 = rgb_to_lab(clusters[j])
+            if (i != j and (calculate_color_difference(col1, col2) < t)):
+                bitmask[i] = bitmask[j] | bitmask[i]
+                #bitmask[i] = cv2.bitwise_or(bitmask[i], bitmask[j])
+                bitmask.pop(j)
+                clusters[i] = [(col1[i] + col2[i]) / 2 for i in range(3)]
+                clusters[i] = lab_to_rgb(clusters[i])
+                clusters = np.delete(clusters, j, 0)
+                if ((j+1) >= len(clusters) or (i+1) >= len(clusters)):
+                    break
+    return bitmask, clusters
+
 
 ########################################################################################################################
 # K-MEANS ##############################################################################################################
@@ -138,14 +160,21 @@ def find_closest_color_index(target_rgb, color_list):
 
 
 def calculate_color_difference(lab1, lab2):
-    color1 = LabColor(lab1[0], lab1[1], lab1[2])
-    color2 = LabColor(lab2[0], lab2[1], lab2[2])
-    return (lab1[0] - lab2[0])**2 + (lab1[1] - lab2[1])**2 + (lab1[2] - lab2[2])**2
+    return np.sqrt((lab1[0] - lab2[0])**2 + (lab1[1] - lab2[1])**2 + (lab1[2] - lab2[2])**2)
 
 
 def rgb_to_lab(rgb_triple):
     rgb_color = sRGBColor(rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255)
     return convert_color(rgb_color, LabColor).get_value_tuple()
+
+def lab_to_rgb(lab_color):
+    """Convert a single LAB color to an RGB color."""
+    lab_color_obj = LabColor(*lab_color)
+    rgb_color_obj = convert_color(lab_color_obj, sRGBColor)
+    rgb_color = rgb_color_obj.get_value_tuple()
+    # Ensure RGB values are within the correct range (0-255) and rounded to integers
+    rgb_color = tuple(max(0, min(255, int(round(c * 255)))) for c in rgb_color)
+    return rgb_color
 
 
 ########################################################################################################################
@@ -236,33 +265,45 @@ def visualize_clusters(small_image, clusters):
         plt.imshow(palette)
     plt.show()
 
-
 ### Get image(s)
 img_path = "/home/diego/Downloads/196_1989_RGB.tif"
 img_pillow = get_image_as_pillow(img_path)
 small_image_pillow = get_small_image_as_pillow(img_pillow, 200)
 img = get_image(img_path)
-small_image = get_small_image(img, 200)
+small_image = get_small_image(img, 500)
 
 ###
 # Start timer
 start = time.time()
 
+k = 10
+color_similarity_threshold = 50
+color_merging_threshold = -1
+
 # Get clusters
-cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
-rgbClusters = get_rgb_clusters_using_dbscan(cluster)
+# cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
+# rgbClusters = get_rgb_clusters_using_dbscan(cluster)
+label, rgbClusters = get_clusters_using_k_means(small_image, nr_of_attempts=20, k=k)
+
 
 # 200 is the threshold for how "close" a pixel has to be to
 # a color to be mapped to its cluster. Currently arbitarily chosen:
-cluster_res, bitmask = get_pixels_in_clusters(img, rgbClusters, 200)
+cluster_res, bitmask = get_pixels_in_clusters(img, rgbClusters, color_similarity_threshold)
+
+newMask, newClusters = merge_similar_colors(bitmask, rgbClusters, color_merging_threshold)
 
 # End timer
 end = time.time()
 print("Time taken: " + str(end - start))
 ###
 
+visualize_clusters(small_image, rgbClusters)
+visualize_clusters(small_image, newClusters)
+
 ## Visualize clusters
-for c in rgbClusters:
+#for c in rgbClusters:
+for i in range(len(newClusters)):
+    c = newClusters[i]
     # Create a colormap with cluster color
     specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
     transparent = [1, 1, 1, 0]
@@ -270,14 +311,13 @@ for c in rgbClusters:
 
     # Plot bitmask
     plt.subplot(1, 2, 1)
-    plt.imshow(bitmask[c], cmap=custom_cmap)
-
+    plt.imshow(newMask[i], cmap=custom_cmap)
 
     # Plots image with bitmask applied to it
     # (makes pixels of cluster stand out)
     plt.subplot(1, 2, 2)
-    # plt.imshow(img)
-    plt.imshow(cluster_res[c])
+    plt.imshow(img)
+    # plt.imshow(cluster_res[i])
 
     plt.title(str(c), color = specific_color)
     plt.show()
