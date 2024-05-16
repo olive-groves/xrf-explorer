@@ -17,10 +17,8 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
     image = cv2.cvtColor(big_image, cv2.COLOR_RGB2LAB)
 
     for i in range(len(clusters)):
-        print(clusters[i])
-        target_color = cv2.cvtColor(np.uint8([[clusters[i]]]), cv2.COLOR_RGB2LAB)[0][0]
-        print(target_color)
-        print()
+        # target_color = cv2.cvtColor(np.uint8([[clusters[i]]]), cv2.COLOR_RGB2LAB)[0][0]
+        target_color = rgb_to_lab(clusters[i])
         lower_bound = np.clip(target_color - 20, 0, 255)
         upper_bound = np.clip(target_color + 20, 0, 255)
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
@@ -164,8 +162,9 @@ def calculate_color_difference(lab1, lab2):
 
 
 def rgb_to_lab(rgb_triple):
-    rgb_color = sRGBColor(rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255)
-    return convert_color(rgb_color, LabColor).get_value_tuple()
+    # rgb_color = sRGBColor(rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255)
+    return cv2.cvtColor(np.uint8([[rgb_triple]]), cv2.COLOR_RGB2LAB)[0][0]
+    # return convert_color(rgb_color, LabColor).get_value_tuple()
 
 def lab_to_rgb(lab_color):
     """Convert a single LAB color to an RGB color."""
@@ -278,7 +277,7 @@ start = time.time()
 
 k = 10
 color_similarity_threshold = 50
-color_merging_threshold = -1
+color_merging_threshold = 5
 
 # Get clusters
 # cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
