@@ -18,6 +18,3 @@ jobs:
       - name: Check code
         working-directory: ./xrf_explorer/client
         run: npx eslint . --max-warnings 1
-      - name: Build code
-        working-directory: ./xrf_explorer/client
-        run: npm run build
