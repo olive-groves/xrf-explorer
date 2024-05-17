@@ -11,7 +11,6 @@ varying vec2 vUv;
 void main() {
   if (!uLensOn) {
     gl_FragColor = texture2D(tImage, vUv);
-    //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
   } else {
     vec4 color = texture2D(tImage, vUv);
     

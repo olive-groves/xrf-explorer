@@ -57,11 +57,15 @@ export type ToolState = {
    */
   scrollSpeed: number[];
   /**
-   * The amount used to determine the lens size (by dividing by viewport.zoom).
+   * The amount used to determine the lens size.
    */
   lensSize: number[];
   /**
    * Boolean determining whether lens is on or not.
    */
   lensOn: boolean;
+  /**
+   * The amount used to determine the layer the lens should display.
+   */
+  lensLayer: number[];
 };

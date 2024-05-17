@@ -29,6 +29,7 @@ const toolState = ref<ToolState>({
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
   lensSize: [100.0],
   lensOn: true,
+  lensLayer: [1],
 });
 
 let scene: THREE.Scene;
@@ -41,7 +42,7 @@ let height: number;
 type Point2D = { x: number; y: number };
 
 const layers: {
-  [key: string]: Layer;
+  [key: number]: Layer;
 } = {};
 
 /**
@@ -74,12 +75,20 @@ function setup() {
 
   // Temporary, until layer system is in place and can handle the layers programmatically.
   addLayer(
-    "top",
-    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+    "bottom",
+    //"https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
+    "https://upload.wikimedia.org/wikipedia/commons/8/81/Vincent_van_Gogh_-_Two_Crabs_%281889%29.jpg",
+    2
   );
   addLayer(
-    "bottom",
-    "https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
+    "mid",
+    "https://upload.wikimedia.org/wikipedia/commons/a/a1/Korenveld_met_kraaien_-_s0149V1962_-_Van_Gogh_Museum.jpg",
+    1
+  );
+  addLayer(
+    "top",
+    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+    0
   );
 
   render();
@@ -90,7 +99,7 @@ function setup() {
  * @param id - Id given to the layer.
  * @param image - Path to the image to be added.
  */
-function addLayer(id: string, image: string) {
+function addLayer(id: string, image: string, pos: number) {
   const layer: Layer = {
     id: id,
     image: image,
@@ -100,11 +109,15 @@ function addLayer(id: string, image: string) {
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uRadius: { value: toolState.value.lensSize[0] / viewport.zoom },
-      uLensOn: { value: (id == "top" && toolState.value.lensOn) }
+      //uLensOn: { value: (id === "top" && toolState.value.lensOn) }
+      uLensOn: { value: ((pos < toolState.value.lensLayer[0] - 1) && toolState.value.lensOn) }
     },
   };
+  console.log(pos);
+  console.log(layer.uniform.uLensOn.value);
+  console.log();
 
-  layers[id] = layer;
+  layers[pos] = layer;
 
   new THREE.TextureLoader().loadAsync(image).then((texture) => {
     texture.colorSpace = THREE.NoColorSpace;
@@ -259,16 +272,21 @@ function onMouseMove(event: MouseEvent) {
   const mouseY = event.layerY;
 
   // Normalize mouse coordinates to [0,width] and [0,height],
-  // reversing y-axis to have (0,0) at bottom left
+  // reversing y-axis to have (0,0) at top left
   const normalizedX = (width * mouseX) / rect.width;
   const normalizedY = height * (1 - mouseY / rect.height);
 
-  if (layers["bottom"]) {
-    // Update lens position, radius, and whether it's on
-    layers["bottom"].uniform!.uMouse.value.set(normalizedX, normalizedY);
-    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0];
-    layers["bottom"].uniform!.uLensOn.value = toolState.value.lensOn;
-  }
+  Object.keys(layers).forEach((layer) => {
+    console.log();
+    if ((layer < toolState.value.lensLayer[0] - 1) && (toolState.value.lensOn)) {
+      console.log(layer);
+      layers[layer].uniform!.uMouse.value.set(normalizedX, normalizedY);
+      layers[layer].uniform!.uRadius.value = toolState.value.lensSize[0];
+      layers[layer].uniform!.uLensOn.value = toolState.value.lensOn;
+    } else {
+      layers[layer].uniform!.uLensOn.value = false;
+    }
+  });
 }
 
 /**
@@ -278,9 +296,9 @@ function onMouseMove(event: MouseEvent) {
  */
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
-  if (layers["bottom"]) {
-    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0];
-  }
+  Object.keys(layers).forEach((layer) => {
+    layers[layer].uniform!.uRadius.value = toolState.value.lensSize[0];
+  });
 }
 </script>
 
