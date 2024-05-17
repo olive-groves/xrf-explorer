@@ -1,7 +1,11 @@
+import sys
+
 from os.path import join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
+
+sys.path.append('.')
 
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
