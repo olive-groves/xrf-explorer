@@ -43,34 +43,28 @@ precision highp float;
 precision highp int;
 
 uniform sampler2D tImage;
-
-varying vec2 vUv;
-
-void main() {
-  gl_FragColor = texture2D(tImage, vUv);
-}`;
-
-const lensFragment = `
-precision highp float;
-precision highp int;
-
-uniform sampler2D tImage;
 uniform vec2 uMouse; 
 uniform float uRadius;
+uniform bool uLensOn;
 
 varying vec2 vUv;
 
 void main() {
-  vec4 color = texture2D(tImage, vUv);
-
-  // Calculate distance from pixel to mouse position
-  float distance = distance(gl_FragCoord.xy, uMouse);
-
-  if (distance <= uRadius) {
-    gl_FragColor = color;
+  if (!uLensOn) {
+    gl_FragColor = texture2D(tImage, vUv);
+    //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
   } else {
-    // Transparent outside the circle
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0);
+    vec4 color = texture2D(tImage, vUv);
+    
+    // Calculate distance from pixel to mouse position
+    float distance = distance(gl_FragCoord.xy, uMouse);
+    
+    if (distance <= uRadius) {
+      gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    } else {
+      // Transparent outside the circle
+      gl_FragColor = color;
+    }
   }
 }`;
 
@@ -135,8 +129,9 @@ function setup() {
 
   // Temporary, until layer system is in place and can handle the layers programmatically.
   addLayer(
-    "rgb",
+    "top",
     "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+    //"https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
   );
   addLayer(
     "bottom",
@@ -161,6 +156,7 @@ function addLayer(id: string, image: string) {
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uRadius: { value: toolState.value.lensSize[0] / viewport.zoom },
+      uLensOn: { value: (id == "top" && toolState.value.lensOn) }
     },
   };
 
@@ -195,7 +191,7 @@ function addLayer(id: string, image: string) {
     // The fragment shader handles sampling colors from the texture.
     const material = new THREE.RawShaderMaterial({
       vertexShader: vertex,
-      fragmentShader: (id == "bottom" && toolState.value.lensOn) ? lensFragment : fragment,
+      fragmentShader: fragment,
       uniforms: layer.uniform,
       side: THREE.DoubleSide,
       transparent: true, // Enable transparency
@@ -310,7 +306,6 @@ function onMouseMove(event: MouseEvent) {
   }
 
   // Update lens center based on mouse position
-
   // rect to get dimensions of the canvas
   const rect = glcanvas.value!.getBoundingClientRect();
 
@@ -325,17 +320,11 @@ function onMouseMove(event: MouseEvent) {
   const normalizedY = height * (1 - mouseY / rect.height);
 
   if (layers["bottom"]) {
+    // Update lens position, radius, and whether it's on
     layers["bottom"].uniform!.uMouse.value.set(normalizedX, normalizedY);
     layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0];
+    layers["bottom"].uniform!.uLensOn.value = toolState.value.lensOn;
   }
-  // The 100.0 and dividing by simply viewport.zoom is arbitrary
-  // const rad = toolState.value.lensSize[0] / viewport.zoom;
-  // // Temporary fix for lens disappearing if viewport.zoom becomes too large
-  // if (rad < 0.001) {
-  //   layers["bottom"].uniform!.uRadius.value = 100.0;
-  // } else {
-  //   layers["bottom"].uniform!.uRadius.value = rad;
-  // }
 }
 
 /**
@@ -346,15 +335,7 @@ function onMouseMove(event: MouseEvent) {
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
   if (layers["bottom"]) {
-    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0] / viewport.zoom;
-    // // The 100.0 and dividing by simply viewport.zoom is arbitrary
-    // const rad = toolState.value.lensSize[0] / viewport.zoom;
-    // // Temporary fix for lens disappearing if viewport.zoom becomes too large
-    // if (rad < 0.001) {
-    //   layers["bottom"].uniform!.uRadius.value = 100.0;
-    // } else {
-    //   layers["bottom"].uniform!.uRadius.value = rad;
-    // }
+    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0];
   }
 }
 </script>
