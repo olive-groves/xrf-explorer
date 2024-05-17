@@ -22,7 +22,7 @@ def apply_umap(data, parms: dict[str, str]):
     """Apply UMAP to the given data with the given parameters.
 
     :param data: Data to apply UMAP to.
-    :param parms: A dictionary containing the paramets for UMAP.
+    :param parms: A dictionary containing the parameters for UMAP.
     :return: The embedded data.
     """
 
@@ -39,7 +39,7 @@ def apply_umap(data, parms: dict[str, str]):
 def generate_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
     """Generate the embedding of the elemental data cube.
 
-    :param args: Arguments for generating the embedding.
+    :param args: Arguments for generating the embedding. Should at least contain the element.
     :param config_path: Path to the backend config file
     :return: True if the embedding was successfully generated. Otherwise False.
     """
@@ -90,7 +90,7 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
 def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
     """Create the embedding image from the embedding.
 
-    :param args: Arguments for generating the overlay.
+    :param args: Arguments for generating the overlay. Should at least contain the type.
     :param config_path: Path to the backend config file
     :return: True if the embedding was successfully generated. Otherwise False.
     """

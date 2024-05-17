@@ -104,7 +104,7 @@ fetchDRImage()
     <Button @click="fetchDRImage">Show overlay</Button>
     <p> Parameters: </p>
     <p>Threshold: {{ threshold }}</p>
-    <input type="range" v-model="threshold" min=0 max=100>
+    <input type="range" v-model="threshold" min=0 max=255>
     <br>
     <p>Element: {{ selectedElement }}</p>
     <select v-model="selectedElement">

@@ -1,0 +1,9 @@
+uploads-folder: "tests/resources/dim_reduction"
+temp-folder: "tests/resources/dim_reduction"
+dim-reduction:
+  folder: "dim_reduction"
+  threshold: 100
+  n_neighbors: 10
+  min_dist: 0
+  n_components: 2
+  metric: 'cosine'
