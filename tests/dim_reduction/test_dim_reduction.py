@@ -6,7 +6,8 @@ from pathlib import Path
 
 sys.path.append('.')
 
-from xrf_explorer.server.dim_reduction.main import generate_embedding, create_embedding_image
+from xrf_explorer.server.dim_reduction.embedding import generate_embedding
+from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 
 RESOURCES_PATH: Path = Path('tests/resources')
 

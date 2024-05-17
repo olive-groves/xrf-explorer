@@ -7,7 +7,8 @@ from werkzeug.datastructures.file_storage import FileStorage
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.dim_reduction.main import get_embedding, get_embedding_image
+from xrf_explorer.server.dim_reduction.embedding import generate_embedding
+from xrf_explorer.server.dim_reduction.overlay import get_embedding_image
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ def get_dr_embedding():
         abort(400)
 
     # Try to generate the embedding
-    if not get_embedding(request.args):
+    if not generate_embedding(request.args):
         abort(400)
 
     return "Generated embedding successfully"
