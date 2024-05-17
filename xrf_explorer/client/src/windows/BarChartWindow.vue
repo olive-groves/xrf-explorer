@@ -7,7 +7,7 @@ import * as d3 from 'd3';
 
 // const url = 'http://localhost:8001';
 
-const chart = ref(null);
+const barchart = ref(null);
 
 type Element = {
     name: string;
@@ -52,7 +52,7 @@ function setup() {
     const max: number = <number>d3.max(data, (d) => d.average);
 
     // Select SVG container
-    const svg = d3.select(chart.value)
+    const svg = d3.select(barchart.value)
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [0, 0, width, height])
@@ -69,16 +69,6 @@ function setup() {
         .domain([0, max])
         .range([height - margin.bottom, margin.top]);
 
-    // Add data
-    svg.selectAll("svg")
-      .data(data)
-      .join("rect")
-        .attr("x", d => <number>x(d.name))
-        .attr("y", d => y(d.average))
-        .attr("width", x.bandwidth())
-        .attr("height", d => y(0) - y(d.average))
-        .attr("fill", "steelblue");
-
     // Add axes
     svg.append("g")
         .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -89,18 +79,31 @@ function setup() {
         .attr("transform", `translate(${margin.left},0)`)
         .call(d3.axisLeft(y))
         .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick line").clone()
+            .attr("x2", width - margin.left - margin.right)
+            .attr("stroke-opacity", 0.1))
         .call(g => g.append("text")
             .attr("x", -margin.left)
             .attr("y", 10)
             .attr("fill", "currentColor")
             .attr("text-anchor", "start")
             .text("↑ Average concentration"));
+
+    // Add data
+    svg.selectAll("svg")
+      .data(data)
+      .join("rect")
+        .attr("x", d => <number>x(d.name))
+        .attr("y", d => y(d.average))
+        .attr("width", x.bandwidth())
+        .attr("height", d => y(0) - y(d.average))
+        .attr("fill", "steelblue");
 }
 
 // TODO: change this to Window 'onOpen' callback
-watch(chart, (n, o) => {
+watch(barchart, (n, o) => {
     console.log(n, o)
-    if (chart != null) {
+    if (barchart != null) {
         setup();
     }
 });
@@ -109,7 +112,7 @@ watch(chart, (n, o) => {
 <template>
     <Window title="Bar Chart Window" opened>
         <AspectRatio :ratio="4/3">
-            <svg ref="chart"></svg>
+            <svg ref="barchart"></svg>
         </AspectRatio>
     </Window>
 </template>
