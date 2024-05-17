@@ -15,7 +15,7 @@ type Element = {
 };
 
 // Elemental data averages
-const averages: Element[] = [
+const data: Element[] = [
     { name: "AlK", average: 5.011877188406048 },
     { name: "ArK", average: 6.008377314893258 },
     { name: "AsK", average: 13.876968531085513 },
@@ -46,48 +46,55 @@ const averages: Element[] = [
 
 function setup() {
     // Declare chart dimensions and margins
-    // const width = 400;
-    // const height = 300;
-    // const margin = {top: 10, right: 30, bottom: 30, left: 60};
     const margin = {top: 30, right: 30, bottom: 70, left: 60},
-        width = 460 - margin.left - margin.right,
+        width = 860 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom;
+    const max: number = <number>d3.max(data, (d) => d.average);
 
     // Select SVG container
     const svg = d3.select(chart.value)
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .attr("style", "max-width: 100%; height: auto;");
 
     // Declare the horizontal position scale
     const x = d3.scaleBand()
-        .domain(averages.map(d => d.name))
-        .range([0, width])
-        .padding(0.2);
-    svg.append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-            .attr("transform", "translate(-10,0)rotate(-45)")
-            .style("text-anchor", "end");
+        .domain(data.map(d => d.name))
+        .range([margin.left, width - margin.right])
+        .padding(0.1);
 
     // Declare the vertical position scale
     const y = d3.scaleLinear()
-        .domain([0, 100])
-        .range([height, 0]);
-    svg.append("g")
-        .call(d3.axisLeft(y));
+        .domain([0, max])
+        .range([height - margin.bottom, margin.top]);
 
     // Add data
     svg.selectAll("svg")
-      .data(averages)
+      .data(data)
       .join("rect")
         .attr("x", d => <number>x(d.name))
         .attr("y", d => y(d.average))
         .attr("width", x.bandwidth())
-        .attr("height", d => height - y(d.average))
-        .attr("fill", "#69b3a2");
+        .attr("height", d => y(0) - y(d.average))
+        .attr("fill", "steelblue");
+
+    // Add axes
+    svg.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+            .attr("transform", "translate(-13, 20)rotate(-90)");
+    svg.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+            .attr("x", -margin.left)
+            .attr("y", 10)
+            .attr("fill", "currentColor")
+            .attr("text-anchor", "start")
+            .text("↑ Average concentration"));
 }
 
 // TODO: change this to Window 'onOpen' callback
