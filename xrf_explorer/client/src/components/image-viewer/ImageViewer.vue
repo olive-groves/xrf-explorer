@@ -88,6 +88,8 @@ const viewport: {
 const toolState = ref<ToolState>({
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
+  lensSize: [100.0],
+  lensOn: true,
 });
 
 let scene: THREE.Scene;
@@ -158,7 +160,7 @@ function addLayer(id: string, image: string) {
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
-      uRadius: { value: 100.0 },
+      uRadius: { value: toolState.value.lensSize[0] / viewport.zoom },
     },
   };
 
@@ -193,7 +195,7 @@ function addLayer(id: string, image: string) {
     // The fragment shader handles sampling colors from the texture.
     const material = new THREE.RawShaderMaterial({
       vertexShader: vertex,
-      fragmentShader: id == "bottom" ? lensFragment : fragment,
+      fragmentShader: (id == "bottom" && toolState.value.lensOn) ? lensFragment : fragment,
       uniforms: layer.uniform,
       side: THREE.DoubleSide,
       transparent: true, // Enable transparency
@@ -324,7 +326,16 @@ function onMouseMove(event: MouseEvent) {
 
   if (layers["bottom"]) {
     layers["bottom"].uniform!.uMouse.value.set(normalizedX, normalizedY);
+    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0];
   }
+  // The 100.0 and dividing by simply viewport.zoom is arbitrary
+  // const rad = toolState.value.lensSize[0] / viewport.zoom;
+  // // Temporary fix for lens disappearing if viewport.zoom becomes too large
+  // if (rad < 0.001) {
+  //   layers["bottom"].uniform!.uRadius.value = 100.0;
+  // } else {
+  //   layers["bottom"].uniform!.uRadius.value = rad;
+  // }
 }
 
 /**
@@ -335,14 +346,15 @@ function onMouseMove(event: MouseEvent) {
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
   if (layers["bottom"]) {
-    // The 100.0 and dividing by simply viewport.zoom is arbitrary
-    const rad = 100.0 / viewport.zoom;
-    // Temporary fix for lens disappearing if viewport.zoom becomes too large
-    if (rad < 0.01) {
-      layers["bottom"].uniform!.uRadius.value = 100.0;
-    } else {
-      layers["bottom"].uniform!.uRadius.value = rad;
-    }
+    layers["bottom"].uniform!.uRadius.value = toolState.value.lensSize[0] / viewport.zoom;
+    // // The 100.0 and dividing by simply viewport.zoom is arbitrary
+    // const rad = toolState.value.lensSize[0] / viewport.zoom;
+    // // Temporary fix for lens disappearing if viewport.zoom becomes too large
+    // if (rad < 0.001) {
+    //   layers["bottom"].uniform!.uRadius.value = 100.0;
+    // } else {
+    //   layers["bottom"].uniform!.uRadius.value = rad;
+    // }
   }
 }
 </script>

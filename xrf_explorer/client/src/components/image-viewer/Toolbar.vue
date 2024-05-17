@@ -12,6 +12,11 @@ import { ToolState } from "./types";
 const selectedTool = ref("grab");
 
 const state = defineModel<ToolState>("state");
+
+const toggleLens = () => {
+  state.lensOn = !state.lensOn;
+}
+
 </script>
 
 <template>
@@ -23,9 +28,31 @@ const state = defineModel<ToolState>("state");
       <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
         <Hand />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
-        <Search />
-      </ToggleGroupItem>
+
+      <Popover>
+        <PopoverTrigger as-child>
+          <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
+            <Search />
+          </ToggleGroupItem>
+        </PopoverTrigger>
+        <PopoverContent class="m-2 w-60 space-y-4 p-2 pb-4">
+          <div class="grid gap-3">
+            <div class="flex items-center justify-between">
+              <Label for="lenszoom">Lens size </Label>
+              <div class="text-muted-foreground">
+                {{ state!.lensSize[0] }}
+              </div>
+            </div>
+            <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state!.lensSize" />
+          </div>
+          <div class="flex items-center justify-between">
+            <Button variant="ghost" class="hover:text-muted-foreground" @click="toggleLens">
+              Toggle lens
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+
       <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
         <LassoSelect />
       </ToggleGroupItem>

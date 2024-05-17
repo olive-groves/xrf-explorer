@@ -56,4 +56,12 @@ export type ToolState = {
    * The amount by which the zooming speed is multiplied in the image viewer.
    */
   scrollSpeed: number[];
+  /**
+   * The amount used to determine the lens size (by dividing by viewport.zoom).
+   */
+  lensSize: number[];
+  /**
+   * Boolean determining whether lens is on or not.
+   */
+  lensOn: boolean;
 };
