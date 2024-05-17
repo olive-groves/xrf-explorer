@@ -106,57 +106,63 @@ fetchDRImage();
     <span v-if="status == Status.GENERATING">Generating...</span>
     <span v-if="status == Status.ERROR">{{ currentError }}</span>
     <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
-    <!-- <select v-model="selectedOverlay">
-      <option value="rgb">RGB</option>
-      <option value="uv">UV</option>
-      <option value="xray">XRay</option>
-      <option value="0">Element 0</option>
-      <option value="1">Element 1</option>
-      <option value="9">Element 9</option>
-    </select> -->
-    
-    <Select v-model="selectedOverlay">
-    <SelectTrigger class="w-[180px]">
-      <SelectValue placeholder="Select an overlay" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectGroup>
-        <SelectLabel>Overlays</SelectLabel>
-        <SelectItem value="rgb">
-          RGB
-        </SelectItem>
-        <SelectItem value="uv">
-          UV
-        </SelectItem>
-        <SelectItem value="xray">
-          XRay
-        </SelectItem>
-        <SelectItem value="0">
-          Element 0
-        </SelectItem>
-        <SelectItem value="1">
-          Element 1
-        </SelectItem>
-        <SelectItem value="9">
-          Element 9
-        </SelectItem>
-      </SelectGroup>
-    </SelectContent>
-  </Select>
-    <br />
-    <Button @click="fetchDRImage">Show overlay</Button>
+    <div class="flex items-center">
+      <Select v-model="selectedOverlay">
+        <SelectTrigger class="w-[150px]">
+          <SelectValue placeholder="Select an overlay" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Overlays</SelectLabel>
+            <SelectItem value="rgb">
+              RGB
+            </SelectItem>
+            <SelectItem value="uv">
+              UV
+            </SelectItem>
+            <SelectItem value="xray">
+              XRay
+            </SelectItem>
+            <SelectItem value="0">
+              Element 0
+            </SelectItem>
+            <SelectItem value="1">
+              Element 1
+            </SelectItem>
+            <SelectItem value="9">
+              Element 9
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button @click="fetchDRImage">Show overlay</Button>
+    </div>
     <p>Parameters:</p>
     <p>Threshold: {{ threshold }}</p>
     <input type="range" v-model="threshold" min="0" max="255" />
     <br />
-    <p>Element: {{ selectedElement }}</p>
-    <select v-model="selectedElement">
-      <option value="0">Element 0</option>
-      <option value="1">Element 1</option>
-      <option value="9">Element 9</option>
-    </select>
-    <br />
-    <Button @click="updateEmbedding">Generate</Button>
+    <div class="flex items-center">
+      <Select v-model="selectedElement">
+        <SelectTrigger class="w-[150px]">
+          <SelectValue placeholder="Select an element" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Elements</SelectLabel>
+            <SelectItem value="0">
+              Element 0
+            </SelectItem>
+            <SelectItem value="1">
+              Element 1
+            </SelectItem>
+            <SelectItem value="9">
+              Element 9
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button @click="updateEmbedding">Generate</Button>
+    </div>
   </Window>
 </template>
 
