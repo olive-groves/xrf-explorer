@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Window } from '@/components/ui/window';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { watch } from 'vue';
 import * as d3 from 'd3';
 
@@ -45,16 +46,19 @@ const averages: Element[] = [
 
 function setup() {
     // Declare chart dimensions and margins
-    const width = 400;
-    const height = 400;
-    const margin = {top: 10, right: 30, bottom: 30, left: 60};
+    // const width = 400;
+    // const height = 300;
+    // const margin = {top: 10, right: 30, bottom: 30, left: 60};
+    const margin = {top: 30, right: 30, bottom: 70, left: 60},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
 
     // Select SVG container
     const svg = d3.select(chart.value)
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
-        .attr("viewBox", [0, 0, width, height])
-        .attr("style", "max-width: 100%; height: auto;");
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Declare the horizontal position scale
     const x = d3.scaleBand()
@@ -97,6 +101,8 @@ watch(chart, (n, o) => {
 
 <template>
     <Window title="Bar Chart Window" opened>
-        <svg ref="chart"></svg>
+        <AspectRatio :ratio="4/3">
+            <svg ref="chart"></svg>
+        </AspectRatio>
     </Window>
 </template>
