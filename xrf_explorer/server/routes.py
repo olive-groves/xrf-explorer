@@ -4,6 +4,7 @@ from flask import request, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures.file_storage import FileStorage
 from os.path import exists
+from os import mkdir
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -26,6 +27,40 @@ def api():
 @app.route("/api/info")
 def info():
     return "adding more routes is quite trivial"
+
+
+@app.route("/api/create_ds_dir", methods=["POST"])
+def create_data_source_dir():
+    # Check the the 'name' field was provided in the request
+    if "name" not in request.form:
+        error_msg = "Data source name must be provided."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    data_source_name = request.form["name"].strip()
+
+    if data_source_name == "":
+        error_msg = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    data_source_dir = (
+        f"{BACKEND_CONFIG["uploads_folder"]}/{secure_filename(data_source_name)}"
+    )
+
+    # If the directory exists, return 400
+    if exists(data_source_dir):
+        error_msg = "Data source name already exists."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    # create data source dir
+    mkdir(data_source_dir)
+
+    LOG.info(f"Data source directory creted at {data_source_dir}")
+
+
+    return "Ok", 200
 
 
 @app.route("/api/upload-data-source", methods=["POST"])
