@@ -135,7 +135,8 @@ fetchDRImage();
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button @click="fetchDRImage">Show overlay</Button>
+      <div class="block w-4"></div>
+      <Button class="block w-28" @click="fetchDRImage">Show overlay</Button>
     </div>
     <p>Parameters:</p>
     <p>Threshold: {{ threshold }}</p>
@@ -161,7 +162,8 @@ fetchDRImage();
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button @click="updateEmbedding">Generate</Button>
+      <div class="block w-4"></div>
+      <Button class="block w-28" @click="updateEmbedding">Generate</Button>
     </div>
   </Window>
 </template>
