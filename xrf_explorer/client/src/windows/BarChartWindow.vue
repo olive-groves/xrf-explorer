@@ -97,7 +97,6 @@ watch(chart, (n, o) => {
 
 <template>
     <Window title="Bar Chart Window" opened>
-        {{ averages }}
         <svg ref="chart"></svg>
     </Window>
 </template>
