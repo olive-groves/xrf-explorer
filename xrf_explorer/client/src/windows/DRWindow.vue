@@ -1,44 +1,46 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
-import { Window } from '@/components/ui/window';
-import { Button } from '@/components/ui/button';
-import { useFetch } from '@vueuse/core';
+import { Window } from "@/components/ui/window";
+import { Button } from "@/components/ui/button";
+import { useFetch } from "@vueuse/core";
 
-// Constants 
-const URL_IMAGE = 'http://localhost:8001/api/get_overlay';
-const URL_EMBEDDING = 'http://localhost:8001/api/get_embedding';
+// Constants
+const URL_IMAGE = "http://localhost:8001/api/get_overlay";
+const URL_EMBEDDING = "http://localhost:8001/api/get_embedding";
 
 // Status dimensionaility reduction
 enum Status {
   LOADING,
   GENERATING,
   ERROR,
-  SUCCESS
+  SUCCESS,
 }
-const status = ref(Status.LOADING)
-const currentError = ref("Error")
+const status = ref(Status.LOADING);
+const currentError = ref("Error");
 
 // Dimensionality reduction parameters
-var threshold = ref(100)
-var selectedElement = ref(9)
-var selectedOverlay = ref("rgb")
+const threshold = ref(100);
+const selectedElement = ref(9);
+const selectedOverlay = ref("rgb");
 
 // Dimensionality reduction image
-const imageSourceUrl = ref("")
+const imageSourceUrl = ref("");
 
-// Fetch the dimensionality reduction image
-// Sets status to corresponding value
-// For the rest it uses the fetchBlob function
+/**
+ * Fetch the dimensionality reduction image
+ * Sets status to corresponding value
+ * For the rest it uses the fetchBlob function.
+ */
 async function fetchDRImage() {
   status.value = Status.LOADING;
 
   // Set the overlay type
-  var url = new URL(URL_IMAGE);
-  url.searchParams.set('type', selectedOverlay.value.toString());
+  const url = new URL(URL_IMAGE);
+  url.searchParams.set("type", selectedOverlay.value.toString());
 
   // Fetch the image
-  const { response, data } = await useFetch(url.toString()).get().blob()
+  const { response, data } = await useFetch(url.toString()).get().blob();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
@@ -55,23 +57,25 @@ async function fetchDRImage() {
   }
 }
 
-// Compute the embedding
-// Sets status to corresponding value
-// If embedding was generated successfully, it fetches the new image
+/**
+ * Compute the embedding
+ * Sets status to corresponding value
+ * If embedding was generated successfully, it fetches the new image.
+ */
 async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
   const _url = new URL(URL_EMBEDDING);
-  _url.searchParams.set('element', selectedElement.value.toString());
-  _url.searchParams.set('threshold', threshold.value.toString());
+  _url.searchParams.set("element", selectedElement.value.toString());
+  _url.searchParams.set("threshold", threshold.value.toString());
 
   // Create the embedding
   const data = await fetch(_url.toString());
 
   if (data.ok) {
     // Load the new embedding
-    fetchDRImage()
+    fetchDRImage();
     return;
   }
 
@@ -80,8 +84,7 @@ async function updateEmbedding() {
   status.value = Status.ERROR;
 }
 
-fetchDRImage()
-
+fetchDRImage();
 </script>
 
 <template>
@@ -89,9 +92,9 @@ fetchDRImage()
     <span v-if="status == Status.LOADING">Loading...</span>
     <span v-if="status == Status.GENERATING">Generating...</span>
     <span v-if="status == Status.ERROR">{{ currentError }}</span>
-    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR">
+    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
 
-    <p> Overlays {{ selectedOverlay }}: </p>
+    <p>Overlays {{ selectedOverlay }}:</p>
     <select v-model="selectedOverlay">
       <option value="rgb">rgb</option>
       <option value="uv">uv</option>
@@ -100,19 +103,19 @@ fetchDRImage()
       <option value="1">Element 1</option>
       <option value="9">Element 9</option>
     </select>
-    <br>
+    <br />
     <Button @click="fetchDRImage">Show overlay</Button>
-    <p> Parameters: </p>
+    <p>Parameters:</p>
     <p>Threshold: {{ threshold }}</p>
-    <input type="range" v-model="threshold" min=0 max=255>
-    <br>
+    <input type="range" v-model="threshold" min="0" max="255" />
+    <br />
     <p>Element: {{ selectedElement }}</p>
     <select v-model="selectedElement">
       <option value="0">Element 0</option>
       <option value="1">Element 1</option>
       <option value="9">Element 9</option>
     </select>
-    <br>
+    <br />
     <Button @click="updateEmbedding">Generate</Button>
   </Window>
 </template>
