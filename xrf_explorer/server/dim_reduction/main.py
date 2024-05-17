@@ -105,8 +105,12 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     overlay_type = args['type']
 
     # Load the file embedding.npy
-    indices = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
-    embedding = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
+    try:
+        indices = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
+        embedding = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
+    except:
+        LOG.error("Failed to load embedding data")
+        return False
 
     if overlay_type in OVERLAY_IMAGE:
         # Show image overlay TODO: change to actual image
