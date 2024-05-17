@@ -8,65 +8,10 @@ import { Layer, ToolState } from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 
+import fragment from "./fragment.glsl?raw"
+import vertex from "./vertex.glsl?raw"
+
 const config = inject<FrontendConfig>("config")!;
-
-const vertex = `
-precision highp float;
-precision highp int;
-
-uniform float iIndex;
-uniform vec4 iViewport; // x, y, w, h
-uniform mat3 mRegister;
-
-attribute vec3 position;
-attribute vec2 uv;
-
-varying vec2 vUv;
-
-void main() {
-  vUv = uv;
-
-  // Register vertices
-  vec3 position = mRegister * vec3(position.xy, 1.0);
-
-  // Transform to viewport
-  gl_Position = vec4(
-    2.0 * (position.x - iViewport.x) / iViewport.z - 1.0,
-    2.0 * (position.y - iViewport.y) / iViewport.w - 1.0,
-    iIndex / 1024.0,
-    1.0
-  );
-}`;
-
-const fragment = `
-precision highp float;
-precision highp int;
-
-uniform sampler2D tImage;
-uniform vec2 uMouse; 
-uniform float uRadius;
-uniform bool uLensOn;
-
-varying vec2 vUv;
-
-void main() {
-  if (!uLensOn) {
-    gl_FragColor = texture2D(tImage, vUv);
-    //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-  } else {
-    vec4 color = texture2D(tImage, vUv);
-    
-    // Calculate distance from pixel to mouse position
-    float distance = distance(gl_FragCoord.xy, uMouse);
-    
-    if (distance <= uRadius) {
-      gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-    } else {
-      // Transparent outside the circle
-      gl_FragColor = color;
-    }
-  }
-}`;
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
@@ -131,7 +76,6 @@ function setup() {
   addLayer(
     "top",
     "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
-    //"https://upload.wikimedia.org/wikipedia/commons/0/06/Farmhouse_in_Provence%2C_1888%2C_Vincent_van_Gogh%2C_NGA.jpg",
   );
   addLayer(
     "bottom",
