@@ -50,7 +50,7 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
         return False
     
     # get default dim reduction config
-    dr_config: dict = backend_config['default_dim_reduction']
+    dr_config: dict = backend_config['dim-reduction']
     dr_config.update(args)
 
     # Constants
@@ -81,8 +81,8 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
         return False
 
     # save indices and embedded data
-    np.save(Path(backend_config['temp-folder'], 'indices.npy'), indices)
-    np.save(Path(backend_config['temp-folder'], 'embedded_data.npy'), embedded_data)
+    np.save(Path(backend_config['temp-folder'], dr_config['folder'], 'indices.npy'), indices)
+    np.save(Path(backend_config['temp-folder'], dr_config['folder'], 'embedded_data.npy'), embedded_data)
 
     return True
 
@@ -99,16 +99,17 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         return False
+    dr_folder = backend_config['dim-reduction']['folder']
 
     # Get the overlay type
     overlay_type = args['type']
 
     # Load the file embedding.npy
-    indices = np.load(Path(backend_config['temp-folder'], 'indices.npy'))
-    embedding = np.load(Path(backend_config['temp-folder'], 'embedded_data.npy'))
+    indices = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
+    embedding = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
 
     if overlay_type in OVERLAY_IMAGE:
-        # Show image overlay
+        # Show image overlay TODO: change to actual image
         overlay_data = imageio.imread(f'{backend_config['temp-folder']}/test overlays/{overlay_type}.png')
         overlay = overlay_data[indices[:, 0], indices[:, 1]]
         overlay = overlay.astype(float) / 255.0
@@ -142,7 +143,7 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
-    plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'), bbox_inches='tight', transparent=True)
+    plt.savefig(Path(backend_config['temp-folder'], dr_folder, 'embedding.png'), bbox_inches='tight', transparent=True)
 
     return True
 
@@ -163,7 +164,7 @@ def get_embedding_image(args: dict[str, str]) -> str:
     
     # Return the embedding
     LOG.info("Created embedding image successfully")
-    return "server/temp/embedding.png" # TODO: Fix this path
+    return "server/temp/dim_reduction/embedding.png" # TODO: Fix this path
 
 
 def get_embedding(args: dict[str, str]) -> bool:
