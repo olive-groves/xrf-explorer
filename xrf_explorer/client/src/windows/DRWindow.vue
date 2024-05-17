@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 import { Window } from '@/components/ui/window';
 import { Button } from '@/components/ui/button';
+import { useFetch } from '@vueuse/core';
 
 // Constants 
 const URL_IMAGE = 'http://localhost:8001/api/get_overlay';
@@ -16,7 +17,7 @@ enum Status {
   SUCCESS
 }
 const status = ref(Status.LOADING)
-const currentError = ref("")
+const currentError = ref("Error")
 
 // Dimensionality reduction parameters
 var threshold = ref(100)
@@ -25,57 +26,6 @@ var selectedOverlay = ref("rgb")
 
 // Dimensionality reduction image
 const imageSourceUrl = ref("")
-
-// Returns true if the blob was fetched successfully
-// Sets error in currentError if an error occured
-// Sets the image URL in imageSourceUrl
-async function fetchBlob(url: string) {
-  // Fetch the image
-  const response = await fetch(url);
-  var fetchSuccessful = false;
-
-  // Check if fetching the image was successful
-  if (response.ok) {
-    // Success response. Now save the image locally
-    fetchSuccessful = await response.blob()
-      .then(myBlob => {
-        // Create URL for image
-        const objectURL = URL.createObjectURL(myBlob).toString();
-
-        // Globally set the new URL
-        imageSourceUrl.value = objectURL;
-
-        return true
-      })
-      .catch(error => {
-        console.log("Error: ", error)
-
-        // Globally set error message
-        currentError.value = "An error occured";
-
-        return false
-      })
-  } else {
-    // Error response
-    fetchSuccessful = await response.text()
-      .then((text) => {
-        // Globally set error message
-        currentError.value = text;
-
-        return false
-      })
-      .catch((error) => {
-        console.log("Error: ", error)
-
-        // Globally set error message
-        currentError.value = "An error occured";
-
-        return false
-      })
-  }
-
-  return fetchSuccessful
-}
 
 // Fetch the dimensionality reduction image
 // Sets status to corresponding value
@@ -88,10 +38,17 @@ async function fetchDRImage() {
   url.searchParams.set('type', selectedOverlay.value.toString());
 
   // Fetch the image
-  const succes = await fetchBlob(url.toString());
+  const { response, data } = await useFetch(url.toString()).get().blob()
 
-  // Set the status
-  if (succes) {
+  // Check if fetching the image was successful
+  if (response.value?.ok && data.value != null) {
+    // Create URL for image
+    const objectURL = URL.createObjectURL(data.value).toString();
+
+    // Globally set the new URL
+    imageSourceUrl.value = objectURL;
+
+    // Update status
     status.value = Status.SUCCESS;
   } else {
     status.value = Status.ERROR;
@@ -115,19 +72,12 @@ async function updateEmbedding() {
   if (data.ok) {
     // Load the new embedding
     fetchDRImage()
-  } else {
-    // Show error message
-    await data.text()
-      .then((error) => currentError.value = error)
-      .catch((error) => {
-        console.log("Error: ", error)
-
-        // Globally set error message
-        currentError.value = "An error occured";
-      })
-
-    status.value = Status.ERROR;
+    return;
   }
+
+  // Set status to error
+  currentError.value = "Generating embedding failed.";
+  status.value = Status.ERROR;
 }
 
 fetchDRImage()

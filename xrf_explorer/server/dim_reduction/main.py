@@ -2,8 +2,6 @@ import logging
 
 from pathlib import Path
 
-from flask import send_file
-
 import numpy as np
 import imageio.v3 as imageio
 
@@ -20,7 +18,14 @@ OVERLAY_ARGS = ['type']
 OVERLAY_IMAGE = ['rgb', 'uv', 'xray']
 
 
-def apply_umap(data, parms):
+def apply_umap(data, parms: dict[str, str]):
+    """Apply UMAP to the given data with the given parameters.
+
+    :param data: Data to apply UMAP to.
+    :param parms: A dictionary containing the paramets for UMAP.
+    :return: The embedded data.
+    """
+
     from umap import UMAP
 
     return UMAP(
@@ -32,6 +37,13 @@ def apply_umap(data, parms):
 
 
 def generate_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
+    """Generate the embedding of the elemental data cube.
+
+    :param args: Arguments for generating the embedding.
+    :param config_path: Path to the backend config file
+    :return: True if the embedding was successfully generated. Otherwise False.
+    """
+
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
@@ -75,11 +87,18 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     return True
 
 
-def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml"):
+def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
+    """Create the embedding image from the embedding.
+
+    :param args: Arguments for generating the overlay.
+    :param config_path: Path to the backend config file
+    :return: True if the embedding was successfully generated. Otherwise False.
+    """
+
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
-        return None
+        return False
 
     # Get the overlay type
     overlay_type = args['type']
@@ -121,33 +140,43 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     plt.axis('off')
     fig.patch.set_facecolor(('black'))
 
-    plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5/2, s=15)
-    # plt.colorbar()
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
-    plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'), bbox_inches='tight')
+    plt.savefig(Path(backend_config['temp-folder'], 'embedding.png'), bbox_inches='tight', transparent=True)
 
     return True
 
 
-def get_embedding_image(args):
+def get_embedding_image(args: dict[str, str]) -> str:
+    """Create the embedding image based on the given arguments.
+
+    :param args: A dictionary containing the arguments for the overlay.
+    :return: Response containing the embedding image if successful. Otherwise a tuple containing the error message and status code.
+    """
+
     LOG.info("Creating embedding image...")
 
     # Create the embedding image
     if not create_embedding_image({key: args[key] for key in OVERLAY_ARGS if key in args.keys()}):
         LOG.error("Failed to create DR embedding image")
-        return "Failed to create DR embedding image", 400
+        return ""
     
     # Return the embedding
     LOG.info("Created embedding image successfully")
-    embedding_path = "server/temp/embedding.png" # TODO: Fix this path
-    return send_file(embedding_path, mimetype='image/png')
+    return "server/temp/embedding.png" # TODO: Fix this path
 
 
-def get_embedding(args):
+def get_embedding(args: dict[str, str]) -> bool:
+    """Compute the embedding based on the given arguments.
+
+    :param args: A dictionary containing the arguments for generating the embedding.
+    :return: True if the embedding was successfully generated. Otherwise False.
+    """
+
     # Compute the embedding
     if not generate_embedding({key: args[key] for key in DR_ARGS if key in args.keys()}):
         LOG.error("Failed to compute DR embedding")
-        return "Failed to compute DR embedding", 400
+        return False
     
     LOG.info("Generated embedding successfully")
-    return "Generated embedding successfully"
+    return True

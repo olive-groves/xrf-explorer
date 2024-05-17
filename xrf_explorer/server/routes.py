@@ -1,6 +1,6 @@
 import logging
 
-from flask import request, redirect
+from flask import abort, request, redirect, send_file
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
@@ -23,19 +23,30 @@ def info():
 
 @app.route('/api/get_embedding')
 def get_dr_embedding():
-    # verify arguments
+    # check if element number is provided
     if 'element' not in request.args:
-        return "Missing element number", 400
+        LOG.error("Missing element number")
+        abort(400)
     
-    return get_embedding(request.args)
-
+    # Try to generate the embedding
+    if not get_embedding(request.args):
+        abort(400)
+    
+    return "Generated embedding successfully"
 
 @app.route('/api/get_overlay')
 def get_dr_overlay():
+    # Check whether the overlay type is provided
     if 'type' not in request.args:
-        return "Missing overlay type", 400
+        LOG.error("Missing overlay type")
+        abort(400)
     
-    return get_embedding_image(request.args)
+    # Try to get the embedding image
+    image_path = get_embedding_image(request.args)
+    if len(image_path) == 0:
+        abort(400)
+    
+    return send_file(image_path, mimetype='image/png')
 
 
 @app.route('/api/upload', methods=['POST'])
