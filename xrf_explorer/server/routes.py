@@ -6,6 +6,8 @@ from werkzeug.datastructures.file_storage import FileStorage
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 
+from xrf_explorer.server.spectra import *
+import json
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -38,3 +40,81 @@ def upload_file():
             return redirect("/")
 
     return "File upload page"
+
+@app.route('/api/get_average_data', methods=['GET'])
+def get_average_data():
+    """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
+
+    :return: json list of tuples containing the bin number and the average intensity for this bin
+    """
+    low = int(request.args.get('low'))
+    high = int(request.args.get('high'))
+    bin_size = int(request.args.get('binSize'))
+    
+    datacube = get_raw_data('C:/Users/20210792/Downloads/spectrum.raw', 'C:/Users/20210792/Downloads/info.rpl')
+    average_values = get_average_global(datacube, low, high, bin_size)
+    response = json.dumps(average_values)
+    
+    return response
+
+@app.route('/api/get_elements', methods=['GET'])
+def get_elements():
+    """Collect the name of the elements present in the painting
+    
+    :return: json list containing the names of the elements
+    """
+    #temporary file name
+    #TODO change to actual location and dimensions of the file
+    filename = 'C:/Users/20210792/Downloads/elements.dms'
+    
+    info = parse_rpl('C:/Users/20210792/Downloads/info.rpl')
+    width = int(info["width"])
+    height = int(info["height"])
+    c = 26
+
+    # reading names from file
+    names = []
+    with open(filename, 'r') as file:
+        file.seek(49 + width * height * c * 4)
+        for i in range(c):
+            names.append(file.readline().rstrip().replace(" ", ""))
+    
+    response = json.dumps(names)
+    print(response)
+    return response
+
+@app.route('/api/get_element_spectrum', methods=['GET'])
+def get_element_sectra():
+    """Computes the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity
+
+    :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
+    """
+    element = request.args.get('element')
+    excitation_energy_keV = int(request.args.get('excitation'))
+    low = int(request.args.get('low'))
+    high = int(request.args.get('high'))
+    bin_size = int(request.args.get('binSize'))
+    
+    response = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
+    response = json.dumps(response)
+        
+    return response
+
+@app.route('/api/get_selection_spectrum', methods=['GET'])
+def get_selection_sectra():
+    """Gets the average spectrum of the selected pixels
+
+    :return: json list of tuples containing the channel number and the average intensity of this channel
+    """
+    pixels = request.args.getlist("pixels")
+    low = int(request.args.get('low'))
+    high = int(request.args.get('high'))
+    bin_size = int(request.args.get('binSize'))
+    
+    datacube = get_raw_data('C:/Users/20210792/Downloads/spectrum.raw', 'C:/Users/20210792/Downloads/info.rpl')
+    
+    result = get_average_selection(datacube, pixels, low, high, bin_size)
+    
+    response = json.dumps(result)
+    print("send response")
+    return response

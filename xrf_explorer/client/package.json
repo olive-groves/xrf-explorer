@@ -21,6 +21,7 @@
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "d3": "^7.9.0",
     "lucide-vue-next": "^0.378.0",
     "radix-vue": "^1.7.2",
     "tailwind-merge": "^2.3.0",
@@ -31,6 +32,7 @@
     "zod": "^3.23.4"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/node": "^20.12.7",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",

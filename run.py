@@ -4,6 +4,9 @@ from waitress import serve
 
 from xrf_explorer import app
 
+from flask_cors import CORS
+CORS(app)
+
 LOG: logging.Logger = logging.getLogger(__name__)
 
 PORT = 8001

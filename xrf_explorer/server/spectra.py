@@ -1,6 +1,8 @@
 #This module contains all functions related to the spectral chart
 import numpy as np 
 import xraydb 
+import logging
+LOG: logging.Logger = logging.getLogger(__name__)
 
 def get_raw_data(raw_filename: str, rpl_filename: str) -> np.ndarray:
     """Parse the raw data cube as a 3-dimensional numpy array
@@ -16,8 +18,11 @@ def get_raw_data(raw_filename: str, rpl_filename: str) -> np.ndarray:
     height = int(info['height'])
     channels = int(info['depth'])
 
-    #load raw file and parse it as 3d array with correct dimensions
-    datacube = np.memmap(raw_filename, dtype=np.uint16, mode='r')
+    try:
+        #load raw file and parse it as 3d array with correct dimensions
+        datacube = np.memmap(raw_filename, dtype=np.uint16, mode='r')
+    except OSError as err:
+        LOG.error("error while loading raw file: {%s}", err)
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
 
@@ -37,17 +42,22 @@ def parse_rpl(filename) -> dict:
     :return: Dictionary containing the attributes' name and value
     """
     
-    with open(filename, 'r') as in_file:
-        info = in_file.read().splitlines() #first split on linebreak
-        dict = {}
-        for line in info:
-            split = line.split("\t") #then split on tab
-            dict[split[0].strip()] = split[1].strip() #add tuple to dictionary
+    try:
+        with open(filename, 'r') as in_file:
+            info = in_file.read().splitlines() #first split on linebreak
+    except OSError as err:
+        LOG.error("error while reading rpl file: {%s}", err)
+        
+    dict = {}
+    for line in info:
+        split = line.split("\t") #then split on tab
+        dict[split[0].strip()] = split[1].strip() #add tuple to dictionary
                
     return dict
 
 def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
+    Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
     
     :param data: datacube containing the raw data
     :param low: lower channel boundary
@@ -67,8 +77,9 @@ def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> 
     return average_values
 
 def get_average_selection(data: np.ndarray, pixels: list, low: int, high: int, bin_size: int) -> list:
-    
     """Computes the average of the raw data for each bin of channels in range [low, high] on the selected pixels
+    Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
+    Precondition: forall pixel in pixels, 0 <= pixel[0] < width, 0 <= pixel[1] < height
     
     :param data: datacube containing the raw data
     :param pixels: list of selected pixels
@@ -133,6 +144,8 @@ def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, hig
             dict = {"index": data[2][i]*x_scale, "value": data[3][i]*y_scale}
             peaks.append(dict)
     response.append(peaks)
+    
+    print(response)
     
     return response
 
