@@ -3,7 +3,20 @@ import { ref } from "vue";
 
 import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
+// import { Slider } from "@/components/ui/slider";
 import { useFetch } from "@vueuse/core";
+// import { ToolState } from "./types";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+// const state = defineModel<ToolState>("state");
 
 // Constants
 const URL_IMAGE = "http://localhost:8001/api/get_overlay";
@@ -93,16 +106,43 @@ fetchDRImage();
     <span v-if="status == Status.GENERATING">Generating...</span>
     <span v-if="status == Status.ERROR">{{ currentError }}</span>
     <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
-
-    <p>Overlays {{ selectedOverlay }}:</p>
-    <select v-model="selectedOverlay">
-      <option value="rgb">rgb</option>
-      <option value="uv">uv</option>
-      <option value="xray">xray</option>
+    <!-- <select v-model="selectedOverlay">
+      <option value="rgb">RGB</option>
+      <option value="uv">UV</option>
+      <option value="xray">XRay</option>
       <option value="0">Element 0</option>
       <option value="1">Element 1</option>
       <option value="9">Element 9</option>
-    </select>
+    </select> -->
+    
+    <Select v-model="selectedOverlay">
+    <SelectTrigger class="w-[180px]">
+      <SelectValue placeholder="Select an overlay" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectGroup>
+        <SelectLabel>Overlays</SelectLabel>
+        <SelectItem value="rgb">
+          RGB
+        </SelectItem>
+        <SelectItem value="uv">
+          UV
+        </SelectItem>
+        <SelectItem value="xray">
+          XRay
+        </SelectItem>
+        <SelectItem value="0">
+          Element 0
+        </SelectItem>
+        <SelectItem value="1">
+          Element 1
+        </SelectItem>
+        <SelectItem value="9">
+          Element 9
+        </SelectItem>
+      </SelectGroup>
+    </SelectContent>
+  </Select>
     <br />
     <Button @click="fetchDRImage">Show overlay</Button>
     <p>Parameters:</p>
@@ -119,3 +159,13 @@ fetchDRImage();
     <Button @click="updateEmbedding">Generate</Button>
   </Window>
 </template>
+
+
+
+    <!-- <div class="flex items-center justify-between">
+      <Label for="threshold">Threshold</Label>
+        <div class="text-muted-foreground">
+          {{ state!.threshold[0] }}
+        </div>
+    </div>
+    <Slider id="threshold" :min="0" :max="255" :step="1" v-model:model-value="state!.threshold" /> -->
