@@ -74,7 +74,7 @@ function setup() {
         .attr("transform", `translate(0,${height - margin.bottom})`)
         .call(d3.axisBottom(x).tickSizeOuter(0))
         .selectAll("text")
-            .attr("transform", "translate(-13, 20)rotate(-90)");
+            .attr("transform", "translate(-13, 15)rotate(-45)");
     svg.append("g")
         .attr("transform", `translate(${margin.left},0)`)
         .call(d3.axisLeft(y))
