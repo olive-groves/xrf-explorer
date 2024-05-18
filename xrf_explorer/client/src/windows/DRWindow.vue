@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { inject } from "vue";
 import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
 import { useFetch } from "@vueuse/core";
+import { FrontendConfig } from "@/lib/config";
 
 // Constants
-const URL_IMAGE = "http://localhost:8001/api/get_dr_overlay";
-const URL_EMBEDDING = "http://localhost:8001/api/get_dr_embedding";
+const config = inject<FrontendConfig>("config")!;
+const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
+const URL_EMBEDDING = `${config.api.endpoint}/get_dr_embedding`;
 
 // Status dimensionaility reduction
 enum Status {
@@ -44,15 +47,13 @@ async function fetchDRImage() {
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
-    // Create URL for image
-    const objectURL = URL.createObjectURL(data.value).toString();
-
-    // Globally set the new URL
-    imageSourceUrl.value = objectURL;
+    // Create URL for image and set it globally
+    imageSourceUrl.value = URL.createObjectURL(data.value).toString();
 
     // Update status
     status.value = Status.SUCCESS;
   } else {
+    currentError.value = "Loading overlay failed.";
     status.value = Status.ERROR;
   }
 }
@@ -75,7 +76,7 @@ async function updateEmbedding() {
 
   if (data.ok) {
     // Load the new embedding
-    fetchDRImage();
+    await fetchDRImage();
     return;
   }
 

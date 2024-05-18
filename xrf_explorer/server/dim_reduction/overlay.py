@@ -111,8 +111,8 @@ def create_element_overlay(
     # We want to first show low intensities and then high intensities
     # This is because we are interested in high intensity regions
     sorted_indices: np.ndarray = np.argsort(overlay)
-    sorted_embedding = embedding[sorted_indices]
-    sorted_overlay = overlay[sorted_indices]
+    sorted_embedding: np.ndarray = embedding[sorted_indices]
+    sorted_overlay: np.ndarray = overlay[sorted_indices]
 
     return sorted_embedding, sorted_overlay
 
