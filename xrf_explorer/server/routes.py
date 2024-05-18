@@ -29,24 +29,23 @@ def info():
     return "adding more routes is quite trivial"
 
 
-@app.route("/api/create_ds_dir", methods=["POST"])
+@app.route("/api/create-ds-dir", methods=["POST"])
 def create_data_source_dir():
-    # Check the the 'name' field was provided in the request
+    # Check the 'name' field was provided in the request
     if "name" not in request.form:
         error_msg = "Data source name must be provided."
         LOG.error(error_msg)
         return error_msg, 400
 
     data_source_name = request.form["name"].strip()
+    data_source_name_secure = secure_filename(data_source_name)
 
     if data_source_name == "":
         error_msg = "Data source name provided, but empty."
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = (
-        f"{BACKEND_CONFIG["uploads_folder"]}/{secure_filename(data_source_name)}"
-    )
+    data_source_dir = f"{BACKEND_CONFIG["uploads_folder"]}/{data_source_name_secure}"
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -57,10 +56,26 @@ def create_data_source_dir():
     # create data source dir
     mkdir(data_source_dir)
 
-    LOG.info(f"Data source directory creted at {data_source_dir}")
+    LOG.info(f"Data source directory created at {data_source_dir}")
+
+    return jsonify({"dataSourceDir": data_source_name_secure})
 
 
-    return "Ok", 200
+@app.route("/api/upload-file-chunk", methods=["POST"])
+def upload_file_chunk():
+    file_dir = f"{BACKEND_CONFIG['uploads_folder']}/{request.form["dir"]}"
+    start_byte = int(request.form["startByte"])
+    chunk_bytes = request.files["chunkBytes"]
+
+    # If the file does not exist, create it
+    if not exists(file_dir):
+        open(file_dir, "w+b").close()
+
+    with open(file_dir, "r+b") as file:
+        file.seek(start_byte)
+        file.write(chunk_bytes.read())
+
+    return "ok"
 
 
 @app.route("/api/upload-data-source", methods=["POST"])
