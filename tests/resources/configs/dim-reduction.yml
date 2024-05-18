@@ -3,7 +3,7 @@ temp-folder: "tests/resources/dim_reduction"
 dim-reduction:
   folder: "dim_reduction"
   threshold: 100
-  n_neighbors: 10
-  min_dist: 0
-  n_components: 2
+  n-neighbors: 10
+  min-dist: 0
+  n-components: 2
   metric: 'cosine'

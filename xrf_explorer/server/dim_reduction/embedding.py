@@ -3,17 +3,12 @@ import logging
 from pathlib import Path
 
 import numpy as np
-import imageio.v3 as imageio
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-DR_ARGS = ['element', 'threshold', 'n_neighbors', 'min_dist', 'n_components', 'metric']
+DR_ARGS: list[str] = ['element', 'threshold', 'n-neighbors', 'min-dist', 'n-components', 'metric']
 
 
 def apply_umap(data, parms: dict[str, str]):
@@ -27,9 +22,9 @@ def apply_umap(data, parms: dict[str, str]):
     from umap import UMAP
 
     return UMAP(
-        n_neighbors=int(parms['n_neighbors']),
-        min_dist=float(parms['min_dist']),
-        n_components=int(parms['n_components']), 
+        n_neighbors=int(parms['n-neighbors']),
+        min_dist=float(parms['min-dist']),
+        n_components=int(parms['n-components']), 
         metric= parms['metric']
     ).fit_transform(data)
 

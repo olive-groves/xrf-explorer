@@ -14,8 +14,8 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-OVERLAY_ARGS = ['type']
-OVERLAY_IMAGE = ['rgb', 'uv', 'xray']
+OVERLAY_ARGS: list[str] = ['type']
+OVERLAY_IMAGE: list[str] = ['rgb', 'uv', 'xray']
 
 
 def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:

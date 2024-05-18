@@ -53,7 +53,7 @@ def upload_file():
     return "File upload page"
 
 
-@app.route('/api/get_embedding')
+@app.route('/api/get_dr_embedding')
 def get_dr_embedding():
     # check if element number is provided
     if 'element' not in request.args:
@@ -67,7 +67,7 @@ def get_dr_embedding():
     return "Generated embedding successfully"
 
 
-@app.route('/api/get_overlay')
+@app.route('/api/get_dr_overlay')
 def get_dr_overlay():
     # Check whether the overlay type is provided
     if 'type' not in request.args:

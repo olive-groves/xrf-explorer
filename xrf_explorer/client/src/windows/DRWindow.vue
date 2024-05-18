@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useFetch } from "@vueuse/core";
 
 // Constants
-const URL_IMAGE = "http://localhost:8001/api/get_overlay";
-const URL_EMBEDDING = "http://localhost:8001/api/get_embedding";
+const URL_IMAGE = "http://localhost:8001/api/get_dr_overlay";
+const URL_EMBEDDING = "http://localhost:8001/api/get_dr_embedding";
 
 // Status dimensionaility reduction
 enum Status {

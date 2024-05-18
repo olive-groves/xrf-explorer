@@ -57,7 +57,7 @@ class TestDimReduction:
 
     def test_invalid_umap(self, caplog):
         # setup
-        args = {"element": 2, "n_neighbors": 0, "min_dist": 0, "n_components": 0, "metric": "invalid"}
+        args = {"element": 2, "n-neighbors": 0, "min-dist": 0, "n-components": 0, "metric": "invalid"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
@@ -79,7 +79,7 @@ class TestDimReduction:
 
     def test_valid_embedding(self, caplog):
         # setup
-        args = {"element": 2, "threshold": 0, "n_neighbors": 2, "metric": "euclidean"}
+        args = {"element": 2, "threshold": 0, "n-neighbors": 2, "metric": "euclidean"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
@@ -89,7 +89,7 @@ class TestDimReduction:
     
     def test_high_treshold(self, caplog):
         # setup
-        args = {"element": 2, "threshold": 1000, "n_neighbors": 2, "metric": "euclidean"}
+        args = {"element": 2, "threshold": 1000, "n-neighbors": 2, "metric": "euclidean"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
