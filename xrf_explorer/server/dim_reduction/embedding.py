@@ -11,23 +11,32 @@ LOG: logging.Logger = logging.getLogger(__name__)
 DR_ARGS: list[str] = ['element', 'threshold', 'n-neighbors', 'min-dist', 'n-components', 'metric']
 
 
-def apply_umap(data, parms: dict[str, str]):
-    """Apply UMAP to the given data with the given parameters.
+def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components: int, metric: str) -> np.ndarray | None:
+    """Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
+    The original data is not modified. For more information on UMAP, see: https://umap-learn.readthedocs.io/en/latest/.
 
-    :param data: Data to apply UMAP to.
-    :param parms: A dictionary containing the parameters for UMAP.
-    :return: The embedded data.
+    :param data: array, shape (n_samples, n_features). The data on which UMAP is used to reduce the dimension of n-features to n_components. 
+    :param n_neighbors: The size of local neighborhood. See UMAP documentation for more information.
+    :param min_dist: The minimum distance between points in the embedding. See UMAP documentation for more information.
+    :param n_components: The dimension of the embedded space. See UMAP documentation for more information.
+    :param metric: The metric to use for distance computation. See UMAP documentation for more information.
+    :return: array, shape (n_samples, n_components) containing the result of UMAP applied to given data with the given parameters. 
+    If UMAP fails, None is returned.
     """
 
     from umap import UMAP
 
-    return UMAP(
-        n_neighbors=int(parms['n-neighbors']),
-        min_dist=float(parms['min-dist']),
-        n_components=int(parms['n-components']), 
-        metric= parms['metric']
-    ).fit_transform(data)
-
+    try:
+        embedding = UMAP(
+            n_neighbors=n_neighbors,
+            min_dist=min_dist,
+            n_components=n_components, 
+            metric=metric
+        ).fit_transform(data)
+    
+        return embedding
+    except:
+        return None
 
 def filter_elemental_cube(data_cube, element: int, threshold: int):
     """Filter the given data based on the given element and threshold.
@@ -83,11 +92,21 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     filtered_data = data_cube[indices[:, 0], indices[:, 1], :]
 
     # compute embedding
-    LOG.info(f"Generating embedding with: el {element}, tr {threshold}, size {filtered_data.shape}")
-    try:
-        embedded_data = apply_umap(filtered_data, dr_config)
-    except:
-        LOG.error(f"Failed to compute embedding with: {dr_config}")
+    LOG.info(f"Generating embedding with:\n"
+             f"\telement: {element},\n"
+             f"\tthreshold: {threshold},\n"
+             f"\tsize: {filtered_data.shape}")
+    
+    embedded_data: np.ndarray | None = apply_umap(
+        filtered_data,
+        int(dr_config['n-neighbors']), 
+        float(dr_config['min-dist']), 
+        int(dr_config['n-components']), 
+        dr_config['metric']
+    )
+
+    if embedded_data is None:
+        LOG.error(f"Failed to compute embedding")
         return False
 
     # save indices and embedded data
