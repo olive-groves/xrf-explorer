@@ -100,6 +100,11 @@ fetchDRImage();
 
 <template>
   <Window title="Dimensionality reduction">
+    <!-- OVERLAY SECTION -->
+    <div class="flex items-center" >
+      <div class="block w-1"></div>
+      <p class="font-bold">Overlay:</p>
+    </div>
     <div class="block h-1"></div>
     <div class="flex items-center" >
       <div class="block w-1"></div>
@@ -134,14 +139,30 @@ fetchDRImage();
       <div class="block w-4"></div>
       <Button class="block w-28" @click="fetchDRImage">Show overlay</Button>
     </div>
-    <div class="block h-4"></div>
-    <p>Parameters:</p>
-    <p>Threshold: {{ threshold }}</p>
+    <div class="block h-2"></div>
+    <!-- PARAMETERS SECTIONS -->
+    <div class="flex items-center">
+      <div class="block w-1"></div>
+      <Separator class="w-64"/>
+    </div>
+    <div class="block h-2"></div>
+    <div class="flex items-center">
+      <div class="block w-1"></div>
+      <p class="font-bold">Parameters:</p>
+    </div> 
+    <div class="block h-1"></div>
     <div class="flex items-center" >
       <div class="block w-1"></div>
       <Slider class="w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
     </div>
-    <div class="block h-4"></div>
+    <div class="flex items-center">
+    <div class="block w-1"></div>
+    <FormDescription>
+      <span class="italic text-xs">Threshold value: </span>
+      <span class="italic text-xs">{{ threshold?.[0] }}</span>
+    </FormDescription>
+    </div>
+    <div class="block h-1"></div>
     <div class="flex items-center">
       <div class="block w-1"></div>
       <Select v-model="selectedElement">
@@ -166,8 +187,18 @@ fetchDRImage();
       <div class="block w-4"></div>
       <Button class="block w-28" @click="updateEmbedding">Generate</Button>
     </div>
-    <div class="block h-4"></div>
+    <div class="block h-2"></div>
     <!-- GENERATION OF THE IMAGE -->
+    <div class="flex items-center">
+      <div class="block w-1"></div>
+      <Separator class="w-64"/>
+    </div>
+    <div class="block h-2"></div>
+    <div class="flex items-center" >
+      <div class="block w-1"></div>
+      <p class="font-bold">Generated image:</p>
+    </div>
+    <div class="block h-1"></div>
     <div class="flex items-center" >
       <div class="block w-1"></div>
       <span v-if="status == Status.LOADING">Loading...</span>
