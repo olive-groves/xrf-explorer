@@ -29,7 +29,7 @@ def apply_umap(data, parms: dict[str, str]):
     ).fit_transform(data)
 
 
-def filter_elemental_cube(data, element: int, threshold: int):
+def filter_elemental_cube(data_cube, element: int, threshold: int):
     """Filter the given data based on the given element and threshold.
     
     :param data: 3D-Numpy array.
@@ -38,7 +38,7 @@ def filter_elemental_cube(data, element: int, threshold: int):
     :return: Indices for which the value of the given element in the data is above the threshold.
     """
     # get all indices for which the intensity of the given element is above the threshold
-    indices = np.argwhere(data[:, :, element] >= threshold)
+    indices = np.argwhere(data_cube[:, :, element] >= threshold)
 
     # return the filtered indices
     return indices
@@ -70,17 +70,17 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
 
     # get data cube
     data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
-    data = np.load(data_cube_path)
-LOG.info(f"Loaded data cube from: {data_cube_path}")
+    data_cube = np.load(data_cube_path)
+    LOG.info(f"Loaded data cube from: {data_cube_path}")
 
     # check if element is valid
-    if element < 0 or element >= data.shape[2]:
+    if element < 0 or element >= data_cube.shape[2]:
         LOG.error(f"Invalid element: {element}")
         return False
 
     # filter data
-    indices = filter_elemental_cube(data, element, threshold)
-    filtered_data = data[indices[:, 0], indices[:, 1], :]
+    indices = filter_elemental_cube(data_cube, element, threshold)
+    filtered_data = data_cube[indices[:, 0], indices[:, 1], :]
 
     # compute embedding
     LOG.info(f"Generating embedding with: el {element}, tr {threshold}, size {filtered_data.shape}")

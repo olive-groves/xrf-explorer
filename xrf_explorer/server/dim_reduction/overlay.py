@@ -52,15 +52,15 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
         element = int(overlay_type)
 
         # Get elemental data cube
-        data = np.load(Path(backend_config['uploads-folder'], 'test_cube.npy'))
+        data_cube = np.load(Path(backend_config['uploads-folder'], 'test_cube.npy'))
 
         # Verify valid element
-        if element < 0 or element >= data.shape[2]:
+        if element < 0 or element >= data_cube.shape[2]:
             LOG.error(f"Invalid element: {element}")
             return False
 
         # Create the overlay
-        embedding, overlay = create_element_overlay(element, indices, data, embedding)
+        embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
 
     # Create the plot
     create_image(embedding, overlay, Path(backend_config['temp-folder'], dr_folder))
@@ -83,7 +83,7 @@ def create_image_overlay(indices, path: Path | str):
     return overlay
 
 
-def create_element_overlay(element, indices, data, embedding):
+def create_element_overlay(element, indices, data_cube, embedding):
     """Creates an intensity overlay of the given element.
     
     :param element: The element to create the overlay for.
@@ -93,7 +93,7 @@ def create_element_overlay(element, indices, data, embedding):
     """
 
     # Get elemental overlay
-    overlay = data[indices[:, 0], indices[:, 1], element]
+    overlay = data_cube[indices[:, 0], indices[:, 1], element]
 
     # We want to first show low intensities and then high intensities
     # This is because we are interested in high intensity regions
