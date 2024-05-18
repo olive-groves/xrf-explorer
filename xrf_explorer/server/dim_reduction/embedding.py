@@ -71,6 +71,7 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     # get data cube
     data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
     data = np.load(data_cube_path)
+LOG.info(f"Loaded data cube from: {data_cube_path}")
 
     # check if element is valid
     if element < 0 or element >= data.shape[2]:
