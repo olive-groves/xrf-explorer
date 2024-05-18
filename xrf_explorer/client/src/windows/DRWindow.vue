@@ -3,9 +3,8 @@ import { ref } from "vue";
 
 import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
-// import { Slider } from "@/components/ui/slider";
+import { Slider } from "@/components/ui/slider";
 import { useFetch } from "@vueuse/core";
-// import { ToolState } from "./types";
 import {
   Select,
   SelectContent,
@@ -15,8 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-// const state = defineModel<ToolState>("state");
 
 // Constants
 const URL_IMAGE = "http://localhost:8001/api/get_overlay";
@@ -33,7 +30,7 @@ const status = ref(Status.LOADING);
 const currentError = ref("Error");
 
 // Dimensionality reduction parameters
-const threshold = ref(100);
+const threshold = ref([100]);
 const selectedElement = ref(9);
 const selectedOverlay = ref("rgb");
 
@@ -102,13 +99,9 @@ fetchDRImage();
 
 <template>
   <Window title="Dimensionality reduction">
-    <span v-if="status == Status.LOADING">Loading...</span>
-    <span v-if="status == Status.GENERATING">Generating...</span>
-    <span v-if="status == Status.ERROR">{{ currentError }}</span>
-    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
     <div class="flex items-center">
       <Select v-model="selectedOverlay">
-        <SelectTrigger class="w-[150px]">
+        <SelectTrigger class="w-32">
           <SelectValue placeholder="Select an overlay" />
         </SelectTrigger>
         <SelectContent>
@@ -140,11 +133,11 @@ fetchDRImage();
     </div>
     <p>Parameters:</p>
     <p>Threshold: {{ threshold }}</p>
-    <input type="range" v-model="threshold" min="0" max="255" />
+    <Slider class="w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
     <br />
     <div class="flex items-center">
       <Select v-model="selectedElement">
-        <SelectTrigger class="w-[150px]">
+        <SelectTrigger class="w-32">
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
@@ -165,15 +158,10 @@ fetchDRImage();
       <div class="block w-4"></div>
       <Button class="block w-28" @click="updateEmbedding">Generate</Button>
     </div>
+    <!-- GENERATION OF THE IMAGE -->
+    <span v-if="status == Status.LOADING">Loading...</span>
+    <span v-if="status == Status.GENERATING">Generating...</span>
+    <span v-if="status == Status.ERROR">{{ currentError }}</span>
+    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
   </Window>
 </template>
-
-
-
-    <!-- <div class="flex items-center justify-between">
-      <Label for="threshold">Threshold</Label>
-        <div class="text-muted-foreground">
-          {{ state!.threshold[0] }}
-        </div>
-    </div>
-    <Slider id="threshold" :min="0" :max="255" :step="1" v-model:model-value="state!.threshold" /> -->
