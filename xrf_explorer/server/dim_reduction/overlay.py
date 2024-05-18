@@ -5,12 +5,12 @@ from pathlib import Path
 
 import numpy as np
 import imageio.v3 as imageio
-
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from xrf_explorer.server.file_system.config_handler import load_yml
+
+matplotlib.use('Agg')
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -30,18 +30,21 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         return False
-    dr_folder = backend_config['dim-reduction']['folder']
+    dr_folder: dict = backend_config['dim-reduction']['folder']
 
     # Get the overlay type
-    overlay_type = args['type']
+    overlay_type: str = args['type']
 
     # Load the file embedding.npy
     try:
-        indices = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
-        embedding = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
-    except:
-        LOG.error("Failed to load embedding data")
+        indices: np.ndarray = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
+        embedding: np.ndarray = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
+    except OSError as e:
+        LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return False
+
+    # Create the overlay
+    overlay: np.ndarray
 
     if overlay_type in OVERLAY_IMAGE:
         # Show image overlay TODO: change to actual image
@@ -49,10 +52,10 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     else:
         # Show element overlay
         # Get the element
-        element = int(overlay_type)
+        element: int = int(overlay_type)
 
         # Get elemental data cube
-        data_cube = np.load(Path(backend_config['uploads-folder'], 'test_cube.npy'))
+        data_cube: np.ndarray = np.load(Path(backend_config['uploads-folder'], 'test_cube.npy'))
 
         # Verify valid element
         if element < 0 or element >= data_cube.shape[2]:
@@ -63,12 +66,14 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
         embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
 
     # Create the plot
+    LOG.info("Creating embedding image...")
     create_image(embedding, overlay, Path(backend_config['temp-folder'], dr_folder))
+    LOG.info("Created embedding image successfully")
 
     return True
 
 
-def create_image_overlay(indices, path: Path | str):
+def create_image_overlay(indices: np.ndarray, path: Path | str) -> np.ndarray:
     """ Gets the pixels out of the image at the given indices.
 
     :param indices: The indices to get the pixels from.
@@ -76,35 +81,43 @@ def create_image_overlay(indices, path: Path | str):
     :return: The pixels at the given indices of the image.
     """
 
-    overlay_data = imageio.imread(path)
-    overlay = overlay_data[indices[:, 0], indices[:, 1]]
+    # Get the pixels in the picture at the given path
+    overlay_data: np.ndarray = imageio.imread(path)
+
+    # Get the pixels at the given indices
+    overlay: np.ndarray = overlay_data[indices[:, 0], indices[:, 1]]
+    
+    # Normalize the pixels values to be in the range [0, 1]
     overlay = overlay.astype(float) / 255.0
 
     return overlay
 
 
-def create_element_overlay(element, indices, data_cube, embedding):
+def create_element_overlay(
+        element: np.ndarray, indices: np.ndarray, 
+        data_cube: np.ndarray, embedding: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Creates an intensity overlay of the given element.
     
     :param element: The element to create the overlay for.
     :param indices: The indices of the data to create the overlay for.
     :param data: The data to create the overlay from.
-    :return: The reorderd embedding and overlay of the given element.
+    :param embedding: The embedding data.
+    :return: The reordered embedding and overlay of the given element.
     """
 
     # Get elemental overlay
-    overlay = data_cube[indices[:, 0], indices[:, 1], element]
+    overlay: np.ndarray = data_cube[indices[:, 0], indices[:, 1], element]
 
     # We want to first show low intensities and then high intensities
     # This is because we are interested in high intensity regions
-    sorted_ind = np.argsort(overlay)
-    embedding = embedding[sorted_ind]
-    overlay = overlay[sorted_ind]
+    sorted_indices: np.ndarray = np.argsort(overlay)
+    sorted_embedding = embedding[sorted_indices]
+    sorted_overlay = overlay[sorted_indices]
 
-    return embedding, overlay
+    return sorted_embedding, sorted_overlay
 
 
-def create_image(embedding, overlay, path: Path) -> None:
+def create_image(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> None:
     """Creates the image of the embedding with the overlay and saves it to the given path.
     
     :param embedding: The embedding data.
@@ -116,7 +129,7 @@ def create_image(embedding, overlay, path: Path) -> None:
     fig = plt.figure(figsize=(15, 12))
 
     plt.axis('off')
-    fig.patch.set_facecolor(('black'))
+    fig.patch.set_facecolor('black')
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
@@ -127,7 +140,8 @@ def get_embedding_image(args: dict[str, str]) -> str:
     """Create the embedding image based on the given arguments.
 
     :param args: A dictionary containing the arguments for the overlay.
-    :return: Response containing the embedding image if successful. Otherwise a tuple containing the error message and status code.
+    :return: Response containing the embedding image if successful. 
+    Otherwise a tuple containing the error message and status code.
     """
 
     LOG.info("Creating embedding image...")
