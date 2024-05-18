@@ -76,7 +76,7 @@ def get_dr_overlay():
 
     # Try to get the embedding image
     image_path = get_embedding_image(request.args)
-    if len(image_path) == 0:
+    if not image_path:
         abort(400)
 
     return send_file(image_path, mimetype='image/png')
