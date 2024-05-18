@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
 import { useFetch } from "@vueuse/core";
 import {
   Select,
@@ -99,7 +100,9 @@ fetchDRImage();
 
 <template>
   <Window title="Dimensionality reduction">
-    <div class="flex items-center">
+    <div class="block h-1"></div>
+    <div class="flex items-center" >
+      <div class="block w-1"></div>
       <Select v-model="selectedOverlay">
         <SelectTrigger class="w-32">
           <SelectValue placeholder="Select an overlay" />
@@ -131,11 +134,16 @@ fetchDRImage();
       <div class="block w-4"></div>
       <Button class="block w-28" @click="fetchDRImage">Show overlay</Button>
     </div>
+    <div class="block h-4"></div>
     <p>Parameters:</p>
     <p>Threshold: {{ threshold }}</p>
-    <Slider class="w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
-    <br />
+    <div class="flex items-center" >
+      <div class="block w-1"></div>
+      <Slider class="w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
+    </div>
+    <div class="block h-4"></div>
     <div class="flex items-center">
+      <div class="block w-1"></div>
       <Select v-model="selectedElement">
         <SelectTrigger class="w-32">
           <SelectValue placeholder="Select an element" />
@@ -158,10 +166,14 @@ fetchDRImage();
       <div class="block w-4"></div>
       <Button class="block w-28" @click="updateEmbedding">Generate</Button>
     </div>
+    <div class="block h-4"></div>
     <!-- GENERATION OF THE IMAGE -->
-    <span v-if="status == Status.LOADING">Loading...</span>
-    <span v-if="status == Status.GENERATING">Generating...</span>
-    <span v-if="status == Status.ERROR">{{ currentError }}</span>
-    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
+    <div class="flex items-center" >
+      <div class="block w-1"></div>
+      <span v-if="status == Status.LOADING">Loading...</span>
+      <span v-if="status == Status.GENERATING">Generating...</span>
+      <span v-if="status == Status.ERROR">{{ currentError }}</span>
+      <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
+    </div>
   </Window>
 </template>
