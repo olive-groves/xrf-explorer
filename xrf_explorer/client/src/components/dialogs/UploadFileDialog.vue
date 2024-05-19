@@ -71,14 +71,14 @@ async function uploadDataSource() {
   let jsonResponse = await response.json();
   const dataSourceDirName: string = jsonResponse["dataSourceDir"];
 
-  console.log("The name of the data source dir is " + dataSourceDirName);
-  console.log("The input refs which have files are " + inputRefsWithFiles);
+  const chunkPromises: Promise<void>[] = [];
+  let abortFileUploading = false;
 
-  inputRefsWithFiles.forEach((inputRef) => {
+  for (const inputRef of inputRefsWithFiles) {
     const file: File = getFile(inputRef)!;
     const fileType: string = file.name.split(".").pop()!;
-    const uploadFileName = inputRef.value?.name + "." + fileType;
-    const chunkSize = 3000000 / 2; // in bytes, therefore 1 MB
+    const uploadFileName: string = inputRef.value?.name + "." + fileType;
+    const chunkSize: number = 3000000 / 2; // in bytes, therefore 1 MB
 
     for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += chunkSize) {
       const chunk: Blob = file!.slice(byteIndex, byteIndex + chunkSize);
@@ -91,12 +91,39 @@ async function uploadDataSource() {
       formDataSendChunks.append("startByte", String(byteIndex));
       formDataSendChunks.append("chunkBytes", chunk);
 
-      fetch("/api/upload-file-chunk", {
+      const chunkPromise = fetch("/api/upload-file-chunk", {
         method: "POST",
         body: formDataSendChunks,
+      }).then((response) => {
+        if (!response.ok) {
+          abortFileUploading = true;
+        }
       });
+
+      chunkPromises.push(chunkPromise);
     }
-  });
+
+    try {
+      // await all chunk uploads for the current file before proceeding with the next one
+      await Promise.all(chunkPromises);
+    } catch {
+      alert("Network error has occured, please try again later.");
+      return;
+    }
+
+    if (abortFileUploading) {
+      alert("An error has been encountered while uploading.");
+      const formDataDelete = new FormData();
+      formDataDelete.append("dir", dataSourceDirName);
+
+      fetch("api/delete-data-source", {
+        method: "DELETE",
+        body: formDataDelete,
+      });
+
+      return;
+    }
+  }
 }
 </script>
 

@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures.file_storage import FileStorage
 from os.path import exists
 from os import mkdir
+from shutil import rmtree
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -61,6 +62,18 @@ def create_data_source_dir():
     return jsonify({"dataSourceDir": data_source_name_secure})
 
 
+@app.route("/api/delete-data-source", methods=["DELETE"])
+def delete_data_source():
+    delete_dir = f"{BACKEND_CONFIG["uploads_folder"]}/{request.form["dir"]}"
+
+    if exists(delete_dir):
+        rmtree(delete_dir)
+        LOG.info(f"Data source at {delete_dir} removed.")
+        return "Deleted", 200
+    else:
+        return "Directory not found", 404
+
+
 @app.route("/api/upload-file-chunk", methods=["POST"])
 def upload_file_chunk():
     file_dir = f"{BACKEND_CONFIG['uploads_folder']}/{request.form["dir"]}"
@@ -75,7 +88,7 @@ def upload_file_chunk():
         file.seek(start_byte)
         file.write(chunk_bytes.read())
 
-    return "ok"
+    return "Ok"
 
 
 @app.route("/api/upload-data-source", methods=["POST"])
