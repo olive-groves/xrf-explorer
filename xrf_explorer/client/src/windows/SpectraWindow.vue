@@ -23,28 +23,28 @@ binSize = 32
 
 function setup() {
   // set the dimensions and margins of the graph
-  const width = 400;
-  const height = 400;
-  const margin = {top: 10, right: 30, bottom: 30, left: 60};
+  const margin = {top: 30, right: 30, bottom: 70, left: 60},
+  width = 860 - margin.left - margin.right,
+  height = 400 - margin.top - margin.bottom;
   // Add X and Y axis
   x = d3.scaleLinear()
     .range([ margin.left, width - margin.right ])
     .domain([low, high]);
   y = d3.scaleLinear()
-    .range([ height, margin.bottom ])
+    .range([ height - margin.bottom, margin.top ])
     .domain([0, 255]);
 
   // append the svg object to the body of the page
   svg = d3.select(spectraChart.value)
     //.append("svg") 
-    .attr("width", "100%")
-    .attr("height", "100%")
+    .attr("width", width)
+    .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
 
   //add axis
   svg.append("g")
-    .attr("transform", `translate(0, ${height})`)
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x));
 
   svg.append("g")
