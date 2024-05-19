@@ -7,6 +7,7 @@ from colormath.color_conversions import convert_color
 from sklearn.cluster import DBSCAN
 from PIL import Image
 from skimage import color
+import skimage
 from matplotlib.colors import ListedColormap
 
 
@@ -25,15 +26,15 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
     bitmask = []
 
     # convert image to lab
-    image = cv2.cvtColor(big_image, cv2.COLOR_RGB2LAB)
+    image = image_to_lab(big_image)
 
     # for each cluster
     for i in range(len(clusters)):
         # convert cluster color to lab
         target_color = rgb_to_lab(clusters[i])
         # define lower and upper bound for color similarity
-        lower_bound = np.clip(target_color - threshold, 0, 255)
-        upper_bound = np.clip(target_color + threshold, 0, 255)
+        lower_bound = target_color - threshold 
+        upper_bound = target_color + threshold
         # append to bitmask the pixels with colors within the bounds
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
         # the pixels belonging to the color cluster
@@ -42,7 +43,7 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
     return cluster_images, bitmask
 
 
-def merge_similar_colors(bitmask, clusters, t):
+def merge_similar_colors(clusters, t):
     """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks
 
     :param bitmask: the bitmasks used for assigning pixels to clusters
@@ -66,20 +67,19 @@ def merge_similar_colors(bitmask, clusters, t):
             # convert cluster color to lab
             col2 = rgb_to_lab(clusters[j])
             # if the color difference between two clusters is lower than the defined threshold
-            if i != j and (calculate_color_difference(col1, col2) < t):
+            if (calculate_color_difference(col1, col2) < t):
                 # perform union of bitmasks
-                bitmask[i] = bitmask[j] | bitmask[i]
+                # bitmask[i] = bitmask[j] | bitmask[i]
 
-                bitmask.pop(j)
+                # bitmask.pop(j)
                 # set the new color of the cluster as the average between the colors of the two merged clusters
-                clusters[i] = [(col1[i] + col2[i]) / 2 for i in range(3)]
-                # convert color if cluster back to rgb
+                clusters[i] = [np.sqrt((col1[0]**2+col2[0]**2)/2),np.sqrt((col1[1]**2+col2[1]**2)/2),np.sqrt((col1[2]**2+col2[2]**2)/2)]                # convert color if cluster back to rgb
                 clusters[i] = lab_to_rgb(clusters[i])
                 # delete one of the clusters
                 clusters = np.delete(clusters, j, 0)
                 if (j + 1) >= len(clusters) or (i + 1) >= len(clusters):
                     break
-    return bitmask, clusters
+    return clusters
 
 
 ########################################################################################################################
@@ -189,17 +189,9 @@ def image_to_lab(small_image):
     :return: The image in LAB format.
     """
 
-    small_image = small_image.convert("RGB")
-    width, height = small_image.size
-    lab_colors = []
-    for y in range(height):
-        for x in range(width):
-            # Get RGB color of pixel
-            rgb_pixel = small_image.getpixel((x, y))
-            # Convert RGB to Lab
-            lab_color = rgb_to_lab(rgb_pixel)
-            lab_colors.append(lab_color)
-    return lab_colors
+    lab = color.rgb2lab(small_image)
+    
+    return lab
 
 
 def find_closest_color_index(target_rgb, color_list):
@@ -240,9 +232,8 @@ def rgb_to_lab(rgb_triple):
     :param rgb_triple: The RGB color triple.
     :return: the LAB format.
     """
-    # rgb_color = sRGBColor(rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255)
-    return cv2.cvtColor(np.uint8([[rgb_triple]]), cv2.COLOR_RGB2LAB)[0][0]
-    # return convert_color(rgb_color, LabColor).get_value_tuple()
+    return skimage.color.rgb2lab([[[rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255]]])[0][0]
+    
 
 
 def lab_to_rgb(lab_color):
@@ -251,12 +242,7 @@ def lab_to_rgb(lab_color):
     :param lab_color: The LAB color triple.
     :return: The RGB color.
     """
-    lab_color_obj = LabColor(*lab_color)
-    rgb_color_obj = convert_color(lab_color_obj, sRGBColor)
-    rgb_color = rgb_color_obj.get_value_tuple()
-    # Ensure RGB values are within the correct range (0-255) and rounded to integers
-    rgb_color = tuple(max(0, min(255, int(round(c * 255)))) for c in rgb_color)
-    return rgb_color
+    return skimage.color.lab2rgb([lab_color[0] / 255, lab_color[1] / 255, lab_color[2] / 255])*255
 
 
 ########################################################################################################################
@@ -378,31 +364,47 @@ def visualize_clusters(small_image, clusters):
     plt.show()
 
 
+def visualize_stacked_images(big_image, clusters, contrast):
+    """Visualize the the image and highlighted colors while being able to adjust the contrast
+
+    :param big_image: the original image
+    :param clusters: the list of clusters obtained
+    :param contrast: value that determines 
+       
+    :return: None
+    """ 
+    stacked_im = cv2.addWeighted(big_image, 1-contrast, clusters, 1, 0)
+    stacked_image = Image.fromarray(stacked_im)
+    plt.imshow(stacked_image)
+
+
 ### Get image(s)
-img_path = "/home/diego/Downloads/196_1989_RGB.tif"
+img_path = "VGM_Package2024007_TUE_XrfExplorer2_Roulin_V20240424/196_1989_RGB.tif"
 img_pillow = get_image_as_pillow(img_path)
 small_image_pillow = get_small_image_as_pillow(img_pillow, 200)
 img = get_image(img_path)
-small_image = get_small_image(img, 500)
+small_image = get_small_image(img, 400)
 
 ###
 # Start timer
 start = time.time()
 
-k = 10
-color_similarity_threshold = 50
-color_merging_threshold = 5
+k = 40
+color_similarity_threshold = 9
+color_merging_threshold = 1
 
 # Get clusters
 # cluster = get_clusters_using_dbscan(small_image_pillow, eps=2, min_samples=30)
 # rgbClusters = get_rgb_clusters_using_dbscan(cluster)
 label, rgbClusters = get_clusters_using_k_means(small_image, nr_of_attempts=20, k=k)
 
-# 200 is the threshold for how "close" a pixel has to be to
-# a color to be mapped to its cluster. Currently arbitarily chosen:
-cluster_res, bitmask = get_pixels_in_clusters(img, rgbClusters, color_similarity_threshold)
+# merge similar clusters
+newClusters = merge_similar_colors(rgbClusters, color_merging_threshold)
 
-newMask, newClusters = merge_similar_colors(bitmask, rgbClusters, color_merging_threshold)
+# map clusters with bitmask
+cluster_res, bitmask = get_pixels_in_clusters(img, newClusters, color_similarity_threshold)
+
+
 
 # End timer
 end = time.time()
@@ -415,21 +417,13 @@ visualize_clusters(small_image, newClusters)
 ## Visualize clusters
 # for c in rgbClusters:
 for i in range(len(newClusters)):
+
     c = newClusters[i]
     # Create a colormap with cluster color
-    specific_color = [c[0] / 255, c[1] / 255, c[2] / 255, 1]
-    transparent = [1, 1, 1, 0]
-    custom_cmap = ListedColormap([transparent, specific_color])
+    specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
 
     # Plot bitmask
-    plt.subplot(1, 2, 1)
-    plt.imshow(newMask[i], cmap=custom_cmap)
-
-    # Plots image with bitmask applied to it
-    # (makes pixels of cluster stand out)
-    plt.subplot(1, 2, 2)
-    plt.imshow(img)
-    # plt.imshow(cluster_res[i])
-
-    plt.title(str(c), color=specific_color)
+    visualize_stacked_images(img, cluster_res[i], 0.8)
+    plt.title(str(c), color = specific_color)
     plt.show()
+
