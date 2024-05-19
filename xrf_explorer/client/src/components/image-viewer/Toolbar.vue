@@ -45,15 +45,6 @@ const toggleLens = () => {
             </div>
             <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state!.lensSize" />
           </div>
-          <div class="grid gap-3">
-            <div class="flex items-center justify-between">
-              <Label for="lenszoom">Lens layer</Label>
-              <div class="text-muted-foreground">
-                {{ state!.lensLayer[0] }}
-              </div>
-            </div>
-            <Slider id="lenszoom" :min="1" :max="3" :step="1" v-model:model-value="state!.lensLayer" />
-          </div>
           <div class="flex items-center justify-between">
             <Button variant="ghost" class="hover:text-muted-foreground" @click="toggleLens">
                 {{ state.lensOn ? 'Disable Lens' : 'Enable Lens' }}
