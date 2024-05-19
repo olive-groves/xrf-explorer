@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   ReusableDialog,
   DialogFooter,
   DialogClose,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ref, Ref } from "vue";
+import { ref, Ref, computed } from "vue";
+
+const CHUNK_SIZE: number = 50000000; // in bytes, therefore 1 MB
 
 /**
  * Retrieves the first file from a ref object pointing to an input element.
@@ -17,6 +20,21 @@ function getFile(
 ): File | undefined {
   return inputRef.value?.files![0];
 }
+
+function getTotalChunks(files: File[], chunkSize: number) {
+  let totalChunks = 0;
+  files.forEach((file) => {
+    totalChunks += file.size / chunkSize;
+  });
+
+  return Math.ceil(totalChunks);
+}
+
+const uploadedChunks: Ref<number> = ref(0);
+const totalChunks: Ref<number> = ref(1);
+const uploadProgessPercent: Ref<number> = computed(
+  () => (uploadedChunks.value / totalChunks.value) * 100,
+);
 
 const dataSourceNameInputRef = ref<HTMLInputElement>()!;
 const rgbImageInputRef = ref<HTMLInputElement>();
@@ -40,7 +58,7 @@ async function uploadDataSource() {
     cubeDataInputRef,
     rawDataInputRef,
     rplDataInputRef,
-  ].filter((input) => input.value?.files![0] !== undefined);
+  ].filter((inputRef) => getFile(inputRef) !== undefined);
 
   if (dataSourceName === "") {
     alert("A non-empty data source name must be provided.");
@@ -61,6 +79,11 @@ async function uploadDataSource() {
     return;
   }
 
+  totalChunks.value = getTotalChunks(
+    inputRefsWithFiles.map((inputRef) => getFile(inputRef)!),
+    CHUNK_SIZE,
+  );
+
   const formDataDsName = new FormData();
   formDataDsName.append("name", dataSourceName);
 
@@ -78,10 +101,9 @@ async function uploadDataSource() {
     const file: File = getFile(inputRef)!;
     const fileType: string = file.name.split(".").pop()!;
     const uploadFileName: string = inputRef.value?.name + "." + fileType;
-    const chunkSize: number = 3000000 / 2; // in bytes, therefore 1 MB
 
-    for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += chunkSize) {
-      const chunk: Blob = file!.slice(byteIndex, byteIndex + chunkSize);
+    for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += CHUNK_SIZE) {
+      const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
 
       const formDataSendChunks = new FormData();
       formDataSendChunks.append(
@@ -97,6 +119,8 @@ async function uploadDataSource() {
       }).then((response) => {
         if (!response.ok) {
           abortFileUploading = true;
+        } else {
+          uploadedChunks.value++;
         }
       });
 
@@ -200,6 +224,7 @@ async function uploadDataSource() {
         ref="rplDataInputRef"
       />
     </div>
+    <Progress :model-value="uploadProgessPercent" />
 
     <DialogFooter>
       <DialogClose>
