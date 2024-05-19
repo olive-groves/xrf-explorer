@@ -8,17 +8,19 @@ import { Layer, ToolState } from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 
-import fragment from "./fragment.glsl?raw"
-import vertex from "./vertex.glsl?raw"
+import fragment from "./fragment.glsl?raw";
+import vertex from "./vertex.glsl?raw";
 
 const config = inject<FrontendConfig>("config")!;
 
-// TODO: is it worth it to try to define these constants in one 
+// TODO: is it worth it to try to define these constants in one
 // place where fragment.glsl can also access them?
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const TRANSPARENT = 0x00;
 const WHOLE = 0x01;
 const IN_LENS = 0x02;
 const OUTSIDE_LENS = 0x03;
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
@@ -109,7 +111,7 @@ function addLayer(id: string, image: string) {
       iIndex: { value: 0 },
       iViewport: { value: new THREE.Vector4() },
       // Temporary usage
-      iShowLayer: { value: id == "top" ? OUTSIDE_LENS : IN_LENS},
+      iShowLayer: { value: id == "top" ? OUTSIDE_LENS : IN_LENS },
       mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uRadius: { value: toolState.value.lensSize[0] / viewport.zoom },

@@ -15,7 +15,7 @@ const state = defineModel<ToolState>("state");
 
 const toggleLens = () => {
   state.value.lensOn = !state.value.lensOn;
-}
+};
 
 </script>
 
@@ -47,7 +47,7 @@ const toggleLens = () => {
           </div>
           <div class="flex items-center justify-between">
             <Button variant="ghost" class="hover:text-muted-foreground" @click="toggleLens">
-                {{ state.lensOn ? 'Disable Lens' : 'Enable Lens' }}
+              {{ state.lensOn ? "Disable Lens" : "Enable Lens" }}
             </Button>
           </div>
         </PopoverContent>
