@@ -18,8 +18,8 @@ class TestDimReduction:
 
     def test_config_not_found(self, caplog):
         # setup
-        args_generating = {"element": '9'}
-        args_creating = {"type": 'rgb'}
+        args_generating: dict[str, str] = {"element": '9'}
+        args_creating: dict[str, str] = {"type": 'rgb'}
 
         # execute
         result1: bool = generate_embedding(args_generating, 'this-config-does-not-exist.yml')
@@ -31,8 +31,8 @@ class TestDimReduction:
 
     def test_invalid_element_generating(self, caplog):
         # setup
-        args1 = {"element": '-1'}
-        args2 = {"element": '1000000'}
+        args1: dict[str, str] = {"element": '-1'}
+        args2: dict[str, str] = {"element": '1000000'}
 
         # execute
         result1: bool = generate_embedding(args1, self.CUSTOM_CONFIG_PATH)
@@ -44,8 +44,8 @@ class TestDimReduction:
     
     def test_invalid_element_creating_image(self, caplog):
         # setup
-        args1 = {"type": '-1'}
-        args2 = {"type": '1000000'}
+        args1: dict[str, str] = {"type": '-1'}
+        args2: dict[str, str] = {"type": '1000000'}
 
         # execute
         result1: bool = create_embedding_image(args1, self.CUSTOM_CONFIG_PATH)
@@ -57,7 +57,7 @@ class TestDimReduction:
 
     def test_invalid_umap(self, caplog):
         # setup
-        args = {"element": 2, "n-neighbors": 0, "min-dist": 0, "n-components": 0, "metric": "invalid"}
+        args: dict[str, str] = {"element": '2', "n-neighbors": '0', "min-dist": '0', "n-components": '0', "metric": "invalid"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
@@ -67,7 +67,7 @@ class TestDimReduction:
 
     def test_no_embedding(self, caplog):
         # setup
-        args = {"type": '1'}
+        args: dict[str, str] = {"type": '1'}
         os.remove(join(self.TEMP_FOLDER, 'embedded_data.npy'))
         os.remove(join(self.TEMP_FOLDER, 'indices.npy'))
         
@@ -79,7 +79,7 @@ class TestDimReduction:
 
     def test_valid_embedding(self, caplog):
         # setup
-        args = {"element": 2, "threshold": 0, "n-neighbors": 2, "metric": "euclidean"}
+        args: dict[str, str] = {"element": '2', "threshold": '0', "n-neighbors": '2', "metric": "euclidean"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
@@ -89,7 +89,7 @@ class TestDimReduction:
     
     def test_high_threshold(self, caplog):
         # setup
-        args = {"element": 2, "threshold": 1000, "n-neighbors": 2, "metric": "euclidean"}
+        args: dict[str, str] = {"element": '2', "threshold": '1000', "n-neighbors": '2', "metric": "euclidean"}
 
         # execute
         result: bool = generate_embedding(args, self.CUSTOM_CONFIG_PATH)
@@ -99,7 +99,7 @@ class TestDimReduction:
     
     def test_valid_image(self, caplog):
         # setup
-        args = {"type": '1'}
+        args: dict[str, str] = {"type": '1'}
 
         # execute
         result: bool = create_embedding_image(args, self.CUSTOM_CONFIG_PATH)
