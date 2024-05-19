@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 import numpy as np
+from umap import UMAP
 
 from xrf_explorer.server.file_system.config_handler import load_yml
 
@@ -24,10 +25,8 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     If UMAP fails, None is returned.
     """
 
-    from umap import UMAP
-
     try:
-        embedding = UMAP(
+        embedding: np.ndarray = UMAP(
             n_neighbors=n_neighbors,
             min_dist=min_dist,
             n_components=n_components, 
@@ -38,16 +37,16 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     except:
         return None
 
-def filter_elemental_cube(data_cube, element: int, threshold: int):
-    """Filter the given data based on the given element and threshold.
-    
-    :param data: 3D-Numpy array.
+def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: int) -> np.ndarray:
+    """Get indices for which the value of the given element in the elemental data cube is above the threshold.
+
+    :param elemental_cube: shape (n, m, 3) elemental data cube.
     :param element: The element to filter on.
     :param threshold: The threshold to filter by.
-    :return: Indices for which the value of the given element in the data is above the threshold.
+    :return: Indices for which the value of the given element in the elemental data cube is above the threshold.
     """
     # get all indices for which the intensity of the given element is above the threshold
-    indices = np.argwhere(data_cube[:, :, element] >= threshold)
+    indices: np.ndarray = np.argwhere(elemental_cube[:, :, element] >= threshold)
 
     # return the filtered indices
     return indices
@@ -61,7 +60,7 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     :return: True if the embedding was successfully generated. Otherwise False.
     """
     # Compute the embedding
-    args = {key: args[key] for key in DR_ARGS if key in args.keys()}
+    args: dict[str, str] = {key: args[key] for key in DR_ARGS if key in args.keys()}
 
     # load backend config
     backend_config: dict = load_yml(config_path)
@@ -73,23 +72,24 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     dr_config: dict = backend_config['dim-reduction']
     dr_config.update(args)
 
-    # Constants
-    element = int(dr_config['element'])
-    threshold = int(dr_config['threshold'])
+    # get the filter parameters
+    element: int = int(dr_config['element'])
+    threshold: int = int(dr_config['threshold'])
 
     # get data cube
     data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
-    data_cube = np.load(data_cube_path)
+    data_cube: np.ndarray = np.load(data_cube_path)
     LOG.info(f"Loaded data cube from: {data_cube_path}")
 
     # check if element is valid
-    if element < 0 or element >= data_cube.shape[2]:
+    total_number_of_elements: int = data_cube.shape[2]
+    if element < 0 or element >= total_number_of_elements:
         LOG.error(f"Invalid element: {element}")
         return False
 
     # filter data
-    indices = filter_elemental_cube(data_cube, element, threshold)
-    filtered_data = data_cube[indices[:, 0], indices[:, 1], :]
+    indices: np.ndarray = filter_elemental_cube(data_cube, element, threshold)
+    filtered_data: np.ndarray = data_cube[indices[:, 0], indices[:, 1], :]
 
     # compute embedding
     LOG.info(f"Generating embedding with:\n"
