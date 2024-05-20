@@ -137,9 +137,6 @@ function onResize(height: number, oldHeight: number) {
  * @param height The new size of the content.
  */
 function onContentResize(id: string, height: number) {
-  // Account for built in margin
-  height += remToPx(0.5);
-
   console.debug("content", id, height);
   const tab = state.value[id];
   const oldHeight = tab.maxContentHeight;
@@ -229,6 +226,8 @@ function growTab(id: string, px: number): number {
   console.debug(`Adding ${id} as target after growth`);
   growthTargets.unshift(id);
   shrinkTargets.push(id);
+
+  console.log("After growth", tab);
   return actualGrowth;
 }
 
@@ -258,6 +257,8 @@ function shrinkTab(id: string, px: number): number {
     growthTargets.push(id);
     shrinkTargets.unshift(id);
   }
+
+  console.log("After shrink", tab);
   return actualShrink;
 }
 
@@ -392,20 +393,20 @@ function handleDragMovement(event: MouseEvent) {
           <div
             class="-mt-px overflow-hidden duration-100"
             :style="{
-              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize - 1}px`}`,
+              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
             }"
             :class="{
               'transition-all': !disableAnimation,
             }"
           >
-            <div class="mt-px p-1">
-              <WindowPortalTarget
-                ref="contentRefs"
-                :window-id="id"
-                @content-height="(entry) => onContentResize(id, entry)"
-                :area-height="state[id].height - headerSize - 1"
-              />
-            </div>
+            <!-- <div class="mt-px box-content"> -->
+            <WindowPortalTarget
+              ref="contentRefs"
+              :window-id="id"
+              @content-height="(entry) => onContentResize(id, entry)"
+              :area-height="state[id].height - headerSize"
+            />
+            <!-- </div> -->
           </div>
         </div>
         <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
