@@ -12,7 +12,7 @@ class TestSpectra:
         bin_size = 1
         result = get_average_global(data, low, high, bin_size)
         expected_result = [{"index": 1, "value": 2}, {"index": 2, "value": 3}]
-        assert expected_result in caplog.text
+        assert result==expected_result
         
     def test_get_average_selection(self, caplog):
         data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
@@ -23,4 +23,4 @@ class TestSpectra:
         pixels = [[0,0], [1,1]]
         result = get_average_selection(data, pixels, low, high, bin_size)
         expected_result = [{"index": 1, "value": 3}, {"index": 2, "value": 2}]
-        assert expected_result in caplog.text
+        assert result==expected_result
