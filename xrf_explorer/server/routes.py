@@ -51,7 +51,8 @@ def upload_file():
 
     return "File upload page"
 
-@app.route('/api/element_average')
+
+@app.route('/api/element_averages')
 def list_element_averages():
     composition: list[dict[str,  str | float]] = get_element_averages()
     try:
@@ -59,6 +60,7 @@ def list_element_averages():
     except Exception as e:
         LOG.error(f"Failed to serialize element averages: {str(e)}")
         return "Error occurred while listing element averages", 500
+
 
 @app.route('/api/element_names')
 def list_element_names():

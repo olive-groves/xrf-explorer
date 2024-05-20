@@ -3,9 +3,8 @@ import { ref } from "vue";
 import { Window } from "@/components/ui/window";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { watch } from "vue";
+import { DefaultConfig } from "@/lib/config";
 import * as d3 from "d3";
-
-const url = "http://localhost:8001";
 
 const barchart = ref(null);
 
@@ -20,12 +19,12 @@ let dataAverages: Element[];
 /**
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
- * @param url URL to the server which provides the elemental data.
+ * @param url URL to the server API endpoint which provides the elemental data.
  * @returns True if the averages were fetched successfully, false otherwise.
  */
 async function fetchAverages(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/api/element_average`, {
+  const response: Response = await fetch(`${url}/element_averages`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -142,7 +141,7 @@ function setup() {
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
  * which is displayed in the chart.
- * @param url URL to the server which provides the elemental data.
+ * @param url URL to the server API endpoint which provides the elemental data.
  */
 async function showChart(url: string) {
   try {
@@ -158,7 +157,7 @@ async function showChart(url: string) {
 watch(barchart, (n, o) => {
   console.log(n, o);
   if (barchart.value != null) {
-    showChart(url);
+    showChart(DefaultConfig.api.endpoint);
   }
 });
 </script>
