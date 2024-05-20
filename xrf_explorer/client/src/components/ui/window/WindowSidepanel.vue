@@ -399,14 +399,12 @@ function handleDragMovement(event: MouseEvent) {
               'transition-all': !disableAnimation,
             }"
           >
-            <!-- <div class="mt-px box-content"> -->
             <WindowPortalTarget
               ref="contentRefs"
               :window-id="id"
               @content-height="(entry) => onContentResize(id, entry)"
               :area-height="state[id].height - headerSize"
             />
-            <!-- </div> -->
           </div>
         </div>
         <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
