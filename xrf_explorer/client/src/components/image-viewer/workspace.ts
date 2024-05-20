@@ -35,7 +35,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
 }
 
 /**
- *
+ * Creates a layer for the base image in the image viewer.
  * @param image - The image to use as the base image.
  */
 function createBaseLayer(image: ContextualImage) {
@@ -52,8 +52,8 @@ function createBaseLayer(image: ContextualImage) {
 }
 
 /**
- *
- * @param image
+ * Creates a layer for a contextual image in the image viewer.
+ * @param image - The image to use as the contextual image.
  */
 function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;

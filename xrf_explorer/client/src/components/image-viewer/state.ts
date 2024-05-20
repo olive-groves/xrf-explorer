@@ -1,4 +1,4 @@
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { Layer, LayerGroup } from "./types";
 import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
@@ -10,10 +10,6 @@ import { loadLayer } from "./scene";
  */
 export const layers = ref<Layer[]>([]);
 
-watch(layers, (n, o) => console.log("layers", n, o), {
-  deep: false,
-});
-
 /**
  * Describes the different layer groups.
  * May not be mutated directly from outside of the ImageViewer.
@@ -22,14 +18,12 @@ export const layerGroups = ref<{
   [key: string]: LayerGroup;
 }>({});
 
-watch(layerGroups, (n, o) => console.log("groups", n, o), {
-  deep: false,
-});
-
 /**
- *
- * @param id
- * @param image
+ * Create a layer from an image resource.
+ * Handles registering and loading in the image viewer.
+ * @param id - The ID to associate with the layer.
+ * @param image - The image to load in the layer.
+ * @returns The layer that was created by calling the function.
  */
 export function createLayer(id: string, image: ContextualImage): Layer {
   console.log("Creating layer", id, image);
@@ -52,22 +46,16 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 }
 
 /**
- *
- * @param group
- * @param index
+ * Updates the iIndex uniform for all layers in a layer group.
+ * @param group - The layer group that should be updated.
+ * @param index - The index that the layers should be given.
  */
 export function setLayerGroupIndex(group: LayerGroup, index: number) {
   group.layers.forEach((layer) => (layer.uniform.iIndex.value = index));
 }
 
 /**
- *
- * @param group
- * @param visible
- * @param visibility
+ * Updates the visibility uniforms for all layers in a layer group.
+ * @param _group - The group that should be updated.
  */
-export function setLayerGroupVisibility(group: LayerGroup) {
-  // TODO: Implement after merging with the lens tool
-  // group.layers.forEach((layer) => {
-  // })
-}
+export function setLayerGroupVisibility(_group: LayerGroup) {}
