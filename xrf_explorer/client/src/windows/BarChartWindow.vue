@@ -20,8 +20,8 @@ let dataAverages: Element[];
 /**
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
- * 
  * @param url URL to the server which provides the elemental data.
+ * @returns True if the averages were fetched successfully, false otherwise.
  */
 async function fetchAverages(url: string) {
   // Make API call
@@ -139,7 +139,6 @@ function setup() {
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
  * which is displayed in the chart.
- * 
  * @param url URL to the server which provides the elemental data.
  */
 async function showChart(url: string) {
