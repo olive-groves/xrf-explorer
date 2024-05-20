@@ -11,25 +11,6 @@ import { ref, Ref, computed } from "vue";
 
 const CHUNK_SIZE: number = 50000000; // in bytes, therefore 1 MB
 
-/**
- * Retrieves the first file from a ref object pointing to an input element.
- * @returns {File | undefined} The first file selected in the input, or undefined if no files are present.
- */
-function getFile(
-  inputRef: Ref<HTMLInputElement | undefined>,
-): File | undefined {
-  return inputRef.value?.files![0];
-}
-
-function getTotalChunks(files: File[], chunkSize: number) {
-  let totalChunks = 0;
-  files.forEach((file) => {
-    totalChunks += file.size / chunkSize;
-  });
-
-  return Math.ceil(totalChunks);
-}
-
 const uploadedChunks: Ref<number> = ref(0);
 const totalChunks: Ref<number> = ref(1);
 const uploadProgessPercent: Ref<number> = computed(
@@ -148,6 +129,25 @@ async function uploadDataSource() {
       return;
     }
   }
+}
+
+/**
+ * Retrieves the first file from a ref object pointing to an input element.
+ * @returns {File | undefined} The first file selected in the input, or undefined if no files are present.
+ */
+function getFile(
+  inputRef: Ref<HTMLInputElement | undefined>,
+): File | undefined {
+  return inputRef.value?.files![0];
+}
+
+function getTotalChunks(files: File[], chunkSize: number) {
+  let totalChunks = 0;
+  files.forEach((file) => {
+    totalChunks += file.size / chunkSize;
+  });
+
+  return Math.ceil(totalChunks);
 }
 </script>
 
