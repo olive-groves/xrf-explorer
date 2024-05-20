@@ -66,6 +66,6 @@ function createContextualLayer(image: ContextualImage) {
     description: "Contextual image",
     layers: [layer],
     visible: false,
-    visibility: 3,
+    visibility: LayerVisibility.Visible,
   };
 }
