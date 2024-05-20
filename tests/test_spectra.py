@@ -5,7 +5,7 @@ class TestSpectra:
     raw_path = 'C:/Users/20210792/Downloads/spectrum.raw'
     
     def test_get_average_global(self, caplog):
-        data = np.ndarray(shape=(2, 3, 4), buffer=[[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
+        data = np.array([[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
                                                     [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]])
         low = 1
         high = 3
@@ -15,7 +15,7 @@ class TestSpectra:
         assert expected_result in caplog.text
         
     def test_get_average_selection(self, caplog):
-        data = np.ndarray(shape=(2, 3, 4), buffer=[[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
+        data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
                                                     [[1, 2, 3, 4], [1, 2, 1, 2], [1, 2, 3, 4]]])
         low = 1
         high = 3
