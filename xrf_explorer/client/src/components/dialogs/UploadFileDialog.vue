@@ -37,21 +37,9 @@ async function uploadDataSource() {
     rplDataInputRef,
   ].filter((inputRef) => getFile(inputRef) !== undefined);
 
-  if (dataSourceName === "") {
-    alert("A non-empty data source name must be provided.");
-    return;
-  }
-
-  if (getFile(rgbImageInputRef) === undefined) {
-    alert("RGB image must be provided.");
-    return;
-  }
-
-  if (
-    getFile(cubeDataInputRef) === undefined &&
-    (getFile(rawDataInputRef) === undefined || getFile(rplDataInputRef) === undefined)
-  ) {
-    alert("Raw or processed data must be provided.");
+  const errorMsg: string | undefined = validateInputFieds();
+  if (errorMsg) {
+    alert(errorMsg);
     return;
   }
 
@@ -136,6 +124,37 @@ async function uploadFileInChunks(file: File, directory: string, uploadFileName:
   }
 
   return uploadSuccess;
+}
+
+/**
+ * Validates the input fields for a data source upload form.
+ *
+ * @returns {string | undefined} An error message if a validation check fails, otherwise undefined.
+ */
+function validateInputFieds(): string | undefined {
+  if (getTrimmedInputString(dataSourceNameInputRef) === "") {
+    return "A non-empty data source name must be provided.";
+  }
+
+  if (getFile(rgbImageInputRef) === undefined) {
+    return "RGB image must be provided.";
+  }
+
+  if (
+    (getFile(rawDataInputRef) === undefined && getFile(rplDataInputRef) !== undefined) ||
+    (getFile(rawDataInputRef) !== undefined && getFile(rplDataInputRef) === undefined)
+  ) {
+    return "Both raw and rpl data files must be provided if either one is present.";
+  }
+
+  if (
+    getFile(cubeDataInputRef) === undefined &&
+    (getFile(rawDataInputRef) === undefined || getFile(rplDataInputRef) === undefined)
+  ) {
+    return "Raw or processed data must be provided.";
+  }
+
+  return undefined;
 }
 
 /**
