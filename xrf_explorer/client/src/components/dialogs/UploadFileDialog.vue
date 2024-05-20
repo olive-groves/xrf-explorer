@@ -11,7 +11,7 @@ const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
 
 const uploadedChunks: Ref<number> = ref(0);
 const totalChunks: Ref<number> = ref(1);
-const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100);
+const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100); // TODO Fix uploadProgessPercent going over 100
 
 const dataSourceNameInputRef = ref<HTMLInputElement>()!;
 const rgbImageInputRef = ref<HTMLInputElement>();
@@ -56,6 +56,7 @@ async function uploadDataSource() {
   }
 
   const workSpaceJSON = getWorkspaceJSON();
+  console.log(workSpaceJSON);
 
   totalChunks.value = getTotalChunks(
     inputRefsWithFiles.map((inputRef) => getFile(inputRef)!),
@@ -72,44 +73,13 @@ async function uploadDataSource() {
   let jsonResponse = await response.json();
   const dataSourceDirName: string = jsonResponse["dataSourceDir"];
 
-  const chunkPromises: Promise<void>[] = [];
-  let abortFileUploading = false;
-
   for (const inputRef of inputRefsWithFiles) {
     const file: File = getFile(inputRef)!;
     const uploadFileName: string = generateFileName(inputRef)!;
 
-    for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += CHUNK_SIZE) {
-      const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
+    const uploadSuccess: boolean = await uploadFileInChunks(file, dataSourceDirName, uploadFileName);
 
-      const formDataSendChunks = new FormData();
-      formDataSendChunks.append("dir", dataSourceDirName + "/" + uploadFileName);
-      formDataSendChunks.append("startByte", String(byteIndex));
-      formDataSendChunks.append("chunkBytes", chunk);
-
-      const chunkPromise = fetch(API_ENDPOINT + "/upload-file-chunk", {
-        method: "POST",
-        body: formDataSendChunks,
-      }).then((response) => {
-        if (!response.ok) {
-          abortFileUploading = true;
-        } else {
-          uploadedChunks.value++;
-        }
-      });
-
-      chunkPromises.push(chunkPromise);
-    }
-
-    try {
-      // await all chunk uploads for the current file before proceeding with the next one
-      await Promise.all(chunkPromises);
-    } catch {
-      alert("Network error has occured, please try again later.");
-      return;
-    }
-
-    if (abortFileUploading) {
+    if (!uploadSuccess) {
       alert("An error has been encountered while uploading.");
       const formDataDelete = new FormData();
       formDataDelete.append("dir", dataSourceDirName);
@@ -122,6 +92,42 @@ async function uploadDataSource() {
       return;
     }
   }
+}
+
+async function uploadFileInChunks(file: File, directory: string, uploadFileName: string): Promise<boolean> {
+  let uploadSuccess: boolean = true;
+  const chunkPromises: Promise<void>[] = [];
+
+  for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += CHUNK_SIZE) {
+    const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
+
+    const formDataSendChunks = new FormData();
+    formDataSendChunks.append("dir", directory + "/" + uploadFileName);
+    formDataSendChunks.append("startByte", String(byteIndex));
+    formDataSendChunks.append("chunkBytes", chunk);
+
+    const chunkPromise = fetch(API_ENDPOINT + "/upload-file-chunk", {
+      method: "POST",
+      body: formDataSendChunks,
+    }).then((response) => {
+      if (!response.ok) {
+        uploadSuccess = false;
+      } else {
+        uploadedChunks.value++;
+      }
+    });
+
+    chunkPromises.push(chunkPromise);
+  }
+
+  try {
+    // await all chunk uploads for the current file before proceeding with the next one
+    await Promise.all(chunkPromises);
+  } catch {
+    uploadSuccess = false;
+  }
+
+  return uploadSuccess;
 }
 
 function getFileType(file: File): string {
@@ -204,12 +210,12 @@ function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined 
  * Calculates the total number of chunks required to upload an array of files.
  */
 function getTotalChunks(files: File[], chunkSize: number): number {
-  let totalChunks = 0;
+  let totalBytes = 0;
   files.forEach((file) => {
-    totalChunks += file.size / chunkSize;
+    totalBytes += file.size;
   });
 
-  return Math.ceil(totalChunks);
+  return Math.ceil(totalBytes / chunkSize);
 }
 </script>
 
