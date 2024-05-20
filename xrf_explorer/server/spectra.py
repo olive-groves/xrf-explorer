@@ -105,7 +105,7 @@ def get_average_selection(data: np.ndarray, pixels: list, low: int, high: int, b
         result = []
         
         #average per bin
-        for i in range(low, high, bin_size):
+        for i in range(0, len(avg), bin_size):
             mean = np.mean(avg[i:i+bin_size])
             dict = {"index": i, "value": mean}
             result.append(dict)   
