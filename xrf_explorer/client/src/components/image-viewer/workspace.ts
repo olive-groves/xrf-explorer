@@ -4,6 +4,7 @@ import { computed, watch } from "vue";
 import { appState } from "@/lib/app_state";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
+import { LayerVisibility } from "./types";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -47,7 +48,7 @@ function createBaseLayer(image: ContextualImage) {
     description: "Base image",
     layers: [layer],
     visible: true,
-    visibility: 3,
+    visibility: LayerVisibility.Visible,
   };
 }
 
@@ -65,6 +66,6 @@ function createContextualLayer(image: ContextualImage) {
     description: "Contextual image",
     layers: [layer],
     visible: false,
-    visibility: 3,
+    visibility: LayerVisibility.Visible,
   };
 }

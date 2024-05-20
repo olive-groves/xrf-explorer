@@ -22,8 +22,10 @@ const viewport: {
 };
 
 const toolState = ref<ToolState>({
+  tool: "grab",
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
+  lensSize: [config.imageViewer.defaultLensSize],
 });
 
 let camera: THREE.OrthographicCamera;
@@ -72,6 +74,7 @@ function render() {
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
+    layer.uniform.uRadius.value = toolState.value.lensSize[0];
   });
 
   renderer.setSize(width, height);
@@ -114,6 +117,18 @@ function onMouseMove(event: MouseEvent) {
     viewport.center.x -= event.movementX * scale;
     viewport.center.y += event.movementY * scale;
   }
+
+  const rect = glcanvas.value!.getBoundingClientRect();
+  const mouseX = event.layerX;
+  const mouseY = event.layerY;
+  // Map mouse coordinates to [0,width] and [0,height],
+  // reversing y-axis to have (0,0) at top left
+  const normalizedX = (width * mouseX) / rect.width;
+  const normalizedY = height * (1 - mouseY / rect.height);
+
+  layers.value.forEach((layer) => {
+    layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+  });
 }
 
 /**

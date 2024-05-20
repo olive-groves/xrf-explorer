@@ -42,12 +42,28 @@ export type LayerUniform = {
    * The 3x3 matrix describing the perspective transform for registering.
    */
   mRegister: { value: THREE.Matrix3 };
+  /**
+   * Determines the visibility of the layer in the image viewer.
+   */
+  iShowLayer: { value: LayerVisibility };
+  /**
+   * The location of the mouse in WebGL coordinates.
+   */
+  uMouse: { value: THREE.Vector2 };
+  /**
+   * The radius of the lens.
+   */
+  uRadius: { value: number };
 };
 
 /**
  * Type describing the current state of the toolbar.
  */
 export type ToolState = {
+  /**
+   * The currently active tool.
+   */
+  tool: Tool;
   /**
    * The amount by which the panning speed is multiplied in the image viewer.
    */
@@ -56,7 +72,16 @@ export type ToolState = {
    * The amount by which the zooming speed is multiplied in the image viewer.
    */
   scrollSpeed: number[];
+  /**
+   * The amount used to determine the lens size.
+   */
+  lensSize: number[];
 };
+
+/**
+ * The different tools in the image viewer.
+ */
+export type Tool = "grab" | "lens" | "lasso";
 
 /**
  * Type describing a group of layers as used in the LayerSystem.
@@ -90,8 +115,24 @@ export type LayerGroup = {
 
 /**
  * Indicates the visibility of a layer(group).
- * 1: Visible inside of lens.
- * 2: Visible outside of lens.
- * 3: Completely visible.
  */
-export type LayerVisibility = 1 | 2 | 3;
+export enum LayerVisibility {
+  Invisible = 0,
+  Visible = 1,
+  InsideLens = 2,
+  OutsideLens = 3,
+}
+
+/**
+ * Represent a point in 2D space.
+ */
+export type Point2D = {
+  /**
+   * Represents the X coordinate of the point.
+   */
+  x: number;
+  /**
+   * Represents the Y coordinate of the point.
+   */
+  y: number;
+};

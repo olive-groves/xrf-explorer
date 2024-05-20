@@ -40,6 +40,10 @@ export type ImageViewerConfig = {
    * Default multiplier for the scroll speed in the image viewer.
    */
   defaultScrollSpeed: number;
+  /**
+   * The default size of the lens in the image viewer.
+   */
+  defaultLensSize: number;
 };
 
 /**
@@ -52,6 +56,7 @@ export const DefaultConfig: FrontendConfig = {
   imageViewer: {
     defaultMovementSpeed: 2.0,
     defaultScrollSpeed: 1.0,
+    defaultLensSize: 100.0,
   },
   defaultTheme: "dark",
 };
