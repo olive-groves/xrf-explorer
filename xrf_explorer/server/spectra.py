@@ -90,29 +90,33 @@ def get_average_selection(data: np.ndarray, pixels: list, low: int, high: int, b
     
     """
     
-    #initialize average array of length the number of channels
-    sum = np.zeros(high-low)
+    if pixels:
+        #initialize average array of length the number of channels
+        sum = np.zeros(high-low)
 
-    #add the required channels of all pixels
-    for i in range(len(pixels)):
-        pixel_data = data[pixels[i][0], pixels[i][1], low:high]
-        sum = np.add(sum, pixel_data)
-    
-    #average
-    avg = sum/len(pixels)
-    
-    result = []
-    
-    #average per bin
-    for i in range(low, high, bin_size):
-        mean = np.mean(avg[i:i+bin_size])
-        dict = {"index": i, "value": mean}
-        result.append(dict)   
+        #add the required channels of all pixels
+        for i in range(len(pixels)):
+            pixel_data = data[pixels[i][0], pixels[i][1], low:high]
+            sum = np.add(sum, pixel_data)
+        
+        #average
+        avg = sum/len(pixels)
+        
+        result = []
+        
+        #average per bin
+        for i in range(low, high, bin_size):
+            mean = np.mean(avg[i:i+bin_size])
+            dict = {"index": i, "value": mean}
+            result.append(dict)   
 
-    return result
+        return result
+    else :
+        LOG.error("Selection is empty")
     
 def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element
+        Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
 
         :param element: symbol of the element
         :excitation_energy_keV: excitation energy
@@ -121,31 +125,41 @@ def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, hig
         :param bin_size: size of each bin
         :return: list with first element being a list of dictionaries representing the spectra points, secodn being a list of dictionaries representing the peaks
     """
-     #remove last character to get periodic table symbol
+    
+    #remove last character to get periodic table symbol
     element = element[:len(element)-1]
     
+    #get spectrum and peaks
     data = get_element_spectrum(element, excitation_energy_keV)
     
-    x_scale = (high-low)/abs(data[0].max()-data[0].min())
+    #get_element_spectrum returns normalized data, rescale to [0, 255]
     y_scale = 255
-    x_scale_interval = (high-low)/len(data[0])
+    
+    #get_element_spectrum returns 10000 points instead of 'high-low' points, so rescale bin_size
+    bin_size = round(bin_size/((high-low)/len(data[0])))
     
     response = []
     spectrum = []
-    for i in range(0, len(data[0]), round(bin_size/x_scale_interval)):
-        value = np.mean(data[1][i:i+round(bin_size/x_scale_interval)])
+    for i in range(0, len(data[0]), bin_size):
+        #take average of the y-values in the bin
+        value = np.mean(data[1][i:i+bin_size])
+        
+        #rescale index to domain [low, high] and the mean to range [0, 255]
         dict = {"index": i*((high-low)/len(data[0]))+low, "value": value*y_scale}
         spectrum.append(dict)
     response.append(spectrum)
     
+    #get_element_spectrum returns data in domain [0, 40], rescale to [low, high]
+    x_scale = (high-low)/abs(data[0].max()-data[0].min())
+    
     peaks = []
     for i in range(len(data[2])):
-        if(low<=data[2][i]*x_scale and high > data[2][i]*x_scale):
-            dict = {"index": data[2][i]*x_scale, "value": data[3][i]*y_scale}
+        #take only the peaks within the domain [high, low]
+        if(low<=data[2][i]*x_scale + low and high > data[2][i]*x_scale + low):
+            #scale x and y values
+            dict = {"index": data[2][i]*x_scale + low, "value": data[3][i]*y_scale}
             peaks.append(dict)
     response.append(peaks)
-    
-    print(response)
     
     return response
 

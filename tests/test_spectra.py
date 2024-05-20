@@ -12,3 +12,13 @@ class TestSpectra:
         bin_size = 1
         result = get_average_global(data, low, high, bin_size)
         assert result == [{"index": 1, "value": 2}, {"index": 2, "value": 3}]
+        
+    def test_get_average_selection():
+        data = np.ndarray([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
+                           [[1, 2, 3, 4], [1, 2, 1, 2], [1, 2, 3, 4]]])
+        low = 1
+        high = 3
+        bin_size = 1
+        pixels = [[0,0][1,1]]
+        result = get_average_selection(data, low, high, bin_size)
+        assert result == [{"index": 1, "value": 3}, {"index": 2, "value": 2}]

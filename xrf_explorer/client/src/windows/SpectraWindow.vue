@@ -25,7 +25,7 @@ function setup() {
   // set the dimensions and margins of the graph
   const margin = {top: 30, right: 30, bottom: 70, left: 60},
   width = 860 - margin.left - margin.right,
-  height = 400 - margin.top - margin.bottom;
+  height = 600 - margin.top - margin.bottom;
   // Add X and Y axis
   x = d3.scaleLinear()
     .range([ margin.left, width - margin.right ])
@@ -72,206 +72,205 @@ const selectionChecked = ref(false);
 const selectedElement = ref('');
 const excitation = ref(0);
 
-class spectraPlotter {
 
-  /**
-   * Plots the average channel spectrum over the whole painting in the chart
-   * @param low Lower channel boundary
-   * @param high Higher channel boundary
-   * @param binSize Number of channels per bin
-   */
-  async plotAverageSpectrum(low: any, high: any, binSize: any) {
+/**
+ * Plots the average channel spectrum over the whole painting in the chart
+ * @param low Lower channel boundary
+ * @param high Higher channel boundary
+ * @param binSize Number of channels per bin
+ */
+async function plotAverageSpectrum(low: any, high: any, binSize: any) {
 
-    try {
-      //make api call
-      let response = await fetch(`${url}/api/get_average_data?`+ new URLSearchParams({
-        low: low,
-        high: high,
-        binSize: binSize
-      }), {
-        method:"GET",
-        headers: {
-          "Content-Type":"application/json"
-        }
-      });
-      let data = await response.json();
+  try {
+    //make api call
+    let response = await fetch(`${url}/api/get_average_data?`+ new URLSearchParams({
+      low: low,
+      high: high,
+      binSize: binSize
+    }), {
+      method:"GET",
+      headers: {
+        "Content-Type":"application/json"
+      }
+    });
+    let data = await response.json();
 
-      //create line
-      const line = d3.line()
-        .x((d:any) => x(d.index))
-        .y((d:any) => y(d.value));
+    //create line
+    const line = d3.line()
+      .x((d:any) => x(d.index))
+      .y((d:any) => y(d.value));
 
-      // Add the line to chart
-      svg.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1)
-        .attr("id", "globalLine")
-        .attr("d", line)
-        .style("opacity", 0);
-
-      //modify visibility based on checkbox status
-      updateGlobal();
-
-    } catch (e) {
-      console.log("Error Getting Global Average Spectrum", e);
-    }
-  }
-
-  /**
-   * Plots the average graph of the given pixels
-   * For now assumes that the pixels are given in the raw data coordinate system
-   * @param pixels Array of selected pixels
-   * @param low Lower channel boundary
-   * @param high Higher channel boundary
-   * @param binSize Number of channels per bin
-   */
-  async plotSelectionSpectrum(pixels: any, low: any, high: any, binSize: any){
-
-    try {
-      //make api call
-      let response = await fetch(`${url}/api/get_selection_spectrum`+ new URLSearchParams({
-        pixels:pixels,
-        low: low,
-        high: high,
-        binSize: binSize
-      }), {
-        method:"GET",
-        headers: {
-          "Content-Type":"application/json"
-        }
-      });
-      let data = await response.json();
-
-      //remove spectrum of previous selection
-      d3.select("#selectionLine").remove();
-
-      //create line
-      const line = d3.line()
-        .x((d:any) => x(d.index))
-        .y((d:any) => y(d.value));
-
-      // Add the line to chart
-      svg.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "green")
-        .attr("stroke-width", 1)
-        .attr("id", "selectionLine")
-        .attr("d", line)
-        .style("opacity", 0);
-
-      //modify visibility based on checkbox status
-      updateSelection();
-
-    } catch(e) {
-      console.log("Error Getting Selection Average Spectrum", e);
-    }
-
-  }
-
-  //Plots the theoretical spectrum and peaks of an element
-  /**
-   * 
-   * @param element Symbol of element to be plotted
-   * @param excitation excitation energy
-   * @param low Lower channel boundary
-   * @param high Higher channel boundary
-   * @param binSize Number of channels per bin
-   */
-  async plotElementSpectrum(element: string, excitation: number, low: number, high: number, binSize: number) {
-    if (element != 'No element' && element != '' && excitation != null && excitation as unknown as string != '') {
-      try {
-        //make api call
-        let response = await fetch(`${url}/api/get_element_spectrum?`+ new URLSearchParams({
-          element: element as string,
-          excitation: excitation as unknown as string,
-          low: low as unknown as string,
-          high: high as unknown as string,
-          binSize: binSize as unknown as string
-      }), {
-          method:"GET",
-          headers: {
-            "Content-Type":"application/json"
-          }
-        });
-        let data = await response.json();
-        let spectrum = data[0];
-  
-        //remove previous element lines
-        d3.select("#elementLine").remove();
-        d3.selectAll("line").remove()
-  
-        //create line
-        const line = d3.line()
-          .x((d:any) => x(d.index))
-          .y((d:any) => y(d.value));
-  
-        // Add the line to chart
-        svg.append("path")
-          .datum(spectrum)
-          .attr("fill", "none")
-          .attr("stroke", "red")
-          .attr("stroke-width", 1)
-          .attr("id", "elementLine")
-          .attr("d", line)
-          .style("opacity", 1);
-
-          //Add peaks
-          data[1].forEach((peak: any) =>
-            {
-              svg.append("line")
-              .style("stroke", "grey")
-              .style("stroke-width", 1)
-              .attr("x1", peak.index)
-              .attr("y1", 30)
-              .attr("x2", peak.index)
-              .attr("y2", 400); 
-            })
-    
-      } catch(e) {
-        console.log("Error Getting Element theoretical Spectrum", e);
-      } 
-    } else {
-      //remove previous element line
-      d3.select("#elementLine").remove();
-      d3.selectAll("line").remove()
-    }
+    // Add the line to chart
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", 1)
+      .attr("id", "globalLine")
+      .attr("d", line)
+      .style("opacity", 0);
 
     //modify visibility based on checkbox status
-    updateElement();
+    updateGlobal();
+
+  } catch (e) {
+    console.log("Error Getting Global Average Spectrum", e);
+  }
+}
+
+/**
+ * Plots the average graph of the given pixels
+ * For now assumes that the pixels are given in the raw data coordinate system
+ * @param pixels Array of selected pixels
+ * @param low Lower channel boundary
+ * @param high Higher channel boundary
+ * @param binSize Number of channels per bin
+ */
+async function plotSelectionSpectrum(pixels: any, low: any, high: any, binSize: any){
+
+  try {
+    //make api call
+    let response = await fetch(`${url}/api/get_selection_spectrum`+ new URLSearchParams({
+      pixels:pixels,
+      low: low,
+      high: high,
+      binSize: binSize
+    }), {
+      method:"GET",
+      headers: {
+        "Content-Type":"application/json"
+      }
+    });
+    let data = await response.json();
+
+    //remove spectrum of previous selection
+    d3.select("#selectionLine").remove();
+
+    //create line
+    const line = d3.line()
+      .x((d:any) => x(d.index))
+      .y((d:any) => y(d.value));
+
+    // Add the line to chart
+    svg.append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "green")
+      .attr("stroke-width", 1)
+      .attr("id", "selectionLine")
+      .attr("d", line)
+      .style("opacity", 0);
+
+    //modify visibility based on checkbox status
+    updateSelection();
+
+  } catch(e) {
+    console.log("Error Getting Selection Average Spectrum", e);
   }
 
-  /**
-   * Gets the list of all the elements and plots the one selected in the dropdown
-   */
-  async getElements() {
+}
+
+//Plots the theoretical spectrum and peaks of an element
+/**
+ * 
+ * @param element Symbol of element to be plotted
+ * @param excitation excitation energy
+ * @param low Lower channel boundary
+ * @param high Higher channel boundary
+ * @param binSize Number of channels per bin
+ */
+async function plotElementSpectrum(element: string, excitation: number, low: number, high: number, binSize: number) {
+  if (element != 'No element' && element != '' && excitation != null && excitation as unknown as string != '') {
     try {
       //make api call
-      let response = await fetch(`${url}/api/get_elements`, {
+      let response = await fetch(`${url}/api/get_element_spectrum?`+ new URLSearchParams({
+        element: element as string,
+        excitation: excitation as unknown as string,
+        low: low as unknown as string,
+        high: high as unknown as string,
+        binSize: binSize as unknown as string
+    }), {
         method:"GET",
         headers: {
           "Content-Type":"application/json"
         }
       });
-      let elements = await response.json();
-      elements.unshift("No element");
-      elements.splice(elements.indexOf('Continuum'), 1);
-      elements.splice(elements.indexOf('chisq'), 1);
-      
-      //add dropdown menu
-      const elementDropdown = document.getElementById("element-dropdown") as HTMLSelectElement;
-      elements.forEach((element: string)=>    // create dropdown items
-      {
-        elementDropdown.add(new Option(element));
-      });
+      let data = await response.json();
+      let spectrum = data[0];
 
+      //remove previous element lines
+      d3.select("#elementLine").remove();
+      d3.selectAll("line").remove()
+
+      //create line
+      const line = d3.line()
+        .x((d:any) => x(d.index))
+        .y((d:any) => y(d.value));
+
+      // Add the line to chart
+      svg.append("path")
+        .datum(spectrum)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1)
+        .attr("id", "elementLine")
+        .attr("d", line)
+        .style("opacity", 1);
+
+        //Add peaks
+        data[1].forEach((peak: any) =>
+          {
+            svg.append("line")
+            .style("stroke", "grey")
+            .style("stroke-width", 1)
+            .attr("x1", peak.index)
+            .attr("y1", 30)
+            .attr("x2", peak.index)
+            .attr("y2", 430); 
+          })
+  
     } catch(e) {
-      console.log("Error Getting Elements", e);
-    }
+      console.log("Error Getting Element theoretical Spectrum", e);
+    } 
+  } else {
+    //remove previous element line
+    d3.select("#elementLine").remove();
+    d3.selectAll("line").remove()
+  }
+
+  //modify visibility based on checkbox status
+  updateElement();
+}
+
+/**
+ * Gets the list of all the elements and plots the one selected in the dropdown
+ */
+async function getElements() {
+  try {
+    //make api call
+    let response = await fetch(`${url}/api/get_elements`, {
+      method:"GET",
+      headers: {
+        "Content-Type":"application/json"
+      }
+    });
+    let elements = await response.json();
+    elements.unshift("No element");
+    elements.splice(elements.indexOf('Continuum'), 1);
+    elements.splice(elements.indexOf('chisq'), 1);
+    
+    //add dropdown menu
+    const elementDropdown = document.getElementById("element-dropdown") as HTMLSelectElement;
+    elements.forEach((element: string)=>    // create dropdown items
+    {
+      elementDropdown.add(new Option(element));
+    });
+
+  } catch(e) {
+    console.log("Error Getting Elements", e);
   }
 }
+
 
 //updates visibility of global average spectrum
 function updateGlobal() {
@@ -300,16 +299,20 @@ function updateSelection() {
   };
 }
 
-var plotter = new spectraPlotter();
-//put elements in dropdown
-plotter.getElements();
+getElements();
 
 //plot global everage spectrum
-plotter.plotAverageSpectrum(low, high, binSize);
+plotAverageSpectrum(low, high, binSize);
 
 //plot element spectrum when an elemented is selected in the dropdown
 function updateElementSpectrum() {
-  plotter.plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize)
+  plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize)
+}
+
+//TODO connect to selection tool 
+if (false) {
+  var pixels = []  
+  plotSelectionSpectrum(pixels, low, high, binSize)
 }
 
 //display svg when window is opened
@@ -332,13 +335,14 @@ watch(spectraChart, (_n, _o) => {
         <input type="checkbox" id="elementCheck" v-model="elementChecked" @change="updateElement()">
         <label for="elementCheck">Show element theoretical spectrum</label>
         <br>
-        <select id="element-dropdown" v-model="selectedElement" @change="updateElementSpectrum()">
+        <select id="element-dropdown" class="form-select bg-dark text-black" v-model="selectedElement" @change="updateElementSpectrum()">
           <option value="" selected disabled>choose an element</option>
         </select>
         <br>
         <small>Enter excitation energy (keV): </small>
-        <input id="excitation-input" type="number" v-model="excitation" @change="updateElementSpectrum()"/>
+        <input id="excitation-input" type="number" class="form-select bg-dark text-black" v-model="excitation" @change="updateElementSpectrum()"/>
         <svg ref="spectraChart"></svg>
+        
       </Window>
     </div>
   </template>
