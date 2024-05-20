@@ -8,6 +8,7 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+
 def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarray:
     """Get the raw elemental data.
     
