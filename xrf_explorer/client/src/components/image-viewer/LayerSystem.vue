@@ -28,9 +28,8 @@ watch(groups, (newOrder) => {
 });
 
 /**
- *
- * @param value
- * @param group
+ * Updates the visibility of the layer group inside of the lens.
+ * @param group - The group to toggle and update.
  */
 function checkedInsideLens(group: LayerGroup) {
   if (group.visibility == LayerVisibility.Invisible) {
@@ -46,9 +45,8 @@ function checkedInsideLens(group: LayerGroup) {
 }
 
 /**
- *
- * @param value
- * @param group
+ * Updates the visibility of the layer group outside of the lens.
+ * @param group - The group to toggle and update.
  */
 function checkedOutsideLens(group: LayerGroup) {
   if (group.visibility == LayerVisibility.Invisible) {

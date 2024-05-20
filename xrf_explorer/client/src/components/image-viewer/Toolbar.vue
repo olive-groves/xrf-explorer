@@ -9,10 +9,6 @@ import { Hand, Search, LassoSelect, Settings } from "lucide-vue-next";
 import { ToolState } from "./types";
 
 const state = defineModel<ToolState>("state");
-
-const toggleLens = () => {
-  // state.value.lensOn = !state.value.lensOn;
-};
 </script>
 
 <template>
