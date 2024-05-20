@@ -62,13 +62,9 @@ appState.workspace = workspace;
       <ImageViewer />
 
       <!-- Place all windows below here -->
-      <<<<<<< HEAD
       <LayerWindow />
       <WorkspaceWindow />
-      =======
-      <TestWindow />
       <BarChartWindow />
-      >>>>>>> development
     </WindowContainer>
 
     <!-- Place all reusable dialogs here -->
