@@ -71,10 +71,11 @@ function render() {
   const h = height * Math.exp(viewport.zoom);
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
+  const lensSize = toolState.value.tool == "lens" ? toolState.value.lensSize[0] : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
-    layer.uniform.uRadius.value = toolState.value.lensSize[0];
+    layer.uniform.uRadius.value = lensSize;
   });
 
   renderer.setSize(width, height);
