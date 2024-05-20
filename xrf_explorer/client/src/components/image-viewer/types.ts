@@ -104,6 +104,10 @@ export type LayerGroup = {
    */
   layers: Layer[];
   /**
+   * The index of this group of layers.
+   */
+  index: number;
+  /**
    * Determines whether the layers in this group are visible.
    */
   visible: boolean;

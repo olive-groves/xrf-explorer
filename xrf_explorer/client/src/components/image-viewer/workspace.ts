@@ -47,6 +47,7 @@ function createBaseLayer(image: ContextualImage) {
     name: image.name,
     description: "Base image",
     layers: [layer],
+    index: 0,
     visible: true,
     visibility: LayerVisibility.Visible,
   };
@@ -65,6 +66,7 @@ function createContextualLayer(image: ContextualImage) {
     name: image.name,
     description: "Contextual image",
     layers: [layer],
+    index: 1,
     visible: false,
     visibility: LayerVisibility.Visible,
   };

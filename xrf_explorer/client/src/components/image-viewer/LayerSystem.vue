@@ -23,7 +23,8 @@ watch(
 
 watch(groups, (newOrder) => {
   newOrder.forEach((layer, index) => {
-    setLayerGroupIndex(layer, index);
+    layer.index = index;
+    setLayerGroupIndex(layer);
   });
 });
 

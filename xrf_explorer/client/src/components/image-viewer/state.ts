@@ -51,10 +51,9 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 /**
  * Updates the iIndex uniform for all layers in a layer group.
  * @param group - The layer group that should be updated.
- * @param index - The index that the layers should be given.
  */
-export function setLayerGroupIndex(group: LayerGroup, index: number) {
-  group.layers.forEach((layer) => (layer.uniform.iIndex.value = index));
+export function setLayerGroupIndex(group: LayerGroup) {
+  group.layers.forEach((layer) => (layer.uniform.iIndex.value = group.index));
 }
 
 /**
