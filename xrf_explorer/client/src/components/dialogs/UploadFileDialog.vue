@@ -51,11 +51,11 @@ async function uploadDataSource() {
   const formDataDsName = new FormData();
   formDataDsName.append("name", dataSourceName);
 
-  let response: Response = await fetch(API_ENDPOINT + "/create-ds-dir", {
+  const response: Response = await fetch(API_ENDPOINT + "/create-ds-dir", {
     method: "POST",
     body: formDataDsName,
   });
-  let jsonResponse = await response.json();
+  const jsonResponse = await response.json();
   const dataSourceDirName: string = jsonResponse["dataSourceDir"];
 
   for (const inputRef of inputRefsWithFiles) {
@@ -90,11 +90,17 @@ async function uploadDataSource() {
   }
 }
 
+/**
+ *
+ * @param file
+ * @param directory
+ * @param uploadFileName
+ */
 async function uploadFileInChunks(file: File, directory: string, uploadFileName: string): Promise<boolean> {
   let uploadSuccess: boolean = true;
   const chunkPromises: Promise<void>[] = [];
 
-  for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += CHUNK_SIZE) {
+  for (let byteIndex = 0; byteIndex < file.size!; byteIndex += CHUNK_SIZE) {
     const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
 
     const formDataSendChunks = new FormData();
@@ -128,8 +134,7 @@ async function uploadFileInChunks(file: File, directory: string, uploadFileName:
 
 /**
  * Validates the input fields for a data source upload form.
- *
- * @returns {string | undefined} An error message if a validation check fails, otherwise undefined.
+ * @returns An error message if a validation check fails, otherwise undefined.
  */
 function validateInputFieds(): string | undefined {
   if (getTrimmedInputString(dataSourceNameInputRef) === "") {
@@ -158,7 +163,8 @@ function validateInputFieds(): string | undefined {
 }
 
 /**
- * Returns the type of the file, eg. '.png'
+ * Returns the type of the file, eg. '.png'.
+ * @param file
  */
 function getFileType(file: File): string {
   return file.name.split(".").pop()!;
@@ -221,6 +227,7 @@ function generateWorkspaceJSON() {
 
 /**
  * Generates a file name string by combining the name attribute of an input element with the file type of the file selected in that input element.
+ * @param inputRef
  */
 function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return `${getNameAttribute(inputRef)}.${getFileType(getFile(inputRef)!)}`;
@@ -228,6 +235,7 @@ function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string |
 
 /**
  * Retrieves the 'name' attribute from html input element ref.
+ * @param inputRef
  */
 function getNameAttribute(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return inputRef.value?.name;
@@ -235,14 +243,16 @@ function getNameAttribute(inputRef: Ref<HTMLInputElement | undefined>): string |
 
 /**
  * Retrieves the value of an HTML input element, trims any leading or trailing whitespace from it, and returns the trimmed string.
+ * @param inputRef
  */
 function getTrimmedInputString(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
-  return inputRef.value?.value.trim()!;
+  return inputRef.value?.value.trim();
 }
 
 /**
  * Retrieves the first file from a ref object pointing to a file input element.
- * @returns {File | undefined} The first file selected in the input, or undefined if no files are present.
+ * @param inputRef
+ * @returns The first file selected in the input, or undefined if no files are present.
  */
 function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined {
   return inputRef.value?.files![0];
@@ -250,6 +260,8 @@ function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined 
 
 /**
  * Calculates the total number of chunks required to upload an array of files.
+ * @param files
+ * @param chunkSize
  */
 function getTotalChunks(files: File[], chunkSize: number): number {
   let totalBytes = 0;
@@ -268,7 +280,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">Data source name</label>
       <input
-        class="bg-accent text-accent-foreground rounded-lg focus:ring-ring focus:border-border block w-44 p-2"
+        class="block w-44 rounded-lg bg-accent p-2 text-accent-foreground focus:border-border focus:ring-ring"
         placeholder="Data source"
         type="text"
         ref="dataSourceNameInputRef"
@@ -277,7 +289,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">RGB file</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="rgb_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -288,7 +300,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">UV file</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="uv_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -299,7 +311,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">XRAY file</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="xray_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -310,7 +322,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">Cube data</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="cube_input_help"
         type="file"
         accept=".csv, .dms"
@@ -321,7 +333,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">Raw data (.RAW)</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".raw"
@@ -332,7 +344,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-64">Raw data (.RPL)</label>
       <input
-        class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
+        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".rpl"

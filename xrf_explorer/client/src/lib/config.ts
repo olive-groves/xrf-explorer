@@ -23,7 +23,7 @@ export type FrontendConfig = {
 };
 
 /**
- * Type declaration for upload configuration
+ * Type declaration for upload configuration.
  */
 export type UploadConfig = {
   /**
