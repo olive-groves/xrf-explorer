@@ -1,5 +1,5 @@
-import { reactive } from 'vue';
+import { reactive } from "vue";
 
 export const z_state = reactive<{
-    [key: string]: number
+  [key: string]: number;
 }>({});

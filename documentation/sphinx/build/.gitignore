@@ -1,0 +1,4 @@
+# Ignore built documentation in this directory
+*
+# Except this file
+!.gitignore

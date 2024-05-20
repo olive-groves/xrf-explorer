@@ -12,16 +12,19 @@ import {
 } from "@/components/ui/menubar";
 import { WindowMenu } from "@/components/ui/window";
 import { DialogMenuItem } from "@/components/ui/dialog";
-
+import { FileMenu } from "@/components/menus";
 import { useColorMode } from "@vueuse/core";
+import { inject } from "vue";
+import { FrontendConfig } from "@/lib/config";
 
+const config = inject<FrontendConfig>("config")!;
 const colorMode = useColorMode({
-  initialValue: "dark",
+  initialValue: config.defaultTheme,
 });
 </script>
 
 <template>
-  <Menubar class="w-full h-min m-0 rounded-none border-0 border-b">
+  <Menubar class="m-0 h-min w-full rounded-none border-0 border-b">
     <MenubarMenu>
       <MenubarTrigger class="font-bold"> XRF-Explorer </MenubarTrigger>
       <MenubarContent>
@@ -43,6 +46,8 @@ const colorMode = useColorMode({
       <MenubarTrigger> File </MenubarTrigger>
       <MenubarContent>
         <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
+        <MenubarSeparator />
+        <FileMenu />
       </MenubarContent>
     </MenubarMenu>
     <WindowMenu>
@@ -60,4 +65,3 @@ const colorMode = useColorMode({
     </MenubarMenu>
   </Menubar>
 </template>
-
