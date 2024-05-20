@@ -122,7 +122,7 @@ function setup() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("↑ Average concentration"),
+        .text("↑ Average abundance"),
     )
     .selectAll("text")
     .style("font-size", "18px");
