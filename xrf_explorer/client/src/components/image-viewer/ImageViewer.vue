@@ -90,7 +90,6 @@ const dragging = ref(false);
  */
 function onMouseDown() {
   dragging.value = true;
-  console.log(layers.value);
 }
 
 /**
