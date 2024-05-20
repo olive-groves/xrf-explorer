@@ -1,25 +1,19 @@
 <script setup lang="ts">
-
 import { Window } from "@/components/ui/window";
-import { ref, watch } from 'vue'
+import { ref, watch } from "vue"
 
 import * as d3 from "d3";
 
-const spectraChart = ref(null)
-var url: string;
-var x: any;
-var y: any;
-var svg: any;
+const spectraChart = ref(null);
+let x: any;
+let y: any;
+let svg: any;
 
-var low: number
-var high: number
-var binSize: number
-
-//TODO get these variables
-url = 'http://localhost:8001'
-low = 50
-high = 2000
-binSize = 32
+//need to see how to get these variables
+const url: string = "http://localhost:8001";
+const low: number = 50;
+const high: number = 2000;
+const binSize: number = 32;
 
 function setup() {
   // set the dimensions and margins of the graph
