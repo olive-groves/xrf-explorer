@@ -101,6 +101,7 @@ function setup() {
     .attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).tickSizeOuter(0))
     .selectAll("text")
+    .style("font-size", "18px")
     .attr("transform", "translate(-13, 15)rotate(-45)");
   svg
     .append("g")
@@ -122,7 +123,9 @@ function setup() {
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
         .text("↑ Average concentration"),
-    );
+    )
+    .selectAll("text")
+    .style("font-size", "18px");
 
   // Add data
   svg
