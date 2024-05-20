@@ -33,7 +33,11 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
     header_size = 48 # in bytes
 
     # convert it into a numpy array
-    raw_data: np.ndarray = np.fromfile(path_to_file, offset=header_size, count=w*h*c, dtype=np.float32)
+    try:
+        raw_data: np.ndarray = np.fromfile(path_to_file, offset=header_size, count=w*h*c, dtype=np.float32)
+    except Exception as e:
+        LOG.error(f"Could not find elemental data: {str(e)}")
+        return np.ndarray([])
 
     # normalize data
     (min, max) = raw_data.min(), raw_data.max()
@@ -71,15 +75,19 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
 
     # get the names of the elements
     names: list[str] = []
-    with open(abspath(path_to_file), 'r') as file:
-        file.seek(header_size + 1 + w * h * c * 4)
-        for _ in range(c):
-            current = file.readline().rstrip().replace(" ", "")
-            if current == "Continuum":
-                current = "cont."
-            elif current == "chisq":
-                current = "chi"
-            names.append(current)
+    try:
+        with open(abspath(path_to_file), 'r') as file:
+            file.seek(header_size + 1 + w * h * c * 4)
+            for _ in range(c):
+                current = file.readline().rstrip().replace(" ", "")
+                if current == "Continuum":
+                    current = "cont."
+                elif current == "chisq":
+                    current = "chi"
+                names.append(current)
+    except Exception as e:
+        LOG.error(f"Couldn't read elemental data file: {str(e)}")
+        return []
 
     return names
 
