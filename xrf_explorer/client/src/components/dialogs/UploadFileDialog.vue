@@ -11,7 +11,7 @@ const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
 
 const uploadedChunks: Ref<number> = ref(0);
 const totalChunks: Ref<number> = ref(1);
-const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100); // TODO Fix uploadProgessPercent going over 100
+const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100);
 
 const dataSourceNameInputRef = ref<HTMLInputElement>()!;
 const rgbImageInputRef = ref<HTMLInputElement>();
@@ -91,10 +91,11 @@ async function uploadDataSource() {
 }
 
 /**
- *
- * @param file
- * @param directory
- * @param uploadFileName
+ * Splits the given file into chunks and uploads each chunk to the server.
+ * @param file - The file to be split and uploaded.
+ * @param directory - The directory on the server where the file will be uploaded.
+ * @param uploadFileName - The name under which the file will be saved on the server.
+ * @returns A promise that resolves to a boolean indicating whether the upload was successful.
  */
 async function uploadFileInChunks(file: File, directory: string, uploadFileName: string): Promise<boolean> {
   let uploadSuccess: boolean = true;
@@ -163,8 +164,9 @@ function validateInputFieds(): string | undefined {
 }
 
 /**
- * Returns the type of the file, eg. '.png'.
- * @param file
+ * Returns the type (extension) of the given file, e.g., 'png'.
+ * @param file - The file whose type is to be determined.
+ * @returns - The file type (extension) without the leading dot.
  */
 function getFileType(file: File): string {
   return file.name.split(".").pop()!;
@@ -172,6 +174,7 @@ function getFileType(file: File): string {
 
 /**
  * Generates a json object with metadata about the data source.
+ * @returns - An object containing metadata about the data source.
  */
 function generateWorkspaceJSON() {
   interface Workspace {
@@ -226,33 +229,40 @@ function generateWorkspaceJSON() {
 }
 
 /**
- * Generates a file name string by combining the name attribute of an input element with the file type of the file selected in that input element.
- * @param inputRef
+ * /**
+ * Generates a file name string by combining the name attribute of an input element
+ * with the file type of the file selected in that input element.
+ * @param inputRef - A reference to an HTML input element.
+ * @returns - The generated file name, or undefined if the input reference is invalid.
  */
 function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return `${getNameAttribute(inputRef)}.${getFileType(getFile(inputRef)!)}`;
 }
 
 /**
- * Retrieves the 'name' attribute from html input element ref.
- * @param inputRef
+ * /**
+ * Retrieves the 'name' attribute from an HTML input element reference.
+ * @param inputRef - A reference to an HTML input element.
+ * @returns - The name attribute of the input element, or undefined if the input reference is invalid.
  */
 function getNameAttribute(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return inputRef.value?.name;
 }
 
 /**
- * Retrieves the value of an HTML input element, trims any leading or trailing whitespace from it, and returns the trimmed string.
- * @param inputRef
+ * Retrieves the value of an HTML input element, trims any leading or trailing whitespace from it,
+ * and returns the trimmed string.
+ * @param inputRef - A reference to an HTML input element.
+ * @returns - The trimmed value of the input element, or undefined if the input reference is invalid.
  */
 function getTrimmedInputString(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return inputRef.value?.value.trim();
 }
 
 /**
- * Retrieves the first file from a ref object pointing to a file input element.
- * @param inputRef
- * @returns The first file selected in the input, or undefined if no files are present.
+ * Retrieves the first file from a reference object pointing to a file input element.
+ * @param inputRef - A reference to an HTML input element of type file.
+ * @returns - The first file selected in the input, or undefined if no files are present.
  */
 function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined {
   return inputRef.value?.files![0];
@@ -260,8 +270,9 @@ function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined 
 
 /**
  * Calculates the total number of chunks required to upload an array of files.
- * @param files
- * @param chunkSize
+ * @param files - An array of files to be uploaded.
+ * @param chunkSize - The size of each chunk in bytes.
+ * @returns - The total number of chunks required to upload the files.
  */
 function getTotalChunks(files: File[], chunkSize: number): number {
   let totalBytes = 0;
