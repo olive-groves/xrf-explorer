@@ -5,7 +5,7 @@ import { LayerSystem } from "@/components/image-viewer";
 
 <template>
   <Window title="Layers" opened>
-    <div class="p-1">
+    <div class="p-2">
       <LayerSystem />
     </div>
   </Window>
