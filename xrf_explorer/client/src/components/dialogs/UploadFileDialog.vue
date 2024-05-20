@@ -51,7 +51,7 @@ async function uploadDataSource() {
   const formDataDsName = new FormData();
   formDataDsName.append("name", dataSourceName);
 
-  const response: Response = await fetch(API_ENDPOINT + "/create-ds-dir", {
+  const response: Response = await fetch(API_ENDPOINT + "/create_ds_dir", {
     method: "POST",
     body: formDataDsName,
   });
@@ -69,7 +69,7 @@ async function uploadDataSource() {
       const formDataDelete = new FormData();
       formDataDelete.append("dir", dataSourceDirName);
 
-      fetch(API_ENDPOINT + "/delete-data-source", {
+      fetch(API_ENDPOINT + "/delete_data_source", {
         method: "DELETE",
         body: formDataDelete,
       });
@@ -109,7 +109,7 @@ async function uploadFileInChunks(file: File, directory: string, uploadFileName:
     formDataSendChunks.append("startByte", String(byteIndex));
     formDataSendChunks.append("chunkBytes", chunk);
 
-    const chunkPromise = fetch(API_ENDPOINT + "/upload-file-chunk", {
+    const chunkPromise = fetch(API_ENDPOINT + "/upload_file_chunk", {
       method: "POST",
       body: formDataSendChunks,
     }).then((response) => {

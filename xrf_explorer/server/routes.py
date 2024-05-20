@@ -36,7 +36,7 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route("/api/create-ds-dir", methods=["POST"])
+@app.route("/api/create_ds_dir", methods=["POST"])
 def create_data_source_dir():
     # Check the 'name' field was provided in the request
     if "name" not in request.form:
@@ -68,7 +68,7 @@ def create_data_source_dir():
     return jsonify({"dataSourceDir": data_source_name_secure})
 
 
-@app.route("/api/delete-data-source", methods=["DELETE"])
+@app.route("/api/delete_data_source", methods=["DELETE"])
 def delete_data_source():
     delete_dir = f"{BACKEND_CONFIG["uploads-folder"]}/{request.form["dir"]}"
 
@@ -80,7 +80,7 @@ def delete_data_source():
         return "Directory not found", 404
 
 
-@app.route("/api/upload-file-chunk", methods=["POST"])
+@app.route("/api/upload_file_chunk", methods=["POST"])
 def upload_file_chunk():
     file_dir = f"{BACKEND_CONFIG['uploads-folder']}/{request.form["dir"]}"
     start_byte = int(request.form["startByte"])
