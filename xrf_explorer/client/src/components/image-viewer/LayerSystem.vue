@@ -28,23 +28,6 @@ watch(groups, (newOrder) => {
 });
 
 /**
- * Updates the visibility of the layer group inside of the lens.
- * @param group - The group to toggle and update.
- */
-function checkedInsideLens(group: LayerGroup) {
-  if (group.visibility == LayerVisibility.Invisible) {
-    group.visibility = LayerVisibility.InsideLens;
-  } else if (group.visibility == LayerVisibility.Visible) {
-    group.visibility = LayerVisibility.OutsideLens;
-  } else if (group.visibility == LayerVisibility.InsideLens) {
-    group.visibility = LayerVisibility.Invisible;
-  } else if (group.visibility == LayerVisibility.OutsideLens) {
-    group.visibility = LayerVisibility.Visible;
-  }
-  setLayerGroupVisibility(group);
-}
-
-/**
  * Updates the visibility of the layer group outside of the lens.
  * @param group - The group to toggle and update.
  */
@@ -88,19 +71,9 @@ function checkedOutsideLens(group: LayerGroup) {
         </Button>
       </div>
       <div v-if="group.visible" class="space-y-1">
-        <div class="flex items-center space-x-2">
-          <Checkbox
-            @update:checked="() => checkedInsideLens(group)"
-            :checked="group.visibility == LayerVisibility.Visible || group.visibility == LayerVisibility.InsideLens"
-          />
-          <div>Visible inside of lens</div>
-        </div>
-        <div class="flex items-center space-x-2">
-          <Checkbox
-            @update:checked="() => checkedOutsideLens(group)"
-            :checked="group.visibility == LayerVisibility.Visible || group.visibility == LayerVisibility.OutsideLens"
-          />
-          <div>Visible outside of lens</div>
+        <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
+          <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
+          <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
       </div>
     </Card>
