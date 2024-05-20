@@ -51,7 +51,7 @@ def get_average_data():
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data('C:/Users/20210792/Downloads/spectrum.raw', 'C:/Users/20210792/Downloads/info.rpl')
+    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
@@ -65,9 +65,9 @@ def get_elements():
     """
     #temporary file name
     #TODO change to actual location and dimensions of the file
-    filename = 'C:/Users/20210792/Downloads/elements.dms'
+    filename = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
     
-    info = parse_rpl('C:/Users/20210792/Downloads/info.rpl')
+    info = parse_rpl('196_1989_M6_data 1069_1187.rpl')
     width = int(info["width"])
     height = int(info["height"])
     c = 26
@@ -110,7 +110,7 @@ def get_selection_sectra():
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data('C:/Users/20210792/Downloads/spectrum.raw', 'C:/Users/20210792/Downloads/info.rpl')
+    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', 'C:/Users/20210792/Downloads/info.rpl')
     
     result = get_average_selection(datacube, pixels, low, high, bin_size)
     

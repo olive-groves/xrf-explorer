@@ -1,8 +1,6 @@
 from xrf_explorer.server.spectra import *
 
 class TestSpectra:
-    rpl_path = 'C:/Users/20210792/Downloads/info.rpl'
-    raw_path = 'C:/Users/20210792/Downloads/spectrum.raw'
     
     def test_get_average_global(self, caplog):
         data = np.array([[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
