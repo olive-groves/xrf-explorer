@@ -10,11 +10,6 @@ from shutil import rmtree
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.file_system.file_upload import (
-    upload_file_to_server,
-    get_file_type,
-    get_data_source_files_spec,
-)
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
 
@@ -100,77 +95,3 @@ def upload_file_chunk():
         file.write(chunk_bytes.read())
 
     return "Ok"
-
-
-@app.route("/api/upload-data-source", methods=["POST"])
-def upload_data_source():
-    # TODO rename file_mapping and file_obj vars
-    # TODO Create a workspace.yml file
-    if "name" not in request.form:
-        error_msg = "Data source name must be provided."
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    if ("cube" not in request.files) and (
-        "raw" not in request.files and "rpl" not in request.files
-    ):
-        error_msg = "Either raw, or processed data must be provided."
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    data_source_name = request.form["name"].strip()
-
-    if data_source_name == "":
-        error_msg = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    data_source_dir = (
-        f"{BACKEND_CONFIG["uploads-folder"]}/{secure_filename(data_source_name)}"
-    )
-
-    if exists(data_source_dir):
-        error_msg = "Data source name already exists."
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    files_spec = get_data_source_files_spec()
-
-    for file_spec in files_spec:
-        form_data_name = file_spec["formDataName"]
-        upload_file_name = file_spec["uploadFileName"]
-        allowed_types = file_spec["allowedTypes"]
-
-        if form_data_name not in request.files:
-            continue
-
-        file: FileStorage = request.files[form_data_name]
-
-        if file.filename == "":
-            error_msg = f"Empty file attached in POST from with key {form_data_name}"
-            LOG.error(error_msg)
-            return error_msg
-
-        file_type: str | None = get_file_type(file)
-
-        if file_type not in allowed_types:
-            error_msg = f"File type {file_type} not allowed for file with form key {form_data_name}"
-            LOG.error(error_msg)
-            return error_msg
-
-        upload_file_full_name: str = f"{upload_file_name}{file_type}"
-
-        file_uploaded: bool = upload_file_to_server(
-            file,
-            data_source_dir,
-            upload_file_full_name,
-            BACKEND_CONFIG["upload-buffer-size"],
-        )
-
-        if not file_uploaded:
-            # Delete the whole data source?
-            error_msg = f"File upload failed for {upload_file_full_name}."
-            LOG.error(error_msg)
-            return error_msg
-
-    return jsonify({"message": "Data source uploaded successfully"}), 200
