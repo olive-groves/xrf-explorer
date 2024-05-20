@@ -54,7 +54,6 @@ def upload_file():
 @app.route('/api/element_average')
 def list_element_averages():
     composition: list[dict[str,  str | float]] = get_element_averages()
-    print(f"Element averages: {json.dumps(composition)}")
     try:
         return json.dumps(composition)
     except Exception as e:

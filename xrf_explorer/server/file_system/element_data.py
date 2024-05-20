@@ -19,7 +19,7 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
-        return np.ndarray([])
+        return np.empty(0)
 
     filename_elemental = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
@@ -37,7 +37,7 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
         raw_data: np.ndarray = np.fromfile(path_to_file, offset=header_size, count=w*h*c, dtype=np.float32)
     except Exception as e:
         LOG.error(f"Could not find elemental data: {str(e)}")
-        return np.ndarray([])
+        return np.empty(0)
 
     # normalize data
     (min, max) = raw_data.min(), raw_data.max()
