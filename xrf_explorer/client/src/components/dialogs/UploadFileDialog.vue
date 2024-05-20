@@ -1,21 +1,17 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import {
-  ReusableDialog,
-  DialogFooter,
-  DialogClose,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ref, Ref, computed } from "vue";
+import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
+import { ref, Ref, computed, inject } from "vue";
+import { FrontendConfig } from "@/lib/config";
 
-const CHUNK_SIZE: number = 50000000; // in bytes, therefore 1 MB
+const config = inject<FrontendConfig>("config")!;
+const API_ENDPOINT: string = config.api.endpoint;
+const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
 
 const uploadedChunks: Ref<number> = ref(0);
 const totalChunks: Ref<number> = ref(1);
-const uploadProgessPercent: Ref<number> = computed(
-  () => (uploadedChunks.value / totalChunks.value) * 100,
-);
+const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100);
 
 const dataSourceNameInputRef = ref<HTMLInputElement>()!;
 const rgbImageInputRef = ref<HTMLInputElement>();
@@ -53,8 +49,7 @@ async function uploadDataSource() {
 
   if (
     getFile(cubeDataInputRef) === undefined &&
-    (getFile(rawDataInputRef) === undefined ||
-      getFile(rplDataInputRef) === undefined)
+    (getFile(rawDataInputRef) === undefined || getFile(rplDataInputRef) === undefined)
   ) {
     alert("Raw or processed data must be provided.");
     return;
@@ -68,7 +63,7 @@ async function uploadDataSource() {
   const formDataDsName = new FormData();
   formDataDsName.append("name", dataSourceName);
 
-  let response: Response = await fetch("/api/create-ds-dir", {
+  let response: Response = await fetch(API_ENDPOINT + "/create-ds-dir", {
     method: "POST",
     body: formDataDsName,
   });
@@ -87,14 +82,11 @@ async function uploadDataSource() {
       const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
 
       const formDataSendChunks = new FormData();
-      formDataSendChunks.append(
-        "dir",
-        dataSourceDirName + "/" + uploadFileName,
-      );
+      formDataSendChunks.append("dir", dataSourceDirName + "/" + uploadFileName);
       formDataSendChunks.append("startByte", String(byteIndex));
       formDataSendChunks.append("chunkBytes", chunk);
 
-      const chunkPromise = fetch("/api/upload-file-chunk", {
+      const chunkPromise = fetch(API_ENDPOINT + "/upload-file-chunk", {
         method: "POST",
         body: formDataSendChunks,
       }).then((response) => {
@@ -121,7 +113,7 @@ async function uploadDataSource() {
       const formDataDelete = new FormData();
       formDataDelete.append("dir", dataSourceDirName);
 
-      fetch("api/delete-data-source", {
+      fetch(API_ENDPOINT + "/delete-data-source", {
         method: "DELETE",
         body: formDataDelete,
       });
@@ -135,9 +127,7 @@ async function uploadDataSource() {
  * Retrieves the first file from a ref object pointing to an input element.
  * @returns {File | undefined} The first file selected in the input, or undefined if no files are present.
  */
-function getFile(
-  inputRef: Ref<HTMLInputElement | undefined>,
-): File | undefined {
+function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined {
   return inputRef.value?.files![0];
 }
 
