@@ -57,7 +57,7 @@ def create_data_source_dir():
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = f"{BACKEND_CONFIG["uploads_folder"]}/{data_source_name_secure}"
+    data_source_dir = f"{BACKEND_CONFIG["uploads-folder"]}/{data_source_name_secure}"
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -75,7 +75,7 @@ def create_data_source_dir():
 
 @app.route("/api/delete-data-source", methods=["DELETE"])
 def delete_data_source():
-    delete_dir = f"{BACKEND_CONFIG["uploads_folder"]}/{request.form["dir"]}"
+    delete_dir = f"{BACKEND_CONFIG["uploads-folder"]}/{request.form["dir"]}"
 
     if exists(delete_dir):
         rmtree(delete_dir)
@@ -87,7 +87,7 @@ def delete_data_source():
 
 @app.route("/api/upload-file-chunk", methods=["POST"])
 def upload_file_chunk():
-    file_dir = f"{BACKEND_CONFIG['uploads_folder']}/{request.form["dir"]}"
+    file_dir = f"{BACKEND_CONFIG['uploads-folder']}/{request.form["dir"]}"
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
 
@@ -126,7 +126,7 @@ def upload_data_source():
         return error_msg, 400
 
     data_source_dir = (
-        f"{BACKEND_CONFIG["uploads_folder"]}/{secure_filename(data_source_name)}"
+        f"{BACKEND_CONFIG["uploads-folder"]}/{secure_filename(data_source_name)}"
     )
 
     if exists(data_source_dir):
@@ -164,7 +164,7 @@ def upload_data_source():
             file,
             data_source_dir,
             upload_file_full_name,
-            BACKEND_CONFIG["upload_buffer_size"],
+            BACKEND_CONFIG["upload-buffer-size"],
         )
 
         if not file_uploaded:
