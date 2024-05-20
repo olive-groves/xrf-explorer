@@ -1,53 +1,14 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
 import { inject, onMounted, ref } from "vue";
-import * as THREE from "three";
-
-import { Layer, ToolState } from "./types";
+import { ToolState } from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { layers } from "./state";
+import * as THREE from "three";
+import { scene } from "./scene";
 
 const config = inject<FrontendConfig>("config")!;
-
-const vertex = `
-precision highp float;
-precision highp int;
-
-uniform float iIndex;
-uniform vec4 iViewport; // x, y, w, h
-uniform mat3 mRegister;
-
-attribute vec3 position;
-attribute vec2 uv;
-
-varying vec2 vUv;
-
-void main() {
-  vUv = uv;
-
-  // Register vertices
-  vec3 position = mRegister * vec3(position.xy, 1.0);
-
-  // Transform to viewport
-  gl_Position = vec4(
-    2.0 * (position.x - iViewport.x) / iViewport.z - 1.0,
-    2.0 * (position.y - iViewport.y) / iViewport.w - 1.0,
-    iIndex / 1024.0,
-    1.0
-  );
-}`;
-
-const fragment = `
-precision highp float;
-precision highp int;
-
-uniform sampler2D tImage;
-
-varying vec2 vUv;
-
-void main() {
-  gl_FragColor = texture2D(tImage, vUv);
-}`;
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
@@ -65,16 +26,11 @@ const toolState = ref<ToolState>({
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
 });
 
-let scene: THREE.Scene;
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
 
 let width: number;
 let height: number;
-
-const layers: {
-  [key: string]: Layer;
-} = {};
 
 /**
  * Set up the renderer after mounting the canvas.
@@ -93,7 +49,6 @@ useResizeObserver(glcontainer, (entries) => {
  * Sets up the a very basic scene in THREE for rendering.
  */
 function setup() {
-  scene = new THREE.Scene();
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -102,73 +57,7 @@ function setup() {
 
   ({ width, height } = glcontainer.value!.getBoundingClientRect());
 
-  // Temporary, until layer system is in place and can handle the layers programmatically.
-  addLayer(
-    "rgb",
-    "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
-  );
-
   render();
-}
-
-/**
- * Creates a layer and adds the given image to it.
- * @param id - Id given to the layer.
- * @param image - Path to the image to be added.
- */
-function addLayer(id: string, image: string) {
-  const layer: Layer = {
-    id: id,
-    image: image,
-    uniform: {
-      iIndex: { value: 0 },
-      iViewport: { value: new THREE.Vector4() },
-      mRegister: { value: new THREE.Matrix3(1, 0, 0, 0, 1, 0, 0, 0, 1) },
-    },
-  };
-
-  layers[id] = layer;
-
-  new THREE.TextureLoader().loadAsync(image).then((texture) => {
-    texture.colorSpace = THREE.NoColorSpace;
-
-    // Create a square
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(1, 0);
-    shape.lineTo(1, 1);
-    shape.lineTo(0, 1);
-
-    const geometry = new THREE.ShapeGeometry(shape);
-
-    // Scale the square to the same dimensions as the texture.
-    // By scaling through this method, the UV coordinates of the shape are preserved.
-    const mat = new THREE.Matrix4();
-    mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    geometry.applyMatrix4(mat);
-
-    // Add the texture to the uniform to allow it to be used in the shaders
-    layer.uniform.tImage = {
-      type: "t",
-      value: texture,
-    };
-
-    // Create a material to render the texture on to the created shape.
-    // The vertex shader handles the movement of the texture for registering and the viewport.
-    // The fragment shader handles sampling colors from the texture.
-    const material = new THREE.RawShaderMaterial({
-      vertexShader: vertex,
-      fragmentShader: fragment,
-      uniforms: layer.uniform,
-      side: THREE.DoubleSide,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-
-    layer.mesh = mesh;
-
-    scene.add(mesh);
-  });
 }
 
 /**
@@ -181,12 +70,12 @@ function render() {
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
 
-  Object.keys(layers).forEach((layer) => {
-    layers[layer].uniform!.iViewport.value.set(x, y, w, h);
+  layers.value.forEach((layer) => {
+    layer.uniform.iViewport.value.set(x, y, w, h);
   });
 
   renderer.setSize(width, height);
-  renderer.render(scene, camera);
+  renderer.render(scene.scene, camera);
 
   requestAnimationFrame(render);
 }

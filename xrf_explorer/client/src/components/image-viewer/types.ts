@@ -11,7 +11,7 @@ export type Layer = {
   /**
    * An identifier for the image associated with the layer.
    */
-  image: string;
+  url: string;
   /**
    * The mesh describing the layer in the THREE scene.
    */
@@ -57,3 +57,41 @@ export type ToolState = {
    */
   scrollSpeed: number[];
 };
+
+/**
+ * Type describing a group of layers as used in the LayerSystem.
+ */
+export type LayerGroup = {
+  /**
+   * The type of this layer group.
+   */
+  type: "base" | "contextual" | "elemental" | "colorSegmentation" | "dimensionalityReduction";
+  /**
+   * The name of this group of layers.
+   */
+  name: string;
+  /**
+   * An additional description for the group of layers.
+   */
+  description: string;
+  /**
+   * The layers that this group represents.
+   */
+  layers: Layer[];
+  /**
+   * Determines whether the layers in this group are visible.
+   */
+  visible: boolean;
+  /**
+   * Determines where the layers in this group are visible.
+   */
+  visibility: LayerVisibility;
+};
+
+/**
+ * Indicates the visibility of a layer(group).
+ * 1: Visible inside of lens.
+ * 2: Visible outside of lens.
+ * 3: Completely visible.
+ */
+export type LayerVisibility = 1 | 2 | 3;

@@ -1,0 +1,70 @@
+import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
+import { createLayer, layerGroups, layers } from "./state";
+import { computed, watch } from "vue";
+import { appState } from "@/lib/app_state";
+import { snakeCase } from "change-case";
+import { disposeLayer } from "./scene";
+
+const useWorkspace = computed(() => appState.workspace);
+watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
+
+/**
+ * Updates the layers and layergroups when changes are made to the workspaceconfig.
+ * @param workspace - The new workspace configuration.
+ */
+function loadWorkspace(workspace: WorkspaceConfig) {
+  // Unload existing workspace
+  console.log("Unloading existing workspace...");
+  layerGroups.value = {};
+  layers.value.forEach(disposeLayer);
+  layers.value = [];
+
+  console.log("Loading new workspace...");
+
+  // Create base image layer
+  createBaseLayer(workspace.baseImage);
+
+  // Create other contextual image layers
+  workspace.contextualLayers.forEach((image) => {
+    createContextualLayer(image);
+  });
+
+  // Create elemental layers
+  // Create color segmentation layers
+  // Create dimensionality reduction layers
+}
+
+/**
+ *
+ * @param image - The image to use as the base image.
+ */
+function createBaseLayer(image: ContextualImage) {
+  const layer = createLayer(`base_${snakeCase(image.name)}`, image);
+
+  layerGroups.value.base = {
+    type: "base",
+    name: image.name,
+    description: "Base image",
+    layers: [layer],
+    visible: true,
+    visibility: 3,
+  };
+}
+
+/**
+ *
+ * @param image
+ */
+function createContextualLayer(image: ContextualImage) {
+  const id = `contextual_${snakeCase(image.name)}`;
+  const layer = createLayer(id, image);
+
+  layerGroups.value[id] = {
+    type: "contextual",
+    name: image.name,
+    description: "Contextual image",
+    layers: [layer],
+    visible: false,
+    visibility: 3,
+  };
+}

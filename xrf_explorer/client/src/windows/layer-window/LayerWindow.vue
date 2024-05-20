@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
-import { appState } from "@/lib/app_state";
-import { computed } from "vue";
-
-const workspace = computed(() => appState.workspace);
+import { LayerSystem } from "@/components/image-viewer";
 </script>
 
 <template>
-  <Window title="Layers">
-    {{ workspace }}
+  <Window title="Layers" opened>
+    <div class="p-1">
+      <LayerSystem />
+    </div>
   </Window>
 </template>
