@@ -21,11 +21,14 @@
     "vue/require-default-prop": "off",
     "vue/script-setup-uses-vars": "error",
     "vue/no-v-for-template-key-on-child": "warn",
-    "vue/block-lang": ["error",{
-      "script": {
-        "lang": "ts"
-      }
-    }],
+    "vue/block-lang": [
+      "error",
+      {
+        "script": {
+          "lang": "ts",
+        },
+      },
+    ],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -67,13 +70,16 @@
     "jsdoc/check-line-alignment": "warn",
     "jsdoc/require-asterisk-prefix": "warn",
     "no-warning-comments": "warn",
-    "@stylistic/max-len": ["warn", {
-      "code": 120,
-      "ignoreComments": false,
-      "ignoreUrls": true,
-      "ignoreStrings": false,
-      "ignoreTemplateLiterals": false,
-      "ignoreRegExpLiterals": false
-    }]
+    "@stylistic/max-len": [
+      "warn",
+      {
+        "code": 120,
+        "ignoreComments": false,
+        "ignoreUrls": true,
+        "ignoreStrings": false,
+        "ignoreTemplateLiterals": false,
+        "ignoreRegExpLiterals": false,
+      },
+    ],
   },
 }

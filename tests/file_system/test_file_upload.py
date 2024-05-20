@@ -1,8 +1,14 @@
+import sys
+
 from os.path import join
 from pathlib import Path
 
 from werkzeug.datastructures.file_storage import FileStorage
+
+sys.path.append('.')
+
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
 RESOURCES_PATH: Path = Path('tests/resources')
 
@@ -40,3 +46,20 @@ class TestUploadFileToServer:
         # validate
         assert not result
         assert expected_output in caplog.text
+    
+    def test_get_file_names(self):
+        # setup
+        data_source_name: str = "test_data_source"
+
+        # execute
+        result: list[str] = get_data_sources_names(self.CUSTOM_CONFIG_PATH)
+        
+        # validate
+        assert data_source_name in result
+    
+    def test_no_file_names(self):
+        # execute
+        result: list[str] = get_data_sources_names('this-config-does-not-exist.yml')
+
+        # validate
+        assert result == []

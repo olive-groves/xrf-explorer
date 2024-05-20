@@ -47,7 +47,7 @@ export type ImageViewerConfig = {
  */
 export const DefaultConfig: FrontendConfig = {
   api: {
-    endpoint: "http://localhost:8001",
+    endpoint: "http://localhost:8001/api",
   },
   imageViewer: {
     defaultMovementSpeed: 2.0,
@@ -59,7 +59,8 @@ export const DefaultConfig: FrontendConfig = {
 /**
  * Get the configuration for the frontend.
  *
- * This will be provided by the App.vue component and can be accessed using `inject<FrontendConfig>('config')!`.
+ * This will be provided by the App.vue component and can be accessed using
+ * `const config = inject<FrontendConfig>("config")!`. (note the exclamation mark)
  * This function should hence not be used elsewhere.
  * @returns The frontend configuration.
  */
