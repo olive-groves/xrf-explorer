@@ -26,7 +26,7 @@ const rplDataInputRef = ref<HTMLInputElement>();
  * Triggered by the "Upload" button.
  */
 async function uploadDataSource() {
-  const dataSourceName: string = dataSourceNameInputRef.value?.value.trim()!;
+  const dataSourceName: string = getTrimmedInputString(dataSourceNameInputRef)!;
 
   const inputRefsWithFiles = [
     rgbImageInputRef,
@@ -55,6 +55,8 @@ async function uploadDataSource() {
     return;
   }
 
+  const workSpaceJSON = getWorkspaceJSON();
+
   totalChunks.value = getTotalChunks(
     inputRefsWithFiles.map((inputRef) => getFile(inputRef)!),
     CHUNK_SIZE,
@@ -75,8 +77,7 @@ async function uploadDataSource() {
 
   for (const inputRef of inputRefsWithFiles) {
     const file: File = getFile(inputRef)!;
-    const fileType: string = file.name.split(".").pop()!;
-    const uploadFileName: string = inputRef.value?.name + "." + fileType;
+    const uploadFileName: string = generateFileName(inputRef)!;
 
     for (let byteIndex = 0; byteIndex < file?.size!; byteIndex += CHUNK_SIZE) {
       const chunk: Blob = file!.slice(byteIndex, byteIndex + CHUNK_SIZE);
@@ -123,15 +124,86 @@ async function uploadDataSource() {
   }
 }
 
+function getFileType(file: File): string {
+  return file.name.split(".").pop()!;
+}
+
+function getWorkspaceJSON() {
+  interface Workspace {
+    name: string;
+    baseImage: {
+      name: string;
+      location: string;
+    };
+    contenxtualImages: { name: string; imageLocation: string; recipeLocation?: string }[];
+    spectralCubes: { rawLocation: string; rplLocation: string; recipeLocation?: string }[];
+    elementalCubes: { dmsLocation: string; recipeLocation?: string }[];
+  }
+
+  const dataSourceName: string = getTrimmedInputString(dataSourceNameInputRef)!;
+  const baseImageName: string = getNameAttribute(rgbImageInputRef)!;
+  const baseImageLocation: string = `${baseImageName}.${getFileType(getFile(rgbImageInputRef)!)}`;
+
+  const workspace: Workspace = {
+    name: dataSourceName,
+    baseImage: { name: baseImageName, location: baseImageLocation },
+    contenxtualImages: [],
+    spectralCubes: [],
+    elementalCubes: [],
+  };
+
+  if (getFile(uvImageInputRef) !== undefined) {
+    workspace.contenxtualImages.push({
+      name: getNameAttribute(uvImageInputRef)!,
+      imageLocation: generateFileName(uvImageInputRef)!,
+    });
+  }
+
+  if (getFile(xrayImageInputRef) !== undefined) {
+    workspace.contenxtualImages.push({
+      name: getNameAttribute(xrayImageInputRef)!,
+      imageLocation: generateFileName(xrayImageInputRef)!,
+    });
+  }
+
+  if (getFile(cubeDataInputRef) !== undefined) {
+    workspace.elementalCubes.push({ dmsLocation: generateFileName(cubeDataInputRef)! });
+  }
+
+  if (getFile(rawDataInputRef) && getFile(rplDataInputRef)) {
+    workspace.spectralCubes.push({
+      rawLocation: generateFileName(rawDataInputRef)!,
+      rplLocation: generateFileName(rplDataInputRef)!,
+    });
+  }
+
+  return workspace;
+}
+
+function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
+  return `${getNameAttribute(inputRef)}.${getFileType(getFile(inputRef)!)}`;
+}
+
+function getNameAttribute(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
+  return inputRef.value?.name;
+}
+
+function getTrimmedInputString(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
+  return inputRef.value?.value.trim()!;
+}
+
 /**
- * Retrieves the first file from a ref object pointing to an input element.
+ * Retrieves the first file from a ref object pointing to a file input element.
  * @returns {File | undefined} The first file selected in the input, or undefined if no files are present.
  */
 function getFile(inputRef: Ref<HTMLInputElement | undefined>): File | undefined {
   return inputRef.value?.files![0];
 }
 
-function getTotalChunks(files: File[], chunkSize: number) {
+/**
+ * Calculates the total number of chunks required to upload an array of files.
+ */
+function getTotalChunks(files: File[], chunkSize: number): number {
   let totalChunks = 0;
   files.forEach((file) => {
     totalChunks += file.size / chunkSize;
