@@ -180,8 +180,8 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
   }
 }
 
-//Plots the theoretical spectrum and peaks of an element
 /**
+ * Plots the theoretical spectrum and peaks of an element.
  *
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
@@ -288,9 +288,8 @@ async function getElements() {
   }
 }
 
-//updates visibility of global average spectrum
 /**
- *
+ * Updates visibility of global average spectrum.
  */
 function updateGlobal() {
   if (globalChecked.value) {
@@ -300,9 +299,8 @@ function updateGlobal() {
   }
 }
 
-//updates visibility of element theoretical spectrum
 /**
- *
+ * Updates visibility of element theoretical spectrum.
  */
 function updateElement() {
   if (elementChecked.value) {
@@ -312,8 +310,8 @@ function updateElement() {
   }
 }
 
-//updates visibility of selection average spectrum
 /**
+ * Updates visibility of selection average spectrum.
  *
  */
 function updateSelection() {
@@ -326,12 +324,11 @@ function updateSelection() {
 
 getElements();
 
-//plot global everage spectrum
 plotAverageSpectrum(low, high, binSize);
 
-//plot element spectrum when an elemented is selected in the dropdown
+//
 /**
- *
+ * Plots element spectrum when an elemented is selected in the dropdown.
  */
 function updateElementSpectrum() {
   plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize);
