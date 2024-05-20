@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
-import { ref, watch } from "vue"
+import { ref, watch } from "vue";
 
 import * as d3 from "d3";
+import { Interface } from "readline";
 
 const spectraChart = ref(null);
-let x: any;
-let y: any;
-let svg: any;
+let x: d3.ScaleLinear<number, number, never>;
+let y: d3.ScaleLinear<number, number, never>;
+let svg: d3.Selection<null, unknown, null, undefined>;
 
 //need to see how to get these variables
 const url: string = "http://localhost:8001";
@@ -15,6 +16,14 @@ const low: number = 50;
 const high: number = 2000;
 const binSize: number = 32;
 
+interface Point {
+  index: number;
+  value: number;
+}
+
+/**
+ * Setup the svg and axis of the graph
+ */
 function setup() {
   // set the dimensions and margins of the graph
   const margin = {top: 30, right: 30, bottom: 70, left: 60},
@@ -29,7 +38,7 @@ function setup() {
     .domain([0, 255]);
 
   // append the svg object to the body of the page
-  svg = d3.select(spectraChart.value)
+svg = d3.select(spectraChart.value)
     //.append("svg") 
     .attr("width", width)
     .attr("height", height)
@@ -77,7 +86,7 @@ async function plotAverageSpectrum(low: any, high: any, binSize: any) {
 
   try {
     //make api call
-    let response = await fetch(`${url}/api/get_average_data?`+ new URLSearchParams({
+    const response = await fetch(`${url}/api/get_average_data?`+ new URLSearchParams({
       low: low,
       high: high,
       binSize: binSize
@@ -87,12 +96,14 @@ async function plotAverageSpectrum(low: any, high: any, binSize: any) {
         "Content-Type":"application/json"
       }
     });
-    let data = await response.json();
+    const data = await response.json();
 
     //create line
-    const line = d3.line()
-      .x((d:any) => x(d.index))
-      .y((d:any) => y(d.value));
+    const line = d3.line<Point>()
+      .x((d: Point) => x(d.index))
+      .y((d: Point) => y(d.value));
+
+    
 
     // Add the line to chart
     svg.append("path")
@@ -141,9 +152,9 @@ async function plotSelectionSpectrum(pixels: any, low: any, high: any, binSize: 
     d3.select("#selectionLine").remove();
 
     //create line
-    const line = d3.line()
-      .x((d:any) => x(d.index))
-      .y((d:any) => y(d.value));
+    const line = d3.line<Point>()
+      .x((d:Point) => x(d.index))
+      .y((d:Point) => y(d.value));
 
     // Add the line to chart
     svg.append("path")
@@ -197,9 +208,9 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
       d3.selectAll("line").remove()
 
       //create line
-      const line = d3.line()
-        .x((d:any) => x(d.index))
-        .y((d:any) => y(d.value));
+      const line = d3.line<Point>()
+        .x((d:Point) => x(d.index))
+        .y((d:Point) => y(d.value));
 
       // Add the line to chart
       svg.append("path")
@@ -212,7 +223,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
         .style("opacity", 1);
 
         //Add peaks
-        data[1].forEach((peak: any) =>
+        data[1].forEach((peak: Point) =>
           {
             svg.append("line")
             .style("stroke", "grey")
@@ -242,13 +253,13 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 async function getElements() {
   try {
     //make api call
-    let response = await fetch(`${url}/api/get_elements`, {
+    const response = await fetch(`${url}/api/get_elements`, {
       method:"GET",
       headers: {
         "Content-Type":"application/json"
       }
     });
-    let elements = await response.json();
+    const elements = await response.json();
     elements.unshift("No element");
     elements.splice(elements.indexOf('Continuum'), 1);
     elements.splice(elements.indexOf('chisq'), 1);
@@ -303,15 +314,15 @@ function updateElementSpectrum() {
   plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize)
 }
 
-//TODO connect to selection tool 
+//need to connect to selection tool 
 if (false) {
-  var pixels = []  
+  const pixels = []  
   plotSelectionSpectrum(pixels, low, high, binSize)
 }
 
 //display svg when window is opened
 watch(spectraChart, (_n, _o) => {
-    if (spectraChart != null) {
+    if(spectraChart.value != null) {
         setup();
     }
 });

@@ -80,7 +80,6 @@ def get_elements():
             names.append(file.readline().rstrip().replace(" ", ""))
     
     response = json.dumps(names)
-    print(response)
     return response
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
