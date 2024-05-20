@@ -1,5 +1,7 @@
 import { ContextualImage } from "@/lib/workspace";
-import { Layer } from "./types";
+import { Layer, Point2D } from "./types";
+import math from "mathjs";
+import * as THREE from "three";
 
 /**
  * Sets the mRegister uniform on a layer in accordance with the specified recipe.
@@ -20,8 +22,7 @@ export function registerLayer(layer: Layer, _image: ContextualImage) {
  * @param dstWidth - Width of destination image.
  * @param dstHeight - Height of destination image.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function setPerspectiveTransform(
+function _setPerspectiveTransform(
   mat: THREE.Matrix3,
   src: Point2D[],
   dst: Point2D[],
@@ -49,7 +50,7 @@ function setPerspectiveTransform(
   }
 
   // Solve Ax = B and extract solution
-  const x = math.lusolve(A, B); // 8 x 1
+  const x = math.lusolve(A, B) as number[][]; // 8 x 1
 
   mat.set(x[0][0], x[1][0], x[2][0], x[3][0], x[4][0], x[5][0], x[6][0], x[7][0], 1);
 }

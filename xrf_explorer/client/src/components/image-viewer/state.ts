@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { Layer, LayerGroup } from "./types";
+import { Layer, LayerGroup, LayerVisibility } from "./types";
 import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
@@ -35,6 +35,9 @@ export function createLayer(id: string, image: ContextualImage): Layer {
       iIndex: { value: 0 },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
+      iShowLayer: { value: 0 },
+      uMouse: { value: new THREE.Vector2() },
+      uRadius: { value: 0 },
     },
   };
 
@@ -56,6 +59,10 @@ export function setLayerGroupIndex(group: LayerGroup, index: number) {
 
 /**
  * Updates the visibility uniforms for all layers in a layer group.
- * @param _group - The group that should be updated.
+ * @param group - The group that should be updated.
  */
-export function setLayerGroupVisibility(_group: LayerGroup) {}
+export function setLayerGroupVisibility(group: LayerGroup) {
+  const visibility = group.visible ? group.visibility : LayerVisibility.Invisible;
+
+  group.layers.forEach((layer) => (layer.uniform.iShowLayer.value = visibility));
+}

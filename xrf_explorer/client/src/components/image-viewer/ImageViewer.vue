@@ -8,19 +8,7 @@ import { layers } from "./state";
 import * as THREE from "three";
 import { scene } from "./scene";
 
-import fragment from "./fragment.glsl?raw";
-import vertex from "./vertex.glsl?raw";
-
 const config = inject<FrontendConfig>("config")!;
-
-// TODO: is it worth it to try to define these constants in one
-// place where fragment.glsl can also access them?
-/* eslint-disable @typescript-eslint/no-unused-vars */
-const TRANSPARENT = 0x00;
-const WHOLE = 0x01;
-const IN_LENS = 0x02;
-const OUTSIDE_LENS = 0x03;
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
@@ -34,11 +22,10 @@ const viewport: {
 };
 
 const toolState = ref<ToolState>({
+  tool: "grab",
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
-  lensSize: [100.0],
-  // TODO: hook this up to layer system
-  lensOn: true,
+  lensSize: [config.imageViewer.defaultLensSize],
 });
 
 let camera: THREE.OrthographicCamera;
@@ -46,8 +33,6 @@ let renderer: THREE.WebGLRenderer;
 
 let width: number;
 let height: number;
-
-type Point2D = { x: number; y: number };
 
 /**
  * Set up the renderer after mounting the canvas.
@@ -89,6 +74,7 @@ function render() {
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
+    layer.uniform.uRadius.value = toolState.value.lensSize[0];
   });
 
   renderer.setSize(width, height);
@@ -104,6 +90,7 @@ const dragging = ref(false);
  */
 function onMouseDown() {
   dragging.value = true;
+  console.log(layers.value);
 }
 
 /**
@@ -140,11 +127,8 @@ function onMouseMove(event: MouseEvent) {
   const normalizedX = (width * mouseX) / rect.width;
   const normalizedY = height * (1 - mouseY / rect.height);
 
-  // TODO: should we update this for every layer or only at the relevant ones
-  Object.keys(layers).forEach((layer) => {
-    layers[layer].uniform!.uMouse.value.set(normalizedX, normalizedY);
-    // TODO: should we do this based on the zoom level or not?
-    layers[layer].uniform!.uRadius.value = toolState.value.lensSize[0] / viewport.zoom;
+  layers.value.forEach((layer) => {
+    layer.uniform.uMouse.value.set(normalizedX, normalizedY);
   });
 }
 
@@ -155,12 +139,6 @@ function onMouseMove(event: MouseEvent) {
  */
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
-
-  // TODO: should we update this for every layer or only at the relevant ones
-  Object.keys(layers).forEach((layer) => {
-    // TODO: should we do this based on the zoom level or not?
-    layers[layer].uniform!.uRadius.value = toolState.value.lensSize[0] / viewport.zoom;
-  });
 }
 </script>
 

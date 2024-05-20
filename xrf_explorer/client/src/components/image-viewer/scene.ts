@@ -10,45 +10,8 @@ export const scene: {
   scene: new THREE.Scene(),
 };
 
-const vertex = `
-precision highp float;
-precision highp int;
-
-uniform float iIndex;
-uniform vec4 iViewport; // x, y, w, h
-uniform mat3 mRegister;
-
-attribute vec3 position;
-attribute vec2 uv;
-
-varying vec2 vUv;
-
-void main() {
-  vUv = uv;
-
-  // Register vertices
-  vec3 position = mRegister * vec3(position.xy, 1.0);
-
-  // Transform to viewport
-  gl_Position = vec4(
-    2.0 * (position.x - iViewport.x) / iViewport.z - 1.0,
-    2.0 * (position.y - iViewport.y) / iViewport.w - 1.0,
-    iIndex / 1024.0,
-    1.0
-  );
-}`;
-
-const fragment = `
-precision highp float;
-precision highp int;
-
-uniform sampler2D tImage;
-
-varying vec2 vUv;
-
-void main() {
-  gl_FragColor = texture2D(tImage, vUv);
-}`;
+import fragment from "./fragment.glsl?raw";
+import vertex from "./vertex.glsl?raw";
 
 /**
  * Creates a layer and adds the given image to it.
@@ -87,6 +50,8 @@ export function loadLayer(layer: Layer) {
       fragmentShader: fragment,
       uniforms: layer.uniform,
       side: THREE.DoubleSide,
+      transparent: true,
+      blending: THREE.NormalBlending,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
