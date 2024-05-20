@@ -1,0 +1,10 @@
+# Ignore all built documentation elements in this directory
+*
+# Except the following folders
+!_static
+!_templates
+
+# Except the following files
+!.gitignore
+!conf.py
+!index.rst
