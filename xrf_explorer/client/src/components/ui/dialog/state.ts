@@ -1,9 +1,15 @@
-import { reactive } from "vue"
+import { reactive } from "vue";
 
+/**
+ * Contains the app-wide state of a ReusableDialog.
+ */
 export type DialogState = {
-    open: boolean
-}
+  /**
+   * Whether or not the dialog should be open.
+   */
+  open: boolean;
+};
 
 export const dialogState = reactive<{
-    [key: string]: DialogState
-}>({})
+  [key: string]: DialogState;
+}>({});

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {
-  MenubarItem
-} from '../menubar';
-import { openDialog } from './utils';
+import { MenubarItem } from "../menubar";
+import { openDialog } from "./utils";
 
 const props = defineProps<{
-  id: string
+  /**
+   * The id of the dialog that should be opened by clicking on this menu item.
+   */
+  id: string;
 }>();
 </script>
 

@@ -1,4 +1,5 @@
 import logging
+import json
 
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
@@ -14,6 +15,7 @@ from xrf_explorer.server.file_system.file_upload import (
     get_file_type,
     get_data_source_files_spec,
 )
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -28,6 +30,15 @@ def api():
 @app.route("/api/info")
 def info():
     return "adding more routes is quite trivial"
+
+
+@app.route("/api/available_data_sources")
+def list_accessible_data_sources():
+    try:
+        return json.dumps(get_data_sources_names())
+    except Exception as e:
+        LOG.error(f"Failed to serialize files: {str(e)}")
+        return "Error occurred while listing data sources", 500
 
 
 @app.route("/api/create-ds-dir", methods=["POST"])

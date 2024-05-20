@@ -33,7 +33,7 @@ def upload_file_to_server(
     if exists(path_to_file):
         LOG.info("Uploaded {%s} to {%s}", file_name, path_to_file)
         return True
-
+      
     return False
 
 

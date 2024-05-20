@@ -1,1 +1,1 @@
-export { default as UploadFileDialog } from './UploadFileDialog.vue';
+export { default as UploadFileDialog } from "./UploadFileDialog.vue";
