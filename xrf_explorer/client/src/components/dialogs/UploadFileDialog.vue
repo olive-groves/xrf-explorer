@@ -261,6 +261,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="rgb_input_help"
         type="file"
+        accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
         name="rgb"
         ref="rgbImageInputRef"
       />
@@ -271,6 +272,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="uv_input_help"
         type="file"
+        accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
         name="uv"
         ref="uvImageInputRef"
       />
@@ -281,6 +283,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="xray_input_help"
         type="file"
+        accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
         name="xray"
         ref="xrayImageInputRef"
       />
@@ -291,6 +294,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="cube_input_help"
         type="file"
+        accept=".csv, .dms"
         name="cube"
         ref="cubeDataInputRef"
       />
@@ -301,6 +305,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
+        accept=".raw"
         name="raw"
         ref="rawDataInputRef"
       />
@@ -311,6 +316,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         class="block w-44 text-accent-foreground rounded-lg cursor-pointer bg-background focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
+        accept=".rpl"
         name="rpl"
         ref="rplDataInputRef"
       />
