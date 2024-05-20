@@ -3,7 +3,6 @@ import { Window } from "@/components/ui/window";
 import { ref, watch } from "vue";
 
 import * as d3 from "d3";
-import { Interface } from "readline";
 
 const spectraChart = ref(null);
 let x: d3.ScaleLinear<number, number, never>;
@@ -82,14 +81,14 @@ const excitation = ref(0);
  * @param high Higher channel boundary
  * @param binSize Number of channels per bin
  */
-async function plotAverageSpectrum(low: any, high: any, binSize: any) {
+async function plotAverageSpectrum(low: number, high: number, binSize: number) {
 
   try {
     //make api call
     const response = await fetch(`${url}/api/get_average_data?`+ new URLSearchParams({
-      low: low,
-      high: high,
-      binSize: binSize
+      low: low as unknown as string,
+      high: high as unknown as string,
+      binSize: binSize as unknown as string
     }), {
       method:"GET",
       headers: {
@@ -131,22 +130,22 @@ async function plotAverageSpectrum(low: any, high: any, binSize: any) {
  * @param high Higher channel boundary
  * @param binSize Number of channels per bin
  */
-async function plotSelectionSpectrum(pixels: any, low: any, high: any, binSize: any){
+async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: number, high: number, binSize: number){
 
   try {
     //make api call
-    let response = await fetch(`${url}/api/get_selection_spectrum`+ new URLSearchParams({
-      pixels:pixels,
-      low: low,
-      high: high,
-      binSize: binSize
+    const response = await fetch(`${url}/api/get_selection_spectrum`+ new URLSearchParams({
+      pixels:pixels as unknown as string,
+      low: low as unknown as string,
+      high: high as unknown as string,
+      binSize: binSize as unknown as string
     }), {
       method:"GET",
       headers: {
         "Content-Type":"application/json"
       }
     });
-    let data = await response.json();
+    const data = await response.json();
 
     //remove spectrum of previous selection
     d3.select("#selectionLine").remove();
@@ -188,7 +187,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
   if (element != 'No element' && element != '' && excitation != null && excitation as unknown as string != '') {
     try {
       //make api call
-      let response = await fetch(`${url}/api/get_element_spectrum?`+ new URLSearchParams({
+      const response = await fetch(`${url}/api/get_element_spectrum?`+ new URLSearchParams({
         element: element as string,
         excitation: excitation as unknown as string,
         low: low as unknown as string,
@@ -200,8 +199,8 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
           "Content-Type":"application/json"
         }
       });
-      let data = await response.json();
-      let spectrum = data[0];
+      const data = await response.json();
+      const spectrum = data[0];
 
       //remove previous element lines
       d3.select("#elementLine").remove();
