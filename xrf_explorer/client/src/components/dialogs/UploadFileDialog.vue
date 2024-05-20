@@ -55,9 +55,6 @@ async function uploadDataSource() {
     return;
   }
 
-  const workSpaceJSON = getWorkspaceJSON();
-  console.log(workSpaceJSON);
-
   totalChunks.value = getTotalChunks(
     inputRefsWithFiles.map((inputRef) => getFile(inputRef)!),
     CHUNK_SIZE,
@@ -91,6 +88,17 @@ async function uploadDataSource() {
 
       return;
     }
+  }
+
+  const workspaceJSON = generateWorkspaceJSON();
+  const workspaceBlob = new Blob([JSON.stringify(workspaceJSON)]);
+  const workspaceFile = new File([workspaceBlob], "workspace.json");
+  const workspaceUploadedSuccess = await uploadFileInChunks(workspaceFile, dataSourceDirName, "workspace.json");
+
+  if (workspaceUploadedSuccess) {
+    alert("Everything uploaded successfully.");
+  } else {
+    alert("Something went wrong with uploading data source metadata. Otherwise everything's good tho.");
   }
 }
 
@@ -130,11 +138,17 @@ async function uploadFileInChunks(file: File, directory: string, uploadFileName:
   return uploadSuccess;
 }
 
+/**
+ * Returns the type of the file, eg. '.png'
+ */
 function getFileType(file: File): string {
   return file.name.split(".").pop()!;
 }
 
-function getWorkspaceJSON() {
+/**
+ * Generates a json object with metadata about the data source.
+ */
+function generateWorkspaceJSON() {
   interface Workspace {
     name: string;
     baseImage: {
@@ -186,14 +200,23 @@ function getWorkspaceJSON() {
   return workspace;
 }
 
+/**
+ * Generates a file name string by combining the name attribute of an input element with the file type of the file selected in that input element.
+ */
 function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return `${getNameAttribute(inputRef)}.${getFileType(getFile(inputRef)!)}`;
 }
 
+/**
+ * Retrieves the 'name' attribute from html input element ref.
+ */
 function getNameAttribute(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return inputRef.value?.name;
 }
 
+/**
+ * Retrieves the value of an HTML input element, trims any leading or trailing whitespace from it, and returns the trimmed string.
+ */
 function getTrimmedInputString(inputRef: Ref<HTMLInputElement | undefined>): string | undefined {
   return inputRef.value?.value.trim()!;
 }
