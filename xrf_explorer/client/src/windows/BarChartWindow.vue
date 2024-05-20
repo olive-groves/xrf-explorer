@@ -119,7 +119,7 @@ function setup() {
       g
         .append("text")
         .attr("x", -margin.left)
-        .attr("y", 10)
+        .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
         .text("↑ Average concentration"),
