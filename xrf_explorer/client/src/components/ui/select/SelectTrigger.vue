@@ -4,7 +4,12 @@ import { SelectIcon, SelectTrigger, type SelectTriggerProps, useForwardProps } f
 import { CaretSortIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<SelectTriggerProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  SelectTriggerProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

@@ -15,9 +15,17 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = withDefaults(defineProps<SelectContentProps & { class?: HTMLAttributes["class"] }>(), {
-  position: "popper",
-});
+const props = withDefaults(
+  defineProps<
+    SelectContentProps & {
+      // eslint-disable-next-line vue/require-prop-comment
+      class?: HTMLAttributes["class"];
+    }
+  >(),
+  {
+    position: "popper",
+  },
+);
 const emits = defineEmits<SelectContentEmits>();
 
 const delegatedProps = computed(() => {

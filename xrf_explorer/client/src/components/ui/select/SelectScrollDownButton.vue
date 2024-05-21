@@ -4,7 +4,12 @@ import { SelectScrollDownButton, type SelectScrollDownButtonProps, useForwardPro
 import { ChevronDownIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<SelectScrollDownButtonProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  SelectScrollDownButtonProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

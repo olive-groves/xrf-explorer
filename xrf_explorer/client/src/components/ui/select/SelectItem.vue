@@ -4,7 +4,12 @@ import { SelectItem, SelectItemIndicator, type SelectItemProps, SelectItemText, 
 import { CheckIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<SelectItemProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  SelectItemProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

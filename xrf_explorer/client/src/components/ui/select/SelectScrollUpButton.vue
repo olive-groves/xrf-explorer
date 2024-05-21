@@ -4,7 +4,12 @@ import { SelectScrollUpButton, type SelectScrollUpButtonProps, useForwardProps }
 import { ChevronUpIcon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<SelectScrollUpButtonProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  SelectScrollUpButtonProps & {
+    // eslint-disable-next-line vue/require-prop-comment
+    class?: HTMLAttributes["class"];
+  }
+>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;
