@@ -26,8 +26,9 @@ enum Status {
   GENERATING,
   ERROR,
   SUCCESS,
+  WELCOME,
 }
-const status = ref(Status.LOADING);
+const status = ref(Status.WELCOME);
 const currentError = ref("Error");
 
 // Dimensionality reduction parameters
@@ -94,8 +95,6 @@ async function updateEmbedding() {
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
 }
-
-fetchDRImage();
 </script>
 
 <template>
@@ -166,7 +165,8 @@ fetchDRImage();
     <!-- GENERATION OF THE IMAGE -->
     <Separator class="w-64 ml-1 mt-2 mb-2"/>
     <p class="font-bold ml-1">Generated image:</p>
-    <div class="flex ml-1 mt-1 aspect-square items-center justify-center">
+    <div class="flex ml-1 mt-1 aspect-square items-center justify-center text-center">
+      <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
       <span v-if="status == Status.LOADING">Loading...</span>
       <span v-if="status == Status.GENERATING">Generating...</span>
       <span v-if="status == Status.ERROR">{{ currentError }}</span>
