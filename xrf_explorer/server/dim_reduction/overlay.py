@@ -98,7 +98,7 @@ def create_image_overlay(overlay_type: str, indices: np.ndarray, config_path: st
 
 
 def create_element_overlay(
-        element: np.ndarray, indices: np.ndarray, 
+        element: int, indices: np.ndarray,
         data_cube: np.ndarray, embedding: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Creates an intensity overlay of the given element.
 
