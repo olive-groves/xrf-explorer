@@ -16,7 +16,9 @@ const groups = ref<LayerGroup[]>([]);
 watch(
   layerGroups,
   (newGroups) => {
-    groups.value = Object.keys(newGroups).map((key) => newGroups[key]);
+    groups.value = Object.keys(newGroups)
+      .map((key) => newGroups[key])
+      .sort((a, b) => b.index - a.index);
   },
   { immediate: true },
 );
