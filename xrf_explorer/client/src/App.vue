@@ -5,7 +5,7 @@ import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 
 // Import all windows
-import { TestWindow, BarChartWindow } from "@/windows";
+import { TestWindow, BarChartWindow, SpectraWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";

@@ -1,6 +1,5 @@
 import logging
 import json
-import json
 
 from flask import request, redirect
 from werkzeug.datastructures.file_storage import FileStorage
@@ -10,7 +9,6 @@ from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
 from xrf_explorer.server.spectra import *
-import json
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -96,8 +94,6 @@ def get_elements():
     
     :return: json list containing the names of the elements
     """
-    #temporary file name
-    #TODO change to actual location and dimensions of the file
     filename = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
     
     info = parse_rpl('196_1989_M6_data 1069_1187.rpl')
@@ -138,7 +134,7 @@ def get_selection_sectra():
 
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
-    #TODO retrieive selection
+    #selection to be retrieived from seletion tool 
     pixels = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))

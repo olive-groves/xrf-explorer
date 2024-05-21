@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
 import { ref, watch } from "vue";
+import { DefaultConfig } from "@/lib/config";
 
 import * as d3 from "d3";
 
@@ -10,7 +11,7 @@ let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
 //need to see how to get these variables
-const url: string = "http://localhost:8001";
+const url: string = DefaultConfig.api.endpoint;
 const low: number = 50;
 const high: number = 2000;
 const binSize: number = 32;
@@ -55,20 +56,7 @@ function setup() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
 
-  //zoom behavior
-  /*function zoom(svg: any) {    
-      const zooming = d3.zoom()
-        .scaleExtent([1, 32])
-        .extent([[0, 0], [width, height]])
-        .translateExtent([[0, -Infinity], [width, Infinity]])
-        .on("zoom", zoomed);
-    
-        svg.call(zooming);
-    
-        function zoomed(e: any) {
-            d3.selectAll("path").attr("transform", e.transform);
-        }
-    }*/
+
 
   getElements();
   plotAverageSpectrum(low, high, binSize);
@@ -89,7 +77,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
   try {
     //make api call
     const response = await fetch(
-      `${url}/api/get_average_data?` +
+      `${url}/get_average_data?` +
         new URLSearchParams({
           low: low as unknown as string,
           high: high as unknown as string,
@@ -140,7 +128,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
   try {
     //make api call
     const response = await fetch(
-      `${url}/api/get_selection_spectrum` +
+      `${url}/get_selection_spectrum` +
         new URLSearchParams({
           pixels: pixels as unknown as string,
           low: low as unknown as string,
@@ -196,7 +184,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
     try {
       //make api call
       const response = await fetch(
-        `${url}/api/get_element_spectrum?` +
+        `${url}/get_element_spectrum?` +
           new URLSearchParams({
             element: element as string,
             excitation: excitation as unknown as string,
@@ -265,7 +253,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(`${url}/api/get_elements`, {
+    const response = await fetch(`${url}/get_elements`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -349,28 +337,30 @@ watch(spectraChart, (_n, _o) => {
 <template>
   <div>
     <Window title="Spectrum" opened>
-      <input type="checkbox" id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
-      <label for="globalCheck">Show global average spectrum</label>
-      <br />
-      <input type="checkbox" id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
-      <label for="selectionCheck">Show selection average spectrum</label>
-      <br />
-      <input type="checkbox" id="elementCheck" v-model="elementChecked" @change="updateElement()" />
-      <label for="elementCheck">Show element theoretical spectrum</label>
-      <br />
-      <select id="element-dropdown" class="text-black" v-model="selectedElement" @change="updateElementSpectrum()">
-        <option value="" selected disabled>choose an element</option>
-      </select>
-      <br />
-      <small>Enter excitation energy (keV): </small>
-      <input
-        id="excitation-input"
-        type="number"
-        class="text-black"
-        v-model="excitation"
-        @change="updateElementSpectrum()"
-      />
-      <svg ref="spectraChart"></svg>
+      <AspectRatio :ratio="4 / 3">
+        <input type="checkbox" id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
+        <label for="globalCheck">Show global average spectrum</label>
+        <br />
+        <input type="checkbox" id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
+        <label for="selectionCheck">Show selection average spectrum</label>
+        <br />
+        <input type="checkbox" id="elementCheck" v-model="elementChecked" @change="updateElement()" />
+        <label for="elementCheck">Show element theoretical spectrum</label>
+        <br />
+        <select id="element-dropdown" class="text-black" v-model="selectedElement" @change="updateElementSpectrum()">
+          <option value="" selected disabled>choose an element</option>
+        </select>
+        <br />
+        <small>Enter excitation energy (keV): </small>
+        <input
+          id="excitation-input"
+          type="number"
+          class="text-black"
+          v-model="excitation"
+          @change="updateElementSpectrum()"
+        />
+        <svg ref="spectraChart"></svg>
+      </AspectRatio>
     </Window>
   </div>
 </template>
