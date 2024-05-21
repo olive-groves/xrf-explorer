@@ -1,14 +1,16 @@
 import logging 
 
-from os.path import isfile, join
+from os.path import join
 from pathlib import Path
 
 import numpy as np
 from umap import UMAP
 
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.dim_reduction.general import valid_element, get_elemental_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
 
 def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components: int, metric: str) -> np.ndarray | None:
     """Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
@@ -35,6 +37,7 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     except:
         return None
 
+
 def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: int) -> np.ndarray:
     """Get indices for which the value of the given element in the elemental data cube is above the threshold.
 
@@ -48,6 +51,7 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: i
 
     # return the filtered indices
     return indices
+
 
 def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, str] = {}, config_path: str = "config/backend.yml") -> bool:
     """Generate the embedding (lower dimensional reprensentation of the data) of the 
@@ -78,19 +82,15 @@ def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, 
     modified_umap_parameters.update(default_umap_parameters)
 
     # get data cube
-    data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
-    if not isfile(data_cube_path):
-        LOG.error(f"Data cube not found: {data_cube_path}")
+    data_cube: np.ndarray | None = get_elemental_data_cube(config_path=config_path)
+
+    if data_cube is None:
         return False
-    data_cube: np.ndarray = np.load(data_cube_path)
-    LOG.info(f"Loaded data cube from: {data_cube_path}")
 
     # check if element is valid
-    total_number_of_elements: int = data_cube.shape[2]
-    if element < 0 or element >= total_number_of_elements:
-        LOG.error(f"Invalid element: {element}")
+    if not valid_element(element, data_cube):
         return False
-
+    
     # filter data
     indices: np.ndarray = filter_elemental_cube(data_cube, element, threshold)
     filtered_data: np.ndarray = data_cube[indices[:, 0], indices[:, 1], :]

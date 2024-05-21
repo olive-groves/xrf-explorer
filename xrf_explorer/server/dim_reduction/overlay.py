@@ -4,24 +4,23 @@ from os.path import join
 from pathlib import Path
 
 import numpy as np
-import imageio.v3 as imageio
 import matplotlib
 import matplotlib.pyplot as plt
 
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.dim_reduction.general import valid_element, get_elemental_data_cube, get_registered_painting_image
 
 matplotlib.use('Agg')
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-OVERLAY_ARGS: list[str] = ['type']
 OVERLAY_IMAGE: list[str] = ['rgb', 'uv', 'xray']
 
 
-def create_embedding_image(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
+def create_embedding_image(overlay_type: str, config_path: str = "config/backend.yml") -> bool:
     """Create the embedding image from the embedding.
 
-    :param args: Arguments for generating the overlay. Should at least contain the type.
+    :param overlay_type: The type of overlay to create. Can be 'rgb', 'uv', 'xray' or an element number.
     :param config_path: Path to the backend config file
     :return: True if the embedding was successfully generated. Otherwise False.
     """
@@ -31,9 +30,6 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     if not backend_config:  # config is empty
         return False
     dr_folder: dict = backend_config['dim-reduction']['folder']
-
-    # Get the overlay type
-    overlay_type: str = args['type']
 
     # Load the file embedding.npy
     try:
@@ -47,19 +43,20 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     overlay: np.ndarray
 
     if overlay_type in OVERLAY_IMAGE:
-        # Show image overlay TODO: change to actual image
-        overlay = create_image_overlay(indices, f'{backend_config['temp-folder']}/test overlays/{overlay_type}.png')
+        overlay = create_image_overlay(overlay_type, indices)
     else:
         # Show element overlay
         # Get the element
         element: int = int(overlay_type)
 
         # Get elemental data cube
-        data_cube: np.ndarray = np.load(Path(backend_config['uploads-folder'], 'test_cube.npy'))
+        data_cube: np.ndarray | None = get_elemental_data_cube()
+
+        if data_cube is None:
+            return False
 
         # Verify valid element
-        if element < 0 or element >= data_cube.shape[2]:
-            LOG.error(f"Invalid element: {element}")
+        if not valid_element(element, data_cube):
             return False
 
         # Create the overlay
@@ -73,16 +70,16 @@ def create_embedding_image(args: dict[str, str], config_path: str = "config/back
     return True
 
 
-def create_image_overlay(indices: np.ndarray, path: Path | str) -> np.ndarray:
+def create_image_overlay(overlay_type: str, indices: np.ndarray) -> np.ndarray:
     """ Gets the pixels out of the image at the given indices.
 
+    :param overlay_type: The type of overlay to create.
     :param indices: The indices to get the pixels from.
-    :param path: The path to the image.
     :return: The pixels at the given indices of the image.
     """
 
     # Get the pixels in the picture at the given path
-    overlay_data: np.ndarray = imageio.imread(path)
+    overlay_data: np.ndarray = get_registered_painting_image(overlay_type)
 
     # Get the pixels at the given indices
     overlay: np.ndarray = overlay_data[indices[:, 0], indices[:, 1]]
@@ -136,18 +133,18 @@ def create_image(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> None
     plt.savefig(join(path, 'embedding.png'), bbox_inches='tight', transparent=True)
 
 
-def get_embedding_image(args: dict[str, str]) -> str:
+def get_embedding_image(overlay_type: str) -> str:
     """Create the embedding image based on the given arguments.
 
-    :param args: A dictionary containing the arguments for the overlay.
-    :return: Response containing the embedding image if successful. 
-    Otherwise a tuple containing the error message and status code.
+    :param overlay_type: The type of overlay to create.
+    :return: String path to the embedding image. If an error occured
+    an empty string is returned.
     """
 
     LOG.info("Creating embedding image...")
 
     # Create the embedding image
-    if not create_embedding_image({key: args[key] for key in OVERLAY_ARGS if key in args.keys()}):
+    if not create_embedding_image(overlay_type):
         LOG.error("Failed to create DR embedding image")
         return ""
     

@@ -80,9 +80,11 @@ def get_dr_overlay():
     if 'type' not in request.args:
         LOG.error("Missing overlay type")
         abort(400)
+    
+    overlay_type: str = request.args['type']
 
     # Try to get the embedding image
-    image_path = get_embedding_image(request.args)
+    image_path = get_embedding_image(overlay_type)
     if not image_path:
         abort(400)
 
