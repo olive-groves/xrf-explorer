@@ -95,9 +95,10 @@ async function updateEmbedding() {
   _url.searchParams.set("threshold", threshold.value.toString());
 
   // Create the embedding
-  const data = await fetch(_url.toString());
+  const { response, data } = await useFetch(_url.toString()).get().blob();
 
-  if (data.ok) {
+  // Check if fetching the image was successful
+  if (response.value?.ok && data.value != null) {
     // Load the new embedding
     await fetchDRImage();
     return;
