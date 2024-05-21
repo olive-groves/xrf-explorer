@@ -37,15 +37,6 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route('/api/available_data_sources')
-def list_accessible_data_sources():
-    try:
-        return json.dumps(get_data_sources_names())
-    except Exception as e:
-        LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing data sources", 500
-
-
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if request.method == 'POST':
@@ -85,25 +76,6 @@ def list_element_names():
         LOG.error(f"Failed to serialize element names: {str(e)}")
         return "Error occurred while listing element names", 500
 
-
-@app.route('/api/element_averages')
-def list_element_averages():
-    composition: list[dict[str,  str | float]] = get_element_averages()
-    try:
-        return json.dumps(composition)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element averages: {str(e)}")
-        return "Error occurred while listing element averages", 500
-
-
-@app.route('/api/element_names')
-def list_element_names():
-    names: list[str] = get_element_names()
-    try:
-        return json.dumps(names)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element names: {str(e)}")
-        return "Error occurred while listing element names", 500
     
 @app.route('/api/get_average_data', methods=['GET'])
 def get_average_data():
