@@ -22,7 +22,6 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
     return True
 
 
-# TODO: Change this method to the actual elemental data cube
 def get_elemental_data_cube(config_path: str = "config/backend.yml") -> np.ndarray | None:
     # load backend config
     backend_config: dict = load_yml(config_path)
@@ -45,7 +44,6 @@ def get_elemental_data_cube(config_path: str = "config/backend.yml") -> np.ndarr
     return elemental_data_cube
 
 
-# TODO: Change this method to the actual image overlay
 def get_registered_painting_image(type: str, config_path: str = "config/backend.yml") -> np.ndarray:
     # load backend config
     backend_config: dict = load_yml(config_path)

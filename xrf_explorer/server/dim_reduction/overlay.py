@@ -18,17 +18,19 @@ OVERLAY_IMAGE: list[str] = ['rgb', 'uv', 'xray']
 
 
 def create_embedding_image(overlay_type: str, config_path: str = "config/backend.yml") -> bool:
-    """Create the embedding image from the embedding.
+    """Creates the embedding image from the embedding.
 
     :param overlay_type: The type of overlay to create. Can be 'rgb', 'uv', 'xray' or an element number.
     :param config_path: Path to the backend config file
-    :return: True if the embedding was successfully generated. Otherwise False.
+    :return: Path to created embedding image is succesfull, otherwise empty string.
     """
+
+    LOG.info("Creating embedding image...")
 
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
-        return False
+        return ""
     dr_folder: dict = backend_config['dim-reduction']['folder']
 
     # Load the file embedding.npy
@@ -37,49 +39,50 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
         embedding: np.ndarray = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
-        return False
+        return ""
 
     # Create the overlay
     overlay: np.ndarray
 
     if overlay_type in OVERLAY_IMAGE:
-        overlay = create_image_overlay(overlay_type, indices)
+        overlay = create_image_overlay(overlay_type, indices, config_path=config_path)
     else:
         # Show element overlay
         # Get the element
         element: int = int(overlay_type)
 
         # Get elemental data cube
-        data_cube: np.ndarray | None = get_elemental_data_cube()
+        data_cube: np.ndarray | None = get_elemental_data_cube(config_path=config_path)
 
         if data_cube is None:
-            return False
+            return ""
 
         # Verify valid element
         if not valid_element(element, data_cube):
-            return False
+            return ""
 
         # Create the overlay
         embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
 
     # Create the plot
     LOG.info("Creating embedding image...")
-    create_image(embedding, overlay, Path(backend_config['temp-folder'], dr_folder))
+    path_to_image = plot_embedding_with_overlay(embedding, overlay, Path(backend_config['temp-folder'], dr_folder))
     LOG.info("Created embedding image successfully")
 
-    return True
+    return path_to_image
 
 
-def create_image_overlay(overlay_type: str, indices: np.ndarray) -> np.ndarray:
-    """ Gets the pixels out of the image at the given indices.
+def create_image_overlay(overlay_type: str, indices: np.ndarray, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Creates the overlay based on the given image type. This is dony 
+    by getting the pixels out of the image at the given indices.
 
-    :param overlay_type: The type of overlay to create.
+    :param overlay_type: The type of overlay to create. i.e. 'rgb', 'uv', 'xray'.
     :param indices: The indices to get the pixels from.
-    :return: The pixels at the given indices of the image.
+    :return: The normalized pixels at the given indices of the image.
     """
 
     # Get the pixels in the picture at the given path
-    overlay_data: np.ndarray = get_registered_painting_image(overlay_type)
+    overlay_data: np.ndarray = get_registered_painting_image(overlay_type, config_path=config_path)
 
     # Get the pixels at the given indices
     overlay: np.ndarray = overlay_data[indices[:, 0], indices[:, 1]]
@@ -114,12 +117,14 @@ def create_element_overlay(
     return sorted_embedding, sorted_overlay
 
 
-def create_image(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> None:
-    """Creates the image of the embedding with the overlay and saves it to the given path.
+def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> str:
+    """Makes the image of the given embedding with the given overlay and 
+    saves it to the given path.
     
     :param embedding: The embedding data.
     :param overlay: The overlay data.
     :param path: The path to save the image.
+    :return: Path to the created image.
     """
 
     # Create the plot
@@ -130,24 +135,9 @@ def create_image(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> None
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
-    plt.savefig(join(path, 'embedding.png'), bbox_inches='tight', transparent=True)
+    # Save the plot 
+    image_path = join(path, 'embedding.png')
 
+    plt.savefig(image_path, bbox_inches='tight', transparent=True)
 
-def get_embedding_image(overlay_type: str) -> str:
-    """Create the embedding image based on the given arguments.
-
-    :param overlay_type: The type of overlay to create.
-    :return: String path to the embedding image. If an error occured
-    an empty string is returned.
-    """
-
-    LOG.info("Creating embedding image...")
-
-    # Create the embedding image
-    if not create_embedding_image(overlay_type):
-        LOG.error("Failed to create DR embedding image")
-        return ""
-    
-    # Return the embedding
-    LOG.info("Created embedding image successfully")
-    return "server/temp/dim_reduction/embedding.png" # TODO: Fix this path
+    return image_path
