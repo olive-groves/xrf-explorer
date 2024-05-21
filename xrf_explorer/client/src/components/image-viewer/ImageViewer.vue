@@ -150,6 +150,7 @@ function onWheel(event: WheelEvent) {
     :class="{
       'cursor-grab': !dragging,
       'cursor-grabbing': dragging,
+      'cursor-crosshair': toolState.tool == 'lens',
     }"
   >
     <canvas

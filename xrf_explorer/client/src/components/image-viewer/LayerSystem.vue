@@ -18,7 +18,7 @@ watch(
   (newGroups) => {
     groups.value = Object.keys(newGroups)
       .map((key) => newGroups[key])
-      .sort((a, b) => b.index - a.index);
+      .sort((a, b) => a.index - b.index);
   },
   { immediate: true },
 );
