@@ -69,6 +69,9 @@ function setup() {
             d3.selectAll("path").attr("transform", e.transform);
         }
     }*/
+
+  getElements();
+  plotAverageSpectrum(low, high, binSize);
 }
 const globalChecked = ref(false);
 const elementChecked = ref(false);
@@ -320,10 +323,6 @@ function updateSelection() {
     d3.select("#selectionLine").style("opacity", 0);
   }
 }
-
-getElements();
-
-plotAverageSpectrum(low, high, binSize);
 
 //
 /**

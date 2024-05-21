@@ -76,7 +76,7 @@ def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> 
     
     return average_values
 
-def get_average_selection(data: np.ndarray, pixels: list, low: int, high: int, bin_size: int) -> list:
+def get_average_selection(data: np.ndarray, pixels: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the selected pixels
     Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
     Precondition: forall pixel in pixels, 0 <= pixel[0] < width, 0 <= pixel[1] < height

@@ -9,9 +9,6 @@ from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
-from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
-
 from xrf_explorer.server.spectra import *
 import json
 
@@ -141,12 +138,13 @@ def get_selection_sectra():
 
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
-    pixels = request.args.getlist("pixels")
+    #TODO retrieive selection
+    pixels = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', 'C:/Users/20210792/Downloads/info.rpl')
+    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
     
     result = get_average_selection(datacube, pixels, low, high, bin_size)
     
