@@ -166,7 +166,7 @@ fetchDRImage();
     <!-- GENERATION OF THE IMAGE -->
     <Separator class="w-64 ml-1 mt-2 mb-2"/>
     <p class="font-bold ml-1">Generated image:</p>
-    <div class="ml-1 mt-1">
+    <div class="flex ml-1 mt-1 aspect-square items-center justify-center">
       <span v-if="status == Status.LOADING">Loading...</span>
       <span v-if="status == Status.GENERATING">Generating...</span>
       <span v-if="status == Status.ERROR">{{ currentError }}</span>
