@@ -76,7 +76,7 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
 
 def create_image_overlay(overlay_type: str, indices: np.ndarray, config_path: str = "config/backend.yml") -> np.ndarray:
-    """Creates the overlay based on the given image type. This is done 
+    """Creates the overlay based on the given image type. This is done
     by getting the pixels out of the image at the given indices.
 
     :param overlay_type: The type of overlay to create. i.e. 'rgb', 'uv', 'xray'.
