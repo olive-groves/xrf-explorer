@@ -40,7 +40,7 @@ const selectedElement = ref();
 const selectedOverlay = ref();
 
 // Dimensionality reduction image
-const imageSourceUrl = ref("");
+const imageSourceUrl = ref();
 
 /**
  * Fetch the dimensionality reduction image
