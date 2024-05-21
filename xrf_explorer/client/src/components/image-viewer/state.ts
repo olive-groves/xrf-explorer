@@ -49,6 +49,15 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 }
 
 /**
+ * Helper function that completely updates the layers in a layer group.
+ * @param group - The layer group that should be updated.
+ */
+export function updateLayerGroupLayers(group: LayerGroup) {
+  setLayerGroupIndex(group);
+  setLayerGroupVisibility(group);
+}
+
+/**
  * Updates the iIndex uniform for all layers in a layer group.
  * @param group - The layer group that should be updated.
  */

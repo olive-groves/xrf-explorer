@@ -1,10 +1,10 @@
 import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
-import { createLayer, layerGroups, layers } from "./state";
+import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { computed, watch } from "vue";
 import { appState } from "@/lib/app_state";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
-import { LayerVisibility } from "./types";
+import { LayerGroup, LayerVisibility } from "./types";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -51,6 +51,8 @@ function createBaseLayer(image: ContextualImage) {
     visible: true,
     visibility: LayerVisibility.Visible,
   };
+
+  updateLayerGroupLayers(layerGroups.value.base);
 }
 
 /**
@@ -61,7 +63,7 @@ function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;
   const layer = createLayer(id, image);
 
-  layerGroups.value[id] = {
+  const layerGroup: LayerGroup = {
     type: "contextual",
     name: image.name,
     description: "Contextual image",
@@ -70,4 +72,7 @@ function createContextualLayer(image: ContextualImage) {
     visible: false,
     visibility: LayerVisibility.Visible,
   };
+
+  layerGroups.value[id] = layerGroup;
+  updateLayerGroupLayers(layerGroup);
 }
