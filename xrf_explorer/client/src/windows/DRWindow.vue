@@ -4,7 +4,18 @@ import { ref } from "vue";
 import { inject } from "vue";
 import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
 import { useFetch } from "@vueuse/core";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { FrontendConfig } from "@/lib/config";
 
 // Constants
@@ -18,14 +29,15 @@ enum Status {
   GENERATING,
   ERROR,
   SUCCESS,
+  WELCOME,
 }
-const status = ref(Status.LOADING);
+const status = ref(Status.WELCOME);
 const currentError = ref("Error");
 
 // Dimensionality reduction parameters
-const threshold = ref(100);
-const selectedElement = ref(9);
-const selectedOverlay = ref("rgb");
+const threshold = ref([100]);
+const selectedElement = ref();
+const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref("");
@@ -84,39 +96,82 @@ async function updateEmbedding() {
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
 }
-
-fetchDRImage();
 </script>
 
 <template>
   <Window title="Dimensionality reduction">
-    <span v-if="status == Status.LOADING">Loading...</span>
-    <span v-if="status == Status.GENERATING">Generating...</span>
-    <span v-if="status == Status.ERROR">{{ currentError }}</span>
-    <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
-
-    <p>Overlays {{ selectedOverlay }}:</p>
-    <select v-model="selectedOverlay">
-      <option value="rgb">rgb</option>
-      <option value="uv">uv</option>
-      <option value="xray">xray</option>
-      <option value="0">Element 0</option>
-      <option value="1">Element 1</option>
-      <option value="9">Element 9</option>
-    </select>
-    <br />
-    <Button @click="fetchDRImage">Show overlay</Button>
-    <p>Parameters:</p>
-    <p>Threshold: {{ threshold }}</p>
-    <input type="range" v-model="threshold" min="0" max="255" />
-    <br />
-    <p>Element: {{ selectedElement }}</p>
-    <select v-model="selectedElement">
-      <option value="0">Element 0</option>
-      <option value="1">Element 1</option>
-      <option value="9">Element 9</option>
-    </select>
-    <br />
-    <Button @click="updateEmbedding">Generate</Button>
+    <!-- OVERLAY SECTION -->
+    <p class="font-bold ml-1">Overlay:</p>
+    <div class="flex items-center mt-1" >
+      <Select v-model="selectedOverlay">
+        <SelectTrigger class="w-32 ml-1">
+          <SelectValue placeholder="Select an overlay" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Overlays</SelectLabel>
+            <SelectItem value="rgb">
+              RGB
+            </SelectItem>
+            <SelectItem value="uv">
+              UV
+            </SelectItem>
+            <SelectItem value="xray">
+              XRay
+            </SelectItem>
+            <SelectItem value="0">
+              Element 0
+            </SelectItem>
+            <SelectItem value="1">
+              Element 1
+            </SelectItem>
+            <SelectItem value="9">
+              Element 9
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button class="block w-28 ml-4" @click="fetchDRImage">Show overlay</Button>
+    </div>
+    <!-- PARAMETERS SECTIONS -->
+    <Separator class="w-64 ml-1 mt-2 mb-2"/>
+    <p class="font-bold ml-1">Parameters:</p>
+    <Slider class="w-64 ml-1 mt-2 mb-1" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
+    <FormDescription class="ml-1">
+      <span class="italic text-xs">Threshold value: </span>
+      <span class="italic text-xs">{{ threshold?.[0] }}</span>
+    </FormDescription>
+    <div class="flex items-center mt-1">
+      <Select v-model="selectedElement">
+        <SelectTrigger class="w-32 ml-1">
+          <SelectValue placeholder="Select an element" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Elements</SelectLabel>
+            <SelectItem value="0">
+              Element 0
+            </SelectItem>
+            <SelectItem value="1">
+              Element 1
+            </SelectItem>
+            <SelectItem value="9">
+              Element 9
+            </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <Button class="block w-28 ml-4" @click="updateEmbedding">Generate</Button>
+    </div>
+    <!-- GENERATION OF THE IMAGE -->
+    <Separator class="w-64 ml-1 mt-2 mb-2"/>
+    <p class="font-bold ml-1">Generated image:</p>
+    <div class="flex ml-1 mt-1 aspect-square items-center justify-center text-center">
+      <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
+      <span v-if="status == Status.LOADING">Loading...</span>
+      <span v-if="status == Status.GENERATING">Generating...</span>
+      <span v-if="status == Status.ERROR">{{ currentError }}</span>
+      <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
+    </div>
   </Window>
 </template>
