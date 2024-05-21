@@ -35,8 +35,8 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
     # Load the file embedding.npy
     try:
-        indices: np.ndarray = np.load(Path(backend_config['temp-folder'], dr_folder, 'indices.npy'))
-        embedding: np.ndarray = np.load(Path(backend_config['temp-folder'], dr_folder, 'embedded_data.npy'))
+        indices: np.ndarray = np.load(Path(dr_folder, 'indices.npy'))
+        embedding: np.ndarray = np.load(Path(dr_folder, 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return ""
@@ -68,7 +68,7 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
     # Create the plot
     LOG.info("Creating embedding image...")
-    path_to_image = plot_embedding_with_overlay(embedding, overlay, Path(backend_config['temp-folder'], dr_folder))
+    path_to_image = plot_embedding_with_overlay(embedding, overlay, Path(dr_folder))
     LOG.info("Created embedding image successfully")
 
     return path_to_image

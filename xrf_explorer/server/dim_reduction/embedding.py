@@ -114,7 +114,7 @@ def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, 
         return False
 
     # save indices and embedded data
-    folder_to_store: Path = Path(backend_config['temp-folder'], backend_config['dim-reduction']['folder'])
+    folder_to_store: str = backend_config['dim-reduction']['folder']
     np.save(join(folder_to_store, 'indices.npy'), indices)
     np.save(join(folder_to_store, 'embedded_data.npy'), embedded_data)
 
