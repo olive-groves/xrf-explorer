@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { ToolState } from "./types";
 import { useResizeObserver } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -140,6 +140,17 @@ function onMouseMove(event: MouseEvent) {
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
 }
+
+/**
+ * Determines the current cursor that should be used in the image viewer.
+ */
+const cursor = computed(() => {
+  if (toolState.value.tool == "lens") {
+    return "crosshair";
+  } else {
+    return dragging.value ? "grabbing" : "grab";
+  }
+});
 </script>
 
 <template>
@@ -147,10 +158,8 @@ function onWheel(event: WheelEvent) {
   <div
     ref="glcontainer"
     class="size-full"
-    :class="{
-      'cursor-grab': !dragging,
-      'cursor-grabbing': dragging,
-      'cursor-crosshair': toolState.tool == 'lens',
+    :style="{
+      cursor: cursor,
     }"
   >
     <canvas
