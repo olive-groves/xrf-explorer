@@ -1,5 +1,6 @@
 import logging 
 
+from os.path import isfile, join
 from pathlib import Path
 
 import numpy as np
@@ -8,9 +9,6 @@ from umap import UMAP
 from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
-
-DR_ARGS: list[str] = ['element', 'threshold', 'n-neighbors', 'min-dist', 'n-components', 'metric']
-
 
 def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components: int, metric: str) -> np.ndarray | None:
     """Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
@@ -51,16 +49,20 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: i
     # return the filtered indices
     return indices
 
+def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, str] = {}, config_path: str = "config/backend.yml") -> bool:
+    """Generate the embedding (lower dimensional reprensentation of the data) of the 
+    elemental data cube using the dimensionality reduction method "UMAP". The embedding 
+    with the list of indices (which pixels from the elemental data cube are in the embedding) 
+    are stored in the folder specified in the backend config file. The order the indices
+    occur in the indices list is the same order as the positions of the mapped pixels in 
+    the embedding.
 
-def generate_embedding(args: dict[str, str], config_path: str = "config/backend.yml") -> bool:
-    """Generate the embedding of the elemental data cube.
-
-    :param args: Arguments for generating the embedding. Should at least contain the element.
+    :param element: The element to generate the embedding for.
+    :param threshold: The threshold to filter the data cube by.
+    :param umap_parameters: The parameters passed on to the UMAP algorithm.
     :param config_path: Path to the backend config file
     :return: True if the embedding was successfully generated. Otherwise False.
     """
-    # Compute the embedding
-    args: dict[str, str] = {key: args[key] for key in DR_ARGS if key in args.keys()}
 
     # load backend config
     backend_config: dict = load_yml(config_path)
@@ -69,15 +71,17 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
         return False
     
     # get default dim reduction config
-    dr_config: dict = backend_config['dim-reduction']
-    dr_config.update(args)
+    default_umap_parameters: dict[str, str] = backend_config['dim-reduction']['umap-parameters']
 
-    # get the filter parameters
-    element: int = int(dr_config['element'])
-    threshold: int = int(dr_config['threshold'])
+    # update default umap parameters with the given umap parameters
+    modified_umap_parameters: dict[str, str] = umap_parameters.copy()
+    modified_umap_parameters.update(default_umap_parameters)
 
     # get data cube
     data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy') # TODO change this to the actual data cube
+    if not isfile(data_cube_path):
+        LOG.error(f"Data cube not found: {data_cube_path}")
+        return False
     data_cube: np.ndarray = np.load(data_cube_path)
     LOG.info(f"Loaded data cube from: {data_cube_path}")
 
@@ -99,10 +103,10 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
     
     embedded_data: np.ndarray | None = apply_umap(
         filtered_data,
-        int(dr_config['n-neighbors']), 
-        float(dr_config['min-dist']), 
-        int(dr_config['n-components']), 
-        dr_config['metric']
+        int(modified_umap_parameters['n-neighbors']), 
+        float(modified_umap_parameters['min-dist']), 
+        int(modified_umap_parameters['n-components']), 
+        modified_umap_parameters['metric']
     )
 
     if embedded_data is None:
@@ -110,8 +114,9 @@ def generate_embedding(args: dict[str, str], config_path: str = "config/backend.
         return False
 
     # save indices and embedded data
-    np.save(Path(backend_config['temp-folder'], dr_config['folder'], 'indices.npy'), indices)
-    np.save(Path(backend_config['temp-folder'], dr_config['folder'], 'embedded_data.npy'), embedded_data)
+    folder_to_store: Path = Path(backend_config['temp-folder'], backend_config['dim-reduction']['folder'])
+    np.save(join(folder_to_store, 'indices.npy'), indices)
+    np.save(join(folder_to_store, 'embedded_data.npy'), embedded_data)
 
     LOG.info("Generated embedding successfully")
     return True

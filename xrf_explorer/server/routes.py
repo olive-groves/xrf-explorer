@@ -59,9 +59,16 @@ def get_dr_embedding():
     if 'element' not in request.args:
         LOG.error("Missing element number")
         abort(400)
+    elif 'threshold' not in request.args:
+        LOG.error("Missing threshold value")
+        abort(400)
+
+    # Get element and threshold
+    element: int = int(request.args['element'])
+    threshold: int = int(request.args['threshold'])
 
     # Try to generate the embedding
-    if not generate_embedding(request.args):
+    if not generate_embedding(element, threshold, request.args):
         abort(400)
 
     return "Generated embedding successfully"
