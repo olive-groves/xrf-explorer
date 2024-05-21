@@ -50,6 +50,7 @@ function createBaseLayer(image: ContextualImage) {
     index: 1,
     visible: true,
     visibility: LayerVisibility.Visible,
+    opacity: [1.0],
   };
 
   updateLayerGroupLayers(layerGroups.value.base);
@@ -71,6 +72,7 @@ function createContextualLayer(image: ContextualImage) {
     index: 0,
     visible: false,
     visibility: LayerVisibility.Visible,
+    opacity: [1.0],
   };
 
   layerGroups.value[id] = layerGroup;

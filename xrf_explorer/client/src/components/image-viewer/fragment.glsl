@@ -11,6 +11,7 @@ uniform sampler2D tImage;
 uniform vec2 uMouse; 
 uniform float uRadius;
 uniform int iShowLayer;
+uniform float uOpacity;
 
 varying vec2 vUv;
 
@@ -47,4 +48,6 @@ void main() {
   {
     gl_FragColor = transparent;
   }
+
+  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
 }

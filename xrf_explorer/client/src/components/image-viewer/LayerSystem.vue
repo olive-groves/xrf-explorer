@@ -3,12 +3,13 @@ import { VueDraggableNext } from "vue-draggable-next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { ref, watch } from "vue";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility } from "./state";
+import { layerGroups, setLayerGroupIndex, setLayerGroupOpacity, setLayerGroupVisibility } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
@@ -73,10 +74,24 @@ function checkedOutsideLens(group: LayerGroup) {
           <EyeOff v-else />
         </Button>
       </div>
-      <div v-if="group.visible" class="space-y-1">
+      <div v-if="group.visible" class="space-y-2">
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div>Opacity</div>
+            <div>{{ group.opacity[0] }}</div>
+          </div>
+          <Slider
+            v-model="group.opacity"
+            :min="0"
+            :step="0.01"
+            :max="1"
+            class="pb-2"
+            @update:model-value="() => setLayerGroupOpacity(group)"
+          />
         </div>
       </div>
     </Card>

@@ -47,6 +47,10 @@ export type LayerUniform = {
    */
   iShowLayer: { value: LayerVisibility };
   /**
+   * The opacity that the layer should be drawn at.
+   */
+  uOpacity: { value: number };
+  /**
    * The location of the mouse in WebGL coordinates.
    */
   uMouse: { value: THREE.Vector2 };
@@ -115,6 +119,10 @@ export type LayerGroup = {
    * Determines where the layers in this group are visible.
    */
   visibility: LayerVisibility;
+  /**
+   * Opacity of the layers in this group.
+   */
+  opacity: number[];
 };
 
 /**

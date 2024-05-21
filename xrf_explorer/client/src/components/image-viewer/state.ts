@@ -36,6 +36,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
       iShowLayer: { value: 0 },
+      uOpacity: { value: 0 },
       uMouse: { value: new THREE.Vector2() },
       uRadius: { value: 0 },
     },
@@ -55,6 +56,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 export function updateLayerGroupLayers(group: LayerGroup) {
   setLayerGroupIndex(group);
   setLayerGroupVisibility(group);
+  setLayerGroupOpacity(group);
 }
 
 /**
@@ -73,4 +75,12 @@ export function setLayerGroupVisibility(group: LayerGroup) {
   const visibility = group.visible ? group.visibility : LayerVisibility.Invisible;
 
   group.layers.forEach((layer) => (layer.uniform.iShowLayer.value = visibility));
+}
+
+/**
+ * Updates the opacity uniform for all layers in a layer group.
+ * @param group - The group that should be updated.
+ */
+export function setLayerGroupOpacity(group: LayerGroup) {
+  group.layers.forEach((layer) => (layer.uniform.uOpacity.value = group.opacity[0]));
 }
