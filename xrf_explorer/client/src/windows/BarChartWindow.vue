@@ -163,7 +163,7 @@ watch(barchart, (n, o) => {
 </script>
 
 <template>
-  <Window title="Bar Chart Window" opened>
+  <Window title="Bar Chart Window" opened location="right">
     <AspectRatio :ratio="4 / 3">
       <svg ref="barchart"></svg>
     </AspectRatio>

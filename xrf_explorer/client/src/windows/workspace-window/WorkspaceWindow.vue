@@ -8,7 +8,7 @@ const workspace = computed(() => appState.workspace);
 </script>
 
 <template>
-  <Window title="Workspace Setup" opened>
+  <Window title="Workspace Setup" opened location="right">
     {{ workspace }}
     <Button @click="appState.workspace!.name += '.'">Modify</Button>
   </Window>
