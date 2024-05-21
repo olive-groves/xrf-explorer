@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Teleport, toRef } from "vue";
+import { Teleport, computed, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
@@ -25,6 +25,8 @@ const props = defineProps<{
   location?: WindowLocation;
 }>();
 
+const emit = defineEmits(["windowMounted"]);
+
 const id = snakeCase(props.title);
 
 if (!(id in windowState)) {
@@ -39,6 +41,13 @@ if (!(id in windowState)) {
 }
 
 const state = toRef(windowState, id);
+const mounted = computed(() => state.value.portalMounted);
+
+watch(mounted, (value) => {
+  if (value) {
+    emit("windowMounted");
+  }
+});
 </script>
 
 <template>
