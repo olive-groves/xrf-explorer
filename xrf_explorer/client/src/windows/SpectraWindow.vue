@@ -182,7 +182,6 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
 
 /**
  * Plots the theoretical spectrum and peaks of an element.
- *
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
  * @param low Lower channel boundary.
