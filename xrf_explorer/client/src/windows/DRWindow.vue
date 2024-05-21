@@ -32,7 +32,7 @@ enum Status {
   WELCOME,
 }
 const status = ref(Status.WELCOME);
-const currentError = ref("Error");
+const currentError = ref("Unknown error.");
 
 // Dimensionality reduction parameters
 const threshold = ref([100]);
@@ -40,7 +40,7 @@ const selectedElement = ref();
 const selectedOverlay = ref();
 
 // Dimensionality reduction image
-const imageSourceUrl = ref("");
+const imageSourceUrl = ref();
 
 /**
  * Fetch the dimensionality reduction image
