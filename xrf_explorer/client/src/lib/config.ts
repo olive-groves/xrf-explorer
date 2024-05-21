@@ -50,7 +50,7 @@ export const DefaultConfig: FrontendConfig = {
     endpoint: "http://localhost:8001/api",
   },
   imageViewer: {
-    defaultMovementSpeed: 2.0,
+    defaultMovementSpeed: 1.0,
     defaultScrollSpeed: 1.0,
   },
   defaultTheme: "dark",
