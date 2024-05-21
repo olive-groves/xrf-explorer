@@ -253,7 +253,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(`${url}/get_elements`, {
+    const response = await fetch(`${url}/element_names`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.1.0",
+    "@types/d3": "^7.4.3",
     "@types/node": "^20.12.7",
     "@types/three": "^0.164.0",
-    "@types/d3": "^7.4.3",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
     "@vitejs/plugin-vue": "^5.0.4",

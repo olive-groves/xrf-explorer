@@ -1,16 +1,28 @@
 #This module contains all functions related to the spectral chart
+from os.path import join
+from pathlib import Path
 import numpy as np 
 import xraydb 
 import logging
+
+from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
-def get_raw_data(raw_filename: str, rpl_filename: str) -> np.ndarray:
+def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "config/backend.yml") -> np.ndarray:
     """Parse the raw data cube as a 3-dimensional numpy array
     
     :param raw_filename: the path to the .raw file
     :param rpl_filename: the path to the .rpl file
     :return: 3-dimensional array containing the raw data in format {x, y, channel}
     """
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return np.empty(0)
+
+    # get the path to the file in the server
+    path_to_file: str = join(Path(backend_config['uploads-folder']), raw_filename)
     
     #get dimensions from rpl file
     info = parse_rpl(rpl_filename)
@@ -20,13 +32,13 @@ def get_raw_data(raw_filename: str, rpl_filename: str) -> np.ndarray:
 
     try:
         #load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(raw_filename, dtype=np.uint16, mode='r')
+        datacube = np.memmap(path_to_file, dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
 
-def parse_rpl(filename) -> dict:
+def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
     """Parse the given rpl file name as a dictionary, containing the following info:
         - width
         - height
@@ -38,22 +50,30 @@ def parse_rpl(filename) -> dict:
         - record by
         
     :param filename: the path to the .rpl file
-
     :return: Dictionary containing the attributes' name and value
     """
     
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return np.empty(0)
+
+    # get the path to the file in the server
+    path_to_file: str = join(Path(backend_config['uploads-folder']), filename)
+    
     try:
-        with open(filename, 'r') as in_file:
+        with open(path_to_file, 'r') as in_file:
             info = in_file.read().splitlines() #first split on linebreak
     except OSError as err:
         LOG.error("error while reading rpl file: {%s}", err)
         
-    dict = {}
+    map = {}
     for line in info:
         split = line.split("\t") #then split on tab
-        dict[split[0].strip()] = split[1].strip() #add tuple to dictionary
+        map[split[0].strip()] = split[1].strip() #add tuple to dictionary
                
-    return dict
+    return map
 
 def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
