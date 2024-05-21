@@ -5,7 +5,7 @@ import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 
 // Import all windows
-import { TestWindow, BarChartWindow } from "@/windows";
+import { TestWindow, BarChartWindow, DRWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
@@ -31,6 +31,7 @@ console.log("Client created with configuration: ", props.config);
       <!-- Place all windows below here -->
       <TestWindow />
       <BarChartWindow />
+      <DRWindow />
     </WindowContainer>
 
     <!-- Place all reusable dialogs here -->

@@ -1,2 +1,10 @@
 uploads-folder: "xrf_explorer/server/temp"
 upload-buffer-size: 16384
+temp-folder: "xrf_explorer/server/temp"
+dim-reduction:
+  folder: "xrf_explorer/server/temp/dim_reduction"
+  umap-parameters:
+    n-neighbors: 10
+    min-dist: 0
+    n-components: 2
+    metric: 'cosine'
