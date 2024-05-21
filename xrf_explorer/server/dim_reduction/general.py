@@ -49,7 +49,7 @@ def get_registered_painting_image(type: str, config_path: str = "config/backend.
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         LOG.error("Failed to compute DR embedding")
-        return False
+        return np.empty(0)
     
     # path to the painting image
     path_to_image: Path = Path(backend_config['uploads-folder'], 'test overlays', f'{type}.png')
