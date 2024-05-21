@@ -64,7 +64,7 @@ def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, 
     :param element: The element to generate the embedding for.
     :param threshold: The threshold to filter the data cube by.
     :param umap_parameters: The parameters passed on to the UMAP algorithm.
-    :param config_path: Path to the backend config file
+    :param config_path: Path to the backend config file.
     :return: True if the embedding was successfully generated. Otherwise, False.
     """
 
