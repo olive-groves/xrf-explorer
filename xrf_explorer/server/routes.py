@@ -1,6 +1,7 @@
 import logging
 import json
 
+from os.path import abspath
 from flask import abort, request, redirect, send_file
 from werkzeug.datastructures.file_storage import FileStorage
 
@@ -110,4 +111,4 @@ def get_dr_overlay():
         LOG.error("Failed to create DR embedding image")
         abort(400)
 
-    return send_file(image_path, mimetype='image/png')
+    return send_file(abspath(image_path), mimetype='image/png')

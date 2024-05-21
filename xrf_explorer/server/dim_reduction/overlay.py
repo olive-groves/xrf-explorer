@@ -1,6 +1,6 @@
 import logging 
 
-from os.path import join
+from os.path import join, abspath
 from pathlib import Path
 
 import numpy as np
@@ -35,8 +35,8 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
     # Load the file embedding.npy
     try:
-        indices: np.ndarray = np.load(Path(dr_folder, 'indices.npy'))
-        embedding: np.ndarray = np.load(Path(dr_folder, 'embedded_data.npy'))
+        indices: np.ndarray = np.load(Path(abspath(dr_folder), 'indices.npy'))
+        embedding: np.ndarray = np.load(Path(abspath(dr_folder), 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return ""

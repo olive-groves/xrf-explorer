@@ -1,6 +1,6 @@
 import logging 
 
-from os.path import join
+from os.path import join, abspath
 from pathlib import Path
 
 import numpy as np
@@ -115,8 +115,8 @@ def generate_embedding(element: int, threshold: int, umap_parameters: dict[str, 
 
     # save indices and embedded data
     folder_to_store: str = backend_config['dim-reduction']['folder']
-    np.save(join(folder_to_store, 'indices.npy'), indices)
-    np.save(join(folder_to_store, 'embedded_data.npy'), embedded_data)
+    np.save(join(abspath(folder_to_store), 'indices.npy'), indices)
+    np.save(join(abspath(folder_to_store), 'embedded_data.npy'), embedded_data)
 
     LOG.info("Generated embedding successfully")
     return True
