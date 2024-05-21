@@ -17,7 +17,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 OVERLAY_IMAGE: list[str] = ['rgb', 'uv', 'xray']
 
 
-def create_embedding_image(overlay_type: str, config_path: str = "config/backend.yml") -> bool:
+def create_embedding_image(overlay_type: str, config_path: str = "config/backend.yml") -> str:
     """Creates the embedding image from the embedding.
 
     :param overlay_type: The type of overlay to create. Can be 'rgb', 'uv', 'xray' or an element number.
@@ -63,6 +63,8 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
         # Create the overlay
         embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
+
+    LOG.info("Created overlay successfully")
 
     # Create the plot
     LOG.info("Creating embedding image...")
