@@ -33,8 +33,8 @@ const currentError = ref("Error");
 
 // Dimensionality reduction parameters
 const threshold = ref([100]);
-const selectedElement = ref(9);
-const selectedOverlay = ref("rgb");
+const selectedElement = ref();
+const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref("");
