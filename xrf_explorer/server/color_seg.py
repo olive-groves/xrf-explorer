@@ -2,14 +2,10 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 import cv2
-from colormath.color_objects import LabColor, sRGBColor
-from colormath.color_conversions import convert_color
 from sklearn.cluster import DBSCAN
 from PIL import Image
 from skimage import color
 import skimage
-from matplotlib.colors import ListedColormap
-
 
 def get_pixels_in_clusters(big_image, clusters, threshold):
     """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks.
@@ -96,6 +92,9 @@ def get_clusters_using_k_means(small_image, nr_of_attempts=20, k=20):
        
     :return: an array of labels of the clusters and the array of centers of clusters
     """
+
+    #set seed so results are consistent
+    cv2.setRNGSeed(0)
 
     # reshape image
     reshaped_image = reshape_image(small_image)
@@ -192,28 +191,6 @@ def image_to_lab(small_image):
     lab = color.rgb2lab(small_image)
     
     return lab
-
-
-def find_closest_color_index(target_rgb, color_list):
-    """
-    Returns the index of the color in the provided list, closest to the target color (given in RGB format).
-    :param target_rgb: The color to find the closest color to.
-    :param color_list: The list of colors.
-    :return: The index of the closest color in the list.
-    """
-
-    target_lab = rgb_to_lab(target_rgb)
-    min_diff = float('inf')
-    closest_index = -1
-
-    for index, col in enumerate(color_list):
-        lab = rgb_to_lab(col)
-        diff = calculate_color_difference(target_lab, lab)
-        if diff < min_diff:
-            min_diff = diff
-            closest_index = index
-
-    return closest_index
 
 
 def calculate_color_difference(lab1, lab2):
@@ -389,8 +366,8 @@ small_image = get_small_image(img, 400)
 # Start timer
 start = time.time()
 
-k = 40
-color_similarity_threshold = 9
+k = 50
+color_similarity_threshold = 6
 color_merging_threshold = 1
 
 # Get clusters
@@ -422,7 +399,7 @@ for i in range(len(newClusters)):
     # Create a colormap with cluster color
     specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
 
-    # Plot bitmask
+    # Plot 
     visualize_stacked_images(img, cluster_res[i], 0.8)
     plt.title(str(c), color = specific_color)
     plt.show()
