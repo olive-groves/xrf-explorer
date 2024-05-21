@@ -7,6 +7,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 
@@ -51,6 +52,26 @@ def upload_file():
             return redirect("/")
 
     return "File upload page"
+
+
+@app.route('/api/element_averages')
+def list_element_averages():
+    composition: list[dict[str,  str | float]] = get_element_averages()
+    try:
+        return json.dumps(composition)
+    except Exception as e:
+        LOG.error(f"Failed to serialize element averages: {str(e)}")
+        return "Error occurred while listing element averages", 500
+
+
+@app.route('/api/element_names')
+def list_element_names():
+    names: list[str] = get_element_names()
+    try:
+        return json.dumps(names)
+    except Exception as e:
+        LOG.error(f"Failed to serialize element names: {str(e)}")
+        return "Error occurred while listing element names", 500
 
 
 @app.route('/api/get_dr_embedding')
