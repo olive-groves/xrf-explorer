@@ -35,6 +35,7 @@ def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "confi
         datacube = np.memmap(path_to_file, dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
+        return []
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
 
@@ -67,11 +68,15 @@ def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
             info = in_file.read().splitlines() #first split on linebreak
     except OSError as err:
         LOG.error("error while reading rpl file: {%s}", err)
-        
+        return {}
+    
     map = {}
-    for line in info:
-        split = line.split("\t") #then split on tab
-        map[split[0].strip()] = split[1].strip() #add tuple to dictionary
+    if info:    
+        for line in info:
+            split = line.split("\t") #then split on tab
+            map[split[0].strip()] = split[1].strip() #add tuple to dictionary
+    else:
+        LOG.error("Error while parsing rpl file: file empty")
                
     return map
 
@@ -84,7 +89,6 @@ def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> 
     :param high: higher channel boundary
     :param bin_size: size of each bin
     :return: list with the average raw data for each bin in the range
-    
     """
 
     average_values = []
@@ -107,7 +111,6 @@ def get_average_selection(data: np.ndarray, pixels: np.ndarray, low: int, high: 
     :param high: higher channel boundary
     :param bin_size: size of each bin
     :return: list with the average raw data for each bin in the range
-    
     """
     
     if pixels:
@@ -132,7 +135,7 @@ def get_average_selection(data: np.ndarray, pixels: np.ndarray, low: int, high: 
 
         return result
     else :
-        LOG.error("Selection is empty")
+        return []
     
 def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element
