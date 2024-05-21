@@ -3,7 +3,7 @@ import logging
 from os.path import join, abspath
 
 import numpy as np
-import umap
+from umap import UMAP
 
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.dim_reduction.general import valid_element, get_elemental_data_cube
@@ -25,7 +25,7 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     """
 
     try:
-        embedding: np.ndarray = umap.UMAP(
+        embedding: np.ndarray = UMAP(
             n_neighbors=n_neighbors,
             min_dist=min_dist,
             n_components=n_components,
