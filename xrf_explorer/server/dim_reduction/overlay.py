@@ -8,7 +8,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.dim_reduction.general import valid_element, get_elemental_data_cube, get_registered_painting_image
+from xrf_explorer.server.dim_reduction.general import (valid_element, get_elemental_data_cube,
+                                                       get_registered_painting_image)
 
 matplotlib.use('Agg')
 
@@ -22,7 +23,7 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
     :param overlay_type: The type of overlay to create. Can be 'rgb', 'uv', 'xray' or an element number.
     :param config_path: Path to the backend config file
-    :return: Path to created embedding image is succesfull, otherwise empty string.
+    :return: Path to created embedding image is successful, otherwise empty string.
     """
 
     LOG.info("Creating embedding image...")
@@ -31,7 +32,7 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         return ""
-    dr_folder: dict = backend_config['dim-reduction']['folder']
+    dr_folder: str = backend_config['dim-reduction']['folder']
 
     # Load the file embedding.npy
     try:
@@ -75,11 +76,12 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
 
 def create_image_overlay(overlay_type: str, indices: np.ndarray, config_path: str = "config/backend.yml") -> np.ndarray:
-    """Creates the overlay based on the given image type. This is dony 
+    """Creates the overlay based on the given image type. This is done 
     by getting the pixels out of the image at the given indices.
 
     :param overlay_type: The type of overlay to create. i.e. 'rgb', 'uv', 'xray'.
     :param indices: The indices to get the pixels from.
+    :param config_path: Path to the backend config file.
     :return: The normalized pixels at the given indices of the image.
     """
 
@@ -99,10 +101,10 @@ def create_element_overlay(
         element: np.ndarray, indices: np.ndarray, 
         data_cube: np.ndarray, embedding: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Creates an intensity overlay of the given element.
-    
+
     :param element: The element to create the overlay for.
     :param indices: The indices of the data to create the overlay for.
-    :param data: The data to create the overlay from.
+    :param data_cube: The data to create the overlay from.
     :param embedding: The embedding data.
     :return: The reordered embedding and overlay of the given element.
     """
