@@ -101,15 +101,10 @@ fetchDRImage();
 <template>
   <Window title="Dimensionality reduction">
     <!-- OVERLAY SECTION -->
-    <div class="flex items-center" >
-      <div class="block w-1"></div>
-      <p class="font-bold">Overlay:</p>
-    </div>
-    <div class="block h-1"></div>
-    <div class="flex items-center" >
-      <div class="block w-1"></div>
+    <p class="font-bold ml-1">Overlay:</p>
+    <div class="flex items-center mt-1" >
       <Select v-model="selectedOverlay">
-        <SelectTrigger class="w-32">
+        <SelectTrigger class="w-32 ml-1">
           <SelectValue placeholder="Select an overlay" />
         </SelectTrigger>
         <SelectContent>
@@ -136,37 +131,19 @@ fetchDRImage();
           </SelectGroup>
         </SelectContent>
       </Select>
-      <div class="block w-4"></div>
-      <Button class="block w-28" @click="fetchDRImage">Show overlay</Button>
+      <Button class="block w-28 ml-4" @click="fetchDRImage">Show overlay</Button>
     </div>
-    <div class="block h-2"></div>
     <!-- PARAMETERS SECTIONS -->
-    <div class="flex items-center">
-      <div class="block w-1"></div>
-      <Separator class="w-64"/>
-    </div>
-    <div class="block h-2"></div>
-    <div class="flex items-center">
-      <div class="block w-1"></div>
-      <p class="font-bold">Parameters:</p>
-    </div> 
-    <div class="block h-1"></div>
-    <div class="flex items-center" >
-      <div class="block w-1"></div>
-      <Slider class="w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
-    </div>
-    <div class="flex items-center">
-    <div class="block w-1"></div>
-    <FormDescription>
+    <Separator class="w-64 ml-1 mt-2 mb-2"/>
+    <p class="font-bold ml-1">Parameters:</p>
+    <Slider class="w-64 ml-1 mt-2 mb-1" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
+    <FormDescription class="ml-1">
       <span class="italic text-xs">Threshold value: </span>
       <span class="italic text-xs">{{ threshold?.[0] }}</span>
     </FormDescription>
-    </div>
-    <div class="block h-1"></div>
-    <div class="flex items-center">
-      <div class="block w-1"></div>
+    <div class="flex items-center mt-1">
       <Select v-model="selectedElement">
-        <SelectTrigger class="w-32">
+        <SelectTrigger class="w-32 ml-1">
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
@@ -184,23 +161,12 @@ fetchDRImage();
           </SelectGroup>
         </SelectContent>
       </Select>
-      <div class="block w-4"></div>
-      <Button class="block w-28" @click="updateEmbedding">Generate</Button>
+      <Button class="block w-28 ml-4" @click="updateEmbedding">Generate</Button>
     </div>
-    <div class="block h-2"></div>
     <!-- GENERATION OF THE IMAGE -->
-    <div class="flex items-center">
-      <div class="block w-1"></div>
-      <Separator class="w-64"/>
-    </div>
-    <div class="block h-2"></div>
-    <div class="flex items-center" >
-      <div class="block w-1"></div>
-      <p class="font-bold">Generated image:</p>
-    </div>
-    <div class="block h-1"></div>
-    <div class="flex items-center" >
-      <div class="block w-1"></div>
+    <Separator class="w-64 ml-1 mt-2 mb-2"/>
+    <p class="font-bold ml-1">Generated image:</p>
+    <div class="ml-1 mt-1">
       <span v-if="status == Status.LOADING">Loading...</span>
       <span v-if="status == Status.GENERATING">Generating...</span>
       <span v-if="status == Status.ERROR">{{ currentError }}</span>
