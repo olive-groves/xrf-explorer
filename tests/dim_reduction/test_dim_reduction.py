@@ -143,11 +143,10 @@ class TestDimReduction:
         element: int = 2
         threshold: int = 0
         umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
-        result: bool = generate_embedding(element, threshold, umap_parameters=umap_args,
-                                          config_path=self.CUSTOM_CONFIG_PATH)
+        generate_embedding(element, threshold, umap_parameters=umap_args, config_path=self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: bool = create_embedding_image(overlay_type, config_path=self.CUSTOM_CONFIG_PATH)
+        result: str = create_embedding_image(overlay_type, config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result
