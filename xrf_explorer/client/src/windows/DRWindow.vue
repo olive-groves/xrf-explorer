@@ -15,7 +15,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 import { FrontendConfig } from "@/lib/config";
 
 // Constants
@@ -101,72 +101,54 @@ async function updateEmbedding() {
 <template>
   <Window title="Dimensionality reduction">
     <!-- OVERLAY SECTION -->
-    <p class="font-bold ml-1">Overlay:</p>
-    <div class="flex items-center mt-1" >
+    <p class="ml-1 font-bold">Overlay:</p>
+    <div class="mt-1 flex items-center">
       <Select v-model="selectedOverlay">
-        <SelectTrigger class="w-32 ml-1">
+        <SelectTrigger class="ml-1 w-32">
           <SelectValue placeholder="Select an overlay" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Overlays</SelectLabel>
-            <SelectItem value="rgb">
-              RGB
-            </SelectItem>
-            <SelectItem value="uv">
-              UV
-            </SelectItem>
-            <SelectItem value="xray">
-              XRay
-            </SelectItem>
-            <SelectItem value="0">
-              Element 0
-            </SelectItem>
-            <SelectItem value="1">
-              Element 1
-            </SelectItem>
-            <SelectItem value="9">
-              Element 9
-            </SelectItem>
+            <SelectItem value="rgb"> RGB </SelectItem>
+            <SelectItem value="uv"> UV </SelectItem>
+            <SelectItem value="xray"> XRay </SelectItem>
+            <SelectItem value="0"> Element 0 </SelectItem>
+            <SelectItem value="1"> Element 1 </SelectItem>
+            <SelectItem value="9"> Element 9 </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button class="block w-28 ml-4" @click="fetchDRImage">Show overlay</Button>
+      <Button class="ml-4 block w-28" @click="fetchDRImage">Show overlay</Button>
     </div>
     <!-- PARAMETERS SECTIONS -->
-    <Separator class="w-64 ml-1 mt-2 mb-2"/>
-    <p class="font-bold ml-1">Parameters:</p>
-    <Slider class="w-64 ml-1 mt-2 mb-1" v-model="threshold" id="threshold" :min="0" :max="255" :step="1"/> 
+    <Separator class="my-2 ml-1 w-64" />
+    <p class="ml-1 font-bold">Parameters:</p>
+    <Slider class="mb-1 ml-1 mt-2 w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1" />
     <FormDescription class="ml-1">
-      <span class="italic text-xs">Threshold value: </span>
-      <span class="italic text-xs">{{ threshold?.[0] }}</span>
+      <span class="text-xs italic">Threshold value: </span>
+      <span class="text-xs italic">{{ threshold?.[0] }}</span>
     </FormDescription>
-    <div class="flex items-center mt-1">
+    <div class="mt-1 flex items-center">
       <Select v-model="selectedElement">
-        <SelectTrigger class="w-32 ml-1">
+        <SelectTrigger class="ml-1 w-32">
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Elements</SelectLabel>
-            <SelectItem value="0">
-              Element 0
-            </SelectItem>
-            <SelectItem value="1">
-              Element 1
-            </SelectItem>
-            <SelectItem value="9">
-              Element 9
-            </SelectItem>
+            <SelectItem value="0"> Element 0 </SelectItem>
+            <SelectItem value="1"> Element 1 </SelectItem>
+            <SelectItem value="9"> Element 9 </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
-      <Button class="block w-28 ml-4" @click="updateEmbedding">Generate</Button>
+      <Button class="ml-4 block w-28" @click="updateEmbedding">Generate</Button>
     </div>
     <!-- GENERATION OF THE IMAGE -->
-    <Separator class="w-64 ml-1 mt-2 mb-2"/>
-    <p class="font-bold ml-1">Generated image:</p>
-    <div class="flex ml-1 mt-1 aspect-square items-center justify-center text-center">
+    <Separator class="my-2 ml-1 w-64" />
+    <p class="ml-1 font-bold">Generated image:</p>
+    <div class="ml-1 mt-1 flex aspect-square items-center justify-center text-center">
       <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
       <span v-if="status == Status.LOADING">Loading...</span>
       <span v-if="status == Status.GENERATING">Generating...</span>
