@@ -3,7 +3,9 @@ import { Window } from "@/components/ui/window";
 import { ref, watch } from "vue";
 import { DefaultConfig } from "@/lib/config";
 
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -365,29 +367,27 @@ watch(spectraChart, (_n, _o) => {
       </div>  
       <!-- ELEMENT SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
-      <Select id="element-dropdown" v-model="selectedElement" @change="updateElementSpectrum()">
-        <SelectTrigger class="ml-1 w-32">
-          <SelectValue placeholder="Select an element" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Elements</SelectLabel>
-            <SelectItem value="0"> Element 0 </SelectItem>
-            <SelectItem value="1"> Element 1 </SelectItem>
-            <SelectItem value="9"> Element 9 </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+      <p class="ml-1 font-bold">Choose the element for the theoretical spectrum:</p>
+      <div class="mt-1 flex items-center">
+        <Select id="element-dropdown" v-model="selectedElement">
+          <SelectTrigger class="ml-1 w-32">
+            <SelectValue placeholder="Select an element" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Elements</SelectLabel>
+              <SelectItem value="0"> Element 0 </SelectItem>
+              <SelectItem value="1"> Element 1 </SelectItem>
+              <SelectItem value="9"> Element 9 </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button class="ml-4 block w-28" @click="updateElementSpectrum">Show spectra</Button>
+      </div>
       <!-- ENERGY SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
-      <small>Enter excitation energy (keV): </small>
-      <input
-        id="excitation-input"
-        type="number"
-        class="text-black"
-        v-model="excitation"
-        @change="updateElementSpectrum()"
-      />
+      <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
+      <Input id="excitation-input" type="number" class="w-64" v-model="excitation" @change="updateElementSpectrum()" />
       <!-- PLOTTING THE CHART -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
