@@ -70,8 +70,6 @@ function setup() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
 
-
-
   getElements();
   plotAverageSpectrum(low, high, binSize);
 }
@@ -360,11 +358,11 @@ watch(spectraChart, (_n, _o) => {
       <div class="mt-1 flex items-center">
         <Checkbox id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
         <label class="ml-1" for="selectionCheck">Selection average</label>
-      </div>  
+      </div>
       <div class="mt-1 flex items-center">
         <Checkbox id="elementCheck" v-model="elementChecked" @change="updateElement()" />
         <label class="ml-1" for="elementCheck">Element theoretical</label>
-      </div>  
+      </div>
       <!-- ELEMENT SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Choose the element for the theoretical spectrum:</p>
@@ -387,7 +385,13 @@ watch(spectraChart, (_n, _o) => {
       <!-- ENERGY SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
-      <Input id="excitation-input" type="number" class="w-64 mt-1 ml-1" v-model="excitation" @change="updateElementSpectrum()" />
+      <Input
+        id="excitation-input"
+        type="number"
+        class="ml-1 mt-1 w-64"
+        v-model="excitation"
+        @change="updateElementSpectrum()"
+      />
       <!-- PLOTTING THE CHART -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
