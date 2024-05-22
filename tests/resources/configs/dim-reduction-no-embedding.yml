@@ -1,0 +1,9 @@
+uploads-folder: "tests/resources/dim_reduction"
+temp-folder: "tests/resources/dim_reduction"
+dim-reduction:
+  folder: "tests/resources/dim_reduction/no_embedding"
+  umap-parameters:
+    n-neighbors: 10
+    min-dist: 0
+    n-components: 2
+    metric: 'cosine'

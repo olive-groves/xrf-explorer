@@ -21,6 +21,7 @@
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "d3": "^7.9.0",
     "lucide-vue-next": "^0.378.0",
     "mathjs": "^12.4.2",
     "radix-vue": "^1.7.2",
@@ -29,6 +30,7 @@
     "three": "^0.164.1",
     "vee-validate": "^4.12.6",
     "vue": "^3.4.21",
+    "vue-draggable-next": "^2.2.1",
     "vue-sonner": "^1.1.2",
     "zod": "^3.23.4"
   },
@@ -36,6 +38,7 @@
     "@stylistic/eslint-plugin": "^2.1.0",
     "@types/node": "^20.12.7",
     "@types/three": "^0.164.0",
+    "@types/d3": "^7.4.3",
     "@typescript-eslint/eslint-plugin": "^7.9.0",
     "@typescript-eslint/parser": "^7.9.0",
     "@vitejs/plugin-vue": "^5.0.4",
