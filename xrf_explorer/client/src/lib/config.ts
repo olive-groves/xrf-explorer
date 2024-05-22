@@ -40,6 +40,10 @@ export type ImageViewerConfig = {
    * Default multiplier for the scroll speed in the image viewer.
    */
   defaultScrollSpeed: number;
+  /**
+   * The default size of the lens in the image viewer.
+   */
+  defaultLensSize: number;
 };
 
 /**
@@ -50,8 +54,9 @@ export const DefaultConfig: FrontendConfig = {
     endpoint: "http://localhost:8001/api",
   },
   imageViewer: {
-    defaultMovementSpeed: 2.0,
+    defaultMovementSpeed: 1.0,
     defaultScrollSpeed: 1.0,
+    defaultLensSize: 100.0,
   },
   defaultTheme: "dark",
 };
@@ -59,7 +64,8 @@ export const DefaultConfig: FrontendConfig = {
 /**
  * Get the configuration for the frontend.
  *
- * This will be provided by the App.vue component and can be accessed using `inject<FrontendConfig>('config')!`.
+ * This will be provided by the App.vue component and can be accessed using
+ * `const config = inject<FrontendConfig>("config")!`. (note the exclamation mark)
  * This function should hence not be used elsewhere.
  * @returns The frontend configuration.
  */
