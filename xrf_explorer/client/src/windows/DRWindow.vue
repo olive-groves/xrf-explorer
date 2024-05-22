@@ -48,6 +48,12 @@ const imageSourceUrl = ref();
  * For the rest it uses the fetchBlob function.
  */
 async function fetchDRImage() {
+  if (selectedOverlay.value == null) {
+    currentError.value = "Please select an overlay.";
+    status.value = Status.ERROR;
+    return;
+  }
+  
   status.value = Status.LOADING;
 
   // Set the overlay type
