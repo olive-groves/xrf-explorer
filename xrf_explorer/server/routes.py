@@ -4,7 +4,7 @@ import json
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures.file_storage import FileStorage
-from os.path import exists
+from os.path import exists, join
 from os import mkdir
 from shutil import rmtree
 
@@ -52,7 +52,7 @@ def create_data_source_dir():
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = f"{BACKEND_CONFIG["uploads-folder"]}/{data_source_name_secure}"
+    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_name_secure)
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -70,7 +70,7 @@ def create_data_source_dir():
 
 @app.route("/api/delete_data_source", methods=["DELETE"])
 def delete_data_source():
-    delete_dir = f"{BACKEND_CONFIG["uploads-folder"]}/{request.form["dir"]}"
+    delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
 
     if exists(delete_dir):
         rmtree(delete_dir)
@@ -82,7 +82,7 @@ def delete_data_source():
 
 @app.route("/api/upload_file_chunk", methods=["POST"])
 def upload_file_chunk():
-    file_dir = f"{BACKEND_CONFIG['uploads-folder']}/{request.form["dir"]}"
+    file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
 
