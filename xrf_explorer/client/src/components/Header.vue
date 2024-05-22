@@ -53,5 +53,15 @@ const colorMode = useColorMode({
     <WindowMenu>
       <MenubarItem> Reset views </MenubarItem>
     </WindowMenu>
+    <MenubarMenu>
+      <MenubarTrigger> Export </MenubarTrigger>
+      <MenubarContent>
+        <MenubarItem> Main viewer image</MenubarItem>
+        <MenubarItem> Elemental composition visualization</MenubarItem>
+        <MenubarItem> Spectral visualization </MenubarItem>
+        <MenubarItem> Dimensionality reduction visualization</MenubarItem>
+        <MenubarItem> Context visualization </MenubarItem>
+      </MenubarContent>
+    </MenubarMenu>
   </Menubar>
 </template>
