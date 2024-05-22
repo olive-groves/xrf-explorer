@@ -65,7 +65,7 @@ async function uploadDataSource() {
     const uploadSuccess: boolean = await uploadFileInChunks(file, dataSourceDirName, uploadFileName);
 
     if (!uploadSuccess) {
-      alert("An error has been encountered while uploading.");
+      alert("An error has been encountered while uploading. Please try again later.");
       const formDataDelete = new FormData();
       formDataDelete.append("dir", dataSourceDirName);
 
@@ -85,8 +85,9 @@ async function uploadDataSource() {
 
   if (workspaceUploadedSuccess) {
     alert("Everything uploaded successfully.");
+    uploadedChunks.value = 0;
   } else {
-    alert("Something went wrong with uploading data source metadata. Otherwise everything's good tho.");
+    alert("Something went wrong with uploading data source metadata. Please try again later.");
   }
 }
 
@@ -139,7 +140,7 @@ async function uploadFileInChunks(file: File, directory: string, uploadFileName:
  */
 function validateInputFieds(): string | undefined {
   if (getTrimmedInputString(dataSourceNameInputRef) === "") {
-    return "A non-empty data source name must be provided.";
+    return "A name must be provided for the data source";
   }
 
   if (getFile(rgbImageInputRef) === undefined) {
