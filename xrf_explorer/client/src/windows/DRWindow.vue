@@ -53,7 +53,7 @@ async function fetchDRImage() {
     status.value = Status.ERROR;
     return;
   }
-  
+
   status.value = Status.LOADING;
 
   // Set the overlay type
