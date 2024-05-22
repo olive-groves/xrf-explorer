@@ -9,9 +9,9 @@ const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
 const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
 
-const uploadedChunks: Ref<number> = ref(0);
-const totalChunks: Ref<number> = ref(1);
-const uploadProgessPercent: Ref<number> = computed(() => (uploadedChunks.value / totalChunks.value) * 100);
+const uploadedChunks = ref(0);
+const totalChunks = ref(1);
+const uploadProgessPercent = computed(() => (uploadedChunks.value / totalChunks.value) * 100);
 
 const dataSourceNameInputRef = ref<HTMLInputElement>()!;
 const rgbImageInputRef = ref<HTMLInputElement>();
@@ -84,7 +84,6 @@ async function uploadDataSource() {
   const workspaceUploadedSuccess = await uploadFileInChunks(workspaceFile, dataSourceDirName, "workspace.json");
 
   if (workspaceUploadedSuccess) {
-    alert("Everything uploaded successfully.");
     uploadedChunks.value = 0;
   } else {
     alert("Something went wrong with uploading data source metadata. Please try again later.");
