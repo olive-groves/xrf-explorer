@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/select";
 
 import * as d3 from "d3";
-import { Check } from "lucide-vue-next";
 
 const spectraChart = ref(null);
 let x: d3.ScaleLinear<number, number, never>;
@@ -354,22 +353,31 @@ watch(spectraChart, (_n, _o) => {
       <p class="ml-1 font-bold">Select which spectra to show:</p>
       <div class="mt-1 flex items-center">
         <Checkbox id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
-        <label for="globalCheck">Global average</label>
+        <label class="ml-1" for="globalCheck">Global average</label>
       </div>
       <div class="mt-1 flex items-center">
         <Checkbox id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
-        <label for="selectionCheck">Selection average</label>
+        <label class="ml-1" for="selectionCheck">Selection average</label>
       </div>  
       <div class="mt-1 flex items-center">
         <Checkbox id="elementCheck" v-model="elementChecked" @change="updateElement()" />
-        <label for="elementCheck">Element theoretical</label>
+        <label class="ml-1" for="elementCheck">Element theoretical</label>
       </div>  
       <!-- ELEMENT SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
-      <select id="element-dropdown" class="text-black" v-model="selectedElement" @change="updateElementSpectrum()">
-        <option value="" selected disabled>choose an element</option>
-      </select>
-      <br />
+      <Select id="element-dropdown" v-model="selectedElement" @change="updateElementSpectrum()">
+        <SelectTrigger class="ml-1 w-32">
+          <SelectValue placeholder="Select an element" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Elements</SelectLabel>
+            <SelectItem value="0"> Element 0 </SelectItem>
+            <SelectItem value="1"> Element 1 </SelectItem>
+            <SelectItem value="9"> Element 9 </SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
       <!-- ENERGY SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
       <small>Enter excitation energy (keV): </small>
