@@ -64,7 +64,7 @@ export type ImageViewerConfig = {
  * The default configuration for the client.
  */ export const DefaultConfig: FrontendConfig = {
   api: {
-    endpoint: "/api",
+    endpoint: "http://localhost:8001/api",
   },
   imageViewer: {
     defaultMovementSpeed: 1.0,
