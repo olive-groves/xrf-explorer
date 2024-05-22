@@ -48,9 +48,9 @@ export type ContextualImage = {
  */
 export type SpectralCube = {
   /**
-   * A unique id for the spectral cube.
+   * A unique name for the spectral cube.
    */
-  id: string;
+  name: string;
   /**
    * The location of the raw data file, used by the backend.
    */
@@ -72,13 +72,22 @@ export type ElementalCube = {
   /**
    * A unique id for the spectral cube.
    */
-  id: string;
+  name: string;
+  /**
+   * The filetype for the elemental data cube.
+   */
+  fileType: ElementalCubeFileType;
   /**
    * The location of the raw data file, used by the backend.
    */
-  dmsLocation: string;
+  dataLocation: string;
   /**
    * The location of the registering recipe, used by the backend.
    */
   recipeLocation: string;
 };
+
+/**
+ * The different elemental cube formats that we can handle.
+ */
+export type ElementalCubeFileType = "csv" | "dms";

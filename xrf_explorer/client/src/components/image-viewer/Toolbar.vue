@@ -34,7 +34,7 @@ const state = defineModel<ToolState>("state");
           <Settings />
         </Button>
       </PopoverTrigger>
-      <PopoverContent class="m-2 w-60 space-y-4 p-2 pb-4">
+      <PopoverContent class="m-2 w-60 space-y-2">
         <div class="grid gap-3">
           <div class="flex items-center justify-between">
             <Label for="movementspeed">Movement speed</Label>
