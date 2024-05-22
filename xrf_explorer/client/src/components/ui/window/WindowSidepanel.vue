@@ -226,8 +226,6 @@ function growTab(id: string, px: number): number {
   console.debug(`Adding ${id} as target after growth`);
   growthTargets.unshift(id);
   shrinkTargets.push(id);
-
-  console.log("After growth", tab);
   return actualGrowth;
 }
 
@@ -257,8 +255,6 @@ function shrinkTab(id: string, px: number): number {
     growthTargets.push(id);
     shrinkTargets.unshift(id);
   }
-
-  console.log("After shrink", tab);
   return actualShrink;
 }
 
