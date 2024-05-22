@@ -78,8 +78,8 @@ function setup() {
 const globalChecked = ref(false);
 const elementChecked = ref(false);
 const selectionChecked = ref(false);
-const selectedElement = ref("");
-const excitation = ref(0);
+const selectedElement = ref();
+const excitation = ref();
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
@@ -387,7 +387,7 @@ watch(spectraChart, (_n, _o) => {
       <!-- ENERGY SELECTION -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
-      <Input id="excitation-input" type="number" class="w-64" v-model="excitation" @change="updateElementSpectrum()" />
+      <Input id="excitation-input" type="number" class="w-64 mt-1 ml-1" v-model="excitation" @change="updateElementSpectrum()" />
       <!-- PLOTTING THE CHART -->
       <Separator class="my-2 ml-1 w-64" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
