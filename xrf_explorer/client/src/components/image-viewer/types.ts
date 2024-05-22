@@ -11,7 +11,7 @@ export type Layer = {
   /**
    * An identifier for the image associated with the layer.
    */
-  url: string;
+  image: string;
   /**
    * The mesh describing the layer in the THREE scene.
    */

@@ -18,7 +18,7 @@ import vertex from "./vertex.glsl?raw";
  * @param layer - The layer that should get loaded.
  */
 export function loadLayer(layer: Layer) {
-  new THREE.TextureLoader().loadAsync(layer.url).then((texture) => {
+  new THREE.TextureLoader().loadAsync(layer.image).then((texture) => {
     texture.colorSpace = THREE.NoColorSpace;
 
     // Create a square

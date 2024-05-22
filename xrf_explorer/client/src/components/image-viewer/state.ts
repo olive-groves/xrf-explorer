@@ -30,7 +30,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 
   const layer: Layer = {
     id: id,
-    url: image.imageLocation,
+    image: image.imageLocation,
     uniform: {
       iIndex: { value: 0 },
       iViewport: { value: new THREE.Vector4() },

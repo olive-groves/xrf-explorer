@@ -43,6 +43,9 @@ if (!(id in windowState)) {
 const state = toRef(windowState, id);
 const mounted = computed(() => state.value.portalMounted);
 
+/**
+ * Emits the windowMounted event when the window gets mounted.
+ */
 watch(mounted, (value) => {
   if (value) {
     emit("windowMounted");
