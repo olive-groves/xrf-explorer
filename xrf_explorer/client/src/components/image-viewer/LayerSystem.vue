@@ -14,6 +14,9 @@ import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
+/**
+ * Loads the layer groups into the LayerSystem.
+ */
 watch(
   layerGroups,
   (newGroups) => {
@@ -24,12 +27,19 @@ watch(
   { immediate: true },
 );
 
-watch(groups, (newOrder) => {
-  newOrder.forEach((layer, index) => {
-    layer.index = index;
-    setLayerGroupIndex(layer);
-  });
-});
+/**
+ * Updates the indices of the layers when the layers get reordered.
+ */
+watch(
+  groups,
+  (newOrder) => {
+    newOrder.forEach((layer, index) => {
+      layer.index = index;
+      setLayerGroupIndex(layer);
+    });
+  },
+  { immediate: true },
+);
 
 /**
  * Updates the visibility of the layer group outside of the lens.

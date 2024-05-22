@@ -56,6 +56,9 @@ export function loadLayer(layer: Layer) {
 
     const mesh = new THREE.Mesh(geometry, material);
 
+    // Set the correct initial render order.
+    mesh.renderOrder = -layer.uniform.iIndex.value;
+
     layer.mesh = mesh;
 
     scene.scene.add(mesh);

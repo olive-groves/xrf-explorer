@@ -64,7 +64,12 @@ export function updateLayerGroupLayers(group: LayerGroup) {
  * @param group - The layer group that should be updated.
  */
 export function setLayerGroupIndex(group: LayerGroup) {
-  group.layers.forEach((layer) => (layer.uniform.iIndex.value = group.index));
+  group.layers.forEach((layer) => {
+    layer.uniform.iIndex.value = group.index;
+    if (layer.mesh != undefined) {
+      layer.mesh!.renderOrder = -group.index;
+    }
+  });
 }
 
 /**

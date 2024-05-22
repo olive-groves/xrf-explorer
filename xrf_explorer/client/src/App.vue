@@ -45,7 +45,7 @@ const workspace: WorkspaceConfig = {
     {
       name: "Xray",
       imageLocation:
-        "https://upload.wikimedia.org/wikipedia/commons/3/37/M%C3%BCnster%2C_LWL-Museum_f%C3%BCr_Kunst_und_Kultur%2C_Lichtkunstwerk_%22Silberne_Frequenz%22_--_2022_--_4266.jpg?download",
+        "https://upload.wikimedia.org/wikipedia/commons/6/68/Cabo_Norte%2C_Noruega%2C_2019-09-03%2C_DD_16.jpg?download",
       recipeLocation: "",
     },
   ],
