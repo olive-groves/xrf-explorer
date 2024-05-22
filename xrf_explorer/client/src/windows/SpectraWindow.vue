@@ -348,32 +348,38 @@ watch(spectraChart, (_n, _o) => {
 <template>
   <div>
     <Window title="Spectrum" opened>
-      <AspectRatio :ratio="4 / 3">
+      <!-- SPECTRA SELECTION -->
+      <p class="ml-1 font-bold">Select which spectra to show:</p>
+      <div class="flex items-center space-x-2">
         <input type="checkbox" id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
-        <label for="globalCheck">Show global average spectrum</label>
+        <label for="globalCheck">Global average</label>
         <br />
         <input type="checkbox" id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
-        <label for="selectionCheck">Show selection average spectrum</label>
+        <label for="selectionCheck">Selection average</label>
         <br />
         <input type="checkbox" id="elementCheck" v-model="elementChecked" @change="updateElement()" />
-        <label for="elementCheck">Show element theoretical spectrum</label>
-        <br />
-        <select id="element-dropdown" class="text-black" v-model="selectedElement" @change="updateElementSpectrum()">
-          <option value="" selected disabled>choose an element</option>
-        </select>
-        <br />
-        <small>Enter excitation energy (keV): </small>
-        <input
-          id="excitation-input"
-          type="number"
-          class="text-black"
-          v-model="excitation"
-          @change="updateElementSpectrum()"
-        />
-        <Separator class="my-2 ml-1 w-64" />
-        <p class="ml-1 font-bold">Generated spectra chart:</p>
-        <svg class="ml-1" ref="spectraChart"></svg>
-      </AspectRatio>
+        <label for="elementCheck">Element theoretical</label>
+      </div>  
+      <!-- ELEMENT SELECTION -->
+      <Separator class="my-2 ml-1 w-64" />
+      <select id="element-dropdown" class="text-black" v-model="selectedElement" @change="updateElementSpectrum()">
+        <option value="" selected disabled>choose an element</option>
+      </select>
+      <br />
+      <!-- ENERGY SELECTION -->
+      <Separator class="my-2 ml-1 w-64" />
+      <small>Enter excitation energy (keV): </small>
+      <input
+        id="excitation-input"
+        type="number"
+        class="text-black"
+        v-model="excitation"
+        @change="updateElementSpectrum()"
+      />
+      <!-- PLOTTING THE CHART -->
+      <Separator class="my-2 ml-1 w-64" />
+      <p class="ml-1 font-bold">Generated spectra chart:</p>
+      <svg class="ml-1" ref="spectraChart"></svg>
     </Window>
   </div>
 </template>
