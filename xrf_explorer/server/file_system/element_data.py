@@ -10,12 +10,43 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
+def get_raw_elemental_data_dimensions(path_to_raw_data: str, config_path: str = "config/backend.yml") \
+    -> tuple[int, int, int, int]:
+    """Get the dimensions of the raw elemental data.
+    
+    :param path_to_raw_data: Path to the raw data file in the server.
+    :param config_path: Path to the backend config file
+    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes).
+    Tuple is as follows (width, height, channels, header size)
+    """
+    header_size: int = 0
+    dimensions: list[int] = []    # Dimensions of the dataset
+    try:
+        with open(abspath(path_to_raw_data), 'rb') as file:
+            # Read the first line and ignore it (doesn't include important data)
+            file.readline()
+
+            # Read the second line
+            dimensions_str: str = file.readline().decode('ascii').strip().split()
+            
+            # Parse the second line into the dimensions
+            dimensions = [int(dim) for dim in dimensions_str]
+
+            # Save the size of the header
+            header_size = file.tell()
+    except Exception as e:
+        LOG.error(f"Couldn't read elemental data file: {str(e)}")
+        return ()
+
+    return (*dimensions, header_size)
+
+
 def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarray:
     """Get the raw elemental data.
     
     :param config_path: Path to the backend config file
     :return: 3-dimensional numpy array containing the raw elemental data. First 2 dimensions
-    are x, y coordinates, last dimension is for elements.
+    are x, y coordinates, last dimension is for channels i.e. elements.
     """
 
     # load backend config
@@ -29,10 +60,7 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
 
     # data dimensions
-    w: int = 1069   # width of elemental image
-    h: int = 1187   # height of elemental image
-    c: int = 26     # channels of elemental image, i.e. number of elements
-    header_size: int = 48   # in bytes
+    (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file, config_path)
 
     # convert it into a numpy array
     try:
@@ -67,14 +95,11 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
 
     filename_elemental: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
-    # data dimensions
-    w: int = 1069   # width of elemental image
-    h: int = 1187   # height of elemental image
-    c: int = 26     # channels of elemental image, i.e. number of elements
-    header_size: int = 48   # in bytes
-    
     # get the path to the file in the server
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
+
+    # data dimensions
+    (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file, config_path)
 
     # get the names of the elements
     names: list[str] = []
