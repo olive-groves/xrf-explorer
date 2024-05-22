@@ -4,6 +4,7 @@ import { ref, watch } from "vue";
 import { DefaultConfig } from "@/lib/config";
 
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/select";
 
 import * as d3 from "d3";
+import { Check } from "lucide-vue-next";
 
 const spectraChart = ref(null);
 let x: d3.ScaleLinear<number, number, never>;
@@ -350,14 +352,16 @@ watch(spectraChart, (_n, _o) => {
     <Window title="Spectrum" opened>
       <!-- SPECTRA SELECTION -->
       <p class="ml-1 font-bold">Select which spectra to show:</p>
-      <div class="flex items-center space-x-2">
-        <input type="checkbox" id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
+      <div class="mt-1 flex items-center">
+        <Checkbox id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
         <label for="globalCheck">Global average</label>
-        <br />
-        <input type="checkbox" id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
+      </div>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
         <label for="selectionCheck">Selection average</label>
-        <br />
-        <input type="checkbox" id="elementCheck" v-model="elementChecked" @change="updateElement()" />
+      </div>  
+      <div class="mt-1 flex items-center">
+        <Checkbox id="elementCheck" v-model="elementChecked" @change="updateElement()" />
         <label for="elementCheck">Element theoretical</label>
       </div>  
       <!-- ELEMENT SELECTION -->
