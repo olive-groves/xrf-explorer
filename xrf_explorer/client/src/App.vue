@@ -5,6 +5,7 @@ import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 import { FrontendConfig } from "./lib/config";
 
+// Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
 import { DRWindow, BarChartWindow } from "@/windows";
