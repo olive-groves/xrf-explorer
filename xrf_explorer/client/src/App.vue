@@ -40,17 +40,31 @@ const workspace: WorkspaceConfig = {
       name: "UV",
       imageLocation:
         "https://upload.wikimedia.org/wikipedia/commons/3/37/M%C3%BCnster%2C_LWL-Museum_f%C3%BCr_Kunst_und_Kultur%2C_Lichtkunstwerk_%22Silberne_Frequenz%22_--_2022_--_4266.jpg?download",
-      recipeLocation: "",
+      recipeLocation: "recipe_uv.csv",
     },
     {
       name: "Xray",
       imageLocation:
         "https://upload.wikimedia.org/wikipedia/commons/6/68/Cabo_Norte%2C_Noruega%2C_2019-09-03%2C_DD_16.jpg?download",
-      recipeLocation: "",
+      recipeLocation: "recipe_xray.csv",
     },
   ],
-  spectralCubes: [],
-  elementalCubes: [],
+  spectralCubes: [
+    {
+      name: "Datacube",
+      rawLocation: "spectral.raw",
+      rplLocation: "spectral.rpl",
+      recipeLocation: "recipe_spectral.csv",
+    },
+  ],
+  elementalCubes: [
+    {
+      name: "Datacube",
+      fileType: "dms",
+      dataLocation: "elemental.dms",
+      recipeLocation: "recipe_elemental.csv",
+    },
+  ],
 };
 appState.workspace = workspace;
 </script>
