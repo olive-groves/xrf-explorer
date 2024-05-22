@@ -26,7 +26,7 @@ export const layerGroups = ref<{
  * @returns The layer that was created by calling the function.
  */
 export function createLayer(id: string, image: ContextualImage): Layer {
-  console.log("Creating layer", id, image);
+  console.info("Creating layer", id, image);
 
   const layer: Layer = {
     id: id,

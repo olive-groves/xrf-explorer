@@ -40,11 +40,11 @@ async function fetchAverages(url: string) {
       .json()
       .then((data) => {
         dataAverages = data;
-        console.log("Successfully fetched averages");
+        console.info("Successfully fetched averages");
         return true;
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         return false;
       });
   } else {
@@ -52,11 +52,11 @@ async function fetchAverages(url: string) {
     fetchSuccessful = await response
       .text()
       .then((data) => {
-        console.log(data);
+        console.info(data);
         return false;
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         return false;
       });
   }

@@ -21,7 +21,7 @@ const props = defineProps<{
   config: FrontendConfig;
 }>();
 provide("config", props.config);
-console.log("Client created with configuration: ", props.config);
+console.log("XRF-Explorer client created with configuration: ", props.config);
 
 // Set up a default workspace
 // Temporary: Needs to be moved to the file menu in a later PR
@@ -35,7 +35,7 @@ const workspace: WorkspaceConfig = {
       "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
     recipeLocation: "",
   },
-  contextualLayers: [
+  contextualImages: [
     {
       name: "UV",
       imageLocation:

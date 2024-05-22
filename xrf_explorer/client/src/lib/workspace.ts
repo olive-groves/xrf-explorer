@@ -13,7 +13,7 @@ export type WorkspaceConfig = {
   /**
    * All contextual images in the workspace.
    */
-  contextualLayers: ContextualImage[];
+  contextualImages: ContextualImage[];
   /**
    * All spectral cubes in the workspace.
    */

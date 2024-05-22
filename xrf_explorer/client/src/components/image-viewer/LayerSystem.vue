@@ -60,7 +60,7 @@ function checkedOutsideLens(group: LayerGroup) {
 </script>
 
 <template>
-  <VueDraggableNext class="space-y-2" v-model="groups" @change="console.log">
+  <VueDraggableNext class="space-y-2" v-model="groups">
     <Card v-for="group in groups" :key="group.name" class="space-y-2 p-2">
       <div class="flex justify-between">
         <div>

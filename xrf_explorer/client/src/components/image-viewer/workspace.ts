@@ -15,18 +15,18 @@ watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
  */
 function loadWorkspace(workspace: WorkspaceConfig) {
   // Unload existing workspace
-  console.log("Unloading existing workspace...");
+  console.info("Unloading existing workspace from layer system...");
   layerGroups.value = {};
   layers.value.forEach(disposeLayer);
   layers.value = [];
 
-  console.log("Loading new workspace...");
+  console.info("Loading new workspace into layer system...");
 
   // Create base image layer
   createBaseLayer(workspace.baseImage);
 
   // Create other contextual image layers
-  workspace.contextualLayers.forEach((image) => {
+  workspace.contextualImages.forEach((image) => {
     createContextualLayer(image);
   });
 
