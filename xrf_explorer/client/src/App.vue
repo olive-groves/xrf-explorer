@@ -5,10 +5,9 @@ import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 import { FrontendConfig } from "./lib/config";
 
-// Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { BarChartWindow } from "@/windows";
+import { DRWindow, BarChartWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
@@ -65,6 +64,7 @@ appState.workspace = workspace;
       <LayerWindow />
       <WorkspaceWindow />
       <BarChartWindow />
+      <DRWindow />
     </WindowContainer>
 
     <!-- Place all reusable dialogs here -->

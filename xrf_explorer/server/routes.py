@@ -1,13 +1,16 @@
 import logging
 import json
 
-from flask import request, redirect
+from os.path import abspath
+from flask import abort, request, redirect, send_file
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.file_upload import upload_file_to_server
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
+from xrf_explorer.server.dim_reduction.embedding import generate_embedding
+from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -70,3 +73,42 @@ def list_element_names():
     except Exception as e:
         LOG.error(f"Failed to serialize element names: {str(e)}")
         return "Error occurred while listing element names", 500
+
+
+@app.route('/api/get_dr_embedding')
+def get_dr_embedding():
+    # check if element number is provided
+    if 'element' not in request.args:
+        LOG.error("Missing element number")
+        abort(400)
+    elif 'threshold' not in request.args:
+        LOG.error("Missing threshold value")
+        abort(400)
+
+    # Get element and threshold
+    element: int = int(request.args['element'])
+    threshold: int = int(request.args['threshold'])
+
+    # Try to generate the embedding
+    if not generate_embedding(element, threshold, request.args):
+        abort(400)
+
+    return "Generated embedding successfully"
+
+
+@app.route('/api/get_dr_overlay')
+def get_dr_overlay():
+    # Check whether the overlay type is provided
+    if 'type' not in request.args:
+        LOG.error("Missing overlay type")
+        abort(400)
+    
+    overlay_type: str = request.args['type']
+
+    # Try to get the embedding image
+    image_path: str = create_embedding_image(overlay_type)
+    if not image_path:
+        LOG.error("Failed to create DR embedding image")
+        abort(400)
+
+    return send_file(abspath(image_path), mimetype='image/png')
