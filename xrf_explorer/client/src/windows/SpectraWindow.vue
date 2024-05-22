@@ -3,6 +3,17 @@ import { Window } from "@/components/ui/window";
 import { ref, watch } from "vue";
 import { DefaultConfig } from "@/lib/config";
 
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import * as d3 from "d3";
 
 const spectraChart = ref(null);
@@ -359,7 +370,9 @@ watch(spectraChart, (_n, _o) => {
           v-model="excitation"
           @change="updateElementSpectrum()"
         />
-        <svg ref="spectraChart"></svg>
+        <Separator class="my-2 ml-1 w-64" />
+        <p class="ml-1 font-bold">Generated spectra chart:</p>
+        <svg class="ml-1" ref="spectraChart"></svg>
       </AspectRatio>
     </Window>
   </div>
