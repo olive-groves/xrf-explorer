@@ -10,7 +10,7 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_elemental_data_dimensions(path_to_raw_data: str, config_path: str = "config/backend.yml") \
+def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
     -> tuple[int, int, int, int]:
     """Get the dimensions of the raw elemental data.
     
@@ -35,7 +35,7 @@ def get_raw_elemental_data_dimensions(path_to_raw_data: str, config_path: str = 
             # Save the size of the header
             header_size = file.tell()
     except Exception as e:
-        LOG.error(f"Couldn't read elemental data file: {str(e)}")
+        LOG.error(f"Could not read elemental data file: {str(e)}")
         return ()
 
     return (*dimensions, header_size)
@@ -60,13 +60,17 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
 
     # data dimensions
-    (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file, config_path)
+    try:
+        (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file)
+    except Exception as e:
+        LOG.error(f"Could not read elemental data file: {str(e)}")
+        return np.empty(0)
 
     # convert it into a numpy array
     try:
         raw_data: np.ndarray = np.fromfile(path_to_file, offset=header_size, count=w*h*c, dtype=np.float32)
     except Exception as e:
-        LOG.error(f"Could not find elemental data: {str(e)}")
+        LOG.error(f"Could not read elemental data file: {str(e)}")
         return np.empty(0)
 
     # normalize data
@@ -99,7 +103,11 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
 
     # data dimensions
-    (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file, config_path)
+    try:
+        (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file)
+    except Exception as e:
+        LOG.error(f"Could not read elemental data file: {str(e)}")
+        return np.empty(0)
 
     # get the names of the elements
     names: list[str] = []
@@ -115,7 +123,7 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
                     current = "chi"
                 names.append(current)
     except Exception as e:
-        LOG.error(f"Couldn't read elemental data file: {str(e)}")
+        LOG.error(f"Could not read elemental data file: {str(e)}")
         return []
 
     return names
