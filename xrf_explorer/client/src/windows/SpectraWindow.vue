@@ -261,10 +261,12 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
   updateElement();
 }
 
+// Reference element names for dropdown
+const elementRef = ref([]);
+
 /**
  * Gets the list of all the elements and plots the one selected in the dropdown.
  */
-const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
