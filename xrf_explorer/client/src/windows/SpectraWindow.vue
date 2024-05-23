@@ -264,6 +264,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 /**
  * Gets the list of all the elements and plots the one selected in the dropdown.
  */
+const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
@@ -277,6 +278,7 @@ async function getElements() {
     elements.unshift("No element");
     elements.splice(elements.indexOf("Continuum"), 1);
     elements.splice(elements.indexOf("chisq"), 1);
+    elementRef.value = elements;
 
     //add dropdown menu
     const elementDropdown = document.getElementById("element-dropdown") as HTMLSelectElement;
@@ -376,9 +378,7 @@ watch(spectraChart, (_n, _o) => {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem value="0"> Element 0 </SelectItem>
-              <SelectItem value="1"> Element 1 </SelectItem>
-              <SelectItem value="9"> Element 9 </SelectItem>
+              <SelectItem :value="element" v-for="element in elementRef" :key="element"> {{ element }} </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
