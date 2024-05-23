@@ -2,17 +2,21 @@
 import type { HTMLAttributes } from "vue";
 import { useVModel } from "@vueuse/core";
 import { cn } from "@/lib/utils";
-
 const props = defineProps<{
+  /**
+   * The default value of the Input.
+   */
   defaultValue?: string | number;
+  /**
+   * Model describing the value of the input.
+   */
   modelValue?: string | number;
+  // eslint-disable-next-line vue/require-prop-comment
   class?: HTMLAttributes["class"];
 }>();
-
 const emits = defineEmits<{
   (e: "update:modelValue", payload: string | number): void;
 }>();
-
 const modelValue = useVModel(props, "modelValue", emits, {
   passive: true,
   defaultValue: props.defaultValue,
