@@ -3,7 +3,6 @@ import { Window } from "@/components/ui/window";
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,8 +78,8 @@ function setup() {
 const globalChecked = ref(false);
 const elementChecked = ref(false);
 const selectionChecked = ref(false);
-const selectedElement = ref();
-const excitation = ref();
+const selectedElement = ref("");
+const excitation = ref(0);
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
@@ -370,7 +369,7 @@ watch(spectraChart, (_n, _o) => {
       <Separator class="my-2 ml-1" />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
-        <Select id="element-dropdown" v-model="selectedElement">
+        <Select id="element-dropdown" v-model="selectedElement" @change="updateElementSpectrum()">
           <SelectTrigger class="ml-1 w-32">
             <SelectValue placeholder="Select an element" />
           </SelectTrigger>
@@ -383,7 +382,6 @@ watch(spectraChart, (_n, _o) => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button class="ml-4 block w-28" @click="updateElementSpectrum">Show spectra</Button>
       </div>
       <!-- ENERGY SELECTION -->
       <Separator class="my-2 ml-1" />
