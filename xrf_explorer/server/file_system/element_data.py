@@ -19,8 +19,8 @@ def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
     :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes).
     Tuple is as follows (width, height, channels, header size)
     """
-    header_size: int = 0
-    dimensions: list[int] = []    # Dimensions of the dataset
+    header_size: int
+    dimensions: list[int]
     try:
         with open(abspath(path_to_raw_data), 'rb') as file:
             # Read the first line and ignore it (doesn't include important data)
