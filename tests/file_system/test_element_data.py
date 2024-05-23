@@ -9,7 +9,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 
 sys.path.append('.')
 
-from xrf_explorer.server.file_system.element_data import \
+from xrf_explorer.server.file_system.remove_this import \
     get_element_names, get_element_averages, get_elemental_datacube, get_elemental_datacube_dimensions
 
 RESOURCES_PATH: Path = Path('tests', 'resources')

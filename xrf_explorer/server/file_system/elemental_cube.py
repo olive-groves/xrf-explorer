@@ -2,9 +2,10 @@ import logging
 
 import numpy as np
 
-from os.path import isfile
+from os.path import isfile, join
 from pathlib import Path
 
+from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.from_csv import get_raw_elemental_data_cube_from_csv, get_elements_from_csv
 from xrf_explorer.server.file_system.from_dms import get_raw_elemental_data_cube_from_dms, get_elements_from_dms
 
@@ -56,16 +57,41 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     return normalized_cube
 
 
-def get_elemental_data_cube(path: str | Path) -> np.ndarray:
+def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backend.yml") -> str:
+    """Get the path to the elemental data cube.
+
+    :param name: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
+    :return: Path to the elemental data cube.
+    """
+
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+    
+    # path to cube 
+    path_cube = join(Path(backend_config['uploads-folder']), name_cube)
+
+    # Check if the file exists
+    if not isfile(path_cube):
+        return ""
+
+    return path_cube
+
+
+def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.yml") -> np.ndarray:
     """Get the elemental data cube at the given path.
 
-    :param path: Path to the file containing the elemental data cube.
+    :param name: Name of the elemental data cube.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension
     is channel, and last two for x, y coordinates.
     """
 
-    # Check if the file exists
-    if not isfile(str):
+    # Get full path to the elemental data cube
+    path = get_path_to_elemental_cube(name_cube, config_path)
+    if not path:
         return np.empty(0)
     
     # Return the elemental data cube
@@ -77,15 +103,16 @@ def get_elemental_data_cube(path: str | Path) -> np.ndarray:
         return np.empty(0)
 
 
-def get_element_names(path: str | Path) -> list[str]:
+def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
     """Get the names of the elements stored in the elemental data cube.
     
-    :param path: Path to the elemental data cube.
+    :param name: Name of the elemental data cube.
     :return: List of the names of the elements. Empty list if error occured.
     """
 
-    # Check if the file exists
-    if not isfile(str):
+    # Get full path to the elemental data cube
+    path = get_path_to_elemental_cube(name_cube, config_path)
+    if not path:
         return []
     
     # Return the elemental data cube
@@ -97,15 +124,17 @@ def get_element_names(path: str | Path) -> list[str]:
         return []
 
 
-def get_short_element_names(path: str | Path) -> list[str]:
+def get_short_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
     """Get the short names of the elements stored in the elemental data cube.
     
-    :param path: Path to the elemental data cube.
+    :param name: Name of the elemental data cube.
     :return: List of the names of the elements. Empty list if error occured.
     """
 
     # Get regular names
-    element_names: list[str] = get_element_names(path)
+    element_names: list[str] = get_element_names(name_cube, config_path)
+    if element_names == []:
+        return []
 
     short_names: list[str] = []
 
@@ -123,15 +152,16 @@ def get_short_element_names(path: str | Path) -> list[str]:
     return short_names
 
 
-def get_element_averages(path: str | Path) -> list[dict[str, str | float]]:
+def get_element_averages(name_cube: str, config_path: str = "config/backend.yml") -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in the painting.
 
-    :param path: path to the elemental data cube.
+    :param name: Name of the elemental data cube.
     :return: List of the names and average composition of the elements.
     """
 
-    image_cube: np.ndarray = get_elemental_data_cube(path)
-    names: list[str] = get_element_names(path)
+    # Get the elemental data cube and the names of the elements
+    image_cube: np.ndarray = get_elemental_data_cube(name_cube, config_path)
+    names: list[str] = get_element_names(name_cube, config_path)
 
     # Check if the data was loaded correctly
     if image_cube.size == 0 or names == []:

@@ -10,8 +10,8 @@ from shutil import rmtree
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system.element_data import (
-    get_element_names,
+from xrf_explorer.server.file_system.elemental_cube import (
+    get_short_element_names,
     get_element_averages,
 )
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
@@ -20,6 +20,8 @@ from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
+
+TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
 
 @app.route("/api")
@@ -104,7 +106,7 @@ def upload_file_chunk():
 
 @app.route("/api/element_averages")
 def list_element_averages():
-    composition: list[dict[str, str | float]] = get_element_averages()
+    composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -114,7 +116,7 @@ def list_element_averages():
 
 @app.route("/api/element_names")
 def list_element_names():
-    names: list[str] = get_element_names()
+    names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(names)
     except Exception as e:
