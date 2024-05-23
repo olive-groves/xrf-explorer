@@ -95,13 +95,19 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     if not path:
         return np.empty(0)
     
-    # Return the elemental data cube
+    # Get the elemental data cube
+    elemental_cube: np.ndarray
+
     if path.endswith('.csv'):
-        return get_raw_elemental_data_cube_from_csv(path)
+        elemental_cube = get_raw_elemental_data_cube_from_csv(path)
     elif path.endswith('.dms'):
-        return get_raw_elemental_data_cube_from_dms(path)
+        elemental_cube = get_raw_elemental_data_cube_from_dms(path)
     else:
-        return np.empty(0)
+        elemental_cube = np.empty(0)
+    
+    LOG.info(f"Elemental data cube loaded. Shape: {elemental_cube.shape}")
+
+    return elemental_cube
 
 
 def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
@@ -117,12 +123,16 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
         return []
     
     # Return the elemental data cube
+    elements: list[str] = []
+
     if path.endswith('.csv'):
-        return get_elements_from_csv(path)
+        elements = get_elements_from_csv(path)
     elif path.endswith('.dms'):
-        return get_elements_from_dms(path)
-    else:
-        return []
+        elements = get_elements_from_dms(path)
+    
+    LOG.info(f"Elements loaded. Total elements: {len(elements)}")
+
+    return elements
 
 
 def get_short_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
@@ -161,13 +171,16 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     """
 
     # Get the elemental data cube and the names of the elements
-    image_cube: np.ndarray = get_elemental_data_cube(name_cube, config_path)
+    raw_cube: np.ndarray = get_elemental_data_cube(name_cube, config_path)
     names: list[str] = get_element_names(name_cube, config_path)
 
     # Check if the data was loaded correctly
-    if image_cube.size == 0 or names == []:
+    if raw_cube.size == 0 or names == []:
         LOG.error(f"Couldn't parse elemental image cube or list of names")
         return []
+    
+    # Normalize the elemental data cube
+    image_cube: np.ndarray = normalize_elemental_cube_total_cube(raw_cube)
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
@@ -175,5 +188,7 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
         [{"name": names[i], "average": averages[i]} for i in range(averages.size)]
+
+    LOG.error("Calculated the average composition of the elements.")
 
     return composition
