@@ -6,8 +6,12 @@ from os.path import isfile, join
 from pathlib import Path
 
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.file_system.from_csv import get_raw_elemental_data_cube_from_csv, get_elements_from_csv
-from xrf_explorer.server.file_system.from_dms import get_raw_elemental_data_cube_from_dms, get_elements_from_dms
+from xrf_explorer.server.file_system.from_csv import (
+    get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
+    get_elements_from_csv)
+from xrf_explorer.server.file_system.from_dms import (
+    get_raw_elemental_data_cube_from_dms, get_raw_elemental_map_from_dms, 
+    get_elements_from_dms)
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -27,7 +31,7 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
     return np.rint(normalized_array * 255).astype(np.uint8)
 
 
-def normalize_elemental_cube_total_cube(raw_cube: np.ndarray) -> np.ndarray:
+def normalize_elemental_cube(raw_cube: np.ndarray) -> np.ndarray:
     """Normalize the raw elemental data cube.
 
     :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension
@@ -60,7 +64,7 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
 def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backend.yml") -> str:
     """Get the path to the elemental data cube.
 
-    :param name: Name of the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
     :param config_path: Path to the backend config file.
     :return: Path to the elemental data cube.
     """
@@ -85,7 +89,7 @@ def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backen
 def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.yml") -> np.ndarray:
     """Get the elemental data cube at the given path.
 
-    :param name: Name of the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension
     is channel, and last two for x, y coordinates.
     """
@@ -118,10 +122,47 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     return elemental_cube
 
 
+def get_elemental_map(element: int, name_cube: str, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Get the elemental map of element index at the given path.
+
+    :param element: Index of the element in the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
+    :return: 2-dimensional numpy array containing the elemental data cube. Dimensions
+    are the x, y coordinates.
+    """
+
+    # Get full path to the elemental data cube
+    path = get_path_to_elemental_cube(name_cube, config_path)
+    if not path:
+        return np.empty(0)
+    
+    # Get the elemental data cube
+    elemental_cube: np.ndarray
+
+    LOG.info(f"Reading elemental map of element {element} from {path}")
+    
+    try:
+        # Choose the correct method to read the elemental map
+        if path.endswith('.csv'):
+            elemental_cube = get_raw_elemental_map_from_csv(element, path)
+        elif path.endswith('.dms'):
+            elemental_cube = get_raw_elemental_map_from_dms(element, path)
+        else:
+            elemental_cube = np.empty(0)
+
+    except Exception as e:
+        LOG.error(f"Error while reading elemental map: {e}")
+        return np.empty(0)
+    
+    LOG.info(f"Elemental map loaded. Shape: {elemental_cube.shape}")
+
+    return elemental_cube
+
+
 def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
     """Get the names of the elements stored in the elemental data cube.
     
-    :param name: Name of the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
     :return: List of the names of the elements. Empty list if error occured.
     """
 
@@ -152,7 +193,7 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
 def get_short_element_names(name_cube: str, config_path: str = "config/backend.yml") -> list[str]:
     """Get the short names of the elements stored in the elemental data cube.
     
-    :param name: Name of the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
     :return: List of the names of the elements. Empty list if error occured.
     """
 
@@ -180,7 +221,7 @@ def get_short_element_names(name_cube: str, config_path: str = "config/backend.y
 def get_element_averages(name_cube: str, config_path: str = "config/backend.yml") -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in the painting.
 
-    :param name: Name of the elemental data cube.
+    :param name_cube: Name of the elemental data cube.
     :return: List of the names and average composition of the elements.
     """
 
@@ -194,7 +235,7 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
         return []
     
     # Normalize the elemental data cube
-    image_cube: np.ndarray = normalize_elemental_cube_total_cube(raw_cube)
+    image_cube: np.ndarray = normalize_elemental_cube(raw_cube)
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))

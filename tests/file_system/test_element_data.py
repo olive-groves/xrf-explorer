@@ -9,7 +9,9 @@ from numpy import ndarray, empty, array_equal, array, float32
 
 sys.path.append('.')
 
-from xrf_explorer.server.file_system.elemental_cube import get_element_names, get_element_averages, get_elemental_data_cube
+from xrf_explorer.server.file_system import (
+    get_elemental_data_cube, get_elemental_map, 
+    get_element_names, get_element_averages)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -48,6 +50,17 @@ class TestElementalData:
         # verify
         assert array_equal(result, empty(0))
         assert expected_output in caplog.text
+    
+    def test_config_not_found_elemental_map(self, caplog):
+        # setup
+        expected_output: str = "Failed to access config"
+
+        # execute
+        result: ndarray = get_elemental_map(0, self.DATA_CUBE, "imaginary-config-file.yml")
+        
+        # verify
+        assert array_equal(result, empty(0))
+        assert expected_output in caplog.text
 
     def test_config_not_found_averages(self, caplog):
         # setup
@@ -77,6 +90,17 @@ class TestElementalData:
         
         # execute
         result: ndarray = get_elemental_data_cube(self.NON_EXISTING_CUBE, self.CUSTOM_CONFIG_PATH)
+        
+        # verify
+        assert array_equal(result, empty(0))
+        assert expected_output in caplog.text
+    
+    def test_file_not_found_elemental_map(self, caplog):
+        # setup
+        expected_output: str = "File not found"
+
+        # execute
+        result: ndarray = get_elemental_map(0, self.NON_EXISTING_CUBE, self.CUSTOM_CONFIG_PATH)
         
         # verify
         assert array_equal(result, empty(0))
@@ -118,6 +142,20 @@ class TestElementalData:
         
         # verify
         assert array_equal(result, self.RAW_ELEMENTAL_CUBE)
+        assert expected_output in caplog.text
+
+    def test_get_elemental_map(self, caplog):
+        caplog.set_level(INFO)
+
+        # setup
+        elemental_map: ndarray = self.RAW_ELEMENTAL_CUBE[0]
+        expected_output: str = f"Elemental map loaded. Shape: {elemental_map.shape}"
+
+        # execute
+        result: ndarray = get_elemental_map(0, self.DATA_CUBE, self.CUSTOM_CONFIG_PATH)
+        
+        # verify
+        assert array_equal(result, elemental_map)
         assert expected_output in caplog.text
 
     def test_get_element_averages(self, caplog):

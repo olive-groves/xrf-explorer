@@ -10,7 +10,7 @@ from shutil import rmtree
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system.elemental_cube import (
+from xrf_explorer.server.file_system import (
     get_short_element_names,
     get_element_averages,
 )

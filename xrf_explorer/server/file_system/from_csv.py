@@ -42,3 +42,29 @@ def get_raw_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
 
     # Reshape the elemental cube
     return e.to_numpy().reshape(height, width, -1).swapaxes(0, 2)
+
+
+def get_raw_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray:
+    """Get the elemental map of the given element from the csv file.
+    Can raise error if file could not be read.
+
+    :param element: Index of the element in the elemental data cube.
+    :param path: Path to the dms file containing the elemental data cube.
+    :return: 2-dimensional numpy array containing the elemental map. Dimensions
+    are the x, y coordinates.
+    """
+
+    # column of element index is two more, since first two columns are "row" and "column"
+    column_element = element + 2
+
+    # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
+    e = pd.read_csv(
+        path, sep=';', usecols=[0, 1, column_element], 
+        header=0, index_col=False, dtype=np.float32
+    ).set_index(["row", "column"])
+
+    # Get width and height of the elemental cube
+    height, width = len(e.index.levels[0]), len(e.index.levels[1])
+
+    # Reshape the elemental cube
+    return e.to_numpy().reshape(height, width).swapaxes(0, 1)

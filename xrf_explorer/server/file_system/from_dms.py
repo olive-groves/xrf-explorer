@@ -73,3 +73,29 @@ def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
 
     # reshape the raw elemental data
     return list_raw_elemental_cube.reshape(c, h, w)
+
+
+def get_raw_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
+    """Get the elemental map of the given element from the dms file.
+    Can raise error if file could not be read.
+
+    :param element: Index of the element in the elemental data cube.
+    :param path: Path to the dms file containing the elemental data cube.
+    :return: 2-dimensional numpy array containing the elemental map. Dimensions
+    are the x, y coordinates.
+    """
+    
+    # get data dimensions
+    (w, h, _, header_size) = get_elemental_datacube_dimensions_from_dms(path)
+    
+    # size of the elemental map in bytes
+    bytes_elemental_map = w * h * 4
+
+    # total offset to the beginning of the elemental map
+    total_offset = header_size + element * bytes_elemental_map
+
+    # list of raw elemental map
+    list_raw_elemental_cube = np.fromfile(path, offset=total_offset, count=w*h, dtype=np.float32)
+    
+    # reshape the raw elemental map
+    return list_raw_elemental_cube.reshape(h, w)
