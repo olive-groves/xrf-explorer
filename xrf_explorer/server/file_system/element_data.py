@@ -30,7 +30,7 @@ def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
             dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
             
             # Parse the second line into the dimensions
-            dimensions = [int(dim) for dim in dimensions_str]
+            dimensions = [int(dim) for dim in dimensions_list]
 
             # Save the size of the header
             header_size = file.tell()
