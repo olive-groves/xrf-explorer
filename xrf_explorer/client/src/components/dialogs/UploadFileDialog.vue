@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ref, Ref, computed, inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { WorkspaceConfig } from "@/lib/workspace";
@@ -286,18 +287,18 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <DialogTitle> Upload files </DialogTitle>
 
     <div class="flex items-center">
-      <label class="w-64">Data source name</label>
-      <input
-        class="block w-44 rounded-lg bg-accent p-2 text-accent-foreground focus:border-border focus:ring-ring"
+      <label class="w-52">Data source name</label>
+      <Input
+        class="block w-64 rounded-lg focus:border-border focus:ring-ring"
         placeholder="Data source"
         type="text"
         ref="dataSourceNameInputRef"
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">RGB file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">RGB file</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="rgb_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -306,9 +307,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">UV file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">UV file</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="uv_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -317,9 +318,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">XRAY file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">XRAY file</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="xray_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -328,9 +329,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Cube data</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">Cube data</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="cube_input_help"
         type="file"
         accept=".csv, .dms"
@@ -339,9 +340,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Raw data (.RAW)</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">Raw data (.RAW)</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".raw"
@@ -350,9 +351,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Raw data (.RPL)</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <label class="w-52">Raw data (.RPL)</label>
+      <Input
+        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".rpl"
