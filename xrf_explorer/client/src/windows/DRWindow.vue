@@ -118,7 +118,7 @@ async function updateEmbedding() {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction">
+  <Window title="Dimensionality reduction" opened>
     <!-- OVERLAY SECTION -->
     <p class="ml-1 font-bold">Overlay:</p>
     <div class="mt-1 flex items-center">
