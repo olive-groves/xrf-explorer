@@ -7,7 +7,11 @@ import { WindowSidepanel } from ".";
 <template>
   <ResizablePanelGroup direction="horizontal">
     <ResizablePanel :default-size="20" :min-size="10">
-      <WindowSidepanel :windows="Object.keys(windowState).filter((key) => windowState[key].opened)" />
+      <WindowSidepanel
+        :windows="
+          Object.keys(windowState).filter((key) => windowState[key].opened && windowState[key].location == 'left')
+        "
+      />
     </ResizablePanel>
     <ResizableHandle />
     <ResizablePanel :min-size="10">
@@ -15,7 +19,11 @@ import { WindowSidepanel } from ".";
     </ResizablePanel>
     <ResizableHandle />
     <ResizablePanel :default-size="20" :min-size="10">
-      <!-- <WindowSidepanel :windows="Object.keys(window_state).filter(key => window_state[key].opened)" /> -->
+      <WindowSidepanel
+        :windows="
+          Object.keys(windowState).filter((key) => windowState[key].opened && windowState[key].location == 'right')
+        "
+      />
     </ResizablePanel>
   </ResizablePanelGroup>
 </template>

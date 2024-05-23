@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { inject, ref } from "vue";
 import { Window } from "@/components/ui/window";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { watch } from "vue";
-import { DefaultConfig } from "@/lib/config";
+import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 
 const barchart = ref(null);
+
+const config = inject<FrontendConfig>("config")!;
 
 type Element = {
   name: string;
@@ -39,11 +40,11 @@ async function fetchAverages(url: string) {
       .json()
       .then((data) => {
         dataAverages = data;
-        console.log("Successfully fetched averages");
+        console.info("Successfully fetched averages");
         return true;
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         return false;
       });
   } else {
@@ -51,11 +52,11 @@ async function fetchAverages(url: string) {
     fetchSuccessful = await response
       .text()
       .then((data) => {
-        console.log(data);
+        console.info(data);
         return false;
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
         return false;
       });
   }
@@ -141,29 +142,20 @@ function setup() {
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
  * which is displayed in the chart.
- * @param url URL to the server API endpoint which provides the elemental data.
  */
-async function showChart(url: string) {
+async function showChart() {
   try {
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(url);
+    const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) setup(); // If everything went right, display the chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
 }
-
-// Display the bar chart once the window is loaded
-watch(barchart, (n, o) => {
-  console.log(n, o);
-  if (barchart.value != null) {
-    showChart(DefaultConfig.api.endpoint);
-  }
-});
 </script>
 
 <template>
-  <Window title="Bar Chart Window" opened>
+  <Window title="Bar Chart Window" @window-mounted="showChart" opened location="right">
     <AspectRatio :ratio="4 / 3">
       <svg ref="barchart"></svg>
     </AspectRatio>
