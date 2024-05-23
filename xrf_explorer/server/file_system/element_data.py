@@ -106,7 +106,7 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
         (w, h, c, header_size) = get_elemental_datacube_dimensions(path_to_file)
     except Exception as e:
         LOG.error(f"Could not read elemental data file: {str(e)}")
-        return np.empty(0)
+        return []
 
     # get the names of the elements
     names: list[str] = []
