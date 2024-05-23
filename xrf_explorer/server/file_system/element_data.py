@@ -11,7 +11,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
-    -> tuple[int, int, int, int]:
+        -> tuple[int, int, int, int]:
     """Get the dimensions of the raw elemental data.
     
     :param path_to_raw_data: Path to the raw data file in the server.
