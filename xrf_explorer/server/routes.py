@@ -174,6 +174,10 @@ def get_average_data():
     bin_size = int(request.args.get('binSize'))
     
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+
+    if datacube.size == 0:
+        return "Error occurred while loading data", 404
+
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
