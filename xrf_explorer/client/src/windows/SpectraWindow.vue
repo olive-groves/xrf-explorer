@@ -356,22 +356,22 @@ watch(spectraChart, (_n, _o) => {
       <!-- SPECTRA SELECTION -->
       <p class="ml-1 font-bold">Select which spectra to show:</p>
       <div class="mt-1 flex items-center">
-        <Checkbox id="globalCheck" v-model="globalChecked" @change="updateGlobal()" />
+        <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
         <label class="ml-1" for="globalCheck">Global average</label>
       </div>
       <div class="mt-1 flex items-center">
-        <Checkbox id="selectionCheck" v-model="selectionChecked" @change="updateSelection()" />
+        <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelection" />
         <label class="ml-1" for="selectionCheck">Selection average</label>
       </div>
       <div class="mt-1 flex items-center">
-        <Checkbox id="elementCheck" v-model="elementChecked" @change="updateElement()" />
+        <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="updateElement" />
         <label class="ml-1" for="elementCheck">Element theoretical</label>
       </div>
       <!-- ELEMENT SELECTION -->
       <Separator class="my-2 ml-1" />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
-        <Select id="element-dropdown" v-model="selectedElement" @change="updateElementSpectrum()">
+        <Select id="element-dropdown" v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
           <SelectTrigger class="ml-1 w-32">
             <SelectValue placeholder="Select an element" />
           </SelectTrigger>
