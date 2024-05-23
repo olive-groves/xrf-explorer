@@ -288,12 +288,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <!-- TEXT INPUTS -->
     <div class="flex items-center">
       <label class="w-52">Data source name</label>
-      <Input
-        class="block w-64"
-        placeholder="Data source"
-        type="text"
-        ref="dataSourceNameInputRef"
-      />
+      <Input class="block w-64" placeholder="Data source" type="text" ref="dataSourceNameInputRef" />
     </div>
     <!-- FILE INPUTS -->
     <div class="flex items-center">
