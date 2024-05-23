@@ -266,7 +266,7 @@ function shrinkTab(id: string, px: number): number {
  */
 function growAnyTab(px: number, from: number = -1): number {
   console.debug(`Growing any by ${px}px`);
-  const targets = [...growthTargets].filter((id) => state.value[id].index > from);
+  const targets = [...growthTargets].filter((id) => state.value[id].index > from && !state.value[id].minimized);
 
   let remaining = px;
   for (let i = 0; i < targets.length; i++) {
