@@ -13,9 +13,23 @@ export type FrontendConfig = {
    */
   imageViewer: ImageViewerConfig;
   /**
+   * Configuration related to uploading.
+   */
+  uploadConfig: UploadConfig;
+  /**
    * The default theme of the client.
    */
   defaultTheme: BasicColorMode;
+};
+
+/**
+ * Type declaration for upload configuration.
+ */
+export type UploadConfig = {
+  /**
+   * The size (in bytes) of the chunks into which each file will be split before being uploaded to the server.
+   */
+  uploadChunkSizeInBytes: number;
 };
 
 /**
@@ -48,8 +62,7 @@ export type ImageViewerConfig = {
 
 /**
  * The default configuration for the client.
- */
-export const DefaultConfig: FrontendConfig = {
+ */ export const DefaultConfig: FrontendConfig = {
   api: {
     endpoint: "http://localhost:8001/api",
   },
@@ -59,6 +72,9 @@ export const DefaultConfig: FrontendConfig = {
     defaultLensSize: 100.0,
   },
   defaultTheme: "dark",
+  uploadConfig: {
+    uploadChunkSizeInBytes: 50000000, // 50 MB
+  },
 };
 
 /**
