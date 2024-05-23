@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { ref, Ref, computed, inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { WorkspaceConfig } from "@/lib/workspace";
-import { useColorMode } from "@vueuse/core";
 
 const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
@@ -359,7 +358,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <!-- PROGRESS BAR -->
-    <Progress :model-value="uploadProgessPercent" />
+    <Progress class="h-4" :model-value="uploadProgessPercent" />
     <!-- FOOTER -->
     <DialogFooter>
       <DialogClose>
