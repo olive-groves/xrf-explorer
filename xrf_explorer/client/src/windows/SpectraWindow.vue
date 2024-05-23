@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
-import { inject, ref, watch } from "vue";
+import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
 
 import { Separator } from "@/components/ui/separator";

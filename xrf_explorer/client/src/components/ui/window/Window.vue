@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Teleport, computed, ref, toRef, watch } from "vue";
+import { Teleport, ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
