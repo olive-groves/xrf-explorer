@@ -2,20 +2,7 @@
 import { ref } from "vue";
 
 import { inject } from "vue";
-import { Window } from "@/components/ui/window";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
 import { useFetch } from "@vueuse/core";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { FrontendConfig } from "@/lib/config";
 
 // Constants

@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { ref, watch } from "vue";
 
