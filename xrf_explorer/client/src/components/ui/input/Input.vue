@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
-import { useVModel } from "@vueuse/core";
+import { useColorMode, useVModel } from "@vueuse/core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<{
@@ -24,6 +24,8 @@ const modelValue = useVModel(props, "modelValue", emits, {
   passive: true,
   defaultValue: props.defaultValue,
 });
+
+const colorMode = useColorMode();
 </script>
 
 <template>
@@ -38,5 +40,8 @@ const modelValue = useVModel(props, "modelValue", emits, {
         props.class,
       )
     "
+    :style="{
+      'color-scheme': colorMode
+    }"
   />
 </template>
