@@ -9,7 +9,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 sys.path.append('.')
 
 from xrf_explorer.server.file_system.element_data import \
-    get_element_names, get_element_averages, get_raw_elemental_data, get_raw_elemental_data_dimensions
+    get_element_names, get_element_averages, get_elemental_datacube, get_elemental_datacube_dimensions
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -38,7 +38,7 @@ class TestElementalData:
         expected_output: str = "Failed to access config"
 
         # execute
-        result: ndarray = get_raw_elemental_data("imaginary-config-file.yml")
+        result: ndarray = get_elemental_datacube("imaginary-config-file.yml")
         
         # verify
         assert array_equal(result, empty(0))
@@ -71,7 +71,7 @@ class TestElementalData:
         expected_output: str = "Could not read elemental data file"
         
         # execute
-        result: ndarray = get_raw_elemental_data(self.CUSTOM_CONFIG_PATH)
+        result: ndarray = get_elemental_datacube(self.CUSTOM_CONFIG_PATH)
         
         # verify
         assert array_equal(result, empty(0))
@@ -93,7 +93,7 @@ class TestElementalData:
         expected_output: str = "Could not read elemental data file"
         
         # execute
-        result: tuple[int, int, int, int] = get_raw_elemental_data_dimensions("imaginary-raw-data-file.dms")
+        result: tuple[int, int, int, int] = get_elemental_datacube_dimensions("imaginary-raw-data-file.dms")
         
         # verify
         assert result == ()

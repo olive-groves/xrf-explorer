@@ -10,9 +10,9 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
+def get_elemental_datacube_dimensions(path_to_raw_data: str) \
         -> tuple[int, int, int, int]:
-    """Get the dimensions of the raw elemental data.
+    """Get the dimensions of the elemental datacube.
     
     :param path_to_raw_data: Path to the raw data file in the server.
     :param config_path: Path to the backend config file
@@ -35,14 +35,13 @@ def get_raw_elemental_data_dimensions(path_to_raw_data: str) \
             # Save the size of the header
             header_size = file.tell()
     except Exception as e:
-        LOG.error(f"Could not read elemental data file: {str(e)}")
-        return ()
+        raise UnicodeError(f"failed to decode header using \'ascii\' encoding: {str(e)}")
 
     return (*dimensions, header_size)
 
 
-def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarray:
-    """Get the raw elemental data.
+def get_elemental_datacube(config_path: str = "config/backend.yml") -> np.ndarray:
+    """Get the elemental datacube.
     
     :param config_path: Path to the backend config file
     :return: 3-dimensional numpy array containing the raw elemental data. First 2 dimensions
@@ -61,7 +60,7 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
 
     # data dimensions
     try:
-        (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file)
+        (w, h, c, header_size) = get_elemental_datacube_dimensions(path_to_file)
     except Exception as e:
         LOG.error(f"Could not read elemental data file: {str(e)}")
         return np.empty(0)
@@ -104,7 +103,7 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
 
     # data dimensions
     try:
-        (w, h, c, header_size) = get_raw_elemental_data_dimensions(path_to_file)
+        (w, h, c, header_size) = get_elemental_datacube_dimensions(path_to_file)
     except Exception as e:
         LOG.error(f"Could not read elemental data file: {str(e)}")
         return np.empty(0)
@@ -136,7 +135,7 @@ def get_element_averages(config_path: str = "config/backend.yml") -> list[dict[s
     :return: List of the names and average composition of the elements.
     """
 
-    image_cube: np.ndarray = get_raw_elemental_data(config_path)
+    image_cube: np.ndarray = get_elemental_datacube(config_path)
     names: list[str] = get_element_names(config_path)
 
     if image_cube.size == 0 or names == []:
