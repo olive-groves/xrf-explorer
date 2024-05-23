@@ -8,8 +8,7 @@ def get_elemental_datacube_dimensions_from_dms(path: str | Path) \
     """Get the dimensions of the elemental datacube. Error can be raised if
     file could not be read.
     
-    :param path_to_raw_data: Path to the raw data file in the server.
-    :param config_path: Path to the backend config file
+    :param path: Path to the raw data file in the server.
     :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes).
     Tuple is as follows (width, height, channels, header size)
     """

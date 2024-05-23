@@ -34,13 +34,25 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
 def normalize_elemental_cube(raw_cube: np.ndarray) -> np.ndarray:
     """Normalize the raw elemental data cube.
 
-    :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension
+    :param raw_cube: 3-dimensional numpy array containing the raw elemental data. First dimension
     is channel, and last two for x, y coordinates.
     :return: 3-dimensional numpy array containing the normalized elemental data. First dimension
     is channel, and last two for x, y coordinates.
     """
 
     return normalize_ndarray_to_grayscale(raw_cube)
+
+
+def normalize_elemental_map(raw_map: np.ndarray) -> np.ndarray:
+    """Normalize the raw elemental map.
+
+    :param raw_map: 2-dimensional numpy array containing the raw elemental map. Dimensions
+    are the x, y coordinates.
+    :return: 2-dimensional numpy array containing the normalized elemental map. Dimensions
+    are the x, y coordinates.
+    """
+
+    return normalize_ndarray_to_grayscale(raw_map)
 
 
 def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
@@ -52,9 +64,13 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     is channel, and last two for x, y coordinates.
     """
 
+    # Initialize the normalized cube
     normalized_cube: np.ndarray = np.zeros(raw_cube.shape, dtype=np.uint8)
+
+    # Get number of channels
     number_of_channels = raw_cube.shape[0]
 
+    # Normalize each channel separately
     for i in range(number_of_channels):
         normalized_cube[i] = normalize_ndarray_to_grayscale(raw_cube[i])
 
@@ -177,6 +193,7 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
     LOG.info(f"Reading elements from {path}")
 
     try:
+        # Choose the correct method to read the elemental names
         if path.endswith('.csv'):
             elements = get_elements_from_csv(path)
         elif path.endswith('.dms'):
