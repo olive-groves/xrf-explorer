@@ -1,32 +1,38 @@
 import logging
 import json
 
-from os.path import abspath
-from flask import abort, request, redirect, send_file
-from werkzeug.datastructures.file_storage import FileStorage
+from flask import request, jsonify, abort, send_file
+from werkzeug.utils import secure_filename
+from os.path import exists, join, abspath
+from os import mkdir
+from shutil import rmtree
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.file_upload import upload_file_to_server
+from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system.element_data import get_element_names, get_element_averages
+from xrf_explorer.server.file_system.element_data import (
+    get_element_names,
+    get_element_averages,
+)
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
 
 LOG: logging.Logger = logging.getLogger(__name__)
+BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
 
-@app.route('/api')
+@app.route("/api")
 def api():
     return "this is where the API is hosted"
 
 
-@app.route('/api/info')
+@app.route("/api/info")
 def info():
     return "adding more routes is quite trivial"
 
 
-@app.route('/api/available_data_sources')
+@app.route("/api/available_data_sources")
 def list_accessible_data_sources():
     try:
         return json.dumps(get_data_sources_names())
@@ -35,29 +41,70 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route('/api/upload', methods=['POST'])
-def upload_file():
-    if request.method == 'POST':
+@app.route("/api/create_ds_dir", methods=["POST"])
+def create_data_source_dir():
+    # Check the 'name' field was provided in the request
+    if "name" not in request.form:
+        error_msg = "Data source name must be provided."
+        LOG.error(error_msg)
+        return error_msg, 400
 
-        if 'fileUpload' not in request.files:
-            LOG.error("Failed to retrieve upload file")
-            return "No file part"
+    data_source_name = request.form["name"].strip()
+    data_source_name_secure = secure_filename(data_source_name)
 
-        file: FileStorage = request.files['fileUpload']
-        if file.filename == '':     # user did not upload a file
-            return "No file selected"
+    if data_source_name == "":
+        error_msg = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
 
-        if file:
-            if not upload_file_to_server(file):
-                LOG.error("Failed to upload file")
-            return redirect("/")
+    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_name_secure)
 
-    return "File upload page"
+    # If the directory exists, return 400
+    if exists(data_source_dir):
+        error_msg = "Data source name already exists."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    # create data source dir
+    mkdir(data_source_dir)
+
+    LOG.info(f"Data source directory created at {data_source_dir}")
+
+    return jsonify({"dataSourceDir": data_source_name_secure})
 
 
-@app.route('/api/element_averages')
+@app.route("/api/delete_data_source", methods=["DELETE"])
+def delete_data_source():
+    delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+
+    if exists(delete_dir):
+        rmtree(delete_dir)
+        LOG.info(f"Data source at {delete_dir} removed.")
+        return "Deleted", 200
+    else:
+        return "Directory not found", 404
+
+
+@app.route("/api/upload_file_chunk", methods=["POST"])
+def upload_file_chunk():
+    file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+    start_byte = int(request.form["startByte"])
+    chunk_bytes = request.files["chunkBytes"]
+
+    # If the file does not exist, create it
+    if not exists(file_dir):
+        open(file_dir, "w+b").close()
+
+    with open(file_dir, "r+b") as file:
+        file.seek(start_byte)
+        file.write(chunk_bytes.read())
+
+    return "Ok"
+
+
+@app.route("/api/element_averages")
 def list_element_averages():
-    composition: list[dict[str,  str | float]] = get_element_averages()
+    composition: list[dict[str, str | float]] = get_element_averages()
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -65,7 +112,7 @@ def list_element_averages():
         return "Error occurred while listing element averages", 500
 
 
-@app.route('/api/element_names')
+@app.route("/api/element_names")
 def list_element_names():
     names: list[str] = get_element_names()
     try:
@@ -75,19 +122,19 @@ def list_element_names():
         return "Error occurred while listing element names", 500
 
 
-@app.route('/api/get_dr_embedding')
+@app.route("/api/get_dr_embedding")
 def get_dr_embedding():
     # check if element number is provided
-    if 'element' not in request.args:
+    if "element" not in request.args:
         LOG.error("Missing element number")
         abort(400)
-    elif 'threshold' not in request.args:
+    elif "threshold" not in request.args:
         LOG.error("Missing threshold value")
         abort(400)
 
     # Get element and threshold
-    element: int = int(request.args['element'])
-    threshold: int = int(request.args['threshold'])
+    element: int = int(request.args["element"])
+    threshold: int = int(request.args["threshold"])
 
     # Try to generate the embedding
     if not generate_embedding(element, threshold, request.args):
@@ -96,14 +143,14 @@ def get_dr_embedding():
     return "Generated embedding successfully"
 
 
-@app.route('/api/get_dr_overlay')
+@app.route("/api/get_dr_overlay")
 def get_dr_overlay():
     # Check whether the overlay type is provided
-    if 'type' not in request.args:
+    if "type" not in request.args:
         LOG.error("Missing overlay type")
         abort(400)
-    
-    overlay_type: str = request.args['type']
+
+    overlay_type: str = request.args["type"]
 
     # Try to get the embedding image
     image_path: str = create_embedding_image(overlay_type)

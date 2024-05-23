@@ -10,12 +10,42 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarray:
-    """Get the raw elemental data.
+def get_elemental_datacube_dimensions(path_to_raw_data: str) \
+        -> tuple[int, int, int, int]:
+    """Get the dimensions of the elemental datacube.
+    
+    :param path_to_raw_data: Path to the raw data file in the server.
+    :param config_path: Path to the backend config file
+    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes).
+    Tuple is as follows (width, height, channels, header size)
+    """
+    header_size: int
+    dimensions: list[int]
+    try:
+        with open(abspath(path_to_raw_data), 'rb') as file:
+            # Read the first line and ignore it (doesn't include important data)
+            file.readline()
+
+            # Read the second line
+            dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
+            
+            # Parse the second line into the dimensions
+            dimensions = [int(dim) for dim in dimensions_list]
+
+            # Save the size of the header
+            header_size = file.tell()
+    except Exception as e:
+        raise UnicodeError(f"failed to decode header using \'ascii\' encoding: {str(e)}")
+
+    return (*dimensions, header_size)
+
+
+def get_elemental_datacube(config_path: str = "config/backend.yml") -> np.ndarray:
+    """Get the elemental datacube.
     
     :param config_path: Path to the backend config file
     :return: 3-dimensional numpy array containing the raw elemental data. First 2 dimensions
-    are x, y coordinates, last dimension is for elements.
+    are x, y coordinates, last dimension is for channels i.e. elements.
     """
 
     # load backend config
@@ -29,16 +59,17 @@ def get_raw_elemental_data(config_path: str = "config/backend.yml") -> np.ndarra
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
 
     # data dimensions
-    w: int = 1069   # width of elemental image
-    h: int = 1187   # height of elemental image
-    c: int = 26     # channels of elemental image, i.e. number of elements
-    header_size: int = 48   # in bytes
+    try:
+        (w, h, c, header_size) = get_elemental_datacube_dimensions(path_to_file)
+    except Exception as e:
+        LOG.error(f"Could not read elemental data file: {str(e)}")
+        return np.empty(0)
 
     # convert it into a numpy array
     try:
         raw_data: np.ndarray = np.fromfile(path_to_file, offset=header_size, count=w*h*c, dtype=np.float32)
     except Exception as e:
-        LOG.error(f"Could not find elemental data: {str(e)}")
+        LOG.error(f"Could not read elemental data file: {str(e)}")
         return np.empty(0)
 
     # normalize data
@@ -67,14 +98,15 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
 
     filename_elemental: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
-    # data dimensions
-    w: int = 1069   # width of elemental image
-    h: int = 1187   # height of elemental image
-    c: int = 26     # channels of elemental image, i.e. number of elements
-    header_size: int = 48   # in bytes
-    
     # get the path to the file in the server
     path_to_file: str = join(Path(backend_config['uploads-folder']), filename_elemental)
+
+    # data dimensions
+    try:
+        (w, h, c, header_size) = get_elemental_datacube_dimensions(path_to_file)
+    except Exception as e:
+        LOG.error(f"Could not read elemental data file: {str(e)}")
+        return []
 
     # get the names of the elements
     names: list[str] = []
@@ -90,7 +122,7 @@ def get_element_names(config_path: str = "config/backend.yml") -> list[str]:
                     current = "chi"
                 names.append(current)
     except Exception as e:
-        LOG.error(f"Couldn't read elemental data file: {str(e)}")
+        LOG.error(f"Could not read elemental data file: {str(e)}")
         return []
 
     return names
@@ -103,7 +135,7 @@ def get_element_averages(config_path: str = "config/backend.yml") -> list[dict[s
     :return: List of the names and average composition of the elements.
     """
 
-    image_cube: np.ndarray = get_raw_elemental_data(config_path)
+    image_cube: np.ndarray = get_elemental_datacube(config_path)
     names: list[str] = get_element_names(config_path)
 
     if image_cube.size == 0 or names == []:
