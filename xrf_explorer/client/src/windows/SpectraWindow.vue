@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
 import { inject, ref, watch } from "vue";
-import { DefaultConfig, FrontendConfig } from "@/lib/config";
+import { FrontendConfig } from "@/lib/config";
 
 import * as d3 from "d3";
 
