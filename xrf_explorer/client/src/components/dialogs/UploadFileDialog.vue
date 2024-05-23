@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ref, Ref, computed, inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { WorkspaceConfig } from "@/lib/workspace";
@@ -284,20 +285,16 @@ function getTotalChunks(files: File[], chunkSize: number): number {
 <template>
   <ReusableDialog id="upload_file">
     <DialogTitle> Upload files </DialogTitle>
-
+    <!-- TEXT INPUTS -->
     <div class="flex items-center">
-      <label class="w-64">Data source name</label>
-      <input
-        class="block w-44 rounded-lg bg-accent p-2 text-accent-foreground focus:border-border focus:ring-ring"
-        placeholder="Data source"
-        type="text"
-        ref="dataSourceNameInputRef"
-      />
+      <Label class="w-52">Data source name</Label>
+      <Input class="block w-64" placeholder="Data source" type="text" ref="dataSourceNameInputRef" />
     </div>
+    <!-- FILE INPUTS -->
     <div class="flex items-center">
-      <label class="w-64">RGB file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">RGB file</Label>
+      <Input
+        class="block w-64"
         aria-describedby="rgb_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -306,9 +303,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">UV file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">UV file</Label>
+      <Input
+        class="block w-64"
         aria-describedby="uv_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -317,9 +314,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">XRAY file</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">XRAY file</Label>
+      <Input
+        class="block w-64"
         aria-describedby="xray_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -328,9 +325,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Cube data</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">Cube data</Label>
+      <Input
+        class="block w-64"
         aria-describedby="cube_input_help"
         type="file"
         accept=".csv, .dms"
@@ -339,9 +336,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Raw data (.RAW)</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">Raw data (.RAW)</Label>
+      <Input
+        class="block w-64"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".raw"
@@ -350,9 +347,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-64">Raw data (.RPL)</label>
-      <input
-        class="block w-44 cursor-pointer rounded-lg bg-background text-accent-foreground focus:outline-none"
+      <Label class="w-52">Raw data (.RPL)</Label>
+      <Input
+        class="block w-64"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".rpl"
@@ -360,8 +357,10 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         ref="rplDataInputRef"
       />
     </div>
-    <Progress :model-value="uploadProgessPercent" />
-
+    <!-- PROGRESS BAR -->
+    <Progress class="mt-1 h-4" :model-value="uploadProgessPercent" />
+    <p class="-mt-3 text-xs italic">Upload progress</p>
+    <!-- FOOTER -->
     <DialogFooter>
       <DialogClose>
         <Button variant="destructive"> Cancel </Button>
