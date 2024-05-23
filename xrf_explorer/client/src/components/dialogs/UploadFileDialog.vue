@@ -285,7 +285,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
 <template>
   <ReusableDialog id="upload_file">
     <DialogTitle> Upload files </DialogTitle>
-
+    <!-- TEXT INPUTS -->
     <div class="flex items-center">
       <label class="w-52">Data source name</label>
       <Input
@@ -295,6 +295,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         ref="dataSourceNameInputRef"
       />
     </div>
+    <!-- FILE INPUTS -->
     <div class="flex items-center">
       <label class="w-52">RGB file</label>
       <Input
@@ -361,8 +362,9 @@ function getTotalChunks(files: File[], chunkSize: number): number {
         ref="rplDataInputRef"
       />
     </div>
+    <!-- PROGRESS BAR -->
     <Progress :model-value="uploadProgessPercent" />
-
+    <!-- FOOTER -->
     <DialogFooter>
       <DialogClose>
         <Button variant="destructive"> Cancel </Button>
