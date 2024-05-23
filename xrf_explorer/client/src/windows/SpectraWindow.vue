@@ -23,7 +23,6 @@ let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
-//need to see how to get these variables
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 const low = 50;
@@ -57,7 +56,6 @@ function setup() {
   // append the svg object to the body of the page
   svg = d3
     .select(spectraChart.value)
-    //.append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -78,7 +76,7 @@ function setup() {
 const globalChecked = ref(false);
 const elementChecked = ref(false);
 const selectionChecked = ref(false);
-const selectedElement = ref("");
+const selectedElement = ref("No element");
 const excitation = ref(0);
 
 /**
@@ -131,7 +129,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
 }
 
 /**
- * Plots the average graph of the given pixels
+ * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
  * @param pixels Array of selected pixels.
  * @param low Lower channel boundary.
@@ -159,7 +157,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
     const data = await response.json();
 
     //remove spectrum of previous selection
-    d3.select("#selectionLine").remove();
+    svg.select("#selectionLine").remove();
 
     //create line
     const line = d3
@@ -217,8 +215,8 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
       const spectrum = data[0];
 
       //remove previous element lines
-      d3.select("#elementLine").remove();
-      d3.selectAll("line").remove();
+      svg.select("#elementLine").remove();
+      svg.selectAll("line").remove();
 
       //create line
       const line = d3
@@ -239,13 +237,14 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 
       //Add peaks
       data[1].forEach((peak: Point) => {
+        console.log(peak.index)
         svg
           .append("line")
           .style("stroke", "grey")
           .style("stroke-width", 1)
-          .attr("x1", peak.index)
+          .attr("x1", x(peak.index))
           .attr("y1", 30)
-          .attr("x2", peak.index)
+          .attr("x2", x(peak.index))
           .attr("y2", 430);
       });
     } catch (e) {
@@ -253,8 +252,8 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
     }
   } else {
     //remove previous element line
-    d3.select("#elementLine").remove();
-    d3.selectAll("line").remove();
+    svg.select("#elementLine").remove();
+    svg.selectAll("line").remove();
   }
 
   //modify visibility based on checkbox status
@@ -301,9 +300,9 @@ async function getElements() {
  */
 function updateGlobal() {
   if (globalChecked.value) {
-    d3.select("#globalLine").style("opacity", 1);
+    svg.select("#globalLine").style("opacity", 1);
   } else {
-    d3.select("#globalLine").style("opacity", 0);
+    svg.select("#globalLine").style("opacity", 0);
   }
 }
 
@@ -312,9 +311,9 @@ function updateGlobal() {
  */
 function updateElement() {
   if (elementChecked.value) {
-    d3.select("#elementLine").style("opacity", 1);
+    svg.select("#elementLine").style("opacity", 1);
   } else {
-    d3.select("#elementLine").style("opacity", 0);
+    svg.select("#elementLine").style("opacity", 0);
   }
 }
 
@@ -323,9 +322,9 @@ function updateElement() {
  */
 function updateSelection() {
   if (selectionChecked.value) {
-    d3.select("#selectionLine").style("opacity", 1);
+    svg.select("#selectionLine").style("opacity", 1);
   } else {
-    d3.select("#selectionLine").style("opacity", 0);
+    svg.select("#selectionLine").style("opacity", 0);
   }
 }
 
@@ -345,7 +344,7 @@ if (false) {
 /**
  * Setups the chart when the window is created.
  */
-watch(spectraChart, (_n, _o) => {
+ watch(spectraChart, (_n, _o) => {
   if (spectraChart.value != null) {
     setup();
   }
@@ -353,24 +352,26 @@ watch(spectraChart, (_n, _o) => {
 </script>
 
 <template>
-  <div>
-    <Window title="Spectrum" opened>
+  <Window title="Spectrum" location="right" opened @window-mounted="setup">
+    <div class="mx-2">
       <!-- SPECTRA SELECTION -->
-      <p class="ml-1 font-bold">Select which spectra to show:</p>
-      <div class="mt-1 flex items-center">
-        <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
-        <label class="ml-1" for="globalCheck">Global average</label>
-      </div>
-      <div class="mt-1 flex items-center">
-        <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelection" />
-        <label class="ml-1" for="selectionCheck">Selection average</label>
-      </div>
-      <div class="mt-1 flex items-center">
-        <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="updateElement" />
-        <label class="ml-1" for="elementCheck">Element theoretical</label>
+      <div class="space-y-1">
+        <p class="ml-1 font-bold">Select which spectra to show:</p>
+        <div class="mt-1 flex items-center">
+          <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
+          <label class="ml-1" for="globalCheck">Global average</label>
+        </div>
+        <div class="mt-1 flex items-center">
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelection" />
+          <label class="ml-1" for="selectionCheck">Selection average</label>
+        </div>
+        <div class="mt-1 flex items-center">
+          <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="updateElement" />
+          <label class="ml-1" for="elementCheck">Element theoretical</label>
+        </div>
       </div>
       <!-- ELEMENT SELECTION -->
-      <Separator class="my-2 ml-1" />
+      <Separator />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
         <Select id="element-dropdown" v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
@@ -386,7 +387,7 @@ watch(spectraChart, (_n, _o) => {
         </Select>
       </div>
       <!-- ENERGY SELECTION -->
-      <Separator class="my-2 ml-1" />
+      <Separator />
       <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
       <Input
         id="excitation-input"
@@ -396,9 +397,9 @@ watch(spectraChart, (_n, _o) => {
         @change="updateElementSpectrum()"
       />
       <!-- PLOTTING THE CHART -->
-      <Separator class="my-2 ml-1" />
+      <Separator />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
       <svg class="ml-1" ref="spectraChart"></svg>
-    </Window>
-  </div>
+    </div>
+  </Window>
 </template>
