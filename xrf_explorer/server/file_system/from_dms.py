@@ -67,7 +67,7 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
             # Read all element names
             names: list[str] = []
             while line := f.readline():
-                names.append(line.decode('utf-8').strip().replace(" ", ""))
+                names.append(line.decode('utf-8').strip())
             
             return names
     except Exception as e:
@@ -76,10 +76,10 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
 
 
 def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
-    """Get the elemental data cube from the csv file.
+    """Get the elemental data cube from the dms file.
 
-    :param path: Path to the csv file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension
+    :param path: Path to the dms file containing the elemental data cube.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension
     is channel, and last two for x, y coordinates.
     """
 
@@ -103,7 +103,11 @@ def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
         list_raw_elemental_cube = np.fromfile(path, offset=header_size, count=w*h*c, dtype=np.float32)
 
         # reshape the raw elemental data
-        return list_raw_elemental_cube.reshape(c, h, w)
+        raw_elemental_cube = list_raw_elemental_cube.reshape(c, h, w)
+
+        LOG.info(f"Elemental data cube loaded with shape: {raw_elemental_cube.shape}")
+
+        return raw_elemental_cube
     except Exception as e:
         LOG.error(f"Could not read elemental data file: {str(e)}")
         return np.empty(0)

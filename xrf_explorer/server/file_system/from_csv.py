@@ -46,10 +46,10 @@ def get_elements_from_csv(path: str | Path) -> list[str]:
 
 
 def get_raw_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
-    """Get the elemental data cube from the csv file.
+    """Get the elemental data cube from the csv file at the given path.
 
     :param path: Path to the csv file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension
     is channel, and last two for x, y coordinates.
     """
 
