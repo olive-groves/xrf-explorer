@@ -6,7 +6,6 @@ import { Window } from "@/components/ui/window";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { FormDescription } from "@/components/ui/form";
 import { useFetch } from "@vueuse/core";
 import {
   Select,
@@ -144,11 +143,11 @@ async function updateEmbedding() {
     <!-- PARAMETERS SECTIONS -->
     <Separator class="my-2 ml-1 w-64" />
     <p class="ml-1 font-bold">Parameters:</p>
-    <Slider class="mb-1 ml-1 mt-2 w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1" />
-    <FormDescription class="ml-1">
+    <Slider class="ml-1 mt-2 w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1" />
+    <div class="ml-1 -mt-1">
       <span class="text-xs italic">Threshold value: </span>
       <span class="text-xs italic">{{ threshold?.[0] }}</span>
-    </FormDescription>
+    </div>
     <div class="mt-1 flex items-center">
       <Select v-model="selectedElement">
         <SelectTrigger class="ml-1 w-32">
