@@ -339,15 +339,6 @@ if (false) {
   const pixels = [];
   plotSelectionSpectrum(pixels, low, high, binSize);
 }
-
-/**
- * Setups the chart when the window is created.
- */
-watch(spectraChart, (_n, _o) => {
-  if (spectraChart.value != null) {
-    setup();
-  }
-});
 </script>
 
 <template>
