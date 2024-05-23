@@ -289,7 +289,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">Data source name</label>
       <Input
-        class="block w-64 rounded-lg focus:border-border focus:ring-ring"
+        class="block w-64"
         placeholder="Data source"
         type="text"
         ref="dataSourceNameInputRef"
@@ -299,7 +299,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">RGB file</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="rgb_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -310,7 +310,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">UV file</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="uv_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -321,7 +321,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">XRAY file</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="xray_input_help"
         type="file"
         accept=".tiff, .tif, .jpg, .jpeg, .bmp, .png"
@@ -332,7 +332,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">Cube data</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="cube_input_help"
         type="file"
         accept=".csv, .dms"
@@ -343,7 +343,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">Raw data (.RAW)</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".raw"
@@ -354,7 +354,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <div class="flex items-center">
       <label class="w-52">Raw data (.RPL)</label>
       <Input
-        class="block w-64 cursor-pointer rounded-lg focus:outline-none"
+        class="block w-64"
         aria-describedby="raw_data_input_help"
         type="file"
         accept=".rpl"
