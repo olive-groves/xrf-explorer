@@ -2,7 +2,7 @@
 import { Toolbar } from "@/components/image-viewer";
 import { computed, inject, onMounted, ref } from "vue";
 import { ToolState } from "./types";
-import { useResizeObserver } from "@vueuse/core";
+import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
 import * as THREE from "three";
@@ -31,21 +31,14 @@ const toolState = ref<ToolState>({
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
 
-let width: number;
-let height: number;
+const canvasSize = useElementBounding(glcontainer);
+const width = canvasSize.width;
+const height = canvasSize.height;
 
 /**
  * Set up the renderer after mounting the canvas.
  */
 onMounted(setup);
-
-/**
- * Update the width and height variables to represent the size of the render target (the glcanvas element).
- */
-useResizeObserver(glcontainer, (entries) => {
-  const entry = entries[0];
-  ({ width, height } = entry.contentRect);
-});
 
 /**
  * Sets up the a very basic scene in THREE for rendering.
@@ -57,8 +50,6 @@ function setup() {
     canvas: glcanvas.value!,
   });
 
-  ({ width, height } = glcontainer.value!.getBoundingClientRect());
-
   render();
 }
 
@@ -67,8 +58,8 @@ function setup() {
  */
 function render() {
   // Calculate viewport parameters
-  const w = width * Math.exp(viewport.zoom);
-  const h = height * Math.exp(viewport.zoom);
+  const w = width.value * Math.exp(viewport.zoom);
+  const h = height.value * Math.exp(viewport.zoom);
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
   const lensSize = toolState.value.tool == "lens" ? toolState.value.lensSize[0] : Number.MAX_VALUE;
@@ -78,7 +69,7 @@ function render() {
     layer.uniform.uRadius.value = lensSize;
   });
 
-  renderer.setSize(width, height);
+  renderer.setSize(width.value, height.value);
   renderer.render(scene.scene, camera);
 
   requestAnimationFrame(render);
@@ -120,12 +111,13 @@ function onMouseMove(event: MouseEvent) {
   }
 
   const rect = glcanvas.value!.getBoundingClientRect();
-  const mouseX = event.layerX;
-  const mouseY = event.layerY;
+  const mouseX = event.clientX - canvasSize.left.value;
+  const mouseY = event.clientY - canvasSize.top.value;
+
   // Map mouse coordinates to [0,width] and [0,height],
   // reversing y-axis to have (0,0) at top left
-  const normalizedX = (width * mouseX) / rect.width;
-  const normalizedY = height * (1 - mouseY / rect.height);
+  const normalizedX = (width.value * mouseX) / rect.width;
+  const normalizedY = height.value * (1 - mouseY / rect.height);
 
   layers.value.forEach((layer) => {
     layer.uniform.uMouse.value.set(normalizedX, normalizedY);
