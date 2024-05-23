@@ -142,7 +142,7 @@ async function updateEmbedding() {
         <Button class="ml-4 block w-28" @click="fetchDRImage">Show overlay</Button>
       </div>
       <!-- PARAMETERS SECTIONS -->
-      <Separator class="my-2 w-64" />
+      <Separator class="my-2" />
       <p class="font-bold">Parameters:</p>
       <Slider class="mt-2 w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1" />
       <div class="-mt-1">
@@ -166,7 +166,7 @@ async function updateEmbedding() {
         <Button class="ml-4 block w-28" @click="updateEmbedding">Generate</Button>
       </div>
       <!-- GENERATION OF THE IMAGE -->
-      <Separator class="my-2 w-64" />
+      <Separator class="my-2" />
       <p class="font-bold">Generated image:</p>
       <div class="mt-1 flex aspect-square items-center justify-center text-center">
         <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
