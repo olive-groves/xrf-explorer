@@ -287,12 +287,12 @@ function getTotalChunks(files: File[], chunkSize: number): number {
     <DialogTitle> Upload files </DialogTitle>
     <!-- TEXT INPUTS -->
     <div class="flex items-center">
-      <label class="w-52">Data source name</label>
+      <Label class="w-52">Data source name</Label>
       <Input class="block w-64" placeholder="Data source" type="text" ref="dataSourceNameInputRef" />
     </div>
     <!-- FILE INPUTS -->
     <div class="flex items-center">
-      <label class="w-52">RGB file</label>
+      <Label class="w-52">RGB file</Label>
       <Input
         class="block w-64"
         aria-describedby="rgb_input_help"
@@ -303,7 +303,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-52">UV file</label>
+      <Label class="w-52">UV file</Label>
       <Input
         class="block w-64"
         aria-describedby="uv_input_help"
@@ -314,7 +314,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-52">XRAY file</label>
+      <Label class="w-52">XRAY file</Label>
       <Input
         class="block w-64"
         aria-describedby="xray_input_help"
@@ -325,7 +325,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-52">Cube data</label>
+      <Label class="w-52">Cube data</Label>
       <Input
         class="block w-64"
         aria-describedby="cube_input_help"
@@ -336,7 +336,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-52">Raw data (.RAW)</label>
+      <Label class="w-52">Raw data (.RAW)</Label>
       <Input
         class="block w-64"
         aria-describedby="raw_data_input_help"
@@ -347,7 +347,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <div class="flex items-center">
-      <label class="w-52">Raw data (.RPL)</label>
+      <Label class="w-52">Raw data (.RPL)</Label>
       <Input
         class="block w-64"
         aria-describedby="raw_data_input_help"
