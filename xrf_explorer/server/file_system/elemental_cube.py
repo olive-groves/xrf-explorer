@@ -76,6 +76,7 @@ def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backen
 
     # Check if the file exists
     if not isfile(path_cube):
+        LOG.error(f"File not found: {path_cube}")
         return ""
 
     return path_cube
