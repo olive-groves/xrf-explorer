@@ -98,12 +98,20 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     # Get the elemental data cube
     elemental_cube: np.ndarray
 
-    if path.endswith('.csv'):
-        elemental_cube = get_raw_elemental_data_cube_from_csv(path)
-    elif path.endswith('.dms'):
-        elemental_cube = get_raw_elemental_data_cube_from_dms(path)
-    else:
-        elemental_cube = np.empty(0)
+    LOG.info(f"Reading elemental data cube from {path}")
+
+    try:
+        # Choose the correct method to read the elemental data cube
+        if path.endswith('.csv'):
+            elemental_cube = get_raw_elemental_data_cube_from_csv(path)
+        elif path.endswith('.dms'):
+            elemental_cube = get_raw_elemental_data_cube_from_dms(path)
+        else:
+            elemental_cube = np.empty(0)
+
+    except Exception as e:
+        LOG.error(f"Error while reading elemental data cube: {e}")
+        return np.empty(0)
     
     LOG.info(f"Elemental data cube loaded. Shape: {elemental_cube.shape}")
 
@@ -125,10 +133,16 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
     # Return the elemental data cube
     elements: list[str] = []
 
-    if path.endswith('.csv'):
-        elements = get_elements_from_csv(path)
-    elif path.endswith('.dms'):
-        elements = get_elements_from_dms(path)
+    LOG.info(f"Reading elements from {path}")
+
+    try:
+        if path.endswith('.csv'):
+            elements = get_elements_from_csv(path)
+        elif path.endswith('.dms'):
+            elements = get_elements_from_dms(path)
+    
+    except Exception as e:
+        LOG.error(f"Could not read elemental data cube: {e}")
     
     LOG.info(f"Elements loaded. Total elements: {len(elements)}")
 
