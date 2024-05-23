@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { ref, Ref, computed, inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
-import { WorkspaceConfig } from "@/lib/workspace.ts";
+import { WorkspaceConfig } from "@/lib/workspace";
 
 const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
@@ -207,12 +207,17 @@ function generateWorkspaceJSON() {
   }
 
   if (getFile(cubeDataInputRef) !== undefined) {
-    workspace.elementalCubes.push({ id: "1", dmsLocation: generateFileName(cubeDataInputRef)!, recipeLocation: "" });
+    workspace.elementalCubes.push({
+      name: "1",
+      fileType: "csv",
+      dataLocation: generateFileName(cubeDataInputRef)!,
+      recipeLocation: "",
+    });
   }
 
   if (getFile(rawDataInputRef) && getFile(rplDataInputRef)) {
     workspace.spectralCubes.push({
-      id: "1",
+      name: "1",
       rawLocation: generateFileName(rawDataInputRef)!,
       rplLocation: generateFileName(rplDataInputRef)!,
       recipeLocation: "",
@@ -223,7 +228,6 @@ function generateWorkspaceJSON() {
 }
 
 /**
- * /**
  * Generates a file name string by combining the name attribute of an input element
  * with the file type of the file selected in that input element.
  * @param inputRef - A reference to an HTML input element.
@@ -234,7 +238,6 @@ function generateFileName(inputRef: Ref<HTMLInputElement | undefined>): string |
 }
 
 /**
- * /**
  * Retrieves the 'name' attribute from an HTML input element reference.
  * @param inputRef - A reference to an HTML input element.
  * @returns - The name attribute of the input element, or undefined if the input reference is invalid.
