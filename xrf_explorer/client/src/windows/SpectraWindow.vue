@@ -364,8 +364,8 @@ watch(spectraChart, (_n, _o) => {
         <label class="ml-1" for="elementCheck">Element theoretical</label>
       </div>
       <!-- ELEMENT SELECTION -->
-      <Separator class="my-2 ml-1 w-64" />
-      <p class="ml-1 font-bold">Choose the element for the theoretical spectrum:</p>
+      <Separator class="my-2 ml-1" />
+      <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
         <Select id="element-dropdown" v-model="selectedElement">
           <SelectTrigger class="ml-1 w-32">
@@ -383,7 +383,7 @@ watch(spectraChart, (_n, _o) => {
         <Button class="ml-4 block w-28" @click="updateElementSpectrum">Show spectra</Button>
       </div>
       <!-- ENERGY SELECTION -->
-      <Separator class="my-2 ml-1 w-64" />
+      <Separator class="my-2 ml-1" />
       <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
       <Input
         id="excitation-input"
@@ -393,7 +393,7 @@ watch(spectraChart, (_n, _o) => {
         @change="updateElementSpectrum()"
       />
       <!-- PLOTTING THE CHART -->
-      <Separator class="my-2 ml-1 w-64" />
+      <Separator class="my-2 ml-1" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
       <svg class="ml-1" ref="spectraChart"></svg>
     </Window>
