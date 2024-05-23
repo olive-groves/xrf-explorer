@@ -237,7 +237,6 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
 
       //Add peaks
       data[1].forEach((peak: Point) => {
-        console.log(peak.index)
         svg
           .append("line")
           .style("stroke", "grey")
@@ -344,7 +343,7 @@ if (false) {
 /**
  * Setups the chart when the window is created.
  */
- watch(spectraChart, (_n, _o) => {
+watch(spectraChart, (_n, _o) => {
   if (spectraChart.value != null) {
     setup();
   }
