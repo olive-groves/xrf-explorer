@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Window } from "@/components/ui/window";
-import { ref, watch } from "vue";
-import { DefaultConfig } from "@/lib/config";
+import { inject, ref, watch } from "vue";
+import { FrontendConfig } from "@/lib/config";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -25,10 +25,11 @@ let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
 //need to see how to get these variables
-const url: string = DefaultConfig.api.endpoint;
-const low: number = 50;
-const high: number = 2000;
-const binSize: number = 32;
+const config = inject<FrontendConfig>("config")!;
+const url = config.api.endpoint;
+const low = 50;
+const high = 2000;
+const binSize = 32;
 
 interface Point {
   index: number;
@@ -43,6 +44,7 @@ function setup() {
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
     height = 600 - margin.top - margin.bottom;
+
   // Add X and Y axis
   x = d3
     .scaleLinear()
@@ -73,6 +75,7 @@ function setup() {
   getElements();
   plotAverageSpectrum(low, high, binSize);
 }
+
 const globalChecked = ref(false);
 const elementChecked = ref(false);
 const selectionChecked = ref(false);
@@ -314,7 +317,6 @@ function updateElement() {
 
 /**
  * Updates visibility of selection average spectrum.
- *
  */
 function updateSelection() {
   if (selectionChecked.value) {
@@ -324,7 +326,6 @@ function updateSelection() {
   }
 }
 
-//
 /**
  * Plots element spectrum when an elemented is selected in the dropdown.
  */
@@ -338,7 +339,9 @@ if (false) {
   plotSelectionSpectrum(pixels, low, high, binSize);
 }
 
-//display svg when window is opened
+/**
+ * Setups the chart when the window is created.
+ */
 watch(spectraChart, (_n, _o) => {
   if (spectraChart.value != null) {
     setup();
