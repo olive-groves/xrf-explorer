@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { ref, Ref, computed, inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
+import { WorkspaceConfig } from "@/lib/workspace.ts";
 
 const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
@@ -177,51 +178,44 @@ function getFileType(file: File): string {
  * @returns - An object containing metadata about the data source.
  */
 function generateWorkspaceJSON() {
-  interface Workspace {
-    name: string;
-    baseImage: {
-      name: string;
-      location: string;
-    };
-    contenxtualImages: { name: string; imageLocation: string; recipeLocation?: string }[];
-    spectralCubes: { rawLocation: string; rplLocation: string; recipeLocation?: string }[];
-    elementalCubes: { dmsLocation: string; recipeLocation?: string }[];
-  }
-
   const dataSourceName: string = getTrimmedInputString(dataSourceNameInputRef)!;
   const baseImageName: string = getNameAttribute(rgbImageInputRef)!;
   const baseImageLocation: string = `${baseImageName}.${getFileType(getFile(rgbImageInputRef)!)}`;
 
-  const workspace: Workspace = {
+  const workspace: WorkspaceConfig = {
     name: dataSourceName,
-    baseImage: { name: baseImageName, location: baseImageLocation },
-    contenxtualImages: [],
+    baseImage: { name: baseImageName, imageLocation: baseImageLocation, recipeLocation: "" },
+    contextualImages: [],
     spectralCubes: [],
     elementalCubes: [],
   };
 
   if (getFile(uvImageInputRef) !== undefined) {
-    workspace.contenxtualImages.push({
+    workspace.contextualImages.push({
       name: getNameAttribute(uvImageInputRef)!,
       imageLocation: generateFileName(uvImageInputRef)!,
+      recipeLocation: "",
     });
   }
 
   if (getFile(xrayImageInputRef) !== undefined) {
-    workspace.contenxtualImages.push({
+    workspace.contextualImages.push({
       name: getNameAttribute(xrayImageInputRef)!,
       imageLocation: generateFileName(xrayImageInputRef)!,
+      recipeLocation: "",
     });
   }
 
   if (getFile(cubeDataInputRef) !== undefined) {
-    workspace.elementalCubes.push({ dmsLocation: generateFileName(cubeDataInputRef)! });
+    workspace.elementalCubes.push({ id: "1", dmsLocation: generateFileName(cubeDataInputRef)!, recipeLocation: "" });
   }
 
   if (getFile(rawDataInputRef) && getFile(rplDataInputRef)) {
     workspace.spectralCubes.push({
+      id: "1",
       rawLocation: generateFileName(rawDataInputRef)!,
       rplLocation: generateFileName(rplDataInputRef)!,
+      recipeLocation: "",
     });
   }
 
