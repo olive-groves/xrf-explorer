@@ -358,7 +358,7 @@ function getTotalChunks(files: File[], chunkSize: number): number {
       />
     </div>
     <!-- PROGRESS BAR -->
-    <Progress class="h-4 mt-1" :model-value="uploadProgessPercent" />
+    <Progress class="mt-1 h-4" :model-value="uploadProgessPercent" />
     <p class="-mt-3 text-xs italic">Upload progress</p>
     <!-- FOOTER -->
     <DialogFooter>

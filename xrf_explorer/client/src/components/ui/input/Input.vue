@@ -41,7 +41,7 @@ const colorMode = useColorMode();
       )
     "
     :style="{
-      'color-scheme': colorMode
+      'color-scheme': colorMode,
     }"
   />
 </template>
