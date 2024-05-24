@@ -50,7 +50,7 @@ watch(
           <div class="flex">
             <Label
               for="color"
-              class="mt-2 size-4 rounded-md"
+              class="mt-2 size-4 rounded-md border border-border"
               :style="{
                 'background-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
               }"
