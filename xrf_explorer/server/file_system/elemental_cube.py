@@ -24,8 +24,8 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
     """
 
     # normalize data
-    (min, max) = array.min(), array.max()
-    normalized_array: np.ndarray = (array - min) / (max - min)
+    (min_val, max_val) = array.min(), array.max()
+    normalized_array: np.ndarray = (array - min_val) / (max_val - min_val)
 
     # obtain image of elemental abundance at every pixel of elemental image
     return np.rint(normalized_array * 255).astype(np.uint8)
@@ -80,6 +80,7 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     """Get the elemental data cube at the given path.
 
     :param name_cube: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
 
@@ -116,6 +117,7 @@ def get_elemental_map(element: int, name_cube: str, config_path: str = "config/b
 
     :param element: Index of the element in the elemental data cube.
     :param name_cube: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
     :return: 2-dimensional numpy array containing the elemental data cube. Dimensions are the x, y coordinates.
     """
 
@@ -151,6 +153,7 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
     """Get the names of the elements stored in the elemental data cube.
     
     :param name_cube: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
     :return: List of the names of the elements. Empty list if error occurred.
     """
 
@@ -186,6 +189,7 @@ def get_short_element_names(name_cube: str, config_path: str = "config/backend.y
     """Get the short names of the elements stored in the elemental data cube.
     
     :param name_cube: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
     :return: List of the names of the elements. Empty list if error occurred.
     """
 
@@ -214,6 +218,7 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     """Get the names and averages of the elements present in the painting.
 
     :param name_cube: Name of the elemental data cube.
+    :param config_path: Path to the backend config file.
     :return: List of the names and average composition of the elements.
     """
 
