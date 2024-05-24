@@ -117,6 +117,17 @@ class TestElementalData:
         assert len(result) == 0
         assert expected_output in caplog.text
 
+    def test_config_not_found_to_dms(self, caplog):
+        # setup
+        expected_output: str = "Failed to access config"
+
+        # execute
+        result = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS, "imaginary-config-file.yml")
+
+        # verify
+        assert not result
+        assert expected_output in caplog.text
+
     def test_file_not_found_names(self, caplog):
         # setup
         expected_output: str = "File not found"

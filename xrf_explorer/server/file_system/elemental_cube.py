@@ -260,10 +260,14 @@ def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: s
     c, w, h = cube.shape
 
     # Write the elemental data cube to a DMS file
-    with open(path_cube, 'wb+') as f:
-        f.write(b'2\n')
-        f.write("{0} {1} {2}\n".format(w, h, c).encode())
-        f.write(cube.tobytes())
-        f.write('\n'.join(elements).encode())
+    try:
+        with open(path_cube, 'wb+') as f:
+            f.write(b'2\n')
+            f.write("{0} {1} {2}\n".format(w, h, c).encode())
+            f.write(cube.tobytes())
+            f.write('\n'.join(elements).encode())
+    except OSError as e:
+        LOG.error(f"Error while writing elemental map to dms: {e}")
+        return False
 
     return True
