@@ -26,6 +26,9 @@ def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "confi
     
     #get dimensions from rpl file
     info = parse_rpl(rpl_filename)
+    if not info:
+        return np.empty(0)
+
     width = int(info['width'])
     height = int(info['height'])
     channels = int(info['depth'])
@@ -151,6 +154,8 @@ def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, hig
     
     #remove last character to get periodic table symbol
     element = element[:len(element)-1]
+    if element == 'yAl':
+        element = 'Al'
     
     #get spectrum and peaks
     data = get_element_spectrum(element, excitation_energy_keV)

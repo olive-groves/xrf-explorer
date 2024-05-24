@@ -10,16 +10,15 @@ from shutil import rmtree
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system.element_data import (
-    get_element_names,
-    get_element_averages,
-)
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
 
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
+
+TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
 
 @app.route("/api")
@@ -104,7 +103,7 @@ def upload_file_chunk():
 
 @app.route("/api/element_averages")
 def list_element_averages():
-    composition: list[dict[str, str | float]] = get_element_averages()
+    composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -114,7 +113,7 @@ def list_element_averages():
 
 @app.route("/api/element_names")
 def list_element_names():
-    names: list[str] = get_element_names()
+    names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(names)
     except Exception as e:
@@ -172,6 +171,10 @@ def get_average_data():
     bin_size = int(request.args.get('binSize'))
     
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+
+    if datacube.size == 0:
+        return "Error occurred while loading data", 404
+
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
