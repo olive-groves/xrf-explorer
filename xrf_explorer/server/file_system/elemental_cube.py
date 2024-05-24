@@ -247,6 +247,15 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
 
 
 def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: str = "config/backend.yml") -> bool:
+    """"Saves a numpy array and list of elements to a DMS file.
+
+    :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
+    :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
+    :param elements: List of the names of the elements.
+    :param config_path: Path to the backend config file.
+    :return: True if the cube was saved successfully, False otherwise.
+    """
+    
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
