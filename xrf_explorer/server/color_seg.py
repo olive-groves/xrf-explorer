@@ -148,6 +148,15 @@ def lab_to_rgb(lab_color):
     """
     return skimage.color.lab2rgb([lab_color[0] / 255, lab_color[1] / 255, lab_color[2] / 255])*255
 
+def rgb_to_hex(r, g, b):
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+def convert_to_hex(clusters):
+    hex_clusters = []
+    for color in clusters:
+        hex_clusters.append(rgb_to_hex(int(color[0]), int(color[1]), int(color[2])))
+    return hex_clusters
+
 
 ########################################################################################################################
 # IMAGE FORMATTING #####################################################################################################
