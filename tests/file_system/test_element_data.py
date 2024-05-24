@@ -11,7 +11,9 @@ sys.path.append('.')
 
 from xrf_explorer.server.file_system import (
     get_elemental_data_cube, get_elemental_map, 
-    get_element_names, get_element_averages)
+    get_element_names, get_element_averages,
+    to_dms    
+)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -21,6 +23,7 @@ class TestElementalData:
 
     DATA_CUBE_DMS: str = 'test.dms'
     DATA_CUBE_CSV: str = 'test.csv'
+    NAME_CUBE_FROM_CSV: str = 'cube_from_csv'
     NON_EXISTING_CUBE: str = 'non-existing.dms'
 
     ELEMENTS: list[str] = ["Secret", "Element"]
@@ -184,3 +187,16 @@ class TestElementalData:
         assert result[0]['name'] == self.ELEMENTS[0]
         assert result[1]['name'] == self.ELEMENTS[1]
         assert expected_output in caplog.text
+
+    def test_csv_to_dms(self, caplog):
+        # setup - load the csv file
+        cube: ndarray = get_elemental_data_cube(self.DATA_CUBE_CSV, self.CUSTOM_CONFIG_PATH)
+        elements: list[str] = get_element_names(self.DATA_CUBE_CSV, self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result = to_dms(self.NAME_CUBE_FROM_CSV, cube, elements, self.CUSTOM_CONFIG_PATH)
+
+        # verify
+        assert result
+        self.do_test_get_element_names(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
+        self.do_test_get_elemental_cube(self.NAME_CUBE_FROM_CSV + '.dms', caplog)

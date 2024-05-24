@@ -244,3 +244,26 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     LOG.info("Calculated the average composition of the elements.")
 
     return composition
+
+
+def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: str = "config/backend.yml") -> bool:
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return False
+    
+    # path to cube 
+    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube + '.dms')
+    
+    # Get the shape of the elemental data cube
+    c, w, h = cube.shape
+
+    # Write the elemental data cube to a DMS file
+    with open(path_cube, 'wb+') as f:
+        f.write(b'2\n')
+        f.write("{0} {1} {2}\n".format(w, h, c).encode())
+        f.write(cube.tobytes())
+        f.write('\n'.join(elements).encode())
+
+    return True
