@@ -68,7 +68,7 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     normalized_cube: np.ndarray = np.zeros(raw_cube.shape, dtype=np.uint8)
 
     # Get number of channels
-    number_of_channels = raw_cube.shape[0]
+    number_of_channels: int = raw_cube.shape[0]
 
     # Normalize each channel separately
     for i in range(number_of_channels):
@@ -92,7 +92,7 @@ def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backen
         return ""
     
     # path to cube 
-    path_cube = join(Path(backend_config['uploads-folder']), name_cube)
+    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube)
 
     # Check if the file exists
     if not isfile(path_cube):
@@ -111,7 +111,7 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     """
 
     # Get full path to the elemental data cube
-    path = get_path_to_elemental_cube(name_cube, config_path)
+    path: str = get_path_to_elemental_cube(name_cube, config_path)
     if not path:
         return np.empty(0)
     
@@ -148,7 +148,7 @@ def get_elemental_map(element: int, name_cube: str, config_path: str = "config/b
     """
 
     # Get full path to the elemental data cube
-    path = get_path_to_elemental_cube(name_cube, config_path)
+    path: str = get_path_to_elemental_cube(name_cube, config_path)
     if not path:
         return np.empty(0)
     
@@ -183,12 +183,12 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
     """
 
     # Get full path to the elemental data cube
-    path = get_path_to_elemental_cube(name_cube, config_path)
+    path: str = get_path_to_elemental_cube(name_cube, config_path)
     if not path:
         return []
     
     # Return the elemental data cube
-    elements: list[str] = []
+    elements: list[str]
 
     LOG.info(f"Reading elements from {path}")
 
@@ -198,9 +198,12 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
             elements = get_elements_from_csv(path)
         elif path.endswith('.dms'):
             elements = get_elements_from_dms(path)
+        else:
+            elements = []
     
     except Exception as e:
         LOG.error(f"Could not read elemental data cube: {e}")
+        return []
     
     LOG.info(f"Elements loaded. Total elements: {len(elements)}")
 
@@ -223,7 +226,7 @@ def get_short_element_names(name_cube: str, config_path: str = "config/backend.y
 
     # Make names shorter
     for name in element_names:
-        short_name = name.replace(" ", "")
+        short_name: str = name.replace(" ", "")
 
         if short_name == "Continuum":
             short_names.append("cont.")

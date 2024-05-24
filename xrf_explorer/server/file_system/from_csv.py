@@ -35,13 +35,15 @@ def get_raw_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
     """
     
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
-    e = pd.read_csv(path, sep=';', header=0, index_col=False, dtype=np.float32).set_index(["row", "column"])
+    df_cube: pd.DataFrame = pd.read_csv(
+            path, sep=';', header=0, index_col=False, dtype=np.float32
+        ).set_index(["row", "column"])
 
     # Get width and height of the elemental cube
-    height, width = len(e.index.levels[0]), len(e.index.levels[1])
+    height, width = len(df_cube.index.levels[0]), len(df_cube.index.levels[1])
 
     # Reshape the elemental cube
-    return e.to_numpy().reshape(height, width, -1).swapaxes(0, 2)
+    return df_cube.to_numpy().reshape(height, width, -1).swapaxes(0, 2)
 
 
 def get_raw_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray:
@@ -55,16 +57,16 @@ def get_raw_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray
     """
 
     # column of element index is two more, since first two columns are "row" and "column"
-    column_element = element + 2
+    column_element: int = element + 2
 
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
-    e = pd.read_csv(
+    df_cube: pd.DataFrame = pd.read_csv(
         path, sep=';', usecols=[0, 1, column_element], 
         header=0, index_col=False, dtype=np.float32
     ).set_index(["row", "column"])
 
     # Get width and height of the elemental cube
-    height, width = len(e.index.levels[0]), len(e.index.levels[1])
+    height, width = len(df_cube.index.levels[0]), len(df_cube.index.levels[1])
 
     # Reshape the elemental cube
-    return e.to_numpy().reshape(height, width).swapaxes(0, 1)
+    return df_cube.to_numpy().reshape(height, width).swapaxes(0, 1)

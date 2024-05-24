@@ -21,10 +21,10 @@ def get_elemental_datacube_dimensions_from_dms(path: str | Path) \
         dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
         
         # Parse the second line into the dimensions
-        dimensions = [int(dim) for dim in dimensions_list]
+        dimensions: list[int] = [int(dim) for dim in dimensions_list]
 
         # Save the size of the header
-        header_size = file.tell()
+        header_size: int = file.tell()
 
         return (*dimensions, header_size)
 
@@ -68,7 +68,7 @@ def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
     (w, h, c, header_size) = get_elemental_datacube_dimensions_from_dms(path)
 
     # list of raw elemental data
-    list_raw_elemental_cube = np.fromfile(path, offset=header_size, count=w*h*c, dtype=np.float32)
+    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=header_size, count=w*h*c, dtype=np.float32)
 
     # reshape the raw elemental data
     return list_raw_elemental_cube.reshape(c, h, w)
@@ -88,13 +88,13 @@ def get_raw_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray
     (w, h, _, header_size) = get_elemental_datacube_dimensions_from_dms(path)
     
     # size of the elemental map in bytes
-    bytes_elemental_map = w * h * 4
+    bytes_elemental_map: int = w * h * 4
 
     # total offset to the beginning of the elemental map
-    total_offset = header_size + element * bytes_elemental_map
+    total_offset: int = header_size + element * bytes_elemental_map
 
     # list of raw elemental map
-    list_raw_elemental_cube = np.fromfile(path, offset=total_offset, count=w*h, dtype=np.float32)
+    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=total_offset, count=w*h, dtype=np.float32)
     
     # reshape the raw elemental map
     return list_raw_elemental_cube.reshape(h, w)
