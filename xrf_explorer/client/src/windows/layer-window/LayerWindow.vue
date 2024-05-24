@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Window } from "@/components/ui/window";
 import { LayerSystem } from "@/components/image-viewer";
 </script>
 

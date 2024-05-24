@@ -1,20 +1,6 @@
 <script setup lang="ts">
-import { Window } from "@/components/ui/window";
 import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
-
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import * as d3 from "d3";
 
