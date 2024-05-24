@@ -6,6 +6,8 @@ import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
 import { appState } from "@/lib/appState";
+import { Input } from "@/components/ui/input";
+import { hexToRgb } from "@/lib/utils";
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
@@ -38,6 +40,11 @@ watch(
             </div>
             <div class="whitespace-nowrap text-muted-foreground">Elemental map of {{ channel.channel }}.</div>
           </div>
+          <Input
+            default-value="#FFFFFF"
+            @update:model-value="(value) => (channel.color = hexToRgb(value as string))"
+            type="color"
+          />
           <Button
             @click="channel.selected = !channel.selected"
             variant="ghost"
