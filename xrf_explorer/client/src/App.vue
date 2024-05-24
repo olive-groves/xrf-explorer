@@ -26,7 +26,7 @@ console.log("XRF-Explorer client created with configuration: ", props.config);
 // Set up a default workspace
 // Temporary: Needs to be moved to the file menu in a later PR
 import { WorkspaceConfig } from "./lib/workspace";
-import { appState } from "./lib/app_state";
+import { appState } from "./lib/appState";
 const workspace: WorkspaceConfig = {
   name: "Amandelbloesem",
   baseImage: {
@@ -65,7 +65,15 @@ const workspace: WorkspaceConfig = {
       recipeLocation: "recipe_elemental.csv",
     },
   ],
+  elementalChannels: [],
 };
+for (let i = 10; i < 14; i++) {
+  workspace.elementalChannels.push({
+    name: `element_${i}`,
+    channel: i,
+    enabled: true,
+  });
+}
 appState.workspace = workspace;
 </script>
 
