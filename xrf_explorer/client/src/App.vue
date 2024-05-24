@@ -8,7 +8,7 @@ import { FrontendConfig } from "./lib/config";
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { DRWindow, BarChartWindow } from "@/windows";
+import { DRWindow, BarChartWindow, ElementalChannelWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
@@ -84,6 +84,7 @@ appState.workspace = workspace;
       <ImageViewer />
 
       <!-- Place all windows below here -->
+      <ElementalChannelWindow />
       <LayerWindow />
       <WorkspaceWindow />
       <BarChartWindow />
