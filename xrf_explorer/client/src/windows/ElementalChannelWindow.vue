@@ -8,6 +8,7 @@ import { computed, watch } from "vue";
 import { appState } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
 import { hexToRgb } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
@@ -41,20 +42,31 @@ watch(
             </div>
             <div class="whitespace-nowrap text-muted-foreground">Elemental map of {{ channel.channel }}.</div>
           </div>
-          <Input
-            default-value="#FFFFFF"
-            @update:model-value="(value) => (channel.color = hexToRgb(value as string))"
-            type="color"
-          />
-          <Button
-            @click="channel.selected = !channel.selected"
-            variant="ghost"
-            class="size-8 p-2"
-            title="Toggle visibility"
-          >
-            <Eye v-if="channel.selected" />
-            <EyeOff v-else />
-          </Button>
+          <div class="flex">
+            <Label
+              for="color"
+              class="mt-2 size-4 rounded-md"
+              :style="{
+                'background-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
+              }"
+            />
+            <Input
+              class="hidden"
+              id="color"
+              default-value="#FFFFFF"
+              @update:model-value="(value) => (channel.color = hexToRgb(value as string))"
+              type="color"
+            />
+            <Button
+              @click="channel.selected = !channel.selected"
+              variant="ghost"
+              class="size-8 p-2"
+              title="Toggle visibility"
+            >
+              <Eye v-if="channel.selected" />
+              <EyeOff v-else />
+            </Button>
+          </div>
         </div>
         <div v-if="channel.selected" class="space-y-2">
           <div class="space-y-2">
