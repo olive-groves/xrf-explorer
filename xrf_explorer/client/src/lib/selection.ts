@@ -66,18 +66,26 @@ export type RectangleSelection = {
 };
 
 /**
- * Describes a selected element.
+ * Describes an element.
  */
 export type ElementSelection = {
   /**
-   * The channel of the selected element.
+   * The channel of the element.
    */
   channel: number;
+  /**
+   * Checks if elemental channel is selected.
+   */
+  selected: boolean;
   /**
    * The color associated with the element.
    * Each component should be an 8 bit integer (0-255).
    */
   color: [number, number, number];
+  /**
+   * The intensity associated with the element.
+   */
+  intensity: [number];
 };
 
 /**
