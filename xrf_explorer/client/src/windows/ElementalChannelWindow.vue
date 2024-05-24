@@ -5,21 +5,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { appState } from "@/lib/appState";
+
+const channels = computed(() => appState.workspace?.elementalChannels);
 </script>
 
 <template>
   <Window title="Hello" opened>
-    <div class="p-2">
+    <div v-for="channel in channels" :key="channel.name" class="p-2">
       <Card class="space-y-2 p-2">
         <div class="flex justify-between">
           <div>
             <div>
-              Hallo
+                {{ channel.name }}
             </div>
             <div class="whitespace-nowrap text-muted-foreground">
-              Hallo description
+              description
             </div>
           </div>
           <Button
