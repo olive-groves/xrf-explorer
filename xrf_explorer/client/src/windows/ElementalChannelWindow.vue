@@ -9,18 +9,22 @@ import { appState } from "@/lib/appState";
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
-watch(channels, (value) => {
-  value?.forEach((channel) => {
-    if (channel.enabled == true) {
-      appState.selection.elements.push({
-        channel: channel.channel,
-        selected: false,
-        color: [255, 255, 255],
-        intensity: [1],
-      });
-    }
-  })
-}, {immediate:true});
+watch(
+  channels,
+  (value) => {
+    value?.forEach((channel) => {
+      if (channel.enabled == true) {
+        appState.selection.elements.push({
+          channel: channel.channel,
+          selected: false,
+          color: [255, 255, 255],
+          intensity: [1],
+        });
+      }
+    });
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -32,37 +36,27 @@ watch(channels, (value) => {
             <div>
               {{ channel.channel }}
             </div>
-            <div class="whitespace-nowrap text-muted-foreground">
-              Elemental map of {{ channel.channel }}. 
-            </div>
+            <div class="whitespace-nowrap text-muted-foreground">Elemental map of {{ channel.channel }}.</div>
           </div>
           <Button
-          @click="
-            channel.selected = !channel.selected;
-          "
-          variant="ghost"
-          class="size-8 p-2"
-          title="Toggle visibility"
-        >
-          <Eye v-if="channel.selected" />
-          <EyeOff v-else />
-        </Button>
+            @click="channel.selected = !channel.selected"
+            variant="ghost"
+            class="size-8 p-2"
+            title="Toggle visibility"
+          >
+            <Eye v-if="channel.selected" />
+            <EyeOff v-else />
+          </Button>
         </div>
         <div v-if="channel.selected" class="space-y-2">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <div>Channel intensity</div>
-            <div>{{ channel.intensity[0] }}</div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <div>Channel intensity</div>
+              <div>{{ channel.intensity[0] }}</div>
+            </div>
+            <Slider v-model="channel.intensity" :min="0" :step="0.01" :max="1" class="pb-2" />
           </div>
-          <Slider
-            v-model="channel.intensity"
-            :min="0"
-            :step="0.01"
-            :max="1"
-            class="pb-2"
-          />
         </div>
-      </div>
       </Card>
     </div>
   </Window>
