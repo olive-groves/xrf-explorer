@@ -14,6 +14,7 @@ const channels = computed(() => appState.workspace?.elementalChannels);
 watch(
   channels,
   (value) => {
+    appState.selection.elements = [];
     value?.forEach((channel) => {
       if (channel.enabled == true) {
         appState.selection.elements.push({
