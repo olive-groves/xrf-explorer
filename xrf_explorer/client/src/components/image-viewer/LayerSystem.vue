@@ -6,11 +6,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { ref, watch } from "vue";
-
-// Makes sure workspace.ts gets loaded
-import "./workspace";
 import { layerGroups, setLayerGroupIndex, setLayerGroupOpacity, setLayerGroupVisibility } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
+
+// Makes sure the workspace.ts file gets loaded
+import "./workspace";
+// import "./"
 
 const groups = ref<LayerGroup[]>([]);
 

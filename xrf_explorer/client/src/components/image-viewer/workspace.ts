@@ -1,10 +1,11 @@
 import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
 import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { computed, watch } from "vue";
-import { appState } from "@/lib/app_state";
+import { appState } from "@/lib/appState";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
+import { createElementalLayers } from "./elementalHelper";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -31,6 +32,8 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   });
 
   // Create elemental layers
+  createElementalLayers(workspace);
+
   // Create color segmentation layers
   // Create dimensionality reduction layers
 }
@@ -47,7 +50,7 @@ function createBaseLayer(image: ContextualImage) {
     name: image.name,
     description: "Base image",
     layers: [layer],
-    index: 1,
+    index: 0,
     visible: true,
     visibility: LayerVisibility.Visible,
     opacity: [1.0],
@@ -69,7 +72,7 @@ function createContextualLayer(image: ContextualImage) {
     name: image.name,
     description: "Contextual image",
     layers: [layer],
-    index: 0,
+    index: -1,
     visible: false,
     visibility: LayerVisibility.Visible,
     opacity: [1.0],
