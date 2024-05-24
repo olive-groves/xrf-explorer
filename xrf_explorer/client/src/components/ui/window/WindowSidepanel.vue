@@ -48,6 +48,8 @@ watch(
         }
         growTab(id, headerSize);
         removeTarget(id);
+
+        maximize(id);
       }
 
       // Update the index
@@ -266,7 +268,7 @@ function shrinkTab(id: string, px: number): number {
  */
 function growAnyTab(px: number, from: number = -1): number {
   console.debug(`Growing any by ${px}px`);
-  const targets = [...growthTargets].filter((id) => state.value[id].index > from);
+  const targets = [...growthTargets].filter((id) => state.value[id].index > from && !state.value[id].minimized);
 
   let remaining = px;
   for (let i = 0; i < targets.length; i++) {
@@ -370,6 +372,7 @@ function handleDragMovement(event: MouseEvent) {
           }"
           :class="{
             'transition-all': !disableAnimation,
+            'transition-none': disableAnimation,
           }"
         >
           <div
@@ -387,12 +390,9 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="-mt-px overflow-hidden duration-100"
+            class="-mt-px overflow-hidden"
             :style="{
               height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
-            }"
-            :class="{
-              'transition-all': !disableAnimation,
             }"
           >
             <WindowPortalTarget
