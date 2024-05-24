@@ -10,10 +10,7 @@ from shutil import rmtree
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system import (
-    get_short_element_names,
-    get_element_averages,
-)
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *

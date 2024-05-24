@@ -9,8 +9,7 @@ def get_elemental_datacube_dimensions_from_dms(path: str | Path) \
     file could not be read.
     
     :param path: Path to the raw data file in the server.
-    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes).
-    Tuple is as follows (width, height, channels, header size)
+    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes). Tuple is as follows (width, height, channels, header size)
     """
     
     with open(path, 'rb') as file:
@@ -60,8 +59,7 @@ def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
     Can raise error if file could not be read.
 
     :param path: Path to the dms file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension
-    is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
     
     # get data dimensions
@@ -80,8 +78,7 @@ def get_raw_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray
 
     :param element: Index of the element in the elemental data cube.
     :param path: Path to the dms file containing the elemental data cube.
-    :return: 2-dimensional numpy array containing the elemental map. Dimensions
-    are the x, y coordinates.
+    :return: 2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.
     """
     
     # get data dimensions

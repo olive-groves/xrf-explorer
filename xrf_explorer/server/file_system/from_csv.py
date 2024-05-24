@@ -30,8 +30,7 @@ def get_raw_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
     Can raise error if file could not be read.
 
     :param path: Path to the csv file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension
-    is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
     
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
@@ -52,8 +51,7 @@ def get_raw_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray
 
     :param element: Index of the element in the elemental data cube.
     :param path: Path to the dms file containing the elemental data cube.
-    :return: 2-dimensional numpy array containing the elemental map. Dimensions
-    are the x, y coordinates.
+    :return: 2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.
     """
 
     # column of element index is two more, since first two columns are "row" and "column"

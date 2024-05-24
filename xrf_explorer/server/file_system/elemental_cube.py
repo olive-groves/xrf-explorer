@@ -34,10 +34,8 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
 def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     """Normalize the raw elemental data cube.
 
-    :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension
-    is channel, and last two for x, y coordinates.
-    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension
-    is channel, and last two for x, y coordinates.
+    :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last two for x, y coordinates.
     """
 
     # Initialize the normalized cube
@@ -82,8 +80,7 @@ def get_elemental_data_cube(name_cube: str, config_path: str = "config/backend.y
     """Get the elemental data cube at the given path.
 
     :param name_cube: Name of the elemental data cube.
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension
-    is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
 
     # Get full path to the elemental data cube
@@ -119,8 +116,7 @@ def get_elemental_map(element: int, name_cube: str, config_path: str = "config/b
 
     :param element: Index of the element in the elemental data cube.
     :param name_cube: Name of the elemental data cube.
-    :return: 2-dimensional numpy array containing the elemental data cube. Dimensions
-    are the x, y coordinates.
+    :return: 2-dimensional numpy array containing the elemental data cube. Dimensions are the x, y coordinates.
     """
 
     # Get full path to the elemental data cube
@@ -155,7 +151,7 @@ def get_element_names(name_cube: str, config_path: str = "config/backend.yml") -
     """Get the names of the elements stored in the elemental data cube.
     
     :param name_cube: Name of the elemental data cube.
-    :return: List of the names of the elements. Empty list if error occured.
+    :return: List of the names of the elements. Empty list if error occurred.
     """
 
     # Get full path to the elemental data cube
@@ -190,7 +186,7 @@ def get_short_element_names(name_cube: str, config_path: str = "config/backend.y
     """Get the short names of the elements stored in the elemental data cube.
     
     :param name_cube: Name of the elemental data cube.
-    :return: List of the names of the elements. Empty list if error occured.
+    :return: List of the names of the elements. Empty list if error occurred.
     """
 
     # Get regular names
