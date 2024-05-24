@@ -42,7 +42,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     description: "",
     layers: layers,
     index: -2,
-    visible: false,
+    visible: true,
     visibility: LayerVisibility.InsideLens,
     opacity: [1.0],
   };
