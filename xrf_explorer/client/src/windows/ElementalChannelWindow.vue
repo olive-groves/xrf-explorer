@@ -37,7 +37,9 @@ watch(
       <Card
         class="space-y-2 p-2"
         :style="{
-          'border-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
+          'border-color': channel.selected
+            ? `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`
+            : 'hsl(var(--border))',
         }"
       >
         <div class="flex justify-between">
@@ -49,7 +51,8 @@ watch(
           </div>
           <div class="flex">
             <Label
-              for="color"
+              v-if="channel.selected"
+              :for="`color_${channel.channel}`"
               class="mt-2 size-4 rounded-md border border-border"
               :style="{
                 'background-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
@@ -57,7 +60,7 @@ watch(
             />
             <Input
               class="hidden"
-              id="color"
+              :id="`color_${channel.channel}`"
               default-value="#FFFFFF"
               @update:model-value="(value) => (channel.color = hexToRgb(value as string))"
               type="color"
