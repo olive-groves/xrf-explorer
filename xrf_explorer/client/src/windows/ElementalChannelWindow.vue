@@ -34,7 +34,12 @@ watch(
 <template>
   <Window title="Elemental Channels Window" opened>
     <div v-for="channel in appState.selection.elements" :key="channel.channel" class="p-2">
-      <Card class="space-y-2 p-2">
+      <Card
+        class="space-y-2 p-2"
+        :style="{
+          'border-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
+        }"
+      >
         <div class="flex justify-between">
           <div>
             <div>
