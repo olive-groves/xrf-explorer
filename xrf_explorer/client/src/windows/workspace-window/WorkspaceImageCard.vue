@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ContextualImage } from "@/lib/workspace";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Settings, Image, ImagePlus } from "lucide-vue-next";
