@@ -31,30 +31,6 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
     return np.rint(normalized_array * 255).astype(np.uint8)
 
 
-def normalize_elemental_cube(raw_cube: np.ndarray) -> np.ndarray:
-    """Normalize the raw elemental data cube.
-
-    :param raw_cube: 3-dimensional numpy array containing the raw elemental data. First dimension
-    is channel, and last two for x, y coordinates.
-    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension
-    is channel, and last two for x, y coordinates.
-    """
-
-    return normalize_ndarray_to_grayscale(raw_cube)
-
-
-def normalize_elemental_map(raw_map: np.ndarray) -> np.ndarray:
-    """Normalize the raw elemental map.
-
-    :param raw_map: 2-dimensional numpy array containing the raw elemental map. Dimensions
-    are the x, y coordinates.
-    :return: 2-dimensional numpy array containing the normalized elemental map. Dimensions
-    are the x, y coordinates.
-    """
-
-    return normalize_ndarray_to_grayscale(raw_map)
-
-
 def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     """Normalize the raw elemental data cube.
 
@@ -255,7 +231,7 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
         return []
     
     # Normalize the elemental data cube
-    image_cube: np.ndarray = normalize_elemental_cube(raw_cube)
+    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
@@ -264,6 +240,6 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     composition: list[dict[str,  str | float]] = \
         [{"name": names[i], "average": averages[i]} for i in range(averages.size)]
 
-    LOG.error("Calculated the average composition of the elements.")
+    LOG.info("Calculated the average composition of the elements.")
 
     return composition
