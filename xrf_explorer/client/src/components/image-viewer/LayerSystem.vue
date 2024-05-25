@@ -15,6 +15,12 @@ import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
+enum properties {
+    Opacity = "Opacity",
+    Contrast = "Contrast",
+    Saturation = "Saturation"
+}
+
 /**
  * Loads the layer groups into the LayerSystem.
  */
@@ -90,43 +96,51 @@ function checkedOutsideLens(group: LayerGroup) {
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
-        <div class="space-y-2">
+        <div class="space-y-2" v-for="property in properties">
           <div class="flex items-center justify-between">
-            <div>Opacity</div>
-            <div>{{ group.opacity[0] }}</div>
+            <div v-if="property == 'Opacity'">
+              <div>Opacity</div>
+              <div>{{ group.opacity[0] }}</div>
+            </div>
+            <div v-else-if="property == 'Contrast'">
+              <div>Contrast</div>
+              <div>{{ group.contrast[0] }}</div>
+            </div>
+            <div v-else-if="property == 'Saturation'">
+              <div>Saturation</div>
+              <div>{{ group.saturation[0] }}</div>
+            </div>
           </div>
-          <Slider
-            v-model="group.opacity"
-            :min="0"
-            :step="0.01"
-            :max="1"
-            class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, 'opacityProperty')"
-          />
-          <div class="flex items-center justify-between">
-            <div>Contrast</div>
-            <div>{{ group.contrast[0] }}</div>
+          <div v-if="property == 'Opacity'">
+            <Slider
+              v-model="group.opacity"
+              :min="0"
+              :step="0.01"
+              :max="1"
+              class="pb-2"
+              @update:model-value="() => setLayerGroupProperty(group, 'opacityProperty')"
+            />
           </div>
-          <Slider
-            v-model="group.contrast"
-            :min="0"
-            :step="0.01"
-            :max="5"
-            class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, 'contrastProperty')"
-          />
-          <div class="flex items-center justify-between">
-            <div>Saturation</div>
-            <div>{{ group.saturation[0] }}</div>
+          <div v-else-if="property == 'Contrast'">
+            <Slider
+              v-model="group.contrast"
+              :min="0"
+              :step="0.01"
+              :max="5"
+              class="pb-2"
+              @update:model-value="() => setLayerGroupProperty(group, 'contrastProperty')"
+            />
           </div>
-          <Slider
-            v-model="group.saturation"
-            :min="0"
-            :step="0.01"
-            :max="5"
-            class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, 'saturationProperty')"
-          />
+          <div v-else-if="property == 'Saturation'">
+            <Slider
+              v-model="group.saturation"
+              :min="0"
+              :step="0.01"
+              :max="5"
+              class="pb-2"
+              @update:model-value="() => setLayerGroupProperty(group, 'saturationProperty')"
+            />
+          </div>
         </div>
       </div>
     </Card>
