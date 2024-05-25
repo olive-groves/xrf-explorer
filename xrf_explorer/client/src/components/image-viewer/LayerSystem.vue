@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { ref, watch, Ref } from "vue";
+import { ref, watch } from "vue";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
@@ -10,6 +10,7 @@ import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
+// Used for generalizing the code. 
 interface Property {
   name: string;
   max: number;
@@ -70,6 +71,7 @@ function checkedOutsideLens(group: LayerGroup) {
 
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
+    <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="space-y-2 p-2">
       <div class="flex justify-between">
         <div>
@@ -80,6 +82,7 @@ function checkedOutsideLens(group: LayerGroup) {
             {{ group.description }}
           </div>
         </div>
+        <!-- VISIBILITY TOGGLE -->
         <Button
           @click="
             group.visible = !group.visible;
@@ -93,6 +96,7 @@ function checkedOutsideLens(group: LayerGroup) {
           <EyeOff v-else />
         </Button>
       </div>
+      <!-- SLIDERS FOR OPACITY, CONTRAST, AND SATURATION -->
       <div v-if="group.visible" class="space-y-2">
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
