@@ -51,7 +51,12 @@ void main() {
     gl_FragColor = transparent;
   }
 
-  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
-  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uContrast);
-  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uSaturation);
+  // // Apply contrast adjustment
+  //   gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
+
+  //   // Apply saturation adjustment
+  //   gl_FragColor.rgb = adjustSaturation(gl_FragColor.rgb, uSaturation);
+
+    // Apply opacity
+    gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
 }

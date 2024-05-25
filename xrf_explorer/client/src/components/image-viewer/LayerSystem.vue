@@ -108,7 +108,7 @@ function checkedOutsideLens(group: LayerGroup) {
             v-model="group.contrast"
             :min="0"
             :step="0.01"
-            :max="1"
+            :max="5"
             class="pb-2"
             @update:model-value="() => setLayerGroupContrast(group)"
           />
@@ -122,7 +122,7 @@ function checkedOutsideLens(group: LayerGroup) {
             v-model="group.saturation"
             :min="0"
             :step="0.01"
-            :max="1"
+            :max="5"
             class="pb-2"
             @update:model-value="() => setLayerGroupSaturation(group)"
           />
