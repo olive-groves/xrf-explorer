@@ -18,9 +18,9 @@ interface Property {
 }
 
 const properties: Property[] = [
-  { name: "Opacity", max: 1, propertyName: 'opacityProperty', nameRef: 'opacity' },
-  { name: "Contrast", max: 5, propertyName: 'contrastProperty', nameRef: 'contrast' },
-  { name: "Saturation", max: 5, propertyName: 'saturationProperty', nameRef: 'saturation' },
+  { name: "Opacity", max: 1, propertyName: "opacityProperty", nameRef: "opacity" },
+  { name: "Contrast", max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
+  { name: "Saturation", max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
 ];
 
 /**
