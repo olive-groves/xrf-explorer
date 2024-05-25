@@ -5,7 +5,14 @@ import { ref, watch } from "vue";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import { layerGroups, setLayerGroupIndex, setLayerGroupOpacity, setLayerGroupContrast, setLayerGroupSaturation, setLayerGroupVisibility } from "./state";
+import {
+  layerGroups,
+  setLayerGroupIndex,
+  setLayerGroupOpacity,
+  setLayerGroupContrast,
+  setLayerGroupSaturation,
+  setLayerGroupVisibility,
+} from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
