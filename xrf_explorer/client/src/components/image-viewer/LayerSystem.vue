@@ -14,13 +14,13 @@ interface Property {
   name: string;
   max: number;
   propertyName: string;
-  nameRef: Ref<string>;
+  nameRef: keyof LayerGroup;
 }
 
 const properties: Property[] = [
-  { name: "Opacity", max: 1, propertyName: 'opacityProperty', nameRef: ref('opacity') },
-  { name: "Contrast", max: 5, propertyName: 'contrastProperty', nameRef: ref('contrast') },
-  { name: "Saturation", max: 5, propertyName: 'saturationProperty', nameRef: ref('saturation') },
+  { name: "Opacity", max: 1, propertyName: 'opacityProperty', nameRef: 'opacity' },
+  { name: "Contrast", max: 5, propertyName: 'contrastProperty', nameRef: 'contrast' },
+  { name: "Saturation", max: 5, propertyName: 'saturationProperty', nameRef: 'saturation' },
 ];
 
 /**
@@ -101,10 +101,10 @@ function checkedOutsideLens(group: LayerGroup) {
         <div class="space-y-2" v-for="property in properties" :key="property.name">
           <div class="flex items-center justify-between">
             <div>{{ property.name }}</div>
-            <div>{{ group[property.nameRef].value[0] }}</div>
+            <div>{{ group[property.nameRef].toString() }}</div>
           </div>
           <Slider
-            v-model="group[property.nameRef].value"
+            v-model="group[property.nameRef]"
             :min="0"
             :step="0.01"
             :max="property.max"
