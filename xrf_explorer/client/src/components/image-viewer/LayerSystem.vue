@@ -101,15 +101,15 @@ function checkedOutsideLens(group: LayerGroup) {
         <div class="space-y-2" v-for="property in properties" :key="property.name">
           <div class="flex items-center justify-between">
             <div>{{ property.name }}</div>
-              <div>{{ group[property.nameRef].value[0] }}</div>
-            </div>
-            <Slider
-              v-model="group[property.nameRef]"
-              :min="0"
-              :step="0.01"
-              :max="property.max"
-              class="pb-2"
-              @update:model-value="() => setLayerGroupProperty(group, group[property.nameRef])"
+            <div>{{ group[property.nameRef].value[0] }}</div>
+          </div>
+          <Slider
+            v-model="group[property.nameRef].value"
+            :min="0"
+            :step="0.01"
+            :max="property.max"
+            class="pb-2"
+            @update:model-value="() => setLayerGroupProperty(group, group[property.nameRef].value)"
           />
         </div>
       </div>
