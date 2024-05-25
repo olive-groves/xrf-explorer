@@ -5,20 +5,15 @@ import { ref, watch } from "vue";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import {
-  layerGroups,
-  setLayerGroupIndex,
-  setLayerGroupVisibility,
-  setLayerGroupProperty,
-} from "./state";
+import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
 enum properties {
-    Opacity = "Opacity",
-    Contrast = "Contrast",
-    Saturation = "Saturation"
+  Opacity = "Opacity",
+  Contrast = "Contrast",
+  Saturation = "Saturation",
 }
 
 /**
@@ -96,7 +91,7 @@ function checkedOutsideLens(group: LayerGroup) {
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
-        <div class="space-y-2" v-for="property in properties">
+        <div class="space-y-2" v-for="property in properties" :key="property">
           <div class="flex items-center justify-between">
             <div v-if="property == 'Opacity'">
               <div>Opacity</div>

@@ -54,6 +54,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 /**
  * Helper function that completely updates the layers in a layer group.
  * @param group - The layer group that should be updated.
+ * @param property - The property to update (e.g., "opacity", "contrast", "saturation").
  */
 export function updateLayerGroupLayers(group: LayerGroup, property: string) {
   setLayerGroupIndex(group);
