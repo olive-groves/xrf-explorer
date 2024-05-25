@@ -19,54 +19,56 @@ varying vec2 vUv;
 
 // Convert RGB to HSL
 vec3 rgbToHsl(vec3 rgb) {
-    vec3 hsl;
-    float maxVal = max(max(rgb.r, rgb.g), rgb.b);
-    float minVal = min(min(rgb.r, rgb.g), rgb.b);
-    float delta = maxVal - minVal;
+  vec3 hsl;
+  float maxValue = max(max(rgb.r, rgb.g), rgb.b);
+  float minValue = min(min(rgb.r, rgb.g), rgb.b);
+  float delta = maxValue - minValue;
 
-    hsl.z = (maxVal + minVal) * 0.5;
+  hsl.z = (maxValue + minValue) * 0.5;
 
-    if (delta < 1e-5) {
-        hsl.x = 0.0;
-        hsl.y = 0.0;
+  if (delta < 1e-5) {
+    hsl.x = 0.0; // Hue
+    hsl.y = 0.0; // Saturation
+  } else {
+    hsl.y = delta / (1.0 - abs(2.0 * hsl.z - 1.0)); // Saturation
+
+    if (maxValue == rgb.r) {
+      hsl.x = mod((rgb.g - rgb.b) / delta, 6.0); // Hue
+    } else if (maxValue == rgb.g) {
+      hsl.x = ((rgb.b - rgb.r) / delta) + 2.0; // Hue
     } else {
-        hsl.y = delta / (1.0 - abs(2.0 * hsl.z - 1.0));
-        if (maxVal == rgb.r) {
-            hsl.x = mod((rgb.g - rgb.b) / delta, 6.0);
-        } else if (maxVal == rgb.g) {
-            hsl.x = ((rgb.b - rgb.r) / delta) + 2.0;
-        } else {
-            hsl.x = ((rgb.r - rgb.g) / delta) + 4.0;
-        }
-        hsl.x *= 60.0;
+      hsl.x = ((rgb.r - rgb.g) / delta) + 4.0; // Hue
     }
+    hsl.x *= 60.0;
+  }
 
-    return hsl;
+  return hsl;
 }
 
 // Convert HSL to RGB
 vec3 rgbFromHsl(vec3 hsl) {
-    float c = (1.0 - abs(2.0 * hsl.z - 1.0)) * hsl.y;
-    float x = c * (1.0 - abs(mod(hsl.x / 60.0, 2.0) - 1.0));
-    float m = hsl.z - 0.5 * c;
+  float chroma = (1.0 - abs(2.0 * hsl.z - 1.0)) * hsl.y;
+  float intermValue = chroma * (1.0 - abs(mod(hsl.x / 60.0, 2.0) - 1.0));
+  float modifier = hsl.z - 0.5 * chroma;
 
-    vec3 rgb;
-    if (hsl.x < 60.0) {
-        rgb = vec3(c, x, 0.0);
-    } else if (hsl.x < 120.0) {
-        rgb = vec3(x, c, 0.0);
-    } else if (hsl.x < 180.0) {
-        rgb = vec3(0.0, c, x);
-    } else if (hsl.x < 240.0) {
-        rgb = vec3(0.0, x, c);
-    } else if (hsl.x < 300.0) {
-        rgb = vec3(x, 0.0, c);
-    } else {
-        rgb = vec3(c, 0.0, x);
-    }
+  vec3 rgb;
+  if (hsl.x < 60.0) {
+    rgb = vec3(chroma, intermValue, 0.0); // Red
+  } else if (hsl.x < 120.0) {
+    rgb = vec3(intermValue, chroma, 0.0); // Yellow
+  } else if (hsl.x < 180.0) {
+    rgb = vec3(0.0, chroma, intermValue); // Green
+  } else if (hsl.x < 240.0) {
+    rgb = vec3(0.0, intermValue, chroma); // Cyan
+  } else if (hsl.x < 300.0) {
+    rgb = vec3(intermValue, 0.0, chroma); // Blue
+  } else {
+    rgb = vec3(chroma, 0.0, intermValue); // Magenta
+  }
 
-    return rgb + m;
+  return rgb + modifier;
 }
+
 void main() {
   if (iShowLayer == TRANSPARENT) 
   {
@@ -105,6 +107,7 @@ void main() {
   gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
 
   // Apply saturation
+  // Convert RGB to HSL to apply saturation and then convert it back to RGB
   vec3 hslColor = rgbToHsl(gl_FragColor.rgb);
   hslColor.y *= uSaturation;
   gl_FragColor.rgb = rgbFromHsl(hslColor);
