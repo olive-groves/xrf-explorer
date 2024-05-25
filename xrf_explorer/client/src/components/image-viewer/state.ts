@@ -36,9 +36,9 @@ export function createLayer(id: string, image: ContextualImage): Layer {
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
       iShowLayer: { value: 0 },
-      uOpacity: { value: 0 },
-      uContrast: { value: 0 },
-      uSaturation: { value: 0 },
+      uOpacity: { value: 1 },
+      uContrast: { value: 1 },
+      uSaturation: { value: 1 },
       uMouse: { value: new THREE.Vector2() },
       uRadius: { value: 0 },
     },
@@ -55,12 +55,10 @@ export function createLayer(id: string, image: ContextualImage): Layer {
  * Helper function that completely updates the layers in a layer group.
  * @param group - The layer group that should be updated.
  */
-export function updateLayerGroupLayers(group: LayerGroup) {
+export function updateLayerGroupLayers(group: LayerGroup, property: string) {
   setLayerGroupIndex(group);
   setLayerGroupVisibility(group);
-  setLayerGroupOpacity(group);
-  setLayerGroupContrast(group);
-  setLayerGroupSaturation(group);
+  setLayerGroupProperty(group, property);
 }
 
 /**
@@ -87,25 +85,26 @@ export function setLayerGroupVisibility(group: LayerGroup) {
 }
 
 /**
- * Updates the opacity uniform for all layers in a layer group.
- * @param group - The group that should be updated.
+ * Updates the specified uniform for all layers in a layer group.
+ * @param group - The layer group that should be updated.
+ * @param property - The property to update (e.g., "opacity", "contrast", "saturation").
  */
-export function setLayerGroupOpacity(group: LayerGroup) {
-  group.layers.forEach((layer) => (layer.uniform.uOpacity.value = group.opacity[0]));
-}
-
-/**
- * Updates the contrast uniform for all layers in a layer group.
- * @param group - The group that should be updated.
- */
-export function setLayerGroupContrast(group: LayerGroup) {
-  group.layers.forEach((layer) => (layer.uniform.uContrast.value = group.contrast[0]));
-}
-
-/**
- * Updates the saturation uniform for all layers in a layer group.
- * @param group - The group that should be updated.
- */
-export function setLayerGroupSaturation(group: LayerGroup) {
-  group.layers.forEach((layer) => (layer.uniform.uSaturation.value = group.saturation[0]));
+export function setLayerGroupProperty(group: LayerGroup, property: string) {
+  group.layers.forEach((layer) => {
+    switch (property) {
+      case "opacityProperty":
+        layer.uniform.uOpacity.value = group.opacity[0];
+        break;
+      case "contrastProperty":
+        layer.uniform.uContrast.value = group.contrast[0];
+        break;
+      case "saturationProperty":
+        layer.uniform.uSaturation.value = group.saturation[0];
+        break;
+      // Error handling for unsupported properties
+      default:
+        console.warn(`Unsupported property: ${property}`);
+        break;
+    }
+  });
 }

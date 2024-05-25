@@ -8,10 +8,8 @@ import "./workspace";
 import {
   layerGroups,
   setLayerGroupIndex,
-  setLayerGroupOpacity,
-  setLayerGroupContrast,
-  setLayerGroupSaturation,
   setLayerGroupVisibility,
+  setLayerGroupProperty,
 } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
@@ -103,7 +101,7 @@ function checkedOutsideLens(group: LayerGroup) {
             :step="0.01"
             :max="1"
             class="pb-2"
-            @update:model-value="() => setLayerGroupOpacity(group)"
+            @update:model-value="() => setLayerGroupProperty(group, 'opacityProperty')"
           />
         </div>
         <div class="space-y-2">
@@ -117,7 +115,7 @@ function checkedOutsideLens(group: LayerGroup) {
             :step="0.01"
             :max="5"
             class="pb-2"
-            @update:model-value="() => setLayerGroupContrast(group)"
+            @update:model-value="() => setLayerGroupProperty(group, 'contrastProperty')"
           />
         </div>
         <div class="space-y-2">
@@ -131,7 +129,7 @@ function checkedOutsideLens(group: LayerGroup) {
             :step="0.01"
             :max="5"
             class="pb-2"
-            @update:model-value="() => setLayerGroupSaturation(group)"
+            @update:model-value="() => setLayerGroupProperty(group, 'saturationProperty')"
           />
         </div>
       </div>
