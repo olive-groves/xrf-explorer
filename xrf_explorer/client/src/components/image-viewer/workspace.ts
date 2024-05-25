@@ -55,7 +55,7 @@ function createBaseLayer(image: ContextualImage) {
     saturation: [1.0],
   };
 
-  updateLayerGroupLayers(layerGroups.value.base, "uOpacity");
+  updateLayerGroupLayers(layerGroups.value.base, "initialProperty");
 }
 
 /**
@@ -80,5 +80,5 @@ function createContextualLayer(image: ContextualImage) {
   };
 
   layerGroups.value[id] = layerGroup;
-  updateLayerGroupLayers(layerGroup, "uOpacity");
+  updateLayerGroupLayers(layerGroup, "initialProperty");
 }

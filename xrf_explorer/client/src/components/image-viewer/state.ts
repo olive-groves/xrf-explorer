@@ -101,6 +101,9 @@ export function setLayerGroupProperty(group: LayerGroup, property: string) {
       case "saturationProperty":
         layer.uniform.uSaturation.value = group.saturation[0];
         break;
+      // Needed for initial property setting, can be ignored further.
+      case "initialProperty":
+        break;
       // Error handling for unsupported properties
       default:
         console.warn(`Unsupported property: ${property}`);
