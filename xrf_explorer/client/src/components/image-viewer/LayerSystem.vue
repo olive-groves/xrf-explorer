@@ -109,7 +109,7 @@ function checkedOutsideLens(group: LayerGroup) {
             :step="0.01"
             :max="property.max"
             class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, group[property.nameRef].value)"
+            @update:model-value="() => setLayerGroupProperty(group, group[property.propertyName])"
           />
         </div>
       </div>
