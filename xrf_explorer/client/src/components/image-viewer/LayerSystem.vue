@@ -103,8 +103,6 @@ function checkedOutsideLens(group: LayerGroup) {
             class="pb-2"
             @update:model-value="() => setLayerGroupProperty(group, 'opacityProperty')"
           />
-        </div>
-        <div class="space-y-2">
           <div class="flex items-center justify-between">
             <div>Contrast</div>
             <div>{{ group.contrast[0] }}</div>
@@ -117,8 +115,6 @@ function checkedOutsideLens(group: LayerGroup) {
             class="pb-2"
             @update:model-value="() => setLayerGroupProperty(group, 'contrastProperty')"
           />
-        </div>
-        <div class="space-y-2">
           <div class="flex items-center justify-between">
             <div>Saturation</div>
             <div>{{ group.saturation[0] }}</div>
