@@ -5,7 +5,7 @@ import { ref, watch } from "vue";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import { layerGroups, setLayerGroupIndex, setLayerGroupOpacity, setLayerGroupVisibility } from "./state";
+import { layerGroups, setLayerGroupIndex, setLayerGroupOpacity, setLayerGroupContrast, setLayerGroupSaturation, setLayerGroupVisibility } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
@@ -97,6 +97,34 @@ function checkedOutsideLens(group: LayerGroup) {
             :max="1"
             class="pb-2"
             @update:model-value="() => setLayerGroupOpacity(group)"
+          />
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div>Contrast</div>
+            <div>{{ group.contrast[0] }}</div>
+          </div>
+          <Slider
+            v-model="group.contrast"
+            :min="0"
+            :step="0.01"
+            :max="1"
+            class="pb-2"
+            @update:model-value="() => setLayerGroupContrast(group)"
+          />
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div>Saturation</div>
+            <div>{{ group.saturation[0] }}</div>
+          </div>
+          <Slider
+            v-model="group.saturation"
+            :min="0"
+            :step="0.01"
+            :max="1"
+            class="pb-2"
+            @update:model-value="() => setLayerGroupSaturation(group)"
           />
         </div>
       </div>

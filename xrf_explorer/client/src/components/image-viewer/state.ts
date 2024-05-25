@@ -37,6 +37,8 @@ export function createLayer(id: string, image: ContextualImage): Layer {
       mRegister: { value: new THREE.Matrix3() },
       iShowLayer: { value: 0 },
       uOpacity: { value: 0 },
+      uContrast: { value: 0 },
+      uSaturation: { value: 0 },
       uMouse: { value: new THREE.Vector2() },
       uRadius: { value: 0 },
     },
@@ -57,6 +59,8 @@ export function updateLayerGroupLayers(group: LayerGroup) {
   setLayerGroupIndex(group);
   setLayerGroupVisibility(group);
   setLayerGroupOpacity(group);
+  setLayerGroupContrast(group);
+  setLayerGroupSaturation(group);
 }
 
 /**
@@ -88,4 +92,20 @@ export function setLayerGroupVisibility(group: LayerGroup) {
  */
 export function setLayerGroupOpacity(group: LayerGroup) {
   group.layers.forEach((layer) => (layer.uniform.uOpacity.value = group.opacity[0]));
+}
+
+/**
+ * Updates the contrast uniform for all layers in a layer group.
+ * @param group - The group that should be updated.
+ */
+export function setLayerGroupContrast(group: LayerGroup) {
+  group.layers.forEach((layer) => (layer.uniform.uContrast.value = group.contrast[0]));
+}
+
+/**
+ * Updates the saturation uniform for all layers in a layer group.
+ * @param group - The group that should be updated.
+ */
+export function setLayerGroupSaturation(group: LayerGroup) {
+  group.layers.forEach((layer) => (layer.uniform.uSaturation.value = group.saturation[0]));
 }

@@ -12,6 +12,8 @@ uniform vec2 uMouse;
 uniform float uRadius;
 uniform int iShowLayer;
 uniform float uOpacity;
+uniform float uContrast;
+uniform float uSaturation;
 
 varying vec2 vUv;
 
@@ -50,4 +52,6 @@ void main() {
   }
 
   gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
+  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uContrast);
+  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uSaturation);
 }
