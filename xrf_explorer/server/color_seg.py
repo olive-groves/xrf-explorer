@@ -2,6 +2,9 @@ import numpy as np
 import cv2
 from skimage import color
 import skimage
+import logging
+
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: int = 10) -> np.array:
@@ -14,18 +17,18 @@ def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: i
     :return: the bitmasks corresponding to each cluster
     """
 
-    bitmask = []
+    bitmask: np.array = []
 
     # convert image to lab
-    image = image_to_lab(big_image)
+    image: np.array = image_to_lab(big_image)
 
     # for each cluster
     for i in range(len(clusters)):
         # convert cluster color to lab
-        target_color = rgb_to_lab(clusters[i])
+        target_color: int = rgb_to_lab(clusters[i])
         # define lower and upper bound for color similarity
-        lower_bound = target_color - threshold
-        upper_bound = target_color + threshold
+        lower_bound: int = target_color - threshold
+        upper_bound: int = target_color + threshold
         # append to bitmask the pixels with colors within the bounds
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
 
@@ -41,10 +44,10 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
 
-    i = 0
+    i: int = 0
     # Iterate over pairs of clusters
     while i < len(clusters):
-        j = i + 1
+        j: int = i + 1
         while j < len(clusters):
             # If two clusters are close, merge them
             if calculate_color_difference(clusters[i], clusters[j]) < threshold:
@@ -76,7 +79,7 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
     cv2.setRNGSeed(0)
 
     # reshape image
-    reshaped_image = reshape_image(small_image)
+    reshaped_image: np.array = reshape_image(small_image)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
@@ -95,9 +98,7 @@ def image_to_lab(small_image: np.array) -> np.array:
     :return: The image in LAB format.
     """
 
-    lab = color.rgb2lab(small_image)
-
-    return lab
+    return color.rgb2lab(small_image)
 
 
 def calculate_color_difference(lab1: np.array, lab2: np.array) -> int:
@@ -150,7 +151,7 @@ def convert_to_hex(clusters: np.array) -> np.array:
     :return: clusters in hex format
     """
 
-    hex_clusters = []
+    hex_clusters: np.array = []
     for col in clusters:
         hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
     return hex_clusters
@@ -178,18 +179,18 @@ def get_small_image(big_image: np.array, max_side_length: int = 300) -> np.array
     """
 
     # get height and width
-    height = big_image.shape[0]
-    width = big_image.shape[1]
+    height: int = big_image.shape[0]
+    width: int = big_image.shape[1]
 
     # Determine the scaling factor
     if height > width:
-        scaling_factor = max_side_length / height
+        scaling_factor: int = max_side_length / height
     else:
-        scaling_factor = max_side_length / width
+        scaling_factor: int = max_side_length / width
 
     # Calculate the new dimensions
-    new_width = int(width * scaling_factor)
-    new_height = int(height * scaling_factor)
+    new_width: int = int(width * scaling_factor)
+    new_height: int = int(height * scaling_factor)
 
     # Resize the image
     return cv2.resize(big_image, (new_width, new_height))
@@ -203,5 +204,11 @@ def get_image(image_file_path: str) -> np.array:
     :return: The image represented as a NumPy array in RGB color space.
     """
 
-    raw_image = cv2.imread(image_file_path)
-    return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
+    try:
+        raw_image: np.array = cv2.imread(image_file_path)
+        if raw_image is None:
+            raise FileNotFoundError(f"{image_file_path}")
+        return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
+    except Exception as e:
+        LOG.error(f"The path '{e}' is not a valid file path.")
+        return None

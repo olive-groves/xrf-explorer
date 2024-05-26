@@ -71,3 +71,16 @@ class TestColorSegmentation:
         # Verify
         assert np.array_equal(white_cluster, bitmask[0])
         assert np.array_equal(black_cluster, bitmask[1])
+
+    def test_invalid_path_to_image(self, caplog):
+        # Set-up
+        fake_path: str = join(RESOURCES_PATH, Path("fake"))
+
+        # Execute
+        result = get_image(fake_path)
+
+        # Verify
+        assert result is None
+
+        # Verify log message
+        assert "The path 'tests\\resources\\fake' is not a valid file path." in caplog.text
