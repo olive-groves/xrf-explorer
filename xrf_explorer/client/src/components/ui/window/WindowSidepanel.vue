@@ -48,6 +48,8 @@ watch(
         }
         growTab(id, headerSize);
         removeTarget(id);
+
+        maximize(id);
       }
 
       // Update the index
@@ -137,9 +139,6 @@ function onResize(height: number, oldHeight: number) {
  * @param height The new size of the content.
  */
 function onContentResize(id: string, height: number) {
-  // Account for built in margin
-  height += remToPx(0.5);
-
   console.debug("content", id, height);
   const tab = state.value[id];
   const oldHeight = tab.maxContentHeight;
@@ -269,7 +268,7 @@ function shrinkTab(id: string, px: number): number {
  */
 function growAnyTab(px: number, from: number = -1): number {
   console.debug(`Growing any by ${px}px`);
-  const targets = [...growthTargets].filter((id) => state.value[id].index > from);
+  const targets = [...growthTargets].filter((id) => state.value[id].index > from && !state.value[id].minimized);
 
   let remaining = px;
   for (let i = 0; i < targets.length; i++) {
@@ -373,6 +372,7 @@ function handleDragMovement(event: MouseEvent) {
           }"
           :class="{
             'transition-all': !disableAnimation,
+            'transition-none': disableAnimation,
           }"
         >
           <div
@@ -390,22 +390,17 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="-mt-px overflow-hidden duration-100"
+            class="-mt-px overflow-hidden"
             :style="{
-              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize - 1}px`}`,
-            }"
-            :class="{
-              'transition-all': !disableAnimation,
+              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
             }"
           >
-            <div class="mt-px p-1">
-              <WindowPortalTarget
-                ref="contentRefs"
-                :window-id="id"
-                @content-height="(entry) => onContentResize(id, entry)"
-                :area-height="state[id].height - headerSize - 1"
-              />
-            </div>
+            <WindowPortalTarget
+              ref="contentRefs"
+              :window-id="id"
+              @content-height="(entry) => onContentResize(id, entry)"
+              :area-height="state[id].height - headerSize"
+            />
           </div>
         </div>
         <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">

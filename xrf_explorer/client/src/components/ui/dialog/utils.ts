@@ -7,7 +7,6 @@ import { dialogState } from "./state";
  */
 export function openDialog(id: string) {
   const formattedId = snakeCase(id);
-  console.log(formattedId, dialogState);
   if (formattedId in dialogState) {
     dialogState[formattedId].open = true;
   } else {

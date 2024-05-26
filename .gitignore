@@ -1,6 +1,7 @@
 # Ignore the environment
 env/
 **/.vscode/
+.idea/
 **/poetry.lock
 **/pyproject.toml
 

@@ -13,9 +13,23 @@ export type FrontendConfig = {
    */
   imageViewer: ImageViewerConfig;
   /**
+   * Configuration related to uploading.
+   */
+  uploadConfig: UploadConfig;
+  /**
    * The default theme of the client.
    */
   defaultTheme: BasicColorMode;
+};
+
+/**
+ * Type declaration for upload configuration.
+ */
+export type UploadConfig = {
+  /**
+   * The size (in bytes) of the chunks into which each file will be split before being uploaded to the server.
+   */
+  uploadChunkSizeInBytes: number;
 };
 
 /**
@@ -40,26 +54,34 @@ export type ImageViewerConfig = {
    * Default multiplier for the scroll speed in the image viewer.
    */
   defaultScrollSpeed: number;
+  /**
+   * The default size of the lens in the image viewer.
+   */
+  defaultLensSize: number;
 };
 
 /**
  * The default configuration for the client.
- */
-export const DefaultConfig: FrontendConfig = {
+ */ export const DefaultConfig: FrontendConfig = {
   api: {
     endpoint: "http://localhost:8001/api",
   },
   imageViewer: {
-    defaultMovementSpeed: 2.0,
+    defaultMovementSpeed: 1.0,
     defaultScrollSpeed: 1.0,
+    defaultLensSize: 100.0,
   },
   defaultTheme: "dark",
+  uploadConfig: {
+    uploadChunkSizeInBytes: 50000000, // 50 MB
+  },
 };
 
 /**
  * Get the configuration for the frontend.
  *
- * This will be provided by the App.vue component and can be accessed using `inject<FrontendConfig>('config')!`.
+ * This will be provided by the App.vue component and can be accessed using
+ * `const config = inject<FrontendConfig>("config")!`. (note the exclamation mark)
  * This function should hence not be used elsewhere.
  * @returns The frontend configuration.
  */

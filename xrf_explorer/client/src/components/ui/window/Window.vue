@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Teleport, toRef } from "vue";
+import { Teleport, ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 
@@ -25,6 +25,8 @@ const props = defineProps<{
   location?: WindowLocation;
 }>();
 
+const emit = defineEmits(["windowMounted", "windowUnmounted"]);
+
 const id = snakeCase(props.title);
 
 if (!(id in windowState)) {
@@ -39,10 +41,30 @@ if (!(id in windowState)) {
 }
 
 const state = toRef(windowState, id);
+const content = ref<HTMLElement | null>(null);
+
+/**
+ * Emits the windowMounted event when the window gets mounted.
+ * Emits the windowUnmounted event after the window gets unmounted.
+ */
+watch(
+  content,
+  (value, oldValue) => {
+    console.log("Mounted chart", value);
+    if (value != null) {
+      emit("windowMounted");
+    } else if (oldValue != null) {
+      emit("windowUnmounted");
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <slot />
+    <div ref="content">
+      <slot />
+    </div>
   </Teleport>
 </template>
