@@ -184,9 +184,9 @@ def get_small_image(big_image: np.array, max_side_length: int = 300) -> np.array
 
     # Determine the scaling factor
     if height > width:
-        scaling_factor: int = max_side_length / height
+        scaling_factor: float = max_side_length / height
     else:
-        scaling_factor: int = max_side_length / width
+        scaling_factor: float = max_side_length / width
 
     # Calculate the new dimensions
     new_width: int = int(width * scaling_factor)
