@@ -51,9 +51,11 @@ function createBaseLayer(image: ContextualImage) {
     visible: true,
     visibility: LayerVisibility.Visible,
     opacity: [1.0],
+    contrast: [1.0],
+    saturation: [1.0],
   };
 
-  updateLayerGroupLayers(layerGroups.value.base);
+  updateLayerGroupLayers(layerGroups.value.base, "initialProperty");
 }
 
 /**
@@ -73,8 +75,10 @@ function createContextualLayer(image: ContextualImage) {
     visible: false,
     visibility: LayerVisibility.Visible,
     opacity: [1.0],
+    contrast: [1.0],
+    saturation: [1.0],
   };
 
   layerGroups.value[id] = layerGroup;
-  updateLayerGroupLayers(layerGroup);
+  updateLayerGroupLayers(layerGroup, "initialProperty");
 }

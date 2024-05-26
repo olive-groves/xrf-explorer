@@ -51,6 +51,14 @@ export type LayerUniform = {
    */
   uOpacity: { value: number };
   /**
+   * The contrast that the layer should be drawn at.
+   */
+  uContrast: { value: number };
+  /**
+   * The saturation that the layer should be drawn at.
+   */
+  uSaturation: { value: number };
+  /**
    * The location of the mouse in WebGL coordinates.
    */
   uMouse: { value: THREE.Vector2 };
@@ -123,6 +131,14 @@ export type LayerGroup = {
    * Opacity of the layers in this group.
    */
   opacity: number[];
+  /**
+   * Contrast of the layers in this group.
+   */
+  contrast: number[];
+  /**
+   * Saturation of the layers in this group.
+   */
+  saturation: number[];
 };
 
 /**
