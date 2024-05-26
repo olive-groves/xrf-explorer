@@ -43,11 +43,15 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
     """
 
     i = 0
+    # Iterate over pairs of clusters
     while i < len(clusters):
         j = i + 1
         while j < len(clusters):
+            # If two clusters are close, merge them
             if calculate_color_difference(clusters[i], clusters[j]) < threshold:
+                # New cluster is average of the two
                 new_color = (clusters[i] + clusters[j]) / 2
+                # Remove old clusters, add new one
                 clusters = np.delete(clusters, j, axis=0)
                 clusters = np.delete(clusters, i, axis=0)
                 clusters = np.append(clusters, [new_color], axis=0)
