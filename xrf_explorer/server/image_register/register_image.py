@@ -12,6 +12,9 @@ from cv2 import (
 
 from numpy._typing import NDArray
 from cv2.typing import MatLike
+from xrf_explorer.server.file_system.from_dms import (
+    get_elemental_datacube_dimensions_from_dms,
+)
 
 
 def load_image_toregister(path_image_toregister: str) -> MatLike:
@@ -113,11 +116,11 @@ def load_points(
     return np.array(points_source), np.array(points_destination)
 
 
-def register_image(
+def register_image_to_image(
     path_image_reference: str,
     path_image_register: str,
     path_csv_points: str,
-    path_result_register_image: str,
+    path_result_registered_image: str,
 ):
     image_reference = imread(path_image_reference)
     image_register = load_image_toregister(path_image_register)
@@ -136,16 +139,14 @@ def register_image(
         image_register_pad, points_source, points_destination
     )
 
-    _ = imwrite(path_result_register_image, image_registered)
+    _ = imwrite(path_result_registered_image, image_registered)
 
 
-# NOTE: For demoostration purposes
-if __name__ == "__main__":
-    PATH_IMAGE_REFERENCE = "./assets/reference_image.png"
-    PATH_IMAGE_REGISTER = "./assets/register_image.png"
-    PATH_CSV_POINS = "./assets/control_points.csv"
-    PATH_RESULT = "./assets/result_actual.png"
+def register_image_to_data_cube(
+    path_data_cube: str, path_image_register: str, path_result_registered_image
+):
+    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
+    image_register = imread(path_image_register)
+    image_resized = resize(image_register, (cube_w, cube_h))
 
-    register_image(
-        PATH_IMAGE_REFERENCE, PATH_IMAGE_REGISTER, PATH_CSV_POINS, PATH_RESULT
-    )
+    _ = imwrite(path_result_registered_image, image_resized)
