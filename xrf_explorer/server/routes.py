@@ -1,5 +1,6 @@
 import logging
 import json
+import xrf_explorer.server.contextual_images as ci
 
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
@@ -159,7 +160,21 @@ def get_dr_overlay():
 
     return send_file(abspath(image_path), mimetype='image/png')
 
-    
+
+@app.route("/api/get_contextual_image")
+def get_contextual_image():
+    # Check whether the file type is provided.
+    if "file_type" not in request.args:
+        LOG.error("No file type was provided.")
+        abort(400)
+
+    file_type: str = request.args["file_type"]
+
+    image_path: str = ci.get_contextual_image(file_type)
+
+    return send_file(image_path)
+
+
 @app.route('/api/get_average_data', methods=['GET'])
 def get_average_data():
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
@@ -169,7 +184,7 @@ def get_average_data():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
 
     if datacube.size == 0:
@@ -177,8 +192,9 @@ def get_average_data():
 
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
-    
+
     return response
+
 
 @app.route('/api/get_elements', methods=['GET'])
 def get_elements():
@@ -187,7 +203,7 @@ def get_elements():
     :return: json list containing the names of the elements
     """
     filename = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
-    
+
     info = parse_rpl('196_1989_M6_data 1069_1187.rpl')
     width = int(info["width"])
     height = int(info["height"])
@@ -199,9 +215,10 @@ def get_elements():
         file.seek(49 + width * height * c * 4)
         for i in range(c):
             names.append(file.readline().rstrip().replace(" ", ""))
-    
+
     response = json.dumps(names)
     return response
+
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
 def get_element_sectra():
@@ -214,11 +231,12 @@ def get_element_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     response = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
     response = json.dumps(response)
-        
+
     return response
+
 
 @app.route('/api/get_selection_spectrum', methods=['GET'])
 def get_selection_sectra():
@@ -226,16 +244,16 @@ def get_selection_sectra():
 
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
-    #selection to be retrieived from seletion tool 
+    # selection to be retrieived from seletion tool
     pixels = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
-    
+
     result = get_average_selection(datacube, pixels, low, high, bin_size)
-    
+
     response = json.dumps(result)
     print("send response")
     return response

@@ -8,3 +8,4 @@ dim-reduction:
     min-dist: 0
     n-components: 2
     metric: "cosine"
+contextual-images-folder: "xrf_explorer/server/temp/contextual_images"
