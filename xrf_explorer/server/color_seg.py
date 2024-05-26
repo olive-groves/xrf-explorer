@@ -12,8 +12,7 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
     :param clusters: the clusters to which we add pixels
     :param threshold: the threshold that indicates how similar the colors need to are to be added to a cluster
        
-    :return: cluster images where each image contains pixels belonging to a specific color cluster and the bitmasks
-    created
+    :return: the bitmasks corresponding to each cluster
     """
 
     cluster_images = []
@@ -31,10 +30,8 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
         upper_bound = target_color + threshold
         # append to bitmask the pixels with colors within the bounds
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
-        # the pixels belonging to the color cluster
-        cluster_images.append(cv2.bitwise_and(big_image, big_image, mask=bitmask[i]))
 
-    return cluster_images, bitmask
+    return bitmask
 
 
 def merge_similar_colors(clusters, t):
