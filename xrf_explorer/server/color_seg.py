@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from PIL import Image
 from skimage import color
 import skimage
 
-def get_pixels_in_clusters(big_image, clusters, threshold=10):
+
+def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: int = 10) -> np.array:
     """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks.
 
     :param big_image: the image whose pixels are divided in clusters
@@ -15,7 +15,6 @@ def get_pixels_in_clusters(big_image, clusters, threshold=10):
     :return: the bitmasks corresponding to each cluster
     """
 
-    cluster_images = []
     bitmask = []
 
     # convert image to lab
@@ -26,7 +25,7 @@ def get_pixels_in_clusters(big_image, clusters, threshold=10):
         # convert cluster color to lab
         target_color = rgb_to_lab(clusters[i])
         # define lower and upper bound for color similarity
-        lower_bound = target_color - threshold 
+        lower_bound = target_color - threshold
         upper_bound = target_color + threshold
         # append to bitmask the pixels with colors within the bounds
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
@@ -34,20 +33,20 @@ def get_pixels_in_clusters(big_image, clusters, threshold=10):
     return bitmask
 
 
-def merge_similar_colors(clusters, t=10):
-    """Go over every pair of clusters and merge the pair of they are similar accordig to threshold t.
+def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
+    """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
-    :param bitmask: the bitmasks used for assigning pixels to clusters
     :param clusters: the currently available clusters
-    :param t: the threshold that indicates how similar the colors need to are to be merged in a cluster
+    :param threshold: the threshold that indicates how similar the colors need to are to be merged in a cluster
        
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
+
     i = 0
     while i < len(clusters):
         j = i + 1
         while j < len(clusters):
-            if calculate_color_difference(clusters[i], clusters[j]) < t:
+            if calculate_color_difference(clusters[i], clusters[j]) < threshold:
                 new_color = (clusters[i] + clusters[j]) / 2
                 clusters = np.delete(clusters, j, axis=0)
                 clusters = np.delete(clusters, i, axis=0)
@@ -59,22 +58,18 @@ def merge_similar_colors(clusters, t=10):
     return clusters
 
 
-########################################################################################################################
-# K-MEANS ##############################################################################################################
-########################################################################################################################
-
-
-def get_clusters_using_k_means(small_image, nr_of_attempts=10, k = 30):
+def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, k: int = 30) -> tuple:
     """Extract the color clusters of the resized RGB image using the k-means clustering method in OpenCV
 
     :param small_image: the resized image to apply the k-means on
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 20.
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
+            Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
        
     :return: an array of labels of the clusters and the array of centers of clusters
     """
 
-    #set seed so results are consistent
+    # set seed so results are consistent
     cv2.setRNGSeed(0)
 
     # reshape image
@@ -90,12 +85,7 @@ def get_clusters_using_k_means(small_image, nr_of_attempts=10, k = 30):
     return label, center
 
 
-
-########################################################################################################################
-# LAB METHODS ##########################################################################################################
-########################################################################################################################
-
-def image_to_lab(small_image):
+def image_to_lab(small_image: np.array) -> np.array:
     """
     Turns an image of RGB triples into an image of LAB triples.
     :param small_image: The scaled down version of the image.
@@ -103,65 +93,79 @@ def image_to_lab(small_image):
     """
 
     lab = color.rgb2lab(small_image)
-    
+
     return lab
 
 
-def calculate_color_difference(lab1, lab2):
+def calculate_color_difference(lab1: np.array, lab2: np.array) -> int:
     """
     Returns the Euclidean distance between two LAB colors.
     :param lab1: color 1.
     :param lab2: color 2.
     :return: The distance.
     """
+
     return np.sqrt((lab1[0] - lab2[0]) ** 2 + (lab1[1] - lab2[1]) ** 2 + (lab1[2] - lab2[2]) ** 2)
 
 
-def rgb_to_lab(rgb_triple):
+def rgb_to_lab(rgb_triple: np.array) -> np.array:
     """
     Returns the LAB equivalent of an RGB color.
     :param rgb_triple: The RGB color triple.
     :return: the LAB format.
     """
+
     return skimage.color.rgb2lab([[[rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255]]])[0][0]
-    
 
 
-def lab_to_rgb(lab_color):
+def lab_to_rgb(lab_color: np.array) -> np.array:
     """
     Returns the RGB equivalent of an LAB color.
     :param lab_color: The LAB color triple.
     :return: The RGB color.
     """
-    return skimage.color.lab2rgb([lab_color[0] / 255, lab_color[1] / 255, lab_color[2] / 255])*255
 
-def rgb_to_hex(r, g, b):
+    return skimage.color.lab2rgb([lab_color[0] / 255, lab_color[1] / 255, lab_color[2] / 255]) * 255
+
+
+def rgb_to_hex(r: int, g: int, b: int) -> str:
+    """
+    Turns a rgb triple into hex format.
+    :param r: the red value
+    :param g: the green value
+    :param b: the blue value
+    :return: the hex format
+    """
+
     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
-def convert_to_hex(clusters):
+
+def convert_to_hex(clusters: np.array) -> np.array:
+    """
+    Converts clusters to hex format.
+    :param clusters: the list of clusters in rgb format
+    :return: clusters in hex format
+    """
+
     hex_clusters = []
-    for color in clusters:
-        hex_clusters.append(rgb_to_hex(int(color[0]), int(color[1]), int(color[2])))
+    for col in clusters:
+        hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
     return hex_clusters
 
 
-########################################################################################################################
-# IMAGE FORMATTING #####################################################################################################
-########################################################################################################################
-
-
-def reshape_image(small_image):
-    """Reshape image into 2D array where each row represents a pixel and and each pixel is 
+def reshape_image(small_image: np.array) -> np.array:
+    """Reshape image into 2D array where each row represents a pixel and each pixel is
     represented as a 3-element array containing the RGB values
 
     :param small_image: the resized image to reshape
        
     :return: the reshaped image
     """
+
     return np.float32(small_image.reshape((-1, 3)))
 
 
-def get_small_image(big_image, max_side_length=300):
+def get_small_image(big_image: np.array, max_side_length: int = 300) -> np.array:
     """Resize a given image to fit within a maximum side length while preserving aspect ratio
 
     :param big_image: the image to be resized
@@ -188,24 +192,19 @@ def get_small_image(big_image, max_side_length=300):
     return cv2.resize(big_image, (new_width, new_height))
 
 
-
-def get_image(image_file_path):
+def get_image(image_file_path: str) -> np.array:
     """Read an image from the specified file path and convert it from BGR to RGB color space.
 
-    :param image_file path: the file path of the image
+    :param image_file_path: the file path of the image
        
     :return: The image represented as a NumPy array in RGB color space.
     """
+
     raw_image = cv2.imread(image_file_path)
     return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
 
 
-########################################################################################################################
-# VISUALIZATION ########################################################################################################
-########################################################################################################################
-
-
-def visualize_clusters(small_image, clusters):
+def visualize_clusters(small_image: np.array, clusters: np.array):
     """Visualize the color clusters of the resized image
 
     :param small_image: the resized image
@@ -226,48 +225,3 @@ def visualize_clusters(small_image, clusters):
         plt.axis("off")
         plt.imshow(palette)
     plt.show()
-
-
-def visualize_stacked_images(big_image, clusters, contrast):
-    """Visualize the the image and highlighted colors while being able to adjust the contrast
-
-    :param big_image: the original image
-    :param clusters: the list of clusters obtained
-    :param contrast: value that determines 
-       
-    :return: None
-    """ 
-    stacked_im = cv2.addWeighted(big_image, 1-contrast, clusters, 1, 0)
-    stacked_image = Image.fromarray(stacked_im)
-    plt.imshow(stacked_image)
-
-
-### Get image(s)
-# img_path = "VGM_Package2024007_TUE_XrfExplorer2_Roulin_V20240424/196_1989_RGB.tif"
-# img = get_image(img_path)
-# small_image = get_small_image(img, 300)
-
-# k = 40
-# color_similarity_threshold = 6
-# color_merging_threshold = 4
-
-# Get clusters
-# label, rgbClusters = get_clusters_using_k_means(small_image, nr_of_attempts=20, k=k)
-
-# merge similar clusters
-# newClusters = merge_similar_colors(rgbClusters, color_merging_threshold)
-
-# map clusters with bitmask
-# cluster_res, bitmask = get_pixels_in_clusters(img, newClusters, color_similarity_threshold)
-#
-# #visualize_clusters
-# visualize_clusters(small_image, newClusters)
-#
-# # for c in newClusters:
-# for i in range(len(newClusters)):
-#
-#     c = newClusters[i]
-#     # Create a colormap with cluster color
-#     specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
-
-
