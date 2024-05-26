@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 from skimage import color
 import skimage
@@ -206,26 +205,3 @@ def get_image(image_file_path: str) -> np.array:
 
     raw_image = cv2.imread(image_file_path)
     return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
-
-
-def visualize_clusters(small_image: np.array, clusters: np.array):
-    """Visualize the color clusters of the resized image
-
-    :param small_image: the resized image
-    :param clusters: the list of clusters obtained
-       
-    :return: None
-    """
-
-    # the number of clusters
-    k = len(clusters)
-    plt.figure()
-
-    # plotting the clusters
-    for i, col in enumerate(clusters):
-        palette = np.zeros_like(small_image, dtype='uint8')
-        palette[:, :, :] = col
-        plt.subplot(1, k, i + 1)
-        plt.axis("off")
-        plt.imshow(palette)
-    plt.show()
