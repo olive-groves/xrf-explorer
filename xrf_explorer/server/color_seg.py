@@ -256,31 +256,31 @@ def visualize_stacked_images(big_image, clusters, contrast):
 
 
 ### Get image(s)
-img_path = "VGM_Package2024007_TUE_XrfExplorer2_Roulin_V20240424/196_1989_RGB.tif"
-img = get_image(img_path)
-small_image = get_small_image(img, 300)
+# img_path = "VGM_Package2024007_TUE_XrfExplorer2_Roulin_V20240424/196_1989_RGB.tif"
+# img = get_image(img_path)
+# small_image = get_small_image(img, 300)
 
-k = 40
-color_similarity_threshold = 6
-color_merging_threshold = 4
+# k = 40
+# color_similarity_threshold = 6
+# color_merging_threshold = 4
 
 # Get clusters
-label, rgbClusters = get_clusters_using_k_means(small_image, nr_of_attempts=20, k=k)
+# label, rgbClusters = get_clusters_using_k_means(small_image, nr_of_attempts=20, k=k)
 
 # merge similar clusters
-newClusters = merge_similar_colors(rgbClusters, color_merging_threshold)
+# newClusters = merge_similar_colors(rgbClusters, color_merging_threshold)
 
 # map clusters with bitmask
-cluster_res, bitmask = get_pixels_in_clusters(img, newClusters, color_similarity_threshold)
-
-#visualize_clusters
-visualize_clusters(small_image, newClusters)
-
-# for c in newClusters:
-for i in range(len(newClusters)):
-
-    c = newClusters[i]
-    # Create a colormap with cluster color
-    specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
+# cluster_res, bitmask = get_pixels_in_clusters(img, newClusters, color_similarity_threshold)
+#
+# #visualize_clusters
+# visualize_clusters(small_image, newClusters)
+#
+# # for c in newClusters:
+# for i in range(len(newClusters)):
+#
+#     c = newClusters[i]
+#     # Create a colormap with cluster color
+#     specific_color = [c[0]/255, c[1]/255, c[2]/255, 1]
 
 
