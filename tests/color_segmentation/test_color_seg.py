@@ -43,7 +43,7 @@ class TestColorSegmentation:
 
         # Execute
         useless_labels, result = get_clusters_using_k_means(small_image)
-        result = merge_similar_colors(result, 1)
+        result = merge_similar_colors(result)
 
         # Verify
         assert len(expected_result) == len(result)
@@ -60,7 +60,7 @@ class TestColorSegmentation:
         black_cluster = np.zeros((100, 100), dtype=int)
         black_cluster[:, :50] = 255
 
-        bitmask = get_pixels_in_clusters(image, clusters, 10)
+        bitmask = get_pixels_in_clusters(image, clusters)
 
         assert np.array_equal(white_cluster, bitmask[0])
         assert np.array_equal(black_cluster, bitmask[1])

@@ -5,7 +5,7 @@ from PIL import Image
 from skimage import color
 import skimage
 
-def get_pixels_in_clusters(big_image, clusters, threshold):
+def get_pixels_in_clusters(big_image, clusters, threshold=10):
     """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks.
 
     :param big_image: the image whose pixels are divided in clusters
@@ -34,7 +34,7 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
     return bitmask
 
 
-def merge_similar_colors(clusters, t):
+def merge_similar_colors(clusters, t=10):
     """Go over every pair of clusters and merge the pair of they are similar accordig to threshold t.
 
     :param bitmask: the bitmasks used for assigning pixels to clusters
