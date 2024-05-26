@@ -1,6 +1,7 @@
 import sys
 from os.path import join
 from pathlib import Path
+import numpy as np
 
 sys.path.append('.')
 
@@ -15,16 +16,23 @@ class TestColorSegmentation:
     def test_get_clusters_using_k_means(self):
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
-        expected_result = [
+        expected_result = np.array([
             [0, 0, 0],
             [255, 255, 255]
-        ]
+        ])
+        expected_result2 = np.array([
+            [255, 255, 255],
+            [0, 0, 0]
+        ])
 
         # Execute
         useless_labels, result = get_clusters_using_k_means(small_image)
         print(result)
         result = merge_similar_colors(result, 200)
 
-        # Verify
         print(result)
-        assert expected_result == result
+        length = len(result)
+
+        # Verify
+        assert len(expected_result) == length
+        assert np.array_equal(result, expected_result) or np.array_equal(result, expected_result2)

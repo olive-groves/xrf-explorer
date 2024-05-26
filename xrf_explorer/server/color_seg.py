@@ -38,7 +38,7 @@ def get_pixels_in_clusters(big_image, clusters, threshold):
 
 
 def merge_similar_colors(clusters, t):
-    """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks
+    """Go over every pair of clusters and merge the pair of they are similar accordig to threshold t.
 
     :param bitmask: the bitmasks used for assigning pixels to clusters
     :param clusters: the currently available clusters
@@ -46,29 +46,19 @@ def merge_similar_colors(clusters, t):
        
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
-
-    # for each cluster
-    for i in range(len(clusters)):
-        if i >= len(clusters):
-            break
-
-        # convert cluster color to lab
-        col1 = rgb_to_lab(clusters[i])
-        # compare to all the other clusters
-        for j in range(len(clusters)):
-            if j >= len(clusters):
-                break
-            # convert cluster color to lab
-            col2 = rgb_to_lab(clusters[j])
-            # if the color difference between two clusters is lower than the defined threshold
-            if (calculate_color_difference(col1, col2) < t):
-                # set the new color of the cluster as the average between the colors of the two merged clusters
-                clusters[i] = [np.sqrt((col1[0]**2+col2[0]**2)/2),np.sqrt((col1[1]**2+col2[1]**2)/2),np.sqrt((col1[2]**2+col2[2]**2)/2)]                # convert color if cluster back to rgb
-                clusters[i] = lab_to_rgb(clusters[i])
-                # delete one of the clusters
-                clusters = np.delete(clusters, j, 0)
-                if (j + 1) >= len(clusters) or (i + 1) >= len(clusters):
-                    break
+    i = 0
+    while i < len(clusters):
+        j = i + 1
+        while j < len(clusters):
+            if calculate_color_difference(clusters[i], clusters[j]) < t:
+                new_color = (clusters[i] + clusters[j]) / 2
+                clusters = np.delete(clusters, j, axis=0)
+                clusters = np.delete(clusters, i, axis=0)
+                clusters = np.append(clusters, [new_color], axis=0)
+                j = i + 1
+            else:
+                j += 1
+        i += 1
     return clusters
 
 
