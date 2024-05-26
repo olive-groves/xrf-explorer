@@ -18,25 +18,36 @@ class TestColorSegmentation:
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
         expected_result = np.array([
-            [0, 0, 0],
-            [255, 255, 255]
-        ])
-        expected_result2 = np.array([
-            [255, 255, 255],
-            [0, 0, 0]
+            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
+            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
+            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
+            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
+            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255]
         ])
 
         # Execute
         useless_labels, result = get_clusters_using_k_means(small_image)
-        print(result)
-        result = merge_similar_colors(result, 200)
-
-        print(result)
-        length = len(result)
 
         # Verify
-        assert len(expected_result) == length
-        assert np.array_equal(result, expected_result) or np.array_equal(result, expected_result2)
+        assert len(expected_result) == len(result)
+        assert np.array_equal(result, expected_result)
+
+    def test_merge_similar_colors(self):
+        assert True
+        # Set-up
+        small_image: str = get_image(self.BW_IMAGE_PATH)
+        expected_result = np.array([
+            [0, 0, 0],
+            [255, 255, 255]
+        ])
+
+        # Execute
+        useless_labels, result = get_clusters_using_k_means(small_image)
+        result = merge_similar_colors(result, 1)
+
+        # Verify
+        assert len(expected_result) == len(result)
+        assert np.array_equal(result, expected_result)
 
     def test_get_pixels_in_clusters(self):
         image: str = get_image(self.BW_IMAGE_PATH)
