@@ -4,11 +4,14 @@ import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
-import { computed, watch } from "vue";
+import { computed, inject, watch } from "vue";
 import { appState } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
 import { hexToRgb } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { FrontendConfig } from "@/lib/config";
+
+const config = inject<FrontendConfig>("config")!;
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
@@ -22,7 +25,7 @@ watch(
           channel: channel.channel,
           selected: false,
           color: [255, 255, 255],
-          intensity: [1],
+          intensity: [1 / config.elementalMap.maximumIntensity],
         });
       }
     });
@@ -32,7 +35,7 @@ watch(
 </script>
 
 <template>
-  <Window title="Elemental Channels Window" opened>
+  <Window title="Elemental channels" opened>
     <div v-for="channel in appState.selection.elements" :key="channel.channel" class="p-2">
       <Card
         class="space-y-2 p-2"
@@ -47,7 +50,7 @@ watch(
             <div>
               {{ channel.channel }}
             </div>
-            <div class="whitespace-nowrap text-muted-foreground">Elemental map of {{ channel.channel }}.</div>
+            <div class="whitespace-nowrap text-muted-foreground" />
           </div>
           <div class="flex">
             <Label
@@ -79,8 +82,8 @@ watch(
         <div v-if="channel.selected" class="space-y-2">
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <div>Channel intensity</div>
-              <div>{{ channel.intensity[0] }}</div>
+              <div>Intensity</div>
+              <div>{{ channel.intensity[0] * config.elementalMap.maximumIntensity }}</div>
             </div>
             <Slider v-model="channel.intensity" :min="0" :step="0.01" :max="1" class="pb-2" />
           </div>

@@ -21,6 +21,7 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  */
 function selectionUpdated(selection: ElementSelection[]) {
   selection.forEach((channel) => {
+    // Update auxiliary texture
     const start = channel.channel * 4;
     let r = 0;
     let g = 0;
@@ -31,7 +32,7 @@ function selectionUpdated(selection: ElementSelection[]) {
       r = channel.color[0];
       g = channel.color[1];
       b = channel.color[2];
-      a = 255;
+      a = Math.round(channel.intensity[0] * 255.0);
     }
 
     data[start + 0] = r;

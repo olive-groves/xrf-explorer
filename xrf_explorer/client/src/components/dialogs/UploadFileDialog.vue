@@ -8,7 +8,7 @@ import { WorkspaceConfig } from "@/lib/workspace";
 
 const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
-const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
+const CHUNK_SIZE: number = config.upload.uploadChunkSizeInBytes;
 
 const uploadedChunks = ref(0);
 const totalChunks = ref(1);
