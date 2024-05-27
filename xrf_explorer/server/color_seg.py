@@ -74,11 +74,10 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
     return clusters
 
 
-def get_clusters_using_k_means(image: np.array, small_image_size: int = 400, nr_of_attempts: int = 10, k: int = 30) -> tuple:
+def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, k: int = 30) -> tuple:
     """Extract the color clusters of the resized RGB image using the k-means clustering method in OpenCV
 
-    :param image: the image to apply the k-means on
-    :param small_image_size: size to resize given image to
+    :param small_image: the resized image to apply the k-means on
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
@@ -86,11 +85,8 @@ def get_clusters_using_k_means(image: np.array, small_image_size: int = 400, nr_
     :return: an array of labels of the clusters and the array of centers of clusters
     """
 
-    LOG.info("Extracting initial color clusters.")
-
     # set seed so results are consistent
     cv2.setRNGSeed(0)
-    small_image = get_small_image(image, small_image_size)
 
     # reshape image
     reshaped_image: np.array = reshape_image(small_image)
