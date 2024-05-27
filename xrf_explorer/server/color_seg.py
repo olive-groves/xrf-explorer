@@ -90,6 +90,29 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
 
     return label, center
 
+def combine_bitmasks(bitmasks) -> np.array:
+    """ Merges array of bitmasks into single bitmask with 24 bits per entry, where the set bits 
+    determine the clusters that pixel corresponds to.
+
+    :param bitmasks: the bitmasks corresponding to each cluster
+
+    :return: a single bitmask corresponding to the combination of all bitmasks
+    """
+    height, width = bitmasks[0].shape
+
+    # Initialize the resulting image with 3 color channels, each with 8 bits
+    combined_bitmask = np.zeros((height, width, 3), dtype=np.uint8)
+
+    for i, bitmask in enumerate(bitmasks):
+        # Determine color channel and bit
+        channel = i // 8
+        bit_position = i % 8
+
+        if channel < 3:
+            combined_bitmask[:, :, channel] |= (bitmask == 255).astype(np.uint8) << bit_position
+
+    return combined_bitmask
+
 
 def image_to_lab(small_image: np.array) -> np.array:
     """
