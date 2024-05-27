@@ -10,6 +10,7 @@ watch(selection, () => console.log);
 
 /**
  * Gets the names of the image files for each element.
+ * @returns The filenames of the elemental maps.
  */
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
@@ -20,8 +21,8 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 }
 
 /**
- *
- * @param workspace
+ * Loads the workspace into the layer system.
+ * @param workspace - The workspace to load into the layer system.
  */
 export async function createElementalLayers(workspace: WorkspaceConfig) {
   const filenames = await getFilenames();
@@ -45,6 +46,8 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     visible: true,
     visibility: LayerVisibility.InsideLens,
     opacity: [1.0],
+    contrast: [1.0],
+    saturation: [1.0],
   };
 
   updateLayerGroupLayers(layerGroups.value.elemental);

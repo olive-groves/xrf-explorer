@@ -61,7 +61,7 @@ function createBaseLayer(image: ContextualImage) {
     saturation: [1.0],
   };
 
-  updateLayerGroupLayers(layerGroups.value.base, "initialProperty");
+  updateLayerGroupLayers(layerGroups.value.base);
 }
 
 /**
@@ -86,5 +86,5 @@ function createContextualLayer(image: ContextualImage) {
   };
 
   layerGroups.value[id] = layerGroup;
-  updateLayerGroupLayers(layerGroup, "initialProperty");
+  updateLayerGroupLayers(layerGroup);
 }
