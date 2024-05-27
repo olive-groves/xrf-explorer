@@ -1,6 +1,5 @@
 import logging
 import json
-import xrf_explorer.server.contextual_images as ci
 
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
@@ -9,6 +8,7 @@ from os import mkdir
 from shutil import rmtree
 
 from xrf_explorer import app
+from xrf_explorer.server.contextual_images import allowed_formats, get_contextual_image
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
@@ -165,12 +165,26 @@ def get_dr_overlay():
 def get_contextual_image():
     # Check whether the file type is provided.
     if "file_type" not in request.args:
-        LOG.error("No file type was provided.")
-        abort(400)
+        error: str = "No file type was provided."
+        LOG.error(error)
+        return error, 400
 
     file_type: str = request.args["file_type"]
 
-    image_path: str = ci.get_contextual_image(file_type)
+    # Check whether the file type provided is allowed.
+    if file_type not in allowed_formats:
+        error: str = "The provided file type is invalid."
+        LOG.error(error)
+        return error, 400
+
+    image_path: str = get_contextual_image(file_type)
+
+    # Check if the file actually exists. (If empty string is returned it can only be that the file does not exist, since
+    # we already checked that the extension is valid).
+    if image_path == "":
+        error: str = "File was not found."
+        # Error log is handled by get_contextual_image() function.
+        return error, 404
 
     return send_file(image_path)
 

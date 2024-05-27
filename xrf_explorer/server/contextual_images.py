@@ -1,8 +1,10 @@
 import os
+import logging
 import shutil
 from xrf_explorer.server.file_system.config_handler import load_yml
 
-allowed_formats = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif'}
+allowed_formats: set = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif'}
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def set_contextual_image(path_to_image: str):
@@ -14,46 +16,49 @@ def set_contextual_image(path_to_image: str):
     # Find the folder where the contextual image is stored.
     backend_config: dict = load_yml("config/backend.yml")
     if not backend_config:
-        return ""
-    folder = backend_config["contextual-images-folder"]
+        LOG.error("Config file is empty.")
+        return
+    folder: str = backend_config["contextual-images-folder"]
 
     # Check if the input file actually exists.
     if not os.path.isfile(path_to_image):
-        raise FileNotFoundError(f"The file at path {path_to_image} does not exist.")
+        LOG.error(f"The file at path {path_to_image} does not exist.")
 
     # Check if the file extension is valid. If not, return.
-    file_extension = path_to_image.split('.')[-1].lower()
+    file_extension: str = path_to_image.split('.')[-1].lower()
     if file_extension not in allowed_formats:
-        print(f"Unsupported file format: {file_extension}")
+        LOG.error("The provided file has an invalid type")
         return
 
     # Construct the destination path.
-    destination_path = os.path.join(folder, f"contextual_image.{file_extension}")
+    destination_path: str = os.path.join(folder, f"contextual_image.{file_extension}")
 
     # Copy the image to the destination path
     shutil.copy(path_to_image, destination_path)
 
 
-def get_contextual_image(file_type: str):
+def get_contextual_image(file_type: str) -> str:
     # Find the folder where the contextual image is stored.
     backend_config: dict = load_yml("config/backend.yml")
     if not backend_config:
+        LOG.error("Config file is empty.")
         return ""
-    folder = backend_config["contextual-images-folder"]
+    folder: str = backend_config["contextual-images-folder"]
 
     # Convert file type to lower case and ensure it starts with a period.
-    file_extension = f".{file_type.lower()}" if not file_type.startswith('.') else file_type.lower()
+    file_extension: str = f".{file_type.lower()}" if not file_type.startswith('.') else file_type.lower()
 
     # Check if the file type is in an allowed format.
     if file_extension not in allowed_formats:
-        print("Unsupported file format.")
-        return None
+        LOG.error("The provided file type is invalid.")
+        return ""
 
     # Construct the file path.
-    file_path = os.path.join(folder, f"contextual_image{file_extension}")
+    file_path: str = os.path.join(folder, f"contextual_image{file_extension}")
 
     # Check if the file exists and if so, return it.
     if os.path.isfile(file_path):
         return file_path
     else:
-        return None
+        LOG.error("File was not found.")
+        return ""
