@@ -10,7 +10,7 @@ const config = inject<FrontendConfig>("config")!;
 const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
 const URL_EMBEDDING = `${config.api.endpoint}/get_dr_embedding`;
 
-// Status dimensionaility reduction
+// Status dimensionality reduction
 enum Status {
   LOADING,
   GENERATING,
@@ -28,6 +28,10 @@ const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
+
+// list of selected points
+const selectedPoints: { x: number; y: number }[] = [];
+
 
 /**
  * Fetch the dimensionality reduction image
@@ -102,6 +106,17 @@ async function updateEmbedding() {
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
 }
+
+function onMouseDown(event: MouseEvent) {
+  selectedPoints.push({x: event.clientX, y: event.clientY});
+  visualizeSelectedPoints();
+}
+
+function visualizeSelectedPoints() {
+  for (const point of selectedPoints) {
+    console.log(point.x, point.y);
+  }
+}
 </script>
 
 <template>
@@ -155,8 +170,8 @@ async function updateEmbedding() {
       <!-- GENERATION OF THE IMAGE -->
       <Separator class="my-2" />
       <p class="font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square items-center justify-center text-center">
-        <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
+      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown">
+        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
         <span v-if="status == Status.LOADING">Loading...</span>
         <span v-if="status == Status.GENERATING">Generating...</span>
         <span v-if="status == Status.ERROR">{{ currentError }}</span>
