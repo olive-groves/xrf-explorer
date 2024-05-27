@@ -6,7 +6,7 @@ import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { createElementalLayers } from "./elementalHelper";
-import { createColorClusterLayers } from "./colorClusterHelepr";
+import { createColorClusterLayers } from "./colorClusterHelper";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
