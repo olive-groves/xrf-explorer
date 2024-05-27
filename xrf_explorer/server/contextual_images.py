@@ -1,6 +1,7 @@
 import os
 import logging
 import shutil
+from os.path import join, normpath
 from xrf_explorer.server.file_system.config_handler import load_yml
 
 allowed_formats: set = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif'}
@@ -14,6 +15,8 @@ def set_contextual_image(path_to_image: str):
     :param path_to_image: The path to the image that needs to be copied.
     """
 
+    LOG.info("Saving contextual image.")
+
     # Find the folder where the contextual image is stored.
     backend_config: dict = load_yml("config/backend.yml")
     if not backend_config:
@@ -24,18 +27,26 @@ def set_contextual_image(path_to_image: str):
     # Check if the input file actually exists.
     if not os.path.isfile(path_to_image):
         LOG.error(f"The file at path {path_to_image} does not exist.")
+        return
 
-    # Check if the file extension is valid. If not, return.
-    file_extension: str = path_to_image.split('.')[-1].lower()
+    # Get file extension.
+    file_extension: str = path_to_image.split('.')[-1]
+
+    # Convert file type to lower case and ensure it starts with a period.
+    file_extension: str = f".{file_extension.lower()}" if not file_extension.startswith('.') else file_extension.lower()
+
+    # Check if extension is valid. If not, return.
     if file_extension not in allowed_formats:
-        LOG.error("The provided file has an invalid type")
+        LOG.error("The provided file has an invalid type.")
         return
 
     # Construct the destination path.
-    destination_path: str = os.path.join(folder, f"contextual_image.{file_extension}")
+    destination_path: str = os.path.join(folder, f"contextual_image{file_extension}")
 
     # Copy the image to the destination path
     shutil.copy(path_to_image, destination_path)
+
+    LOG.info("Contextual image saved successfully.")
 
 
 def get_contextual_image(file_type: str) -> str:
@@ -46,6 +57,8 @@ def get_contextual_image(file_type: str) -> str:
             ".tiff" and ".tif".
     :return: The path to the file.
     """
+
+    LOG.info("Searching for contextual image.")
 
     # Find the folder where the contextual image is stored.
     backend_config: dict = load_yml("config/backend.yml")
@@ -63,10 +76,11 @@ def get_contextual_image(file_type: str) -> str:
         return ""
 
     # Construct the file path.
-    file_path: str = os.path.join(folder, f"contextual_image{file_extension}")
+    file_path: str = normpath(join(folder, f"contextual_image{file_extension}"))
 
     # Check if the file exists and if so, return it.
     if os.path.isfile(file_path):
+        LOG.info("Contextual image found.")
         return file_path
     else:
         LOG.error("File was not found.")
