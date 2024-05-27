@@ -6,9 +6,11 @@ from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
+from markupsafe import escape
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.workspace_handler import get_workspace_path, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
@@ -38,6 +40,29 @@ def list_accessible_data_sources():
     except Exception as e:
         LOG.error(f"Failed to serialize files: {str(e)}")
         return "Error occurred while listing data sources", 500
+
+
+@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+def get_workspace(datasource: str):
+    if request.method == "POST":
+        # Write content to the workspace
+        result: bool = update_workspace(request.form)
+        
+        # Check if the write was successful
+        if not result:
+            abort(400)
+        
+        return f"Data written to workspace {escape(datasource)} successfully"
+    else:
+        # Read content from the workspace
+        path: str = get_workspace_path(datasource)
+
+        # Check if the workspace exists
+        if not path:
+            abort(404)
+        
+        # Send the json file
+        return send_file(path, mimetype='application/json')
 
 
 @app.route("/api/create_ds_dir", methods=["POST"])
