@@ -3,6 +3,14 @@ import cv2
 from skimage import color
 import skimage
 import logging
+from os.path import join
+from pathlib import Path
+
+from xrf_explorer.server.file_system import get_elemental_data_cube
+from xrf_explorer.server.file_system.from_dms import (
+    get_elemental_datacube_dimensions_from_dms,
+)
+from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -13,7 +21,7 @@ def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: i
     :param big_image: the image whose pixels are divided in clusters
     :param clusters: the clusters to which we add pixels
     :param threshold: the threshold that indicates how similar the colors need to are to be added to a cluster
-       
+
     :return: the bitmasks corresponding to each cluster
     """
 
@@ -34,13 +42,56 @@ def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: i
 
     return bitmask
 
+def get_pixels_in_clusters_element(big_image: np.array, clusters: dict,
+                                   data_cube_name: str, config_path: str = "config/backend.yml",
+                                   threshold: int = 10) -> np.array:
+    """
+
+    :param image: the image to apply the k-means on
+    :param clusters: the clusters to which we add pixels
+    :param data_cube_name: the name of the file containing the data cube
+    :param config_path: Path to the backend config file.
+    :param threshold: the threshold that indicates how similar the colors need to are to be added to a cluster
+
+    :return: dictionary with, for each element, the list of corresponding bitmasks
+    """
+    data_cube = get_elemental_data_cube(data_cube_name, config_path)
+    target_dim = (big_image.shape[1], big_image.shape[0])
+    registered_data_cube = [cv2.resize(img, target_dim) for img in data_cube]
+    image: np.array = image_to_lab(big_image)
+
+    bitmask_list = {}
+    for elem_index in range(data_cube.shape[0]):
+        bitmask: np.array = []
+        elem_clusters = clusters[elem_index]
+        # bitmask of places where element is present
+        elem_bitmask = np.where(registered_data_cube[elem_index] > 1)
+
+        # for each cluster
+        for i in range(len(elem_clusters)):
+            # convert cluster color to lab
+            target_color: int = rgb_to_lab(elem_clusters[i])
+            # define lower and upper bound for color similarity
+            lower_bound: int = target_color - threshold
+            upper_bound: int = target_color + threshold
+            ## TODO: apply element bitmask to obtained cluster bitmask
+            p = cv2.inRange(image, lower_bound, upper_bound)
+            n = cv2.bitwise_and(p, p, mask=elem_bitmask)
+            return n
+            # append to bitmask the pixels with colors within the bounds
+            bitmask.append(n)
+
+        bitmask_list[elem_index] = bitmask
+
+    return bitmask_list
+
 
 def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
     :param threshold: the threshold that indicates how similar the colors need to are to be merged in a cluster
-       
+
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
 
@@ -65,14 +116,14 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
 
 
 def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_attempts: int = 10, k: int = 30) -> tuple:
-    """Extract the color clusters of the resized RGB image using the k-means clustering method in OpenCV
+    """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
     :param image_size: the size to resize the image before applygin k-means
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
-       
+
     :return: an array of labels of the clusters and the array of centers of clusters
     """
 
@@ -91,6 +142,58 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
     ret, label, center = cv2.kmeans(reshaped_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
     return label, center
+
+def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str, 
+                                         config_path: str = "config/backend.yml",
+                                         nr_of_attempts: int = 10, k: int = 2):
+    """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
+
+    :param image: the image to apply the k-means on
+    :param data_cube_name: the name of the file containing the data cube
+    :param config_path: Path to the backend config file.
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
+            Defaults to 20.
+    :param k: number of clusters required at end. Defaults to 2.
+
+    :return: a dictionary with an array of clusters for each element
+    """
+    data_cube = get_elemental_data_cube(data_cube_name, config_path)
+
+    # Get data cube file path to obtain dimensions
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+    path_cube: str = join(Path(backend_config['uploads-folder']), data_cube_name)
+    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_cube)
+
+    # set seed so results are consistent
+    cv2.setRNGSeed(0)
+
+    # Register image to datacube and reshape
+    image = cv2.resize(image, (cube_w, cube_h))
+    reshaped_image: np.array = reshape_image(image)
+
+    # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
+    # iterations.)
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
+
+    clusters = {}
+    for elem_index in range(data_cube.shape[0]):
+        # Get bitmask of entries with high element concentration
+        # and get respective entries in the image
+        bitmask = (data_cube[elem_index] > 1).astype(int).flatten()
+        elem_image = reshaped_image[bitmask == 1]
+        # If empty image continue (elem. not present)
+        if elem_image.size == 0:
+            clusters[elem_index] = []
+            continue
+        # k cannot be bigger than number of elements
+        k = min(k, elem_image.size)
+        ret, label, center = cv2.kmeans(elem_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+        clusters[elem_index] = center
+
+    return clusters
 
 def combine_bitmasks(bitmasks) -> np.array:
     """ Merges array of bitmasks into single bitmask with 24 bits per entry, where the set bits

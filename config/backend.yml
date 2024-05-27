@@ -14,3 +14,6 @@ color-segmentation:
     k: 20
     nr-attempts: 10
     image-size: 500
+  elemental-k-means-parameters:
+    k: 2
+    nr-attempts: 10

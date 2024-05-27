@@ -171,7 +171,7 @@ def get_average_data():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
 
     if datacube.size == 0:
@@ -179,7 +179,7 @@ def get_average_data():
 
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
-    
+
     return response
 
 @app.route('/api/get_elements', methods=['GET'])
@@ -261,7 +261,6 @@ def get_color_cluster_bitmask():
                                                   k_means_parameters['k'])
     clusters = merge_similar_colors(clusters)
     bitmasks = get_pixels_in_clusters(image, clusters)
-    height, width = bitmasks[0].shape
 
     combined_bitmask = combine_bitmasks(bitmasks).toList()
 
@@ -287,23 +286,24 @@ def get_element_color_cluster_bitmask():
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = backend_config['dim-reduction']['k-means-parameters']
+    k_means_parameters: dict[str, str] = backend_config['dim-reduction']['elemental-k-means-parameters']
 
-    labels, clusters = get_clusters_using_k_means(image,
-                                                  k_means_parameters['image-size'],
-                                                  k_means_parameters['nr-attemps'],
-                                                  k_means_parameters['k'])
-    clusters = merge_similar_colors(clusters)
-    bitmasks = get_pixels_in_clusters(image, clusters)
-    height, width = bitmasks[0].shape
+    # TODO: 'cube.dms' should be cube file name
+    clusters_per_elem = get_elemental_clusters_using_k_means(image, 'cube.dms',
+                                                             "config/backend.yml",
+                                                             k_means_parameters['nr-attemps'],
+                                                             k_means_parameters['k'])
 
-    combined_bitmask = combine_bitmasks(bitmasks).toList()
+    data = {}
 
-    # Combined bitmask and the color of each cluster
-    data = {
-        "bitmask": combined_bitmask,
-        "colors": clusters
-    }
+    for i in range(len(clusters_per_elem)):
+        # Colors per element
+        clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
+        # Image-wide bitmask
+        bitmasks = get_pixels_in_clusters(image, clusters_per_elem[i])
+        data[i] = combine_bitmasks(bitmasks).toList()
+        data['colors_${i}'] = clusters_per_elem[i]
+
     response = json.dumps(data)
 
     return response

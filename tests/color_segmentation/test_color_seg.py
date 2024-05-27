@@ -6,13 +6,15 @@ import numpy as np
 sys.path.append('.')
 
 from xrf_explorer.server.color_seg import get_image, get_clusters_using_k_means, merge_similar_colors, \
-    get_pixels_in_clusters, combine_bitmasks
+    get_elemental_clusters_using_k_means, get_pixels_in_clusters, get_pixels_in_clusters_element, combine_bitmasks
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
 
 class TestColorSegmentation:
     BW_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'black_and_white_image.png'))
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
+    DATA_CUBE_DMS: str = 'test.dms'
 
     def test_get_clusters_using_k_means(self):
         # Set-up
@@ -83,7 +85,7 @@ class TestColorSegmentation:
         assert result is None
 
         # Verify log message
-        assert "The path 'tests\\resources\\fake' is not a valid file path." in caplog.text
+        assert "The path 'tests/resources/fake' is not a valid file path." in caplog.text
 
     def test_combined_bitmasks(self):
         # Set-up
@@ -107,3 +109,33 @@ class TestColorSegmentation:
         # Verify
         assert len(expected_result) == len(result)
         assert np.array_equal(result, expected_result)
+
+    def test_get_elem_clusters_using_k_means(self):
+        # Set-up
+        small_image: str = get_image(self.BW_IMAGE_PATH)
+
+        # Execute
+        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
+        for i in range(len(clusters_per_elem)):
+            clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
+
+        # Verify
+        # First element is not present so no clusters
+        assert len(clusters_per_elem[0]) == 0
+        # Second element gets two clusters
+        assert len(clusters_per_elem[1]) == 2
+
+    def test_get_pixels_in_clusters_element(self):
+        # Setup
+        small_image: str = get_image(self.BW_IMAGE_PATH)
+        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
+        for i in range(len(clusters_per_elem)):
+            clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
+
+        # Execute
+        elem_bitmasks = get_pixels_in_clusters_element(small_image, clusters_per_elem, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
+        print(elem_bitmasks)
+
+        # Verify
+
+        assert False
