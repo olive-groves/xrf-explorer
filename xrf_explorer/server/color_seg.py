@@ -1,7 +1,7 @@
-import numpy as np
 import logging
 
 import cv2
+import numpy as np
 import skimage
 from skimage import color
 

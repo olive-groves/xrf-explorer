@@ -1,13 +1,14 @@
-import sys
 import logging
-import numpy as np
+import sys
 from os.path import join
 from pathlib import Path
+
+import numpy as np
 
 sys.path.append('.')
 
 from xrf_explorer.server.color_seg import get_image, get_clusters_using_k_means, merge_similar_colors, \
-    get_pixels_in_clusters
+    get_pixels_in_clusters, get_small_image
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -19,11 +20,11 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        small_image: str = get_image(self.BW_IMAGE_PATH)
+        small_image: np.array = get_image(self.BW_IMAGE_PATH)
 
         # The default number of clusters is 30, which is what we use here. The image only has 2 colors, hence 15
         # clusters for each color.
-        expected_result = np.array([
+        expected_result: np.array = np.array([
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
@@ -45,17 +46,17 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        small_image: str = get_image(self.BW_IMAGE_PATH)
+        small_image: np.array = get_image(self.BW_IMAGE_PATH)
 
         # Expected result is a list of two clusters, one for each color of the test image.
-        expected_result = np.array([
+        expected_result: np.array = np.array([
             [0, 0, 0],
             [255, 255, 255]
         ])
 
         # Execute
         useless_labels, result = get_clusters_using_k_means(small_image)
-        result = merge_similar_colors(result)
+        result: np.array = merge_similar_colors(result)
 
         # Verify
         assert len(expected_result) == len(result)
@@ -68,18 +69,18 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        image: str = get_image(self.BW_IMAGE_PATH)
-        clusters = np.array([
+        image: np.array = get_image(self.BW_IMAGE_PATH)
+        clusters: np.array = np.array([
             [255, 255, 255],
             [0, 0, 0]
         ])
-        white_cluster = np.zeros((100, 100), dtype=int)
+        white_cluster: np.array = np.zeros((100, 100), dtype=int)
         white_cluster[:, 50:] = 255
-        black_cluster = np.zeros((100, 100), dtype=int)
+        black_cluster: np.array = np.zeros((100, 100), dtype=int)
         black_cluster[:, :50] = 255
 
         # Execute
-        bitmask = get_pixels_in_clusters(image, clusters)
+        bitmask: np.array = get_pixels_in_clusters(image, clusters)
 
         # Verify
         assert np.array_equal(white_cluster, bitmask[0])
@@ -93,10 +94,22 @@ class TestColorSegmentation:
         fake_path: str = join(RESOURCES_PATH, Path("fake"))
 
         # Execute
-        result = get_image(fake_path)
+        result: np.array = get_image(fake_path)
 
         # Verify
         assert np.array_equal(result, np.empty(0))
 
         # Verify log message
         assert f"The path '{fake_path}' is not a valid file path." in caplog.text
+
+    def test_get_small_image(self):
+        # Set-up
+        big_image: np.array = get_image(self.BW_IMAGE_PATH)
+
+        # Execute
+        result: np.array = get_small_image(big_image, 50)
+
+        # verify
+        assert np.array_equal(result.shape, (50, 50, 3))  # Check that the shape is correct.
+        assert np.array_equal(result[0][0], [0, 0, 0])  # Check that the bottom left pixel is black.
+        assert np.array_equal(result[25][25], [255, 255, 255])  # Check proper scaling by checking a white pixel.
