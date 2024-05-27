@@ -69,7 +69,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
       const layer = createLayer(`elemental_${channel.channel}`, {
         name: `elemental_${channel.channel}`,
         imageLocation: filenames[channel.channel],
-        recipeLocation: "",
+        recipeLocation: "recipe_cube.csv",
       });
       layer.uniform.iLayerType.value = LayerType.Elemental;
       layer.uniform.iAuxiliary = { value: channel.channel };

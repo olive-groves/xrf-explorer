@@ -31,21 +31,18 @@ const workspace: WorkspaceConfig = {
   name: "Amandelbloesem",
   baseImage: {
     name: "RGB",
-    imageLocation:
-      "https://upload.wikimedia.org/wikipedia/commons/8/80/Amandelbloesem_-_s0176V1962_-_Van_Gogh_Museum.jpg",
+    imageLocation: "base.png",
     recipeLocation: "",
   },
   contextualImages: [
     {
       name: "UV",
-      imageLocation:
-        "https://upload.wikimedia.org/wikipedia/commons/3/37/M%C3%BCnster%2C_LWL-Museum_f%C3%BCr_Kunst_und_Kultur%2C_Lichtkunstwerk_%22Silberne_Frequenz%22_--_2022_--_4266.jpg?download",
+      imageLocation: "uv.png",
       recipeLocation: "recipe_uv.csv",
     },
     {
       name: "Xray",
-      imageLocation:
-        "https://upload.wikimedia.org/wikipedia/commons/6/68/Cabo_Norte%2C_Noruega%2C_2019-09-03%2C_DD_16.jpg?download",
+      imageLocation: "xray.png",
       recipeLocation: "recipe_xray.csv",
     },
   ],
@@ -54,7 +51,7 @@ const workspace: WorkspaceConfig = {
       name: "Datacube",
       rawLocation: "spectral.raw",
       rplLocation: "spectral.rpl",
-      recipeLocation: "recipe_spectral.csv",
+      recipeLocation: "spectral_cube.json",
     },
   ],
   elementalCubes: [
@@ -62,7 +59,7 @@ const workspace: WorkspaceConfig = {
       name: "Datacube",
       fileType: "dms",
       dataLocation: "elemental.dms",
-      recipeLocation: "recipe_elemental.csv",
+      recipeLocation: "spectral_cube.json",
     },
   ],
   elementalChannels: [],
