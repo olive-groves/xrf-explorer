@@ -13,8 +13,23 @@ type Element = {
   average: number;
 };
 
+type ElementVisibility = {
+  name: string;
+  visible: boolean;
+};
+
 // Elemental data averages
 let dataAverages: Element[];
+
+// Visibility for all elements
+let elementVisibility: ElementVisibility[] = [
+  {"name": "AlK", "visible": true},
+  {"name": "SiK", "visible": true},
+  {"name": "chi", "visible": false}
+];
+
+// Actual displayed data, i.e. elements which are selected
+let displayedData: Element[];
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -61,6 +76,17 @@ async function fetchAverages(url: string) {
   }
 
   return fetchSuccessful;
+}
+
+/**
+ * Mask out the element data of the elements which are selected
+ * to not be visible.
+ */
+function maskData() {
+  displayedData = dataAverages.filter(elementAvg =>
+    elementVisibility.some(elementVis => elementVis.name == elementAvg.name && elementVis.visible));
+  
+  console.log(displayedData);
 }
 
 /**
@@ -146,7 +172,14 @@ async function showChart() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched) setup(); // If everything went right, display the chart
+    if (fetched) {
+      // If everything went right, mask the data and display the chart
+      maskData();
+      // TODO: see if there's a callback to update the chart
+      // TODO: check that it actually updates everything right
+      // TODO: change the chart to use this visible data thing
+      setup();
+    }
   } catch (e) {
     console.error("Error fetching average data", e);
   }
