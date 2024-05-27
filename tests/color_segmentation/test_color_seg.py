@@ -1,7 +1,8 @@
 import sys
+import logging
+import numpy as np
 from os.path import join
 from pathlib import Path
-import numpy as np
 
 sys.path.append('.')
 
@@ -14,7 +15,9 @@ RESOURCES_PATH: Path = Path('tests', 'resources')
 class TestColorSegmentation:
     BW_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'black_and_white_image.png'))
 
-    def test_get_clusters_using_k_means(self):
+    def test_get_clusters_using_k_means(self, caplog):
+        caplog.set_level(logging.INFO)
+
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
 
@@ -35,7 +38,12 @@ class TestColorSegmentation:
         assert len(expected_result) == len(result)
         assert np.array_equal(result, expected_result)
 
-    def test_merge_similar_colors(self):
+        # Verify log message
+        assert "Initial color clusters extracted successfully." in caplog.text
+
+    def test_merge_similar_colors(self, caplog):
+        caplog.set_level(logging.INFO)
+
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
 
@@ -53,7 +61,12 @@ class TestColorSegmentation:
         assert len(expected_result) == len(result)
         assert np.array_equal(result, expected_result)
 
-    def test_get_pixels_in_clusters(self):
+        # Verify log message
+        assert "Similar clusters merged successfully." in caplog.text
+
+    def test_get_pixels_in_clusters(self, caplog):
+        caplog.set_level(logging.INFO)
+
         # Set-up
         image: str = get_image(self.BW_IMAGE_PATH)
         clusters = np.array([
@@ -72,6 +85,9 @@ class TestColorSegmentation:
         assert np.array_equal(white_cluster, bitmask[0])
         assert np.array_equal(black_cluster, bitmask[1])
 
+        # Verify log message
+        assert "Successfully computed bitmasks." in caplog.text
+
     def test_invalid_path_to_image(self, caplog):
         # Set-up
         fake_path: str = join(RESOURCES_PATH, Path("fake"))
@@ -80,7 +96,7 @@ class TestColorSegmentation:
         result = get_image(fake_path)
 
         # Verify
-        assert result is None
+        assert np.array_equal(result, np.empty(0))
 
         # Verify log message
-        assert "The path 'tests\\resources\\fake' is not a valid file path." in caplog.text
+        assert f"The path '{fake_path}' is not a valid file path." in caplog.text

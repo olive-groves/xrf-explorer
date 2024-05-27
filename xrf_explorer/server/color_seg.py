@@ -1,8 +1,9 @@
 import numpy as np
-import cv2
-from skimage import color
-import skimage
 import logging
+
+import cv2
+import skimage
+from skimage import color
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: i
        
     :return: the bitmasks corresponding to each cluster
     """
+
+    LOG.info("Computing bitmasks.")
 
     bitmask: np.array = []
 
@@ -32,6 +35,8 @@ def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: i
         # append to bitmask the pixels with colors within the bounds
         bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
 
+    LOG.info("Successfully computed bitmasks.")
+
     return bitmask
 
 
@@ -43,6 +48,8 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
        
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
+
+    LOG.info("Merging similar clusters.")
 
     i: int = 0
     # Iterate over pairs of clusters
@@ -61,6 +68,9 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
             else:
                 j += 1
         i += 1
+
+    LOG.info("Similar clusters merged successfully.")
+
     return clusters
 
 
@@ -75,6 +85,8 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
     :return: an array of labels of the clusters and the array of centers of clusters
     """
 
+    LOG.info("Extracting initial color clusters.")
+
     # set seed so results are consistent
     cv2.setRNGSeed(0)
 
@@ -87,6 +99,8 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
 
     # apply kmeans
     ret, label, center = cv2.kmeans(reshaped_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+
+    LOG.info("Initial color clusters extracted successfully.")
 
     return label, center
 
@@ -204,11 +218,8 @@ def get_image(image_file_path: str) -> np.array:
     :return: The image represented as a NumPy array in RGB color space.
     """
 
-    try:
-        raw_image: np.array = cv2.imread(image_file_path)
-        if raw_image is None:
-            raise FileNotFoundError(f"{image_file_path}")
-        return cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
-    except Exception as e:
-        LOG.error(f"The path '{e}' is not a valid file path.")
-        return None
+    raw_image: np.array = cv2.imread(image_file_path)
+    if raw_image is None:
+        LOG.error(f"The path '{image_file_path}' is not a valid file path.")
+        return np.empty(0)
+    return raw_image
