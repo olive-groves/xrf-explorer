@@ -172,6 +172,17 @@ class TestElementalData:
         # verify
         assert len(result) == 0
         assert expected_output in caplog.text
+    
+    def test_invalid_file_no_to_dms(self, caplog):
+        # setup
+        expected_output: str = "Name of the cube should not contain a file extension."
+
+        # execute
+        result: bool = to_dms("invalid.test", self.RAW_ELEMENTAL_CUBE, self.ELEMENTS, self.CUSTOM_CONFIG_PATH)
+
+        # verify
+        assert not result
+        assert expected_output in caplog.text
 
     def test_get_element_names(self, caplog):
         self.do_test_get_element_names(self.DATA_CUBE_DMS, caplog)
