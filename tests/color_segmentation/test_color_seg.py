@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append('.')
 
 from xrf_explorer.server.color_seg import get_image, get_clusters_using_k_means, merge_similar_colors, \
-    get_pixels_in_clusters
+    get_pixels_in_clusters, combine_bitmasks
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -84,3 +84,26 @@ class TestColorSegmentation:
 
         # Verify log message
         assert "The path 'tests\\resources\\fake' is not a valid file path." in caplog.text
+
+    def test_combined_bitmasks(self):
+        # Set-up
+        bitmask1 = np.array([[0, 255], [255, 0]], dtype=np.uint8)
+        bitmask2 = np.array([[255, 0], [0, 255]], dtype=np.uint8)
+        bitmask3 = np.array([[0, 0], [255, 255]], dtype=np.uint8)
+        bitmask4 = np.array([[255, 255], [255, 255]], dtype=np.uint8)
+        bitmasks = [bitmask1, bitmask2, bitmask3, bitmask1,
+                    bitmask1, bitmask1, bitmask1, bitmask1,
+                    bitmask1, bitmask2, bitmask3, bitmask2,
+                    bitmask1, bitmask1, bitmask1, bitmask1,
+                    bitmask4, bitmask2, bitmask3, bitmask1]
+        expected_result = [
+            [[0b00000010, 0b00001010, 0b00000011], [0b11111001, 0b11110001, 0b00001001]],
+            [[0b11111101, 0b11110101, 0b00001101], [0b00000110, 0b00001110, 0b00000111]]
+        ]
+
+        # Execute
+        result = combine_bitmasks(bitmasks)
+
+        # Verify
+        assert len(expected_result) == len(result)
+        assert np.array_equal(result, expected_result)
