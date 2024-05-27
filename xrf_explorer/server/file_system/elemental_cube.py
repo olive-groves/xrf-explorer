@@ -255,6 +255,10 @@ def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: s
     :param config_path: Path to the backend config file.
     :return: True if the cube was saved successfully, False otherwise.
     """
+
+    if "." in name_cube:
+        LOG.error("Name of the cube should not contain a file extension.")
+        return False
     
     # load backend config
     backend_config: dict = load_yml(config_path)
