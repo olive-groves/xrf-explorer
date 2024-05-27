@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { Layer, LayerGroup, LayerVisibility } from "./types";
+import { Layer, LayerGroup, LayerType, LayerVisibility } from "./types";
 import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
@@ -33,9 +33,10 @@ export function createLayer(id: string, image: ContextualImage): Layer {
     image: image.imageLocation,
     uniform: {
       iIndex: { value: 0 },
+      iLayerType: { value: LayerType.Image },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
-      iShowLayer: { value: 0 },
+      iShowLayer: { value: LayerVisibility.Invisible },
       uOpacity: { value: 1 },
       uContrast: { value: 1 },
       uSaturation: { value: 1 },

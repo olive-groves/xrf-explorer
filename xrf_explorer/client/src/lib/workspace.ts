@@ -138,10 +138,10 @@ export type ColorCluster = {
    * The index of the cluster (if any) that should be visible to the client.
    */
   chosenCluster: number;
-}
+};
 
 /**
- * Describes the configuration for the color clusters of a 
+ * Describes the configuration for the color clusters of a
  * single element.
  */
 export type ElementColorCluster = {
@@ -161,4 +161,4 @@ export type ElementColorCluster = {
    * The index of the cluster (if any) that should be visible to the client.
    */
   chosenCluster: number;
-}
+};
