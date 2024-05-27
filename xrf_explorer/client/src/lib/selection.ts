@@ -83,9 +83,9 @@ export type ElementSelection = {
    */
   color: [number, number, number];
   /**
-   * The intensity associated with the element.
+   * The thresholds for the element.
    */
-  intensity: [number];
+  thresholds: [number, number];
 };
 
 /**

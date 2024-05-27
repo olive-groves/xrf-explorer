@@ -116,12 +116,14 @@ void main() {
     // Texture is 256x1 (wxh), we can hence sample at channel/256, 0
     // We get the color from the auxiliary and render in alphascale.
     vec4 auxiliaryColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
+    vec2 threshold = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
     if (auxiliaryColor.w == 0.0) {
       gl_FragColor = transparent;
     } else {
+      float alpha = (gl_FragColor.x - threshold.x) / (threshold.y - threshold.x);
       gl_FragColor = vec4(
         auxiliaryColor.xyz,
-        (gl_FragColor.x + gl_FragColor.y + gl_FragColor.z) / 3.0
+        alpha
       );
     }
   }

@@ -4,14 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
-import { computed, inject, watch } from "vue";
+import { computed, watch } from "vue";
 import { appState } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
 import { hexToRgb } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { FrontendConfig } from "@/lib/config";
-
-const config = inject<FrontendConfig>("config")!;
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
@@ -25,7 +22,7 @@ watch(
           channel: channel.channel,
           selected: false,
           color: [255, 255, 255],
-          intensity: [1 / config.elementalMap.maximumIntensity],
+          thresholds: [0.0, 1.0],
         });
       }
     });
@@ -82,10 +79,10 @@ watch(
         <div v-if="channel.selected" class="space-y-2">
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <div>Intensity</div>
-              <div>{{ channel.intensity[0] * config.elementalMap.maximumIntensity }}</div>
+              <div>Thresholds</div>
+              <div>{{ channel.thresholds[0] }} – {{ channel.thresholds[1] }}</div>
             </div>
-            <Slider v-model="channel.intensity" :min="0" :step="0.01" :max="1" class="pb-2" />
+            <Slider v-model="channel.thresholds" :min="0" :step="0.01" :max="1" class="pb-2" />
           </div>
         </div>
       </Card>

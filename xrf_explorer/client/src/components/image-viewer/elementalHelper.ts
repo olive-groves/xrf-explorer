@@ -9,7 +9,7 @@ import { ElementSelection } from "@/lib/selection";
 const selection = computed(() => appState.selection.elements);
 
 const width = 256;
-const height = 1;
+const height = 2;
 const data = new Uint8Array(width * height * 4);
 const dataTexture = createDataTexture(data, width, height);
 
@@ -23,22 +23,18 @@ function selectionUpdated(selection: ElementSelection[]) {
   selection.forEach((channel) => {
     // Update auxiliary texture
     const start = channel.channel * 4;
-    let r = 0;
-    let g = 0;
-    let b = 0;
-    let a = 0;
+    const second = start + width * 4;
 
     if (channel.selected) {
-      r = channel.color[0];
-      g = channel.color[1];
-      b = channel.color[2];
-      a = Math.round(channel.intensity[0] * 255.0);
+      data[start + 0] = channel.color[0];
+      data[start + 1] = channel.color[1];
+      data[start + 2] = channel.color[2];
+      data[start + 3] = 255;
+      data[second + 0] = Math.round(channel.thresholds[0] * 255);
+      data[second + 1] = Math.round(channel.thresholds[1] * 255);
+    } else {
+      data[start + 3] = 0;
     }
-
-    data[start + 0] = r;
-    data[start + 1] = g;
-    data[start + 2] = b;
-    data[start + 3] = a;
   });
 
   if (layerGroups.value.elemental != undefined) {
