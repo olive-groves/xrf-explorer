@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ElementalCube, ElementalCubeFileType } from "@/lib/workspace";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

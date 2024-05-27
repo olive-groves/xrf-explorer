@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Window } from "@/components/ui/window";
 import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard } from ".";
 import { appState } from "@/lib/appState";
 import { computed } from "vue";

@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { Hand, Search, SquareDashedMousePointer, Settings } from "lucide-vue-next";
 import { ToolState } from "./types";
 

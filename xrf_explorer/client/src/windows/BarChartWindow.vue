@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
-import { Window } from "@/components/ui/window";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
