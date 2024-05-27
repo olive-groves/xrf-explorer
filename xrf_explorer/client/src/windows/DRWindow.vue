@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import {onMounted, ref} from "vue";
 
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
@@ -32,6 +32,9 @@ const imageSourceUrl = ref();
 // list of selected points
 const selectedPoints: { x: number; y: number }[] = [];
 
+// canvas to draw on
+const canvas = ref<HTMLCanvasElement>(<HTMLCanvasElement>document.getElementById("canvas"));
+const context = ref<CanvasRenderingContext2D | null>(canvas.value?.getContext("2d"));
 
 /**
  * Fetch the dimensionality reduction image
@@ -114,7 +117,11 @@ function onMouseDown(event: MouseEvent) {
 
 function visualizeSelectedPoints() {
   for (const point of selectedPoints) {
-    console.log(point.x, point.y);
+    console.log("visualizing point at: ", point.x, point.y, context);
+    if (context) {
+      context.value?.fillRect(point.x, point.y, 10, 10);
+      console.log("placed point at: ", point.x, point.y);
+    }
   }
 }
 </script>
@@ -171,6 +178,7 @@ function visualizeSelectedPoints() {
       <Separator class="my-2" />
       <p class="font-bold">Generated image:</p>
       <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown">
+        <canvas ref="canvas" class="w-full" style="background: red"></canvas>
         <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
         <span v-if="status == Status.LOADING">Loading...</span>
         <span v-if="status == Status.GENERATING">Generating...</span>
