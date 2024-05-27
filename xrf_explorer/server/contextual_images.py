@@ -1,7 +1,8 @@
-import os
 import logging
+import os
 import shutil
 from os.path import join, normpath
+
 from xrf_explorer.server.file_system.config_handler import load_yml
 
 allowed_formats: set = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif'}

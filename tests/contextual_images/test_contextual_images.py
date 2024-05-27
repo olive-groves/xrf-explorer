@@ -3,13 +3,13 @@ import os.path
 import sys
 from os.path import join, normpath
 from pathlib import Path
-from cv2 import imread
 
 import numpy as np
+from cv2 import imread
 
 sys.path.append('.')
 
-from xrf_explorer.server.contextual_images import set_contextual_image, get_contextual_image, allowed_formats
+from xrf_explorer.server.contextual_images import set_contextual_image, get_contextual_image
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
