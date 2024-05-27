@@ -64,10 +64,11 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
     return clusters
 
 
-def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, k: int = 30) -> tuple:
+def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_attempts: int = 10, k: int = 30) -> tuple:
     """Extract the color clusters of the resized RGB image using the k-means clustering method in OpenCV
 
-    :param small_image: the resized image to apply the k-means on
+    :param image: the image to apply the k-means on
+    :param image_size: the size to resize the image before applygin k-means
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
@@ -77,6 +78,7 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
 
     # set seed so results are consistent
     cv2.setRNGSeed(0)
+    small_image = get_small_image(image, image_size)
 
     # reshape image
     reshaped_image: np.array = reshape_image(small_image)
@@ -91,7 +93,7 @@ def get_clusters_using_k_means(small_image: np.array, nr_of_attempts: int = 10, 
     return label, center
 
 def combine_bitmasks(bitmasks) -> np.array:
-    """ Merges array of bitmasks into single bitmask with 24 bits per entry, where the set bits 
+    """ Merges array of bitmasks into single bitmask with 24 bits per entry, where the set bits
     determine the clusters that pixel corresponds to.
 
     :param bitmasks: the bitmasks corresponding to each cluster
@@ -212,8 +214,8 @@ def get_small_image(big_image: np.array, max_side_length: int = 300) -> np.array
         scaling_factor: float = max_side_length / width
 
     # Calculate the new dimensions
-    new_width: int = int(width * scaling_factor)
-    new_height: int = int(height * scaling_factor)
+    new_width: int = min(int(width * scaling_factor), width)
+    new_height: int = min(int(height * scaling_factor), width)
 
     # Resize the image
     return cv2.resize(big_image, (new_width, new_height))
