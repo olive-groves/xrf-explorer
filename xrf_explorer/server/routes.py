@@ -103,6 +103,11 @@ def upload_file_chunk():
 
 @app.route("/api/element_averages")
 def list_element_averages():
+    """Get the names and averages of the elements present in the painting.
+    
+    :return: JSON list of objects indicating average abundance for every element. Each object
+    is of the form {"name": element name, "average": element abundance}
+    """
     composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(composition)
@@ -113,6 +118,10 @@ def list_element_averages():
 
 @app.route("/api/element_names")
 def list_element_names():
+    """Get the short names of the elements stored in the elemental data cube.
+    
+    :return: JSON list of the short names of the elements.
+    """
     names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(names)
