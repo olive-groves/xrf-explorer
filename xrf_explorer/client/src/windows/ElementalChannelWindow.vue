@@ -7,7 +7,6 @@ import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
 import { appState } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
-import { hexToRgb } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 
 const channels = computed(() => appState.workspace?.elementalChannels);
@@ -21,7 +20,7 @@ watch(
         appState.selection.elements.push({
           channel: channel.channel,
           selected: false,
-          color: [255, 255, 255],
+          color: "#FFFFFF",
           thresholds: [0.0, 1.0],
         });
       }
@@ -29,17 +28,19 @@ watch(
   },
   { immediate: true },
 );
+
+const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
   <Window title="Elemental channels" opened>
-    <div v-for="channel in appState.selection.elements" :key="channel.channel" class="p-2">
+    <div class="space-y-2 p-2">
       <Card
+        v-for="channel in selection"
+        :key="channel.channel"
         class="space-y-2 p-2"
         :style="{
-          'border-color': channel.selected
-            ? `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`
-            : 'hsl(var(--border))',
+          'border-color': channel.selected ? channel.color : 'hsl(var(--border))',
         }"
       >
         <div class="flex justify-between">
@@ -55,14 +56,14 @@ watch(
               :for="`color_${channel.channel}`"
               class="mt-2 size-4 rounded-md border border-border"
               :style="{
-                'background-color': `rgb(${channel.color[0]}, ${channel.color[1]}, ${channel.color[2]})`,
+                'background-color': channel.color,
               }"
             />
             <Input
               class="hidden"
               :id="`color_${channel.channel}`"
               default-value="#FFFFFF"
-              @update:model-value="(value) => (channel.color = hexToRgb(value as string))"
+              @update:model-value="(value) => (channel.color = value as string)"
               type="color"
             />
             <Button

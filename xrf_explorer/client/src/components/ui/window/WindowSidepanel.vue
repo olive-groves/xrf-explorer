@@ -377,7 +377,7 @@ function handleDragMovement(event: MouseEvent) {
         >
           <div
             @click="toggleTabSize(id)"
-            class="left-0 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
+            class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
           >
             <ChevronRight
               class="size-5 min-w-5 duration-100"
@@ -390,7 +390,7 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="-mt-px overflow-hidden"
+            class="z-0 -mt-px overflow-hidden"
             :style="{
               height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
             }"

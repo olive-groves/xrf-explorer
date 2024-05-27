@@ -79,9 +79,8 @@ export type ElementSelection = {
   selected: boolean;
   /**
    * The color associated with the element.
-   * Each component should be an 8 bit integer (0-255).
    */
-  color: [number, number, number];
+  color: string;
   /**
    * The thresholds for the element.
    */

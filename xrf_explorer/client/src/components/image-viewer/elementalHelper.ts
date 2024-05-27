@@ -5,6 +5,7 @@ import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerType, LayerVisibility } from "./types";
 import { createDataTexture, updateDataTexture } from "./scene";
 import { ElementSelection } from "@/lib/selection";
+import { hexToRgb } from "@/lib/utils";
 
 const selection = computed(() => appState.selection.elements);
 
@@ -26,9 +27,10 @@ function selectionUpdated(selection: ElementSelection[]) {
     const second = start + width * 4;
 
     if (channel.selected) {
-      data[start + 0] = channel.color[0];
-      data[start + 1] = channel.color[1];
-      data[start + 2] = channel.color[2];
+      const color = hexToRgb(channel.color);
+      data[start + 0] = color[0];
+      data[start + 1] = color[1];
+      data[start + 2] = color[2];
       data[start + 3] = 255;
       data[second + 0] = Math.round(channel.thresholds[0] * 255);
       data[second + 1] = Math.round(channel.thresholds[1] * 255);
