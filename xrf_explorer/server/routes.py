@@ -14,7 +14,7 @@ from xrf_explorer.server.file_system import get_short_element_names, get_element
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
-from xrf_explorer.server.color_seg import get_image, get_small_image, get_clusters_using_k_means, merge_similar_colors, \
+from xrf_explorer.server.color_seg import get_image, combine_bitmasks, get_clusters_using_k_means, merge_similar_colors, \
     get_pixels_in_clusters
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -233,21 +233,22 @@ def get_selection_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
-    
+
     result = get_average_selection(datacube, pixels, low, high, bin_size)
-    
+
     response = json.dumps(result)
     print("send response")
     return response
 
 @app.route('/api/get_color_cluster_bitmask', methods=['GET'])
 def get_color_cluster_bitmask():
-    """Gets the bitmask corresponding to the image-wide color cluster.
+    """Gets the bitmask corresponding to the image-wide color clusters.
 
-    :return ...
+    :return json containing the combined bitmasks of all the color clusters.
     """
+    # TODO: this should get the RGB image
     path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
     image = get_image(path_to_image)
 
@@ -262,13 +263,47 @@ def get_color_cluster_bitmask():
     bitmasks = get_pixels_in_clusters(image, clusters)
     height, width = bitmasks[0].shape
 
-    combined_bitmask = np.zeros((height, width, 3), dtype=np.uint8)
+    combined_bitmask = combine_bitmasks(bitmasks).toList()
 
-    for i, bitmask in enumerate(bitmasks):
-        # Determine color channel and bit that should be set
-        channel = i // 8
-        bit_position = i % 8
-        
-        if channel < 3:
-            # Set the corresponding bit in the combined_image where the bitmask is 255
-            combined_image[:, :, channel] |= (bitmask == 255).astype(np.uint8) << bit_position
+    # Combined bitmask and the color of each cluster
+    data = {
+        "bitmask": combined_bitmask,
+        "colors": clusters
+    }
+    response = json.dumps(data)
+
+    return response
+
+
+@app.route('/api/get_element_color_cluster_bitmask', methods=['GET'])
+def get_element_color_cluster_bitmask():
+    """Gets the bitmask corresponding to the color clusters for the given
+    element.
+
+    :return json containing the combined bitmasks.
+    """
+    # TODO: this should get the RGB image
+    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
+    image = get_image(path_to_image)
+
+    # get default dim reduction config
+    k_means_parameters: dict[str, str] = backend_config['dim-reduction']['k-means-parameters']
+
+    labels, clusters = get_clusters_using_k_means(image,
+                                                  k_means_parameters['image-size'],
+                                                  k_means_parameters['nr-attemps'],
+                                                  k_means_parameters['k'])
+    clusters = merge_similar_colors(clusters)
+    bitmasks = get_pixels_in_clusters(image, clusters)
+    height, width = bitmasks[0].shape
+
+    combined_bitmask = combine_bitmasks(bitmasks).toList()
+
+    # Combined bitmask and the color of each cluster
+    data = {
+        "bitmask": combined_bitmask,
+        "colors": clusters
+    }
+    response = json.dumps(data)
+
+    return response
