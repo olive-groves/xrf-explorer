@@ -9,19 +9,22 @@ allowed_formats: set = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif'}
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def set_contextual_image(path_to_image: str):
+def set_contextual_image(path_to_image: str, config_path: str = "config/backend.yml"):
     """
     Saves a copy of the input file to contextual image folder.
     Allowed file types are ".png", ".jpg", ".jpeg", ".bmp", ".tiff" and ".tif".
+    :param config_path: the config path
     :param path_to_image: The path to the image that needs to be copied.
     """
 
     LOG.info("Saving contextual image.")
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml("config/backend.yml")
+    backend_config: dict = load_yml(config_path)
     if not backend_config:
         LOG.error("Config file is empty.")
+        print("bruh")
+        print(config_path)
         return
     folder: str = backend_config["contextual-images-folder"]
 
@@ -50,10 +53,11 @@ def set_contextual_image(path_to_image: str):
     LOG.info("Contextual image saved successfully.")
 
 
-def get_contextual_image(file_type: str) -> str:
+def get_contextual_image(file_type: str, config_path: str = "config/backend.yml") -> str:
     """
     Returns the path of the contextual image with the provided file type. If no file is found, it will return the empty
     string. This will also happen if the provided file type is not allowed or if the config file is empty.
+    :param config_path: the config path
     :param file_type: The type of the file to get the path of. Allowed file types are ".png", ".jpg", ".jpeg", ".bmp",
             ".tiff" and ".tif".
     :return: The path to the file.
@@ -62,7 +66,7 @@ def get_contextual_image(file_type: str) -> str:
     LOG.info("Searching for contextual image.")
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml("config/backend.yml")
+    backend_config: dict = load_yml(config_path)
     if not backend_config:
         LOG.error("Config file is empty.")
         return ""

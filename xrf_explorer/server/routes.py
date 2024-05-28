@@ -162,7 +162,7 @@ def get_dr_overlay():
 
 
 @app.route("/api/get_contextual_image")
-def get_contextual_image():
+def get_contextual_image_path():
     # Check whether the file type is provided.
     if "file_type" not in request.args:
         error: str = "No file type was provided."
@@ -170,6 +170,7 @@ def get_contextual_image():
         return error, 400
 
     file_type: str = request.args["file_type"]
+    file_type: str = f".{file_type.lower()}" if not file_type.startswith('.') else file_type.lower()
 
     # Check whether the file type provided is allowed.
     if file_type not in allowed_formats:
