@@ -123,7 +123,7 @@ void main() {
       float alpha = (gl_FragColor.x - threshold.x) / (threshold.y - threshold.x);
       gl_FragColor = vec4(
         auxiliaryColor.xyz,
-        alpha
+        clamp(alpha, 0.0, 1.0)
       );
     }
   }
