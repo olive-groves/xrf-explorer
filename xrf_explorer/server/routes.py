@@ -292,15 +292,17 @@ def get_element_color_cluster_bitmask():
     clusters_per_elem = get_elemental_clusters_using_k_means(image, 'cube.dms',
                                                              "config/backend.yml",
                                                              k_means_parameters['nr-attemps'],
-                                                             k_means_parameters['k'])
+                                                             k_means_parameters['k'],
+                                                             k_means_parameters['elem_threshold'])
 
     data = {}
-
     for i in range(len(clusters_per_elem)):
         # Colors per element
         clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
-        # Image-wide bitmask
-        bitmasks = get_pixels_in_clusters(image, clusters_per_elem[i])
+        # Comine bitmasks
+        bitmasks = get_pixels_in_clusters_element(image, clusters_per_elem[i], 'cube.dms', 'config/backend.yml',
+                                                  k_means_parameters['elem_threshold'])
+        # Store the combined bitmask and the list of colors for each element
         data[i] = combine_bitmasks(bitmasks).toList()
         data['colors_${i}'] = clusters_per_elem[i]
 

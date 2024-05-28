@@ -17,3 +17,4 @@ color-segmentation:
   elemental-k-means-parameters:
     k: 2
     nr-attempts: 10
+    elem-threshold: 0.1
