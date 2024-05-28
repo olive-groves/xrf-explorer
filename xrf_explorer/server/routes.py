@@ -48,7 +48,7 @@ def list_accessible_data_sources():
 def create_data_source_dir():
     """Create a directory for a new data source.
     
-    :request form attributes:  name - the data source name 
+    :request form attributes:  **name** - the data source name 
 
     :return: json with directory name
     """
@@ -86,7 +86,7 @@ def create_data_source_dir():
 def delete_data_source():
     """Delete a data source directory.
     
-    :request form attributes: dir - the directory name
+    :request form attributes: **dir** - the directory name
     """
     delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
 
@@ -103,9 +103,9 @@ def upload_file_chunk():
     """Upload a chunk of bytes to a file.
     
     :request form attributes: 
-        dir - the directory name \n 
-        startByte - the start byte from which bytes are uploaded \n 
-        chunkBytes - the chunk  of bytes to upload
+        **dir** - the directory name \n 
+        **startByte** - the start byte from which bytes are uploaded \n 
+        **chunkBytes** - the chunk  of bytes to upload
     """
     file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
@@ -155,8 +155,8 @@ def get_dr_embedding():
     """Generate the dimensionality reduction embedding of an element, given a threshold.
     
     :request args: 
-        element - element name \n 
-        threshold - element threshold from which a pixel is selected
+        **element** - element name \n 
+        **threshold** - element threshold from which a pixel is selected
     """
     # check if element number is provided
     if "element" not in request.args:
@@ -181,7 +181,7 @@ def get_dr_embedding():
 def get_dr_overlay():
     """Generate the dimensionality reduction overlay with a given type.
     
-    :request form attributes: type - the overlay type
+    :request form attributes: **type** - the overlay type
     :return: overlay image file
     """
     # Check whether the overlay type is provided
@@ -205,9 +205,9 @@ def get_average_data():
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
     :request args: 
-        low - the spectrum lower boundary \n 
-        high - the spectrum higher boundary \n 
-        binSize - the size of each bin
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
     low = int(request.args.get('low'))
@@ -252,11 +252,11 @@ def get_element_sectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
     :request args: 
-        low - the spectrum lower boundary \n 
-        high - the spectrum higher boundary \n 
-        binSize - the size of each bin \n 
-        element - element to be plotted \n 
-        excitation - excitation energy
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin \n 
+        **element** - element to be plotted \n 
+        **excitation** - excitation energy
     :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
     element = request.args.get('element')
@@ -275,10 +275,10 @@ def get_selection_sectra():
     """Get the average spectrum of the selected pixels.
 
     :request args: 
-        low - the spectrum lower boundary \n
-        high - the spectrum higher boundary \n
-        binSize - the size of each bin \n
-        pixels - the array of corrdinates of selected pixels in the raw data coordinate system
+        **low** - the spectrum lower boundary \n
+        **high** - the spectrum higher boundary \n
+        **binSize** - the size of each bin \n
+        **pixels** - the array of corrdinates of selected pixels in the raw data coordinate system
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
     #selection to be retrieived from seletion tool 
