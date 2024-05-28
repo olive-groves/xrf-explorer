@@ -5,91 +5,19 @@ import numpy as np
 import skimage
 from skimage import color
 
-from xrf_explorer.server.file_system import get_elemental_data_cube
+from xrf_explorer.server.file_system import get_elemental_data_cube, get_elemental_datacube_dimensions_from_dms
+from xrf_explorer.server.file_system import get_path_to_elemental_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_pixels_in_clusters(big_image: np.array, clusters: np.array, threshold: int = 10) -> np.array:
-    """Assign each pixel from an image to a cluster based on a color similarity threshold using bitmasks.
-
-    :param big_image: the image whose pixels are divided in clusters
-    :param clusters: the clusters to which we add pixels
-    :param threshold: the threshold that indicates how similar the colors need to are to be added to a cluster
-
-    :return: the bitmasks corresponding to each cluster
-    """
-
-    LOG.info("Computing bitmasks.")
-
-    bitmask: np.array = []
-
-    # convert image to lab
-    image: np.array = image_to_lab(big_image)
-
-    # for each cluster
-    for i in range(len(clusters)):
-        # convert cluster color to lab
-        target_color: int = rgb_to_lab(clusters[i])
-        # define lower and upper bound for color similarity
-        lower_bound: int = target_color - threshold
-        upper_bound: int = target_color + threshold
-        # append to bitmask the pixels with colors within the bounds
-        bitmask.append(cv2.inRange(image, lower_bound, upper_bound))
-
-    LOG.info("Successfully computed bitmasks.")
-
-    return bitmask
-
-def get_pixels_in_clusters_element(big_image: np.array, clusters: dict, data_cube_name: str, 
-                                   config_path: str = "config/backend.yml", elem_threshold: float = 0.1,
-                                   threshold: int = 10) -> np.array:
-    """Assign, for each color for each element, the bitmask corresponding to that element-wise cluster.
-
-    :param image: the image to apply the k-means on
-    :param clusters: the clusters to which we add pixels
-    :param data_cube_name: the name of the file containing the data cube
-    :param config_path: Path to the backend config file.
-    :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param threshold: the threshold that indicates how similar the colors need to are to be added to a cluster
-
-    :return: dictionary with, for each element, the list of corresponding bitmasks
-    """
-    # Get datacube and register it to the image
-    data_cube = get_elemental_data_cube(data_cube_name, config_path)
-    target_dim = (big_image.shape[1], big_image.shape[0])
-    registered_data_cube = [cv2.resize(img, target_dim) for img in data_cube]
-
-    image: np.array = image_to_lab(big_image)
-    bitmask_list = {}
-
-    for elem_index in range(data_cube.shape[0]):
-        bitmask: np.array = []
-        # Colors corresponding to the element
-        elem_clusters = clusters[elem_index]
-        # Bitmask of places where element is present
-        elem_bitmask = (registered_data_cube[elem_index] >= elem_threshold).astype(int)
-
-        for i in range(len(elem_clusters)):
-            # convert color to lab
-            target_color: int = rgb_to_lab(elem_clusters[i])
-            # define lower and upper bound for color similarity
-            lower_bound: int = target_color - threshold
-            upper_bound: int = target_color + threshold
-            # Get cluster bitmask and add element bitmask on top
-            mask = cv2.inRange(image, lower_bound, upper_bound)
-            bitmask.append(np.bitwise_and(mask, elem_bitmask))
-
-        bitmask_list[elem_index] = bitmask
-
-    return bitmask_list
-
-
-def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
+def merge_similar_colors(clusters: np.array, bitmasks: np.array, threshold: int = 10) -> (np.array, np.array):
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
-    :param threshold: the threshold that indicates how similar the colors need to are to be merged in a cluster
+    :param bitmasks: the bitmasks corresponding to the different clusters
+    :param threshold: the threshold that indicates how similar the colors have to be in order
+    to be merged in a cluster
 
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
@@ -105,10 +33,18 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
             if calculate_color_difference(clusters[i], clusters[j]) < threshold:
                 # New cluster is average of the two
                 new_color = (clusters[i] + clusters[j]) / 2
-                # Remove old clusters, add new one
+                # New bitmasks is bitwise OR
+                new_bitmask = np.bitwise_or(bitmasks[i], bitmasks[j])
+
+                # Remove old clusters/bitmasks
+                # Note that we remove j first since j > i
                 clusters = np.delete(clusters, j, axis=0)
                 clusters = np.delete(clusters, i, axis=0)
+                bitmasks = np.delete(bitmasks, j, axis=0)
+                bitmasks = np.delete(bitmasks, i, axis=0)
+                # Add new clusters/bitmasks
                 clusters = np.append(clusters, [new_color], axis=0)
+                bitmasks = np.append(bitmasks, [new_bitmask], axis=0)
                 j = i + 1
             else:
                 j += 1
@@ -116,7 +52,7 @@ def merge_similar_colors(clusters: np.array, threshold: int = 10) -> np.array:
 
     LOG.info("Similar clusters merged successfully.")
 
-    return clusters
+    return clusters, bitmasks
 
 
 def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_attempts: int = 10, k: int = 30) -> tuple:
@@ -128,7 +64,7 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
             Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
 
-    :return: an array of labels of the clusters and the array of centers of clusters
+    :return: an array of labels of the clusters, the array of colros of clusters, and the array of bitmasks
     """
 
     # set seed so results are consistent
@@ -143,18 +79,24 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
     # apply kmeans
-    ret, label, center = cv2.kmeans(reshaped_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    ret, labels, colors = cv2.kmeans(reshaped_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+
+    # Create bitmasks for each cluster
+    bitmasks = []
+    for i in range(k):
+        mask = (labels == i)
+        mask = mask.reshape(image.shape[:2])
+        bitmasks.append(mask)
 
     LOG.info("Initial color clusters extracted successfully.")
 
-    return label, center
+    return labels, colors, np.array(bitmasks)
 
 
 
 def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str, 
                                          config_path: str = "config/backend.yml",
                                          elem_threshold: float = 0.1,
-                                         image_size: int = 400,
                                          nr_of_attempts: int = 10, k: int = 2):
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
@@ -162,20 +104,17 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     :param data_cube_name: the name of the file containing the data cube
     :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param image_size: the size to resize the image before applygin k-means
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 2.
     :param k: number of clusters required at end. Defaults to 2.
 
-    :return: a dictionary with an array of clusters for each element
+    :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
-    # Rescale image and register datacube to image
     data_cube = get_elemental_data_cube(data_cube_name, config_path)
-    small_image = get_small_image(image, image_size)
-    target_dim = (small_image.shape[1], small_image.shape[0])
-    registered_data_cube = [cv2.resize(img, target_dim) for img in data_cube]
-
-    reshaped_image: np.array = reshape_image(image)
+    data_cube_path = get_path_to_elemental_cube(data_cube_name, config_path)
+    dim = get_elemental_datacube_dimensions_from_dms(data_cube_path)[0:2]
+    # Rescale image to match datacube
+    image = cv2.resize(image, dim)
 
     # set seed so results are consistent
     cv2.setRNGSeed(0)
@@ -184,25 +123,36 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     # iterations.)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
-    colors = {}
+    colors: np.array = []
+    bitmasks: np.array = []
     # For each element
     for elem_index in range(data_cube.shape[0]):
         # Get bitmask of pixels with high element concentration
         # and get respective pixels in the image
-        bitmask = (registered_data_cube[elem_index] >= elem_threshold).astype(int).flatten()
-        elem_image = reshaped_image[bitmask == 1]
+        bitmask = (data_cube[elem_index] >= elem_threshold).astype(bool)
+        masked_image = image[bitmask]
+        masked_image = reshape_image(masked_image)
 
-        # If empty image continue (elem. not present)
-        if elem_image.size == 0:
-            colors[elem_index] = []
+        # If empty image, continue (elem. not present)
+        if masked_image.size == 0:
+            colors.append([])
+            bitmasks.append([])
             continue
 
         # k cannot be bigger than number of elements
-        k = min(k, elem_image.size)
-        ret, label, center = cv2.kmeans(elem_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
-        colors[elem_index] = center
+        k = min(k, masked_image.size)
+        _, labels, center = cv2.kmeans(masked_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
-    return colors
+        # Create a new bitmask based on clusters
+        clustered_image = np.zeros(image.shape[:2], dtype=np.uint8)
+        subset_indices = np.where(bitmask > 0)
+        labels = labels.flatten()
+        clustered_image[subset_indices[0], subset_indices[1]] = labels + 1
+
+        colors.append(center)
+        bitmasks.append(clustered_image)
+
+    return colors, bitmasks
 
 
 def combine_bitmasks(bitmasks) -> np.array:
@@ -218,8 +168,7 @@ def combine_bitmasks(bitmasks) -> np.array:
 
     height, width = bitmasks[0].shape
 
-    # Initialize the resulting image with 3 color channels plus 
-    # one for the opacity, each with 8 bits
+    # Initialize the resulting image with 3 color channels
     combined_bitmask = np.zeros((height, width, 4), dtype=np.uint8)
 
     for i, bitmask in enumerate(bitmasks):
@@ -252,6 +201,7 @@ def calculate_color_difference(lab1: np.array, lab2: np.array) -> int:
     :return: The distance.
     """
 
+    return np.linalg.norm(lab1 - lab2)
     return np.sqrt((lab1[0] - lab2[0]) ** 2 + (lab1[1] - lab2[1]) ** 2 + (lab1[2] - lab2[2]) ** 2)
 
 
