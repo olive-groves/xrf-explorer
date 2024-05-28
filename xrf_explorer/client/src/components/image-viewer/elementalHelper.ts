@@ -3,7 +3,7 @@ import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerType, LayerVisibility } from "./types";
-import { createDataTexture, updateDataTexture } from "./scene";
+import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ElementSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 
@@ -18,10 +18,10 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
 
 /**
  * Update image viewer to show updated selection.
- * @param selection - The updated selection.
+ * @param newSelection - The updated selection.
  */
-function selectionUpdated(selection: ElementSelection[]) {
-  selection.forEach((channel) => {
+function selectionUpdated(newSelection: ElementSelection[]) {
+  newSelection.forEach((channel) => {
     // Update auxiliary texture
     const start = channel.channel * 4;
     const second = start + width * 4;
@@ -36,6 +36,19 @@ function selectionUpdated(selection: ElementSelection[]) {
       data[second + 1] = Math.round(channel.thresholds[1] * 255);
     } else {
       data[start + 3] = 0;
+    }
+  });
+
+  // Create and dispose of layers in accordance with the selection.
+  newSelection.forEach((channel) => {
+    const layer = layerGroups.value.elemental.layers.filter(
+      (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
+    )[0];
+
+    if (layer.mesh == undefined && channel.selected) {
+      loadLayer(layer);
+    } else if (layer.mesh != undefined && !channel.selected) {
+      disposeLayer(layer);
     }
   });
 
@@ -66,11 +79,15 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   const layers = workspace.elementalChannels
     .filter((channel) => channel.enabled && channel.channel in filenames)
     .map((channel) => {
-      const layer = createLayer(`elemental_${channel.channel}`, {
-        name: `elemental_${channel.channel}`,
-        imageLocation: filenames[channel.channel],
-        recipeLocation: "recipe_cube.csv",
-      });
+      const layer = createLayer(
+        `elemental_${channel.channel}`,
+        {
+          name: `elemental_${channel.channel}`,
+          imageLocation: filenames[channel.channel],
+          recipeLocation: "recipe_cube.csv",
+        },
+        false,
+      );
       layer.uniform.iLayerType.value = LayerType.Elemental;
       layer.uniform.iAuxiliary = { value: channel.channel };
       layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };

@@ -14,7 +14,7 @@ import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
 
 /**
- * Creates a layer and adds the given image to it.
+ * Creates a layer in the image viewer and adds the given image to it.
  * @param layer - The layer that should get loaded.
  */
 export function loadLayer(layer: Layer) {

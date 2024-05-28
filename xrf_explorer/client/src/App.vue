@@ -64,7 +64,7 @@ const workspace: WorkspaceConfig = {
   ],
   elementalChannels: [],
 };
-for (let i = 10; i < 14; i++) {
+for (let i = 0; i < 26; i++) {
   workspace.elementalChannels.push({
     name: `element_${i}`,
     channel: i,
