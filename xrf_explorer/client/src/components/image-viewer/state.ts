@@ -39,6 +39,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
       uOpacity: { value: 1 },
       uContrast: { value: 1 },
       uSaturation: { value: 1 },
+      uGamma: { value: 1 },
       uMouse: { value: new THREE.Vector2() },
       uRadius: { value: 0 },
     },
@@ -101,6 +102,9 @@ export function setLayerGroupProperty(group: LayerGroup, property: string) {
         break;
       case "saturationProperty":
         layer.uniform.uSaturation.value = group.saturation[0];
+        break;
+      case "gammaProperty":
+        layer.uniform.uGamma.value = group.gamma[0];
         break;
       // Needed for initial property setting, can be ignored further.
       case "initialProperty":

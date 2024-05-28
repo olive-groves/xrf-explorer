@@ -14,6 +14,7 @@ uniform int iShowLayer;
 uniform float uOpacity;
 uniform float uContrast;
 uniform float uSaturation;
+uniform float uGamma;
 
 varying vec2 vUv;
 
@@ -114,4 +115,7 @@ void main() {
 
   // Apply opacity
   gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
+
+  // Apply gamma correction
+  gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/uGamma));
 }
