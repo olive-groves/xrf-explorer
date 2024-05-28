@@ -276,10 +276,9 @@ def get_color_cluster_bitmask():
 
 @app.route('/api/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask():
-    """Gets the bitmask corresponding to the color clusters for the given
-    element.
+    """Gets the bitmask corresponding to the color clusters of each element.
 
-    :return json containing the combined bitmasks.
+    :return json containing the combined bitmasks of the color clusters for each element.
     """
     # TODO: this should get the RGB image
     path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
