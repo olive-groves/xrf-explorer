@@ -10,7 +10,7 @@ from markupsafe import escape
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.file_system.workspace_handler import get_workspace_path, update_workspace
+from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
@@ -44,9 +44,15 @@ def list_accessible_data_sources():
 
 @app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
 def get_workspace(datasource: str):
+    """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
+
+    :param datasource: The name of the data source to get the workspace content for
+    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
+    """
+
     if request.method == "POST":
         # Get send json file
-        data = request.get_json()
+        data: any = request.get_json()
 
         # Write content to the workspace
         result: bool = update_workspace(datasource, data)
@@ -58,7 +64,7 @@ def get_workspace(datasource: str):
         return f"Data written to workspace {escape(datasource)} successfully"
     else:
         # Read content from the workspace
-        path: str = get_workspace_path(datasource)
+        path: str = get_path_to_workspace(datasource)
 
         # Check if the workspace exists
         if not path:
