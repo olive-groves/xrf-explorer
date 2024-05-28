@@ -241,11 +241,11 @@ def get_selection_sectra():
     print("send response")
     return response
 
-@app.route('/api/get_color_cluster_bitmask', methods=['GET'])
-def get_color_cluster_bitmask():
-    """Gets the bitmask corresponding to the image-wide color clusters.
+@app.route('/api/get_color_cluster_colors', methods=['GET'])
+def get_color_clusters():
+    """Gets the colors corresponding to the image-wide color clusters.
 
-    :return json containing the combined bitmasks of all the color clusters.
+    :return json containing the ordered list of colors
     """
     # TODO: this should get the RGB image
     path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
@@ -253,23 +253,23 @@ def get_color_cluster_bitmask():
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = backend_config['color-segmentation']['k-means-parameters']
+    width = k_means_parameters['image-width']
+    height = k_means_parameters['image-height']
 
-    labels, clusters, bitmasks = get_clusters_using_k_means(image,
-                                                  k_means_parameters['image-size'],
+    labels, colors, bitmasks = get_clusters_using_k_means(image, width, height,
                                                   k_means_parameters['nr-attemps'],
                                                   k_means_parameters['k'])
-    clusters, bitmasks = merge_similar_colors(clusters, bitmasks)
 
-    combined_bitmask = combine_bitmasks(bitmasks).toList()
+    # Merge similar clusters
+    colors, bitmasks = merge_similar_colors(colors, bitmasks)
+    # Combine bitmasks into one
+    combined_bitmask = combine_bitmasks(bitmasks)
 
-    # Combined bitmask and the color of each cluster
-    data = {
-        "bitmask": combined_bitmask,
-        "colors": clusters
-    }
-    response = json.dumps(data)
+    response1 = json.dumps(colors)
+    # TODO:  save bitmasks as png files instead
+    response2 = json.dumps(combined_bitmask)
 
-    return response
+    return (response1, response2)
 
 
 @app.route('/api/get_element_color_cluster_bitmask', methods=['GET'])
@@ -286,23 +286,26 @@ def get_element_color_cluster_bitmask():
     k_means_parameters: dict[str, str] = backend_config['color-segmentation']['elemental-k-means-parameters']
 
     # TODO: 'cube.dms' should be cube file name
-    clusters_per_elem = get_elemental_clusters_using_k_means(image, 'cube.dms',
+    clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
+                                                             image, 'cube.dms',
                                                              "config/backend.yml",
+                                                             k_means_parameters['elem_threshold'],
+                                                             -1,
                                                              k_means_parameters['nr-attemps'],
-                                                             k_means_parameters['k'],
-                                                             k_means_parameters['elem_threshold'])
+                                                             k_means_parameters['k'])
 
-    data = {}
+    color_data = {}
+    combined_bitmasks = {}
     for i in range(len(clusters_per_elem)):
-        # Colors per element
-        clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
-        # Comine bitmasks
-        bitmasks = get_pixels_in_clusters_element(image, clusters_per_elem[i], 'cube.dms', 'config/backend.yml',
-                                                  k_means_parameters['elem_threshold'])
-        # Store the combined bitmask and the list of colors for each element
-        data[i] = combine_bitmasks(bitmasks).toList()
-        data['colors_${i}'] = clusters_per_elem[i]
+        # Merge similar clusters
+        clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
 
-    response = json.dumps(data)
+        # Stored combined bitmask and colors
+        combined_bitmasks[i] = combine_bitmasks(bitmasks_per_elem[i])
+        color_data[i] = clusters_per_elem[i]
 
-    return response
+    response1 = json.dumps(color_data)
+    # TODO: save bitmasks as png files instead
+    response2 = json.dumps(combined_bitmasks)
+
+    return (response1, response2)
