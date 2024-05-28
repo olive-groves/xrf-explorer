@@ -16,6 +16,7 @@ uniform float uContrast;
 uniform float uSaturation;
 uniform float uGamma;
 uniform float uBrightness;
+uniform float uIntensity;
 
 varying vec2 vUv;
 
@@ -122,4 +123,7 @@ void main() {
 
   // Apply gamma correction
   gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/uGamma));
+
+  // Apply color intensity
+  gl_FragColor.rgb = mix(vec3(0.0), gl_FragColor.rgb, uIntensity);
 }

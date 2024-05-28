@@ -63,6 +63,10 @@ export type LayerUniform = {
    */
   uGamma: { value: number };
   /**
+   * The intensity that the layer should be drawn at.
+   */
+  uIntensity: { value: number }
+  /**
    * The brightness that the layer should be drawn at.
    */
   uBrightness: { value: number };
@@ -151,6 +155,10 @@ export type LayerGroup = {
    * Gamma of the layers in this group.
    */
   gamma: number[];
+  /**
+   * Intensity of the layers in this group.
+   */
+  intensity: number[];
   /**
    * Brightness of the layers in this group.
    */

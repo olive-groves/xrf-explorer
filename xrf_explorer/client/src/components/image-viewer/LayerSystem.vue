@@ -24,7 +24,8 @@ const properties: Property[] = [
   { name: "Contrast", min: 0, max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
   { name: "Saturation", min: 0, max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
   { name: "Gamma", min: 0, max: 5, propertyName: "gammaProperty", nameRef: "gamma" },
-  { name: "Brightness", min: -1, max: 1, propertyName: "brightnessProperty", nameRef: "brightness" }
+  { name: "Brightness", min: -1, max: 1, propertyName: "brightnessProperty", nameRef: "brightness" },
+  { name: "Intensity", min: 0, max: 5, propertyName: "intensityProperty", nameRef: "intensity" }
 ];
 
 /**
