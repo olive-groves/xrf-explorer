@@ -71,7 +71,7 @@ def get_workspace(datasource: str):
             abort(404)
         
         # Send the json file
-        return send_file(path, mimetype='application/json')
+        return send_file(abspath(path), mimetype='application/json')
 
 
 @app.route("/api/create_ds_dir", methods=["POST"])
