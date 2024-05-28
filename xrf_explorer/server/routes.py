@@ -46,7 +46,7 @@ def list_accessible_data_sources():
 def get_workspace(datasource: str):
     if request.method == "POST":
         # Write content to the workspace
-        result: bool = update_workspace(request.form)
+        result: bool = update_workspace(datasource, request.form)
         
         # Check if the write was successful
         if not result:
