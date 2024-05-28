@@ -109,13 +109,16 @@ void main() {
   gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
 
   // Apply brightness
-  gl_FragColor.rgb += uBrightness;
+  // Convert RGB to HSL to apply brightness and then convert it back to RGB
+  vec3 hslColorBrightness = rgbToHsl(gl_FragColor.rgb);
+  hslColorBrightness.z += uBrightness;
+  gl_FragColor.rgb = rgbFromHsl(hslColorBrightness);
 
   // Apply saturation
   // Convert RGB to HSL to apply saturation and then convert it back to RGB
-  vec3 hslColor = rgbToHsl(gl_FragColor.rgb);
-  hslColor.y *= uSaturation;
-  gl_FragColor.rgb = rgbFromHsl(hslColor);
+  vec3 hslColorSaturation = rgbToHsl(gl_FragColor.rgb);
+  hslColorSaturation.y *= uSaturation;
+  gl_FragColor.rgb = rgbFromHsl(hslColorSaturation);
 
   // Apply opacity
   gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
