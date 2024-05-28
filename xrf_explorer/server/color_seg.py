@@ -216,18 +216,6 @@ def image_to_lab(small_image: np.array) -> np.array:
     return color.rgb2lab(small_image)
 
 
-def calculate_color_difference(lab1: np.array, lab2: np.array) -> int:
-    """
-    Returns the Euclidean distance between two LAB colors.
-    :param lab1: color 1.
-    :param lab2: color 2.
-    :return: The distance.
-    """
-
-    return np.linalg.norm(lab1 - lab2)
-    return np.sqrt((lab1[0] - lab2[0]) ** 2 + (lab1[1] - lab2[1]) ** 2 + (lab1[2] - lab2[2]) ** 2)
-
-
 def rgb_to_lab(rgb_triple: np.array) -> np.array:
     """
     Returns the LAB equivalent of an RGB color.
@@ -283,34 +271,6 @@ def reshape_image(small_image: np.array) -> np.array:
     """
 
     return np.float32(small_image.reshape((-1, 3)))
-
-
-def get_small_image(big_image: np.array, max_side_length: int = 300) -> np.array:
-    """Resize a given image to fit within a maximum side length while preserving aspect ratio
-
-    :param big_image: the image to be resized
-    :param max_side_length: the maximum size of a side 
-       
-    :return: the resized image
-    """
-
-    # get height and width
-    height: int = big_image.shape[0]
-    width: int = big_image.shape[1]
-
-    # Determine the scaling factor
-    if height > width:
-        scaling_factor: float = max_side_length / height
-    else:
-        scaling_factor: float = max_side_length / width
-
-    # Calculate the new dimensions
-    new_width: int = min(int(width * scaling_factor), width)
-    new_height: int = min(int(height * scaling_factor), width)
-
-    # Resize the image
-    return cv2.resize(big_image, (new_width, new_height))
-
 
 def get_image(image_file_path: str) -> np.array:
     """Read an image from the specified file path and convert it from BGR to RGB color space.

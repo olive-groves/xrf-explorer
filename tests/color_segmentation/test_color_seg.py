@@ -103,11 +103,11 @@ class TestColorSegmentation:
 
     def test_combined_bitmasks(self):
         # Set-up
-        bitmask1 = np.array([[False, False, True], [True, True, False]], dtype=bool)
+        bitmask1 = np.array([[False, False, True], [True, False, False]], dtype=bool)
         bitmask2 = np.array([[True, False, False], [False, False, True]], dtype=bool)
         bitmask3 = np.array([[False, True, False], [False, False, False]], dtype=bool)
         bitmasks = [bitmask1, bitmask2, bitmask3]
-        expected_entries = [[2, 3, 1], [1, 1, 2]]
+        expected_entries = [[2, 3, 1], [1, 0, 2]]
         expected_result = np.zeros((2, 3, 3), dtype=np.uint8)
         expected_result[:, :, 0] = expected_entries
 
