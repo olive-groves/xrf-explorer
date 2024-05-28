@@ -244,3 +244,43 @@ def get_element_averages(name_cube: str, config_path: str = "config/backend.yml"
     LOG.info("Calculated the average composition of the elements.")
 
     return composition
+
+
+def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: str = "config/backend.yml") -> bool:
+    """"Saves a numpy array and list of elements to a DMS file.
+
+    :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
+    :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
+    :param elements: List of the names of the elements.
+    :param config_path: Path to the backend config file.
+    :return: True if the cube was saved successfully, False otherwise.
+    """
+
+    if "." in name_cube:
+        LOG.error("Name of the cube should not contain a file extension.")
+        return False
+    
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return False
+    
+    # path to cube 
+    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube + '.dms')
+    
+    # Get the shape of the elemental data cube
+    c, w, h = cube.shape
+
+    # Write the elemental data cube to a DMS file
+    try:
+        with open(path_cube, 'wb+') as f:
+            f.write(b'2\n')
+            f.write("{0} {1} {2}\n".format(w, h, c).encode())
+            f.write(cube.tobytes())
+            f.write('\n'.join(elements).encode())
+    except OSError as e:
+        LOG.error(f"Error while writing elemental map to dms: {e}")
+        return False
+
+    return True
