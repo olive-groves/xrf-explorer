@@ -9,7 +9,7 @@ sys.path.append('.')
 
 from xrf_explorer.server.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
-    get_elemental_clusters_using_k_means, combine_bitmasks, get_small_image)
+    get_elemental_clusters_using_k_means, combine_bitmasks)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -88,18 +88,6 @@ class TestColorSegmentation:
         # Verify log message
         assert "The path 'tests/resources/fake' is not a valid file path." in caplog.text
         assert f"The path '{fake_path}' is not a valid file path." in caplog.text
-
-    def test_get_small_image(self):
-        # Set-up
-        big_image: np.array = get_image(self.BW_IMAGE_PATH)
-
-        # Execute
-        result: np.array = get_small_image(big_image, 50)
-
-        # verify
-        assert np.array_equal(result.shape, (50, 50, 3))  # Check that the shape is correct.
-        assert np.array_equal(result[0][0], [0, 0, 0])  # Check that the bottom left pixel is black.
-        assert np.array_equal(result[25][25], [255, 255, 255])  # Check proper scaling by checking a white pixel.
 
     def test_combined_bitmasks(self):
         # Set-up
