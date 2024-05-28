@@ -13,16 +13,18 @@ const groups = ref<LayerGroup[]>([]);
 // Used for generalizing the code. 
 interface Property {
   name: string;
+  min: number;
   max: number;
   propertyName: string;
   nameRef: keyof LayerGroup;
 }
 
 const properties: Property[] = [
-  { name: "Opacity", max: 1, propertyName: "opacityProperty", nameRef: "opacity" },
-  { name: "Contrast", max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
-  { name: "Saturation", max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
-  { name: "Gamma", max: 5, propertyName: "gammaProperty", nameRef: "gamma" }
+  { name: "Opacity", min: 0, max: 1, propertyName: "opacityProperty", nameRef: "opacity" },
+  { name: "Contrast", min: 0, max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
+  { name: "Saturation", min: 0, max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
+  { name: "Gamma", min: 0, max: 5, propertyName: "gammaProperty", nameRef: "gamma" },
+  { name: "Brightness", min: -1, max: 1, propertyName: "brightnessProperty", nameRef: "brightness" }
 ];
 
 /**
@@ -110,7 +112,7 @@ function checkedOutsideLens(group: LayerGroup) {
           </div>
           <Slider
             v-model="group[property.nameRef]"
-            :min="0"
+            :min="property.min"
             :step="0.01"
             :max="property.max"
             class="pb-2"

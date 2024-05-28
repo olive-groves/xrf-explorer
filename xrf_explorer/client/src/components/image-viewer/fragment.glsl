@@ -15,6 +15,7 @@ uniform float uOpacity;
 uniform float uContrast;
 uniform float uSaturation;
 uniform float uGamma;
+uniform float uBrightness;
 
 varying vec2 vUv;
 
@@ -106,6 +107,9 @@ void main() {
 
   // Apply contrast
   gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
+
+  // Apply brightness
+  gl_FragColor.rgb += uBrightness;
 
   // Apply saturation
   // Convert RGB to HSL to apply saturation and then convert it back to RGB
