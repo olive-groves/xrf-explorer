@@ -218,8 +218,9 @@ def combine_bitmasks(bitmasks) -> np.array:
 
     height, width = bitmasks[0].shape
 
-    # Initialize the resulting image with 3 color channels, each with 8 bits
-    combined_bitmask = np.zeros((height, width, 3), dtype=np.uint8)
+    # Initialize the resulting image with 3 color channels plus 
+    # one for the opacity, each with 8 bits
+    combined_bitmask = np.zeros((height, width, 4), dtype=np.uint8)
 
     for i, bitmask in enumerate(bitmasks):
         # Determine color channel and bit
