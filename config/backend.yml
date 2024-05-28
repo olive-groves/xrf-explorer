@@ -9,7 +9,6 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 color-segmentation:
-  folder: "xrf_explorer/server/temp/color_segmentation"
   k-means-parameters:
     k: 20
     nr-attempts: 10

@@ -3,14 +3,8 @@ import cv2
 from skimage import color
 import skimage
 import logging
-from os.path import join
-from pathlib import Path
 
 from xrf_explorer.server.file_system import get_elemental_data_cube
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
-from xrf_explorer.server.file_system.config_handler import load_yml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -65,7 +59,6 @@ def get_pixels_in_clusters_element(big_image: np.array, clusters: dict, data_cub
     bitmask_list = {}
 
     for elem_index in range(data_cube.shape[0]):
-
         bitmask: np.array = []
         # Colors corresponding to the element
         elem_clusters = clusters[elem_index]
@@ -197,11 +190,12 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
         ret, label, center = cv2.kmeans(elem_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
         colors[elem_index] = center
 
-    return colors 
+    return colors
+
 
 def combine_bitmasks(bitmasks) -> np.array:
-    """ Merges array of bitmasks into single bitmask with 24 bits per entry, where the set bits
-    determine the clusters that pixel corresponds to.
+    """ Merges array of bitmasks into single bitmask with up to 32 bits = 4 bytes per entry, 
+    where the set bits determine the clusters that pixel corresponds to.
 
     :param bitmasks: the bitmasks corresponding to each cluster
 
@@ -220,7 +214,8 @@ def combine_bitmasks(bitmasks) -> np.array:
         channel = i // 8
         bit_position = i % 8
 
-        if channel < 3:
+        # Set corresponding bit if bitmask entry != 0
+        if channel < 4:
             combined_bitmask[:, :, channel] |= (bitmask != 0).astype(np.uint8) << bit_position
 
     return combined_bitmask

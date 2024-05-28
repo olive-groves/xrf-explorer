@@ -253,7 +253,7 @@ def get_color_cluster_bitmask():
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = backend_config['dim-reduction']['k-means-parameters']
+    k_means_parameters: dict[str, str] = backend_config['color-segmentation']['k-means-parameters']
 
     labels, clusters = get_clusters_using_k_means(image,
                                                   k_means_parameters['image-size'],
@@ -286,7 +286,7 @@ def get_element_color_cluster_bitmask():
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = backend_config['dim-reduction']['elemental-k-means-parameters']
+    k_means_parameters: dict[str, str] = backend_config['color-segmentation']['elemental-k-means-parameters']
 
     # TODO: 'cube.dms' should be cube file name
     clusters_per_elem = get_elemental_clusters_using_k_means(image, 'cube.dms',
