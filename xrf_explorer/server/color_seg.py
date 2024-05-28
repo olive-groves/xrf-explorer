@@ -205,6 +205,15 @@ def combine_bitmasks(bitmasks) -> np.array:
 
     return merged_image
 
+def calculate_color_difference(lab1: np.array, lab2: np.array) -> int:
+    """
+    Returns the Euclidean distance between two LAB colors.
+    :param lab1: color 1.
+    :param lab2: color 2.
+    :return: The distance.
+    """
+
+    return np.linalg.norm(lab1 - lab2)
 
 def image_to_lab(small_image: np.array) -> np.array:
     """
