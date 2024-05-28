@@ -55,24 +55,24 @@ def merge_similar_colors(clusters: np.array, bitmasks: np.array, threshold: int 
     return clusters, bitmasks
 
 
-def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_attempts: int = 10, k: int = 30) -> tuple:
+def get_clusters_using_k_means(image: np.array, image_width: int = 100, image_height: int = 100, nr_of_attempts: int = 10, k: int = 30) -> tuple:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
-    :param image_size: the size to resize the image before applygin k-means
+    :param image_width: the width to resize the image before applying k-means
+    :param image_height: the height to resize the image before applying k-means
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 20.
     :param k: number of clusters required at end. Defaults to 20.
 
     :return: an array of labels of the clusters, the array of colros of clusters, and the array of bitmasks
     """
-
     # set seed so results are consistent
     cv2.setRNGSeed(0)
-    small_image = get_small_image(image, image_size)
 
     # reshape image
-    reshaped_image: np.array = reshape_image(small_image)
+    image = cv2.resize(image, (image_width, image_height))
+    reshaped_image: np.array = reshape_image(image)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
@@ -97,7 +97,8 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
 def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str, 
                                          config_path: str = "config/backend.yml",
                                          elem_threshold: float = 0.1,
-                                         img_dim: int = -1,
+                                         image_width: int = -1,
+                                         image_height: int = -1,
                                          nr_of_attempts: int = 10, k: int = 2):
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
@@ -105,6 +106,10 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     :param data_cube_name: the name of the file containing the data cube
     :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
+    :param image_width: the width to resize the image before applying k-means, if -1, the datacube's 
+                        dimensions are used instead
+    :param image_height: the height to resize the image before applying k-means, if -1, the datacube's 
+                        dimensions are used instead
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 2.
     :param k: number of clusters required at end. Defaults to 2.
@@ -114,14 +119,14 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     data_cube = get_elemental_data_cube(data_cube_name, config_path)
 
     # Generally we just register the image to the datacube
-    if img_dim == -1:
+    if image_width == -1 or image_height == -1:
         data_cube_path = get_path_to_elemental_cube(data_cube_name, config_path)
         dim = get_elemental_datacube_dimensions_from_dms(data_cube_path)[0:2]
         # Rescale image to match datacube
         image = cv2.resize(image, dim)
-    # Optionally, we set them to a given dimension
+    # Otherwise, we set the image and datacube to the given dimension
     else:
-        image = get_small_image(image, img_dim)
+        image = cv2.resize(image, (image_width, image_height))
         target_dim = (image.shape[1], image.shape[0])
         data_cube = np.array([cv2.resize(img, target_dim) for img in data_cube])
 
@@ -159,12 +164,11 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
 
         # For each cluster
         for i in range(k):
-            # Empty mask
-            cluster_mask = np.zeros(image.shape[:2], dtype=bool)
             # Indices for cluster "i"
             cluster_indices = (labels == i)
-
-            # Set mask
+            # Initialize empty mask
+            cluster_mask = np.zeros(image.shape[:2], dtype=bool)
+            # Set values to true
             cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
             cluster_bitmasks.append(cluster_mask)
 

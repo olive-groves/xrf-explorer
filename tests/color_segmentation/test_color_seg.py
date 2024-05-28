@@ -126,11 +126,10 @@ class TestColorSegmentation:
             [0, 0, 0],
             [255, 255, 255]
         ])
-        img_dim = 100
         elem_threshold = 0.1
 
         # Execute
-        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, img_dim)
+        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, 100, 100)
 
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
