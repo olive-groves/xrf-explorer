@@ -53,6 +53,8 @@ function createBaseLayer(image: ContextualImage) {
     opacity: [1.0],
     contrast: [1.0],
     saturation: [1.0],
+    gamma: [1.0],
+    brightness: [0.0],
   };
 
   updateLayerGroupLayers(layerGroups.value.base, "initialProperty");
@@ -77,6 +79,8 @@ function createContextualLayer(image: ContextualImage) {
     opacity: [1.0],
     contrast: [1.0],
     saturation: [1.0],
+    gamma: [1.0],
+    brightness: [0.0],
   };
 
   layerGroups.value[id] = layerGroup;
