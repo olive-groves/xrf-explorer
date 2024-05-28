@@ -3,10 +3,20 @@ import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerVisibility } from "./types";
+import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
+import { ColorSegmentationSelection } from "@/lib/selection";
+import { hexToRgb } from "@/lib/utils";
 
-// TODO: hook this up to UI
-// const selection = computed(() => appState.selection.??);
-// watch(selection, () => console.log);
+const selection = computed(() => appState.selection.colorSegmentation);
+
+// TODO: hook up to back end 
+// temporary, width should be number of elements plus 1
+const width = 27;
+// height should be max. number of clusters (currently is 20)
+const height = 20;
+// One data entry for each of the elements + one for the whole picture
+const data = Uint8Array(width * height * 4);
+const dataTexture = createDataTexture(data, width, height);
 
 /**
  * Gets the names of the image files for each element.
