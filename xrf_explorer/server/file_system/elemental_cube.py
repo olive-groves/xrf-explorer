@@ -284,3 +284,39 @@ def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: s
         return False
 
     return True
+
+
+
+
+#############################################################################################
+################################### SLICING #################################################
+#############################################################################################
+
+
+def Slicing(name_cube, coord1, coord2):
+    scaled_datacube = get_elemental_data_cube(name_cube)
+    x1, y1 = coord1
+    x2, y2 = coord2
+    
+    # Corner case 1: coord dimensions are right: do not surpass elemental cube maximum
+    # shape of datacube: (c, h, w)
+    c, h, w = scaled_datacube.shape
+    # if (y1<0) or (y2<0) or (h<y1) or (h<y2) or (x1<0) or (x2<0) or (w<x1) or (w<x2):
+    #     return []
+    
+    # Corner case 2: line instead of rectangle
+    # if (x1 == x2) or (y1 == y2):
+    #     return []
+    
+    # We implement the case distinction
+    if (x1 < x2) and (y1 < y2):
+        return scaled_datacube[:, y1:y2, x1:x2]
+    
+    elif (x1 < x2) and (y2 < y1):
+        return scaled_datacube[:, y2:y1, x1:x2]
+    
+    elif (x2 < x1) and (y1 < y2):
+        return scaled_datacube[:, y1:y2, x2:x1]
+    
+    else:
+        return scaled_datacube[:, y2:y1, x2:x1]
