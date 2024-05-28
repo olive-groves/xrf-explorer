@@ -5,3 +5,4 @@ from .elemental_cube import (
     get_element_names, get_short_element_names, 
     get_element_averages
 )
+from .workspace_handler import get_workspace_path, update_workspace
