@@ -65,8 +65,7 @@ def get_pixels_in_clusters_element(big_image: np.array, clusters: dict,
         bitmask: np.array = []
         elem_clusters = clusters[elem_index]
         # bitmask of places where element is present
-        elem_bitmask = np.where(registered_data_cube[elem_index] > 1)
-
+        elem_bitmask = (registered_data_cube[elem_index] > 1).astype(int)
         # for each cluster
         for i in range(len(elem_clusters)):
             # convert cluster color to lab
@@ -74,12 +73,10 @@ def get_pixels_in_clusters_element(big_image: np.array, clusters: dict,
             # define lower and upper bound for color similarity
             lower_bound: int = target_color - threshold
             upper_bound: int = target_color + threshold
-            ## TODO: apply element bitmask to obtained cluster bitmask
-            p = cv2.inRange(image, lower_bound, upper_bound)
-            n = cv2.bitwise_and(p, p, mask=elem_bitmask)
-            return n
-            # append to bitmask the pixels with colors within the bounds
-            bitmask.append(n)
+
+            # Get cluster bitmask and add element bitmask on top
+            mask = cv2.inRange(image, lower_bound, upper_bound)
+            bitmask.append(np.bitwise_and(mask, elem_bitmask))
 
         bitmask_list[elem_index] = bitmask
 
@@ -143,6 +140,8 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
 
     return label, center
 
+
+
 def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str, 
                                          config_path: str = "config/backend.yml",
                                          nr_of_attempts: int = 10, k: int = 2):
@@ -179,15 +178,18 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
     clusters = {}
+    # For each element
     for elem_index in range(data_cube.shape[0]):
-        # Get bitmask of entries with high element concentration
-        # and get respective entries in the image
+        # Get bitmask of pixels with high element concentration
+        # and get respective pixels in the image
         bitmask = (data_cube[elem_index] > 1).astype(int).flatten()
         elem_image = reshaped_image[bitmask == 1]
+
         # If empty image continue (elem. not present)
         if elem_image.size == 0:
             clusters[elem_index] = []
             continue
+
         # k cannot be bigger than number of elements
         k = min(k, elem_image.size)
         ret, label, center = cv2.kmeans(elem_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
