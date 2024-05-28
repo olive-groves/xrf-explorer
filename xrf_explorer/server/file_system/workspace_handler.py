@@ -34,7 +34,7 @@ def get_workspace_path(datasource: str, config_path: str = "config/backend.yml")
     return path_to_workspace
 
 
-def update_workspace(datasource: str, args, config_path: str = "config/backend.yml") -> bool:
+def update_workspace(datasource: str, new_workspace, config_path: str = "config/backend.yml") -> bool:
     """Update the workspace.json file for a given datasource.
     
     :param datasource: The name of the datasource
@@ -49,16 +49,9 @@ def update_workspace(datasource: str, args, config_path: str = "config/backend.y
         return False
     
     try:
-        # load workspace
-        with open(path, "r") as json_file:
-            data = load(json_file)
-
-        # update workspace
-        data["test"] = "test2"
-
         # write updated workspace back to file
         with open(path, "w") as json_file:
-            dump(data, json_file)
+            dump(new_workspace, json_file)
         
     except OSError as e:
         LOG.error(f"Failed to write data to workspace: {str(e)}")

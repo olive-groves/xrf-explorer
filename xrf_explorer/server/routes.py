@@ -45,8 +45,11 @@ def list_accessible_data_sources():
 @app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
 def get_workspace(datasource: str):
     if request.method == "POST":
+        # Get send json file
+        data = request.get_json()
+
         # Write content to the workspace
-        result: bool = update_workspace(datasource, request.form)
+        result: bool = update_workspace(datasource, data)
         
         # Check if the write was successful
         if not result:
