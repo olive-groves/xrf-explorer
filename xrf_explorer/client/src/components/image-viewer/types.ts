@@ -71,6 +71,14 @@ export type LayerUniform = {
    */
   uSaturation: { value: number };
   /**
+   * The gamma that the layer should be drawn at.
+   */
+  uGamma: { value: number };
+  /**
+   * The brightness that the layer should be drawn at.
+   */
+  uBrightness: { value: number };
+  /**
    * The location of the mouse in WebGL coordinates.
    */
   uMouse: { value: THREE.Vector2 };
@@ -151,6 +159,14 @@ export type LayerGroup = {
    * Saturation of the layers in this group.
    */
   saturation: number[];
+  /**
+   * Gamma of the layers in this group.
+   */
+  gamma: number[];
+  /**
+   * Brightness of the layers in this group.
+   */
+  brightness: number[];
 };
 
 /**

@@ -21,6 +21,8 @@ uniform int iShowLayer;
 uniform float uOpacity;
 uniform float uContrast;
 uniform float uSaturation;
+uniform float uGamma;
+uniform float uBrightness;
 
 varying vec2 vUv;
 
@@ -131,12 +133,21 @@ void main() {
   // Apply contrast
   gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
 
-  // Apply saturation
-  // Convert RGB to HSL to apply saturation and then convert it back to RGB
+  // Create HSL color vector for brightness and saturation
   vec3 hslColor = rgbToHsl(gl_FragColor.rgb);
-  hslColor.y *= uSaturation;
+
+  // Apply brightness
+  hslColor.z = hslColor.z + uBrightness;
+
+  // Apply saturation
+  hslColor.y = hslColor.y * uSaturation;
+
+  // Revert HSL back to RGB
   gl_FragColor.rgb = rgbFromHsl(hslColor);
 
   // Apply opacity
   gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
+
+  // Apply gamma correction
+  gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/uGamma));
 }
