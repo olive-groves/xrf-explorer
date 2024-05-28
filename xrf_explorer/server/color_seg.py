@@ -97,6 +97,7 @@ def get_clusters_using_k_means(image: np.array, image_size: int = 400, nr_of_att
 def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str, 
                                          config_path: str = "config/backend.yml",
                                          elem_threshold: float = 0.1,
+                                         img_dim: int = -1,
                                          nr_of_attempts: int = 10, k: int = 2):
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
@@ -111,10 +112,18 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
     data_cube = get_elemental_data_cube(data_cube_name, config_path)
-    data_cube_path = get_path_to_elemental_cube(data_cube_name, config_path)
-    dim = get_elemental_datacube_dimensions_from_dms(data_cube_path)[0:2]
-    # Rescale image to match datacube
-    image = cv2.resize(image, dim)
+
+    # Generally we just register the image to the datacube
+    if img_dim == -1:
+        data_cube_path = get_path_to_elemental_cube(data_cube_name, config_path)
+        dim = get_elemental_datacube_dimensions_from_dms(data_cube_path)[0:2]
+        # Rescale image to match datacube
+        image = cv2.resize(image, dim)
+    # Optionally, we set them to a given dimension
+    else:
+        image = get_small_image(image, img_dim)
+        target_dim = (image.shape[1], image.shape[0])
+        data_cube = np.array([cv2.resize(img, target_dim) for img in data_cube])
 
     # set seed so results are consistent
     cv2.setRNGSeed(0)
@@ -142,15 +151,25 @@ def get_elemental_clusters_using_k_means(image: np.array, data_cube_name: str,
         # k cannot be bigger than number of elements
         k = min(k, masked_image.size)
         _, labels, center = cv2.kmeans(masked_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+        print(center)
 
-        # Create a new bitmask based on clusters
-        clustered_image = np.zeros(image.shape[:2], dtype=np.uint8)
-        subset_indices = np.where(bitmask > 0)
+        cluster_bitmasks = []
         labels = labels.flatten()
-        clustered_image[subset_indices[0], subset_indices[1]] = labels + 1
+        subset_indices = np.where(bitmask > 0)
+
+        # For each cluster
+        for i in range(k):
+            # Empty mask
+            cluster_mask = np.zeros(image.shape[:2], dtype=bool)
+            # Indices for cluster "i"
+            cluster_indices = (labels == i)
+
+            # Set mask
+            cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
+            cluster_bitmasks.append(cluster_mask)
 
         colors.append(center)
-        bitmasks.append(clustered_image)
+        bitmasks.append(cluster_bitmasks)
 
     return colors, bitmasks
 
@@ -161,7 +180,8 @@ def combine_bitmasks(bitmasks) -> np.array:
 
     :param bitmasks: the bitmasks corresponding to each cluster
 
-    :return: a single bitmask corresponding to the combination of all bitmasks
+    :return: a single bitmask in the form of an image (3 8bit entries per pixel) corresponding to 
+    the combination of all bitmasks
     """
     if (len(bitmasks) == 0):
         return np.array([])
@@ -169,18 +189,17 @@ def combine_bitmasks(bitmasks) -> np.array:
     height, width = bitmasks[0].shape
 
     # Initialize the resulting image with 3 color channels
-    combined_bitmask = np.zeros((height, width, 4), dtype=np.uint8)
+    combined_bitmask = np.zeros((height, width), dtype=np.uint8)
 
     for i, bitmask in enumerate(bitmasks):
-        # Determine color channel and bit
-        channel = i // 8
-        bit_position = i % 8
+        # Bitmask i encoded w/value i+1 so it goes
+        # in range [1, i+1]
+        combined_bitmask[bitmask] = i + 1
 
-        # Set corresponding bit if bitmask entry != 0
-        if channel < 4:
-            combined_bitmask[:, :, channel] |= (bitmask != 0).astype(np.uint8) << bit_position
+    merged_image = np.zeros((height, width, 3), dtype=np.uint8)
+    merged_image[:, :, 0] = combined_bitmask
 
-    return combined_bitmask
+    return merged_image
 
 
 def image_to_lab(small_image: np.array) -> np.array:

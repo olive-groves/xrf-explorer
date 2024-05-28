@@ -103,19 +103,13 @@ class TestColorSegmentation:
 
     def test_combined_bitmasks(self):
         # Set-up
-        bitmask1 = np.array([[0, 255], [255, 0]], dtype=np.uint8)
-        bitmask2 = np.array([[255, 0], [0, 255]], dtype=np.uint8)
-        bitmask3 = np.array([[0, 0], [255, 255]], dtype=np.uint8)
-        bitmask4 = np.array([[255, 255], [255, 255]], dtype=np.uint8)
-        bitmasks = [bitmask1, bitmask2, bitmask3, bitmask1,
-                    bitmask1, bitmask1, bitmask1, bitmask1,
-                    bitmask1, bitmask2, bitmask3, bitmask2,
-                    bitmask1, bitmask1, bitmask1, bitmask1,
-                    bitmask4, bitmask2, bitmask3, bitmask1]
-        expected_result = [
-            [[0b00000010, 0b00001010, 0b00000011, 0b00000000], [0b11111001, 0b11110001, 0b00001001, 0b00000000]],
-            [[0b11111101, 0b11110101, 0b00001101, 0b00000000], [0b00000110, 0b00001110, 0b00000111, 0b00000000]]
-        ]
+        bitmask1 = np.array([[False, False, True], [True, True, False]], dtype=bool)
+        bitmask2 = np.array([[True, False, False], [False, False, True]], dtype=bool)
+        bitmask3 = np.array([[False, True, False], [False, False, False]], dtype=bool)
+        bitmasks = [bitmask1, bitmask2, bitmask3]
+        expected_entries = [[2, 3, 1], [1, 1, 2]]
+        expected_result = np.zeros((2, 3, 3), dtype=np.uint8)
+        expected_result[:, :, 0] = expected_entries
 
         # Execute
         result = combine_bitmasks(bitmasks)
@@ -137,14 +131,11 @@ class TestColorSegmentation:
 
         # Execute
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, img_dim)
-        clusters_per_elem[0], bitmasks_per_elem[0] = merge_similar_colors(clusters_per_elem[0], bitmasks_per_elem[0])
-        clusters_per_elem[1], bitmasks_per_elem[1] = merge_similar_colors(clusters_per_elem[1], bitmasks_per_elem[1])
-        print(clusters_per_elem[0])
-        print(clusters_per_elem[1])
-        # for i in range(len(clusters_per_elem)):
-        #     clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
 
-        # # Verify
-        # assert np.array_equal(clusters_per_elem[0], expected_result0)
-        # assert np.array_equal(clusters_per_elem[1], expected_result1)
-        assert False
+        for i in range(len(clusters_per_elem)):
+            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
+
+
+        # Verify
+        assert np.array_equal(clusters_per_elem[0], expected_result0)
+        assert np.array_equal(clusters_per_elem[1], expected_result1)
