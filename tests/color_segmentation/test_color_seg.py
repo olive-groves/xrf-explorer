@@ -113,29 +113,42 @@ class TestColorSegmentation:
     def test_get_elem_clusters_using_k_means(self):
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
+        expected_result0 = np.array([])
+        expected_result1 = np.array([
+            [0, 0, 0],
+            [255, 255, 255]
+        ])
+        img_dim = 100
+        elem_threshold = 0.1
 
         # Execute
-        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
+        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, img_dim)
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
 
         # Verify
-        # First element is not present so no clusters
-        assert len(clusters_per_elem[0]) == 0
-        # Second element gets two clusters
-        assert len(clusters_per_elem[1]) == 2
+        assert np.array_equal(clusters_per_elem[0], expected_result0)
+        assert np.array_equal(clusters_per_elem[1], expected_result1)
 
     def test_get_pixels_in_clusters_element(self):
-        # Setup
+        # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
-        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
+        img_dim = 100
+        elem_threshold = 0.1
+
+        # Execute
+        clusters_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, img_dim)
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i] = merge_similar_colors(clusters_per_elem[i])
 
-        # Execute
-        elem_bitmasks = get_pixels_in_clusters_element(small_image, clusters_per_elem, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH)
-        print(elem_bitmasks)
+        elem_bitmasks = get_pixels_in_clusters_element(small_image, clusters_per_elem, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold)
+
+        white_cluster = np.zeros((100, 100), dtype=int)
+        white_cluster[:, 50:] = 1
+        black_cluster = np.zeros((100, 100), dtype=int)
+        black_cluster[:, :50] = 1
 
         # Verify
-
-        assert False
+        assert np.array_equal(elem_bitmasks[1][0], black_cluster)
+        assert np.array_equal(elem_bitmasks[1][1], white_cluster)
+        assert np.array_equal(elem_bitmasks[0], np.array([]))
