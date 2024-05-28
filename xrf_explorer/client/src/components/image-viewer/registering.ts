@@ -31,48 +31,46 @@ export async function registerLayer(layer: Layer, image: ContextualImage) {
  * @param recipe - The recipe to use to calculate the transform.
  */
 function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecipe) {
-  const s = 2;
-  const d = 2 - s;
-
   const points = recipe.points;
+  const target = recipe.targetSize;
+  const moving = recipe.movingSize;
+
+  // Flip the y-coordinates
+  // In the recipe y=0 is the top, in the image viewer y=0 is the bottom
+  points.forEach((point) => {
+    point[1] = target.height - point[1];
+    point[3] = target.height - point[3];
+  });
+
+  // Compute the scaling applied to the image.
+  const scaleW = target.width / moving.width;
+  const scaleH = target.height / moving.height;
+  const scale = Math.min(scaleW, scaleH);
+
+  // Compensate for padding in the y-direction
+  if (scaleH > scaleW) {
+    const padding = target.height - scaleW * moving.height;
+    console.log("padding", padding);
+    points.forEach((point) => {
+      point[3] -= padding;
+    });
+  }
 
   // Unscale the points of the src image
-  const scale = Math.min(
-    recipe.targetSize.width / recipe.movingSize.width,
-    recipe.targetSize.height / recipe.movingSize.height,
-  );
   points.forEach((point) => {
-    (point[s] = point[s] / scale), (point[s + 1] = point[s + 1] / scale);
+    (point[2] = point[2] / scale), (point[3] = point[3] / scale);
   });
 
   // Matrices for Ax=B
   const A: number[][] = []; // 8 x 8
   const B = []; // 8 x 1
   for (let i = 0; i < 4; i++) {
-    A.push([
-      points[i][s],
-      points[i][s + 1],
-      1,
-      0,
-      0,
-      0,
-      -points[i][s] * points[i][d],
-      -points[i][s + 1] * points[i][d],
-    ]);
-    B.push(points[i][d]);
+    A.push([points[i][2], points[i][3], 1, 0, 0, 0, -points[i][2] * points[i][0], -points[i][3] * points[i][0]]);
+    B.push(points[i][0]);
   }
   for (let i = 0; i < 4; i++) {
-    A.push([
-      0,
-      0,
-      0,
-      points[i][s],
-      points[i][s + 1],
-      1,
-      -points[i][s] * points[i][d + 1],
-      -points[i][s + 1] * points[i][d + 1],
-    ]);
-    B.push(points[i][d + 1]);
+    A.push([0, 0, 0, points[i][2], points[i][3], 1, -points[i][2] * points[i][1], -points[i][3] * points[i][1]]);
+    B.push(points[i][1]);
   }
 
   // Solve Ax = B and extract solution
