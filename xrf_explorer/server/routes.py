@@ -281,9 +281,9 @@ def get_selection_sectra():
     print("send response")
     return response
 
-@app.route("/api/get_color_cluster_colors", methods=["GET"])
+@app.route("/api/get_color_cluster", methods=["GET"])
 def get_color_clusters():
-    """Gets the colors corresponding to the image-wide color clusters.
+    """Gets the colors and bitmask corresponding to the image-wide color clusters.
 
     :return json containing the ordered list of colors
     """
@@ -315,9 +315,9 @@ def get_color_clusters():
 
     return (response, send_file(abspath(full_path), mimetype="image/png"))
 
-@app.route("/api/get_element_color_cluster_bitmask", methods=["GET"])
+@app.route("/api/get_element_color_cluster", methods=["GET"])
 def get_element_color_cluster_bitmask():
-    """Gets the bitmask corresponding to the color clusters of each element.
+    """Gets the colors and bitmasks corresponding to the color clusters of each element.
 
     :return json containing the combined bitmasks of the color clusters for each element.
     """
