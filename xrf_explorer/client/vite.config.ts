@@ -14,5 +14,12 @@ export default defineConfig({
   build: {
     target: "es2020",
     chunkSizeWarningLimit: 2048,
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].js`,
+        chunkFileNames: `assets/[name].js`,
+        assetFileNames: `assets/[name].[ext]`,
+      },
+    },
   },
 });
