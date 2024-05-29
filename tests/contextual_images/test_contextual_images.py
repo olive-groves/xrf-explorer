@@ -26,7 +26,7 @@ def are_images_identical(file_path1: str, file_path2: str):
     return np.array_equal(img1, img2)
 
 
-class TestColorSegmentation:
+class TestContextualImages:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path("configs", "contextual-images.yml"))
     TEST_IMAGE_PATH: str = join(RESOURCES_PATH, Path('contextual_images', 'test.png'))
     INVALID_FILE_TYPE_PATH: str = join(RESOURCES_PATH, Path("contextual_images", "invalid_file_type.txt"))
@@ -36,8 +36,8 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images",
-                                   "contextual_images", "contextual_image.png"))
+        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_images",
+                                   "contextual_image.png"))
 
         # Execute
         set_contextual_image(self.TEST_IMAGE_PATH, self.CUSTOM_CONFIG_PATH)
