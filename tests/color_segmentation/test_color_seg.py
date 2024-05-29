@@ -18,7 +18,7 @@ RESOURCES_PATH: Path = Path('tests', 'resources')
 class TestColorSegmentation:
     BW_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'black_and_white_image.png'))
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
-    DATA_CUBE_DMS: str = 'test.dms'
+    DATA_CUBE_PATH: str = str(Path('tests', 'resources', 'file_system', 'test_elemental_data', 'test.dms'))
 
     def test_get_clusters_using_k_means_colors(self, caplog):
         caplog.set_level(logging.INFO)
@@ -124,8 +124,8 @@ class TestColorSegmentation:
         # Execute
         clusters_per_elem: np.ndarray
         bitmasks_per_elem: np.ndarray
-        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS,
-                                                                  self.CUSTOM_CONFIG_PATH, elem_threshold, 100, 100)
+        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
+                          small_image, self.DATA_CUBE_PATH, elem_threshold, 100, 100)
 
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])

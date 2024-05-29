@@ -7,7 +7,7 @@ from os import path, makedirs
 from skimage import color
 
 from xrf_explorer.server.file_system import get_elemental_data_cube
-from xrf_explorer.server.file_system import get_path_to_elemental_cube
+from xrf_explorer.server.file_system.file_access import *
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -109,8 +109,7 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     return np.array(colors), np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
-                                         config_path: str = "config/backend.yml",
+def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str,
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
@@ -118,7 +117,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
-    :param data_cube_name: the name of the file containing the data cube
+    :param data_cube_path: the path to the data cube
     :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param image_width: the width to resize the image before applying k-means, if -1, the data cube's
@@ -131,7 +130,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
-    data_cube: np.ndarray = get_elemental_data_cube(data_cube_name, config_path)
+    data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:
