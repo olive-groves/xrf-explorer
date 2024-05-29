@@ -37,6 +37,7 @@ class TestColorSegmentation:
         ])
 
         # Execute
+        result: np.ndarray
         result, _ = get_clusters_using_k_means(small_image)
 
         # Verify
@@ -61,17 +62,21 @@ class TestColorSegmentation:
         white_cluster[:, 50:] = True
         black_cluster: np.ndarray = np.zeros((100, 100), dtype=bool)
         black_cluster[:, :50] = True
+        width: int = 100
+        height: int = 100
 
         # Execute
-        colors, bitmask = get_clusters_using_k_means(small_image, 100)
-        new_colors, new_bitmasks = merge_similar_colors(colors, bitmask)
+        colors: np.ndarray
+        bitmask: np.ndarray
+        colors, bitmask = get_clusters_using_k_means(small_image, width, height)
+        colors, bitmask = merge_similar_colors(colors, bitmask)
 
         # Verify
-        assert len(expected_result) == len(new_colors)
-        assert np.array_equal(new_colors, expected_result)
-        assert len(new_colors) == len(new_bitmasks)
-        assert np.array_equal(white_cluster, new_bitmasks[1])
-        assert np.array_equal(black_cluster, new_bitmasks[0])
+        assert len(expected_result) == len(colors)
+        assert np.array_equal(colors, expected_result)
+        assert len(colors) == len(bitmask)
+        assert np.array_equal(white_cluster, bitmask[1])
+        assert np.array_equal(black_cluster, bitmask[0])
 
         # Verify log message
         assert "Similar clusters merged successfully." in caplog.text
@@ -87,7 +92,6 @@ class TestColorSegmentation:
         assert np.array_equal(result, np.empty(0))
 
         # Verify log message
-        assert "The path 'tests/resources/fake' is not a valid file path." in caplog.text
         assert f"The path '{fake_path}' is not a valid file path." in caplog.text
 
     def test_combined_bitmasks(self):
@@ -118,6 +122,8 @@ class TestColorSegmentation:
         elem_threshold: float = 0.1
 
         # Execute
+        clusters_per_elem: np.ndarray
+        bitmasks_per_elem: np.ndarray
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS,
                                                                   self.CUSTOM_CONFIG_PATH, elem_threshold, 100, 100)
 
