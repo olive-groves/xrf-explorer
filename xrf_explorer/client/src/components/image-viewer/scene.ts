@@ -16,10 +16,18 @@ import vertex from "./vertex.glsl?raw";
 /**
  * Creates a layer in the image viewer and adds the given image to it.
  * @param layer - The layer that should get loaded.
+ * @param interpolated - Whether the sampler should interpolate between pixels.
  */
-export function loadLayer(layer: Layer) {
+export function loadLayer(layer: Layer, interpolated: boolean = true) {
   new THREE.TextureLoader().loadAsync(layer.image).then((texture) => {
     texture.colorSpace = THREE.NoColorSpace;
+
+    // Disable interpolation if required
+    if (!interpolated) {
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      texture.generateMipmaps = false;
+    }
 
     // Create a square
     const shape = new THREE.Shape();
