@@ -188,7 +188,6 @@ function generateWorkspaceJSON() {
     contextualImages: [],
     spectralCubes: [],
     elementalCubes: [],
-    elementalChannels: [],
   };
 
   if (getFile(uvImageInputRef) !== undefined) {

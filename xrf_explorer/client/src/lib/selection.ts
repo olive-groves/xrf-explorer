@@ -93,7 +93,8 @@ export type ElementSelection = {
 export type ColorSegmentationSelection = {
   /**
    * The element corresponding to the clusters.
-   * If no element, then element should be one more than the highest element index.
+   * If no element, then element should be one 
+   * more than the highest element index.
    */
   element: number;
   /**
