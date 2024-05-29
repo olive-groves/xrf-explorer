@@ -287,8 +287,8 @@ def get_color_clusters():
 
     :return json containing the ordered list of colors
     """
-    # TODO: this should get the RGB image
-    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "image.png")
+    # TODO: this should be whatever name we give the RGB image
+    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "rgb.tiff")
     image = get_image(path_to_image)
 
     # get default dim reduction config
@@ -321,8 +321,8 @@ def get_element_color_cluster_bitmask():
 
     :return json containing the combined bitmasks of the color clusters for each element.
     """
-    # TODO: this should get the RGB image
-    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "image.png")
+    # TODO: this should be whatever name we give the RGB image
+    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "rgb.tiff")
     image: ndarray = get_image(path_to_image)
 
     # get default dim reduction config
@@ -332,9 +332,8 @@ def get_element_color_cluster_bitmask():
     k: int = int(k_means_parameters["k"])
     path_to_save: str = BACKEND_CONFIG["color-segmentation"]["folder"]
 
-    # TODO: "cube.dms" should be cube file name
     clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, "cube.dms", CONFIG_PATH,
+                                                             image, TEMP_ELEMENTAL_CUBE, CONFIG_PATH,
                                                              elem_threshold, -1, nr_attemps, k)
 
     number_elem: int = len(clusters_per_elem)
