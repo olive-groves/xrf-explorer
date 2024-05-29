@@ -2,7 +2,7 @@
 import { inject, ref } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
-import { appState } from "@/lib/app_state";
+import { appState } from "@/lib/appState";
 import * as d3 from "d3";
 
 const barchart = ref(null);

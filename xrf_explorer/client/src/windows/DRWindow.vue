@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { appState } from "@/lib/app_state";
+import { appState } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
