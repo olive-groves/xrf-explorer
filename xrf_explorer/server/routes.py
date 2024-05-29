@@ -11,7 +11,7 @@ from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
-from xrf_explorer.server.file_system.elemental_cube import get_data_cube_path
+from xrf_explorer.server.file_system.elemental_cube import get_elemental_cube_path
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
@@ -49,7 +49,7 @@ def list_accessible_data_sources():
 def create_data_source_dir():
     """Create a directory for a new data source.
     
-    :request form attributes:  name - the data source name 
+    :request form attributes:  **name** - the data source name 
 
     :return: json with directory name
     """
@@ -87,7 +87,7 @@ def create_data_source_dir():
 def delete_data_source():
     """Delete a data source directory.
     
-    :request form attributes: dir - the directory name
+    :request form attributes: **dir** - the directory name
     """
     delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
 
@@ -104,9 +104,9 @@ def upload_file_chunk():
     """Upload a chunk of bytes to a file.
     
     :request form attributes: 
-        dir - the directory name \n 
-        startByte - the start byte from which bytes are uploaded \n 
-        chunkBytes - the chunk  of bytes to upload
+        **dir** - the directory name \n 
+        **startByte** - the start byte from which bytes are uploaded \n 
+        **chunkBytes** - the chunk  of bytes to upload
     """
     file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
@@ -126,14 +126,15 @@ def upload_file_chunk():
 @app.route("/api/element_averages")
 def list_element_averages():
     """List the average amount per element accross the whole painting.
-
+    
+    :request args: **dataSource** - the name of the current datasource loaded on the client
     :return: json list of pairs with the element name and corresponding average value
     """
     
-    datasource_name = request.args.get('datasource')
-    data_cube_path = get_data_cube_path(datasource_name)
+    datasource_name = request.args.get('dataSource')
+    path = get_elemental_cube_path(datasource_name)
     
-    composition: list[dict[str, str | float]] = get_element_averages(data_cube_path)
+    composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -145,13 +146,14 @@ def list_element_averages():
 def list_element_names():
     """List the name of elements present in the painting.
     
+    :request args: **dataSource** - the name of the current datasource loaded on the client
     :return: json list of elements
     """
     
-    datasource_name = request.args.get('datasource')
-    data_cube_path = get_data_cube_path(datasource_name)
+    datasource_name = request.args.get('dataSource')
+    path = get_elemental_cube_path(datasource_name)
 
-    names: list[str] = get_short_element_names(data_cube_path)
+    names: list[str] = get_short_element_names(path)
     try:
         return json.dumps(names)
     except Exception as e:
@@ -164,8 +166,8 @@ def get_dr_embedding():
     """Generate the dimensionality reduction embedding of an element, given a threshold.
     
     :request args: 
-        element - element name \n 
-        threshold - element threshold from which a pixel is selected
+        **element** - element name \n 
+        **threshold** - element threshold from which a pixel is selected
     """
     # check if element number is provided
     if "element" not in request.args:
@@ -190,7 +192,8 @@ def get_dr_embedding():
 def get_dr_overlay():
     """Generate the dimensionality reduction overlay with a given type.
     
-    :request form attributes: type - the overlay type
+    :request form attributes: 
+        **type** - the overlay type
     :return: overlay image file
     """
     # Check whether the overlay type is provided
@@ -214,15 +217,16 @@ def get_average_data():
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
     :request args: 
-        low - the spectrum lower boundary \n 
-        high - the spectrum higher boundary \n 
-        binSize - the size of each bin
+        **dataSource** - the name of the current datasource loaded on the client
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    data_source = request.args.get('datasource')
+    data_source = request.args.get('dataSource')
     
     datacube = get_raw_data(data_source)
 
@@ -239,11 +243,11 @@ def get_element_sectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
     :request args: 
-        low - the spectrum lower boundary \n 
-        high - the spectrum higher boundary \n 
-        binSize - the size of each bin \n 
-        element - element to be plotted \n 
-        excitation - excitation energy
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin \n 
+        **element** - element to be plotted \n 
+        **excitation** - excitation energy
     :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
     element = request.args.get('element')
@@ -261,11 +265,12 @@ def get_element_sectra():
 def get_selection_sectra():
     """Get the average spectrum of the selected pixels.
 
-    :request args: 
-        low - the spectrum lower boundary \n
-        high - the spectrum higher boundary \n
-        binSize - the size of each bin \n
-        pixels - the array of corrdinates of selected pixels in the raw data coordinate system
+    :request args:
+        **dataSource** - the name of the current datasource loaded on the client 
+        **low** - the spectrum lower boundary \n
+        **high** - the spectrum higher boundary \n
+        **binSize** - the size of each bin \n
+        **pixels** - the array of corrdinates of selected pixels in the raw data coordinate system
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
     #selection to be retrieived from seletion tool 
@@ -273,7 +278,7 @@ def get_selection_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    data_source = request.args.get('datasource')
+    data_source = request.args.get('dataSource')
     
     datacube = get_raw_data(data_source)
     

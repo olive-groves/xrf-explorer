@@ -79,7 +79,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
     const response = await fetch(
       `${url}/get_average_data?` +
         new URLSearchParams({
-          datasource: datasource as unknown as string,
+          dataSource: datasource as unknown as string,
           low: low as unknown as string,
           high: high as unknown as string,
           binSize: binSize as unknown as string,
@@ -131,7 +131,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
     const response = await fetch(
       `${url}/get_selection_spectrum?` +
         new URLSearchParams({
-          datasource: datasource as unknown as string,
+          dataSource: datasource as unknown as string,
           pixels: pixels as unknown as string,
           low: low as unknown as string,
           high: high as unknown as string,
@@ -261,13 +261,12 @@ async function getElements() {
     const response = await fetch(
       `${url}/element_names?` +
         new URLSearchParams({
-          datasource: datasource as unknown as string,
-        }),
-        {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+          dataSource: datasource as unknown as string,
+        }), {
+        method: "GET",
+        headers: {
+         "Content-Type": "application/json",
+        },
     });
     const elements = await response.json();
     elements.unshift("No element");

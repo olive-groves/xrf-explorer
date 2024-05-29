@@ -48,7 +48,7 @@ async function fetchDRImage() {
   // Set the overlay type
   const url = new URL(URL_IMAGE);
   url.searchParams.set("type", selectedOverlay.value.toString());
-  url.searchParams.set("datasource", datasource as unknown as string);
+  url.searchParams.set("dataSource", datasource as unknown as string);
 
   // Fetch the image
   const { response, data } = await useFetch(url.toString()).get().blob();
@@ -89,7 +89,7 @@ async function updateEmbedding() {
   const _url = new URL(URL_EMBEDDING);
   _url.searchParams.set("element", selectedElement.value.toString());
   _url.searchParams.set("threshold", threshold.value.toString());
-  _url.searchParams.set("datasource", datasource as unknown as string);
+  _url.searchParams.set("dataSource", datasource as unknown as string);
 
   // Create the embedding
   const { response, data } = await useFetch(_url.toString()).get().blob();

@@ -10,43 +10,30 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
-def get_raw_data_path(data_source: str) -> str:
-    """Get the location of the raw data file (.raw) of a given datasource
+def get_data_names(data_source: str, config_path: str = "config/backend.yml") -> tuple[str, str]:
+    """Get the name of the raw data file (.raw) and the .rpl file of a given datasource
     
     :param datasource: Name of the datasource.
-    :return: Path string pointing to the raw data location.
+    :return: Names of the raw data and rpl files.
     """
-    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
+     # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return np.empty(0)
+    
+    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, 'r') as workspace:
             data_json = workspace.read()
             data = json.loads(data_json)
             raw_data_name = data["spectralCubes"][0]["rawLocation"]
+            rpl_name = data["spectralCubes"][0]["rplLocation"]
     except OSError as err:
         LOG.error("Error while getting raw file location: {%s}", err)
         return 400
     
-    path = join(BACKEND_CONFIG["uploads-folder"], data_source, raw_data_name)
-    return path
-
-def get_rpl_path(data_source: str) -> str:
-    """Get the location of the .rpl file of a given datasource
-    
-    :param datasource: Name of the datasource.
-    :return: Path string pointing to the rpl file location.
-    """
-    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
-    try:
-        with open(data_source_dir, 'r') as workspace:
-            data_json = workspace.read()
-            data = json.loads(data_json)
-            rpl_name = data["spectralCubes"][0]["rplLocation"]
-    except OSError as err:
-        LOG.error("Error while getting rpl file location: {%s}", err)
-        return 400
-    
-    path = join(BACKEND_CONFIG["uploads-folder"], data_source, rpl_name)
-    return path
+    return raw_data_name, rpl_name
 
 def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array
@@ -61,11 +48,17 @@ def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> n
         LOG.error("Config is empty")
         return np.empty(0)
 
-    # get the path to the file in the server
-    path_to_file: str = get_raw_data_path(data_source)
+    names = get_data_names(data_source)
+    # get the path to the raw data in the server
+    raw_name: str = names[0]
+    path_to_raw: str = join(backend_config["uploads-folder"], data_source, raw_name)
+    
+    # get the path to the rpl file in the server
+    rpl_name: str = names[1]
+    path_to_rpl: str = join(backend_config["uploads-folder"], data_source, rpl_name)
     
     #get dimensions from rpl file
-    info = parse_rpl(data_source)
+    info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
 
@@ -75,14 +68,14 @@ def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> n
 
     try:
         #load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_file, dtype=np.uint16, mode='r')
+        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
         return []
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
 
-def parse_rpl(data_source, config_path: str = "config/backend.yml") -> dict:
+def parse_rpl(path: str) -> dict:
     """Parse the rpl file of a data source as a dictionary, containing the following info:
         - width
         - height
@@ -93,21 +86,12 @@ def parse_rpl(data_source, config_path: str = "config/backend.yml") -> dict:
         - byte order
         - record by
         
-    :param datasource: the name of the datasource
+    :param path: path to the rpl file
     :return: Dictionary containing the attributes' name and value
     """
     
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return np.empty(0)
-
-    # get the path to the file in the server
-    path_to_file: str = get_rpl_path(data_source)
-    
     try:
-        with open(path_to_file, 'r') as in_file:
+        with open(path, 'r') as in_file:
             info = in_file.read().splitlines() #first split on linebreak
     except OSError as err:
         LOG.error("error while reading rpl file: {%s}", err)

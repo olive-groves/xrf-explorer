@@ -27,13 +27,13 @@ async function fetchAverages(url: string) {
   // Make API call
   const response: Response = await fetch(
     `${url}/element_averages?` +
-        new URLSearchParams({
-          datasource: datasource as unknown as string,
-        }), {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+      new URLSearchParams({
+        dataSource: datasource as unknown as string,
+      }), {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
   });
   let fetchSuccessful: boolean = false;
 

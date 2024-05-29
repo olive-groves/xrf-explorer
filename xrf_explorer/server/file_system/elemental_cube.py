@@ -52,51 +52,50 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
 
     return normalized_cube
 
-
-def get_path_to_elemental_cube(name_cube: str, config_path: str = "config/backend.yml") -> str:
-    """Get the path to the elemental data cube.
-
-    :param name_cube: Name of the elemental data cube.
+def get_elemental_cube_name(data_source: str, config_path: str = "config/backend.yml") -> str:
+    """Get the location of the elemental cube file (.dms) of a given datasource
+    
+    :param datasource: Name of the datasource.
     :param config_path: Path to the backend config file.
-    :return: Path to the elemental data cube.
+    :return: Path string pointing to the elemental cube location.
     """
-
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ""
     
-    # path to cube 
-    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube)
-
-    # Check if the file exists
-    if not isfile(path_cube):
-        LOG.error(f"File not found: {path_cube}")
-        return ""
-
-    return path_cube
-
-def get_data_cube_path(data_source: str) -> str:
-    """Get the location of the datacube file (.dms) of a given datasource
-    
-    :param datasource: Name of the datasource.
-    :return: Path string pointing to the datacube location.
-    """
-    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
+    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, 'r') as workspace:
             data_json = workspace.read()
             data = json.loads(data_json)
-            data_cube_name = data["elementalCubes"][0]["dataLocation"]
+            elemental_cube_name = data["elementalCubes"][0]["dataLocation"]
     except OSError as err:
         LOG.error("Error while getting dms file location: {%s}", err)
         return 400
     
-    path = join(BACKEND_CONFIG["uploads-folder"], data_source, data_cube_name)
+    return elemental_cube_name
+
+def get_elemental_cube_path(data_source: str, config_path: str = "config/backend.yml") -> str:
+    """Get the path to the elemental data cube of a data source.
+
+    :param data_source: Name of the data source.
+    :param config_path: Path to the backend config file.
+    :return: Path to the elemental data cube.
+    """
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+    
+    filename = get_elemental_cube_name(data_source, config_path)
+    path: str = join(Path(backend_config["uploads-folder"]), data_source, filename)
+    
     return path
 
-def get_elemental_data_cube(path: str, config_path: str = "config/backend.yml") -> np.ndarray:
+def get_elemental_data_cube(path: str) -> np.ndarray:
     """Get the elemental data cube at the given path.
 
     :param path: Path to data cube.
@@ -127,20 +126,13 @@ def get_elemental_data_cube(path: str, config_path: str = "config/backend.yml") 
     return elemental_cube
 
 
-def get_elemental_map(element: int, name_cube: str, config_path: str = "config/backend.yml") -> np.ndarray:
+def get_elemental_map(element: int, path: str) -> np.ndarray:
     """Get the elemental map of element index at the given path.
 
     :param element: Index of the element in the elemental data cube.
-    :param name_cube: Name of the elemental data cube.
-    :param config_path: Path to the backend config file.
+    :param path: Path to data cube.
     :return: 2-dimensional numpy array containing the elemental data cube. Dimensions are the x, y coordinates.
     """
-
-    # Get full path to the elemental data cube
-    path: str = get_path_to_elemental_cube(name_cube, config_path)
-    if not path:
-        return np.empty(0)
-    
     # Get the elemental data cube
     elemental_cube: np.ndarray
 
@@ -164,14 +156,12 @@ def get_elemental_map(element: int, name_cube: str, config_path: str = "config/b
     return elemental_cube
 
 
-def get_element_names(path: str, config_path: str = "config/backend.yml") -> list[str]:
+def get_element_names(path: str) -> list[str]:
     """Get the names of the elements stored in the elemental data cube.
     
-    :param path: path to the elemental data cube.
-    :param config_path: Path to the backend config file.
+    :param path: Path to data cube.
     :return: List of the names of the elements. Empty list if error occurred.
     """
-    
     # Return the elemental data cube
     elements: list[str]
 
@@ -195,16 +185,14 @@ def get_element_names(path: str, config_path: str = "config/backend.yml") -> lis
     return elements
 
 
-def get_short_element_names(path: str, config_path: str = "config/backend.yml") -> list[str]:
+def get_short_element_names(path: str) -> list[str]:
     """Get the short names of the elements stored in the elemental data cube.
     
     :param path: Path to data cube.
-    :param config_path: Path to the backend config file.
     :return: List of the names of the elements. Empty list if error occurred.
     """
-
     # Get regular names
-    element_names: list[str] = get_element_names(path, config_path)
+    element_names: list[str] = get_element_names(path)
     if element_names == []:
         return []
 
@@ -224,17 +212,15 @@ def get_short_element_names(path: str, config_path: str = "config/backend.yml") 
     return short_names
 
 
-def get_element_averages(data_source: str, config_path: str = "config/backend.yml") -> list[dict[str, str | float]]:
+def get_element_averages(path: str) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in the painting.
-
-    :param data_source: Name of the data source.
-    :param config_path: Path to the backend config file.
+    :param path: Path to data cube.
     :return: List of the names and average composition of the elements.
     """
 
     # Get the elemental data cube and the names of the elements
-    raw_cube: np.ndarray = get_elemental_data_cube(data_source, config_path)
-    names: list[str] = get_element_names(data_source, config_path)
+    raw_cube: np.ndarray = get_elemental_data_cube(path)
+    names: list[str] = get_element_names(path)
 
     # Check if the data was loaded correctly
     if raw_cube.size == 0 or names == []:
