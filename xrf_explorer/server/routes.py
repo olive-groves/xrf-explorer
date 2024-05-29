@@ -13,15 +13,14 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
+from xrf_explorer.server.file_system.file_access import *
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
 
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
-
-TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
-
 
 @app.route("/api")
 def api():
@@ -156,13 +155,17 @@ def upload_file_chunk():
     return "Ok"
 
 
-@app.route("/api/element_averages")
-def list_element_averages():
+@app.route("/api/<data_source>/element_averages")
+def list_element_averages(data_source: str):
     """List the average amount per element accross the whole painting.
-
+    
+    :param data_source: data_source to get the element averages from
     :return: json list of pairs with the element name and corresponding average value
     """
-    composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
+    
+    path: str = get_elemental_cube_path(data_source)
+    
+    composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -170,13 +173,16 @@ def list_element_averages():
         return "Error occurred while listing element averages", 500
 
 
-@app.route("/api/element_names")
-def list_element_names():
+@app.route("/api/<data_source>/element_names")
+def list_element_names(data_source: str):
     """List the name of elements present in the painting.
     
+    :param data_source: data_source to get the element names from
     :return: json list of elements
     """
-    names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
+    path: str = get_elemental_cube_path(data_source)
+
+    names: list[str] = get_short_element_names(path)
     try:
         return json.dumps(names)
     except Exception as e:
@@ -234,10 +240,11 @@ def get_dr_overlay():
     return send_file(abspath(image_path), mimetype='image/png')
 
     
-@app.route('/api/get_average_data', methods=['GET'])
-def get_average_data():
+@app.route('/api/<data_source>/get_average_data', methods=['GET'])
+def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
+    :param data_source: data_source to get the average raw data from
     :request args: 
         **low** - the spectrum lower boundary \n 
         **high** - the spectrum higher boundary \n 
@@ -248,37 +255,14 @@ def get_average_data():
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+    datacube: np.ndarray = get_raw_data(data_source)
 
     if datacube.size == 0:
         return "Error occurred while loading data", 404
 
-    average_values = get_average_global(datacube, low, high, bin_size)
+    average_values: list = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
-    return response
-
-@app.route('/api/get_elements', methods=['GET'])
-def get_elements():
-    """Collect the name of the elements present in the painting.
-    
-    :return: json list containing the names of the elements
-    """
-    filename = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
-    
-    info = parse_rpl('196_1989_M6_data 1069_1187.rpl')
-    width = int(info["width"])
-    height = int(info["height"])
-    c = 26
-
-    # reading names from file
-    names = []
-    with open(filename, 'r') as file:
-        file.seek(49 + width * height * c * 4)
-        for i in range(c):
-            names.append(file.readline().rstrip().replace(" ", ""))
-    
-    response = json.dumps(names)
     return response
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
@@ -293,19 +277,19 @@ def get_element_sectra():
         **excitation** - excitation energy
     :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
-    element = request.args.get('element')
+    element: str = request.args.get('element')
     excitation_energy_keV = int(request.args.get('excitation'))
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    response = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
+    response: list = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
     response = json.dumps(response)
         
     return response
 
-@app.route('/api/get_selection_spectrum', methods=['GET'])
-def get_selection_sectra():
+@app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
+def get_selection_sectra(data_source):
     """Get the average spectrum of the selected pixels.
 
     :request args: 
@@ -316,14 +300,14 @@ def get_selection_sectra():
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
     #selection to be retrieived from seletion tool 
-    pixels = []
+    pixels: list[tuple[int, int]] = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+    datacube: list = get_raw_data(data_source)
     
-    result = get_average_selection(datacube, pixels, low, high, bin_size)
+    result: list = get_average_selection(datacube, pixels, low, high, bin_size)
     
     response = json.dumps(result)
     print("send response")

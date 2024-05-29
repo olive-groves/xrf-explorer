@@ -1,31 +1,23 @@
 #This module contains all functions related to the spectral chart
-from os.path import join
-from pathlib import Path
 import numpy as np 
 import xraydb 
 import logging
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, parse_rpl
 LOG: logging.Logger = logging.getLogger(__name__)
 
-def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "config/backend.yml") -> np.ndarray:
-    """Parse the raw data cube as a 3-dimensional numpy array
+def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Parse the raw data cube of a data source as a 3-dimensional numpy array
     
-    :param raw_filename: the path to the .raw file
-    :param rpl_filename: the path to the .rpl file
+    :param data_source: the path to the .raw file
+    :
     :return: 3-dimensional array containing the raw data in format {x, y, channel}
     """
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return np.empty(0)
-
-    # get the path to the file in the server
-    path_to_file: str = join(Path(backend_config['uploads-folder']), raw_filename)
+    #get paths to files
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
     
     #get dimensions from rpl file
-    info = parse_rpl(rpl_filename)
+    info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
 
@@ -35,53 +27,12 @@ def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "confi
 
     try:
         #load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_file, dtype=np.uint16, mode='r')
+        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
         return []
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
-
-def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
-    """Parse the given rpl file name as a dictionary, containing the following info:
-        - width
-        - height
-        - depth
-        - offset
-        - data length
-        - data type
-        - byte order
-        - record by
-        
-    :param filename: the path to the .rpl file
-    :return: Dictionary containing the attributes' name and value
-    """
-    
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return np.empty(0)
-
-    # get the path to the file in the server
-    path_to_file: str = join(Path(backend_config['uploads-folder']), filename)
-    
-    try:
-        with open(path_to_file, 'r') as in_file:
-            info = in_file.read().splitlines() #first split on linebreak
-    except OSError as err:
-        LOG.error("error while reading rpl file: {%s}", err)
-        return {}
-    
-    map = {}
-    if info:    
-        for line in info:
-            split = line.split("\t") #then split on tab
-            map[split[0].strip()] = split[1].strip() #add tuple to dictionary
-    else:
-        LOG.error("Error while parsing rpl file: file empty")
-               
-    return map
 
 def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
