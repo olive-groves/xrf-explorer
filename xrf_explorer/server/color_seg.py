@@ -59,7 +59,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray, threshold: 
     return np.array(clusters), np.array(bitmasks)
 
 
-def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100, 
+def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
                                nr_of_attempts: int = 10, k: int = 30) -> (np.ndarray, np.ndarray):
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
@@ -110,9 +110,9 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
     :param data_cube_name: the name of the file containing the data cube
     :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param image_width: the width to resize the image before applying k-means, if -1, the data cube's 
+    :param image_width: the width to resize the image before applying k-means, if -1, the data cube's
                         dimensions are used instead
-    :param image_height: the height to resize the image before applying k-means, if -1, the data cube's 
+    :param image_height: the height to resize the image before applying k-means, if -1, the data cube's
                         dimensions are used instead
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 2.
@@ -141,8 +141,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
     # iterations.)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
-    colors: np.ndarray = []
-    bitmasks: np.ndarray = []
+    colors: list[np.ndarray] = []
+    bitmasks: list[list[np.ndarray]] = []
     # For each element
     for elem_index in range(data_cube.shape[0]):
         # Get bitmask of pixels with high element concentration
@@ -153,8 +153,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
         # If empty image, continue (elem. not present)
         if masked_image.size == 0:
-            colors.append([])
-            bitmasks.append([])
+            colors.append(np.empty(0))
+            bitmasks.append(np.empty(0))
             continue
 
         # k cannot be bigger than number of elements
@@ -183,12 +183,12 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
 
 def combine_bitmasks(bitmasks) -> np.ndarray:
-    """ Merges array of bitmasks into single bitmask with up to 32 bits = 4 bytes per entry, 
+    """ Merges array of bitmasks into single bitmask with up to 32 bits = 4 bytes per entry,
     where the set bits determine the clusters that pixel corresponds to.
 
     :param bitmasks: the bitmasks corresponding to each cluster
 
-    :return: a single bitmask in the form of an image (3 8bit entries per pixel) corresponding to 
+    :return: a single bitmask in the form of an image (3 8bit entries per pixel) corresponding to
     the combination of all bitmasks
     """
     if len(bitmasks) == 0:
@@ -284,6 +284,7 @@ def reshape_image(small_image: np.ndarray) -> np.ndarray:
     :return: the reshaped image
     """
     return np.float32(small_image.reshape((-1, 3)))
+
 
 def get_image(image_file_path: str) -> np.ndarray:
     """Read an image from the specified file path and convert it from BGR to RGB color space.

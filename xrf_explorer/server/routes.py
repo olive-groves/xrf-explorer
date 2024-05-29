@@ -287,17 +287,17 @@ def get_color_clusters():
     :return json containing the ordered list of colors
     """
     # TODO: this should get the RGB image
-    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], 'image.png')
+    path_to_image: str = Join(BACKEND_CONFIG['uploads-folder'], 'image.png')
     image = get_image(path_to_image)
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
-    width = k_means_parameters['image-width']
-    height = k_means_parameters['image-height']
+    width: int = k_means_parameters['image-width']
+    height: int = k_means_parameters['image-height']
+    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    k: int = int(k_means_parameters['k'])
 
-    labels, colors, bitmasks = get_clusters_using_k_means(image, width, height,
-                                                  k_means_parameters['nr-attemps'],
-                                                  k_means_parameters['k'])
+    labels, colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
 
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
@@ -318,20 +318,19 @@ def get_element_color_cluster_bitmask():
     :return json containing the combined bitmasks of the color clusters for each element.
     """
     # TODO: this should get the RGB image
-    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], 'image.png')
+    path_to_image: str = Join(BACKEND_CONFIG['uploads-folder'], 'image.png')
     image: ndarray = get_image(path_to_image)
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters['elem_threshold'])
+    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    k: int = int(k_means_parameters['k'])
 
     # TODO: 'cube.dms' should be cube file name
     clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, 'cube.dms',
-                                                             CONFIG_PATH,
-                                                             k_means_parameters['elem_threshold'],
-                                                             -1,
-                                                             k_means_parameters['nr-attemps'],
-                                                             k_means_parameters['k'])
+                                                             image, 'cube.dms', CONFIG_PATH,
+                                                             elem_threshold, -1, nr_attemps, k)
 
     color_data = {}
     combined_bitmasks = {}

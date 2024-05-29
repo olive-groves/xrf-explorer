@@ -95,8 +95,8 @@ class TestColorSegmentation:
         bitmask1: np.ndarray = np.array([[False, False, True], [True, False, False]], dtype=bool)
         bitmask2: np.ndarray = np.array([[True, False, False], [False, False, True]], dtype=bool)
         bitmask3: np.ndarray = np.array([[False, True, False], [False, False, False]], dtype=bool)
-        bitmasks: np.ndarray = [bitmask1, bitmask2, bitmask3]
-        expected_entries: np.ndarray = [[2, 3, 1], [1, 0, 2]]
+        bitmasks: list[np.ndarray] = [bitmask1, bitmask2, bitmask3]
+        expected_entries: np.ndarray = np.array([[2, 3, 1], [1, 0, 2]], dtype=np.uint8)
         expected_result: np.ndarray = np.zeros((2, 3, 3), dtype=np.uint8)
         expected_result[:, :, 0] = expected_entries
 
@@ -109,13 +109,13 @@ class TestColorSegmentation:
 
     def test_get_elem_clusters_using_k_means(self):
         # Set-up
-        small_image: str = get_image(self.BW_IMAGE_PATH)
+        small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
         expected_result0: np.ndarray = np.array([])
         expected_result1: np.ndarray = np.array([
             [0, 0, 0],
             [255, 255, 255]
         ])
-        elem_threshold: int = 0.1
+        elem_threshold: float = 0.1
 
         # Execute
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS,
