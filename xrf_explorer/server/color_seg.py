@@ -3,6 +3,7 @@ import logging
 import cv2
 import numpy as np
 import skimage
+import os
 from skimage import color
 
 from xrf_explorer.server.file_system import get_elemental_data_cube, get_elemental_datacube_dimensions_from_dms
@@ -208,6 +209,35 @@ def combine_bitmasks(bitmasks) -> np.ndarray:
     merged_image[:, :, 0] = combined_bitmask
 
     return merged_image
+
+
+def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
+    """ Saves the given bitmask as a png with the given name in the given path.
+
+    :param bitmasks: the bitmask to be saved as png.
+    :param full_path: the path (including image name) to save the file to.
+
+    :return: true if the file was successfully saved, false otherwise.
+    """
+    try:
+        # Ensure the directory exists
+        dir_name = os.path.dirname(full_path)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+
+        # Save the array as a PNG file using OpenCV
+        success = cv2.imwrite(full_path, bitmask)
+        if not success:
+            raise IOError(f"Failed to save image to {full_path}")
+            return False
+
+        print(f"Image successfully saved to {full_path}")
+        return True
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    return False
 
 
 def calculate_color_difference(lab1: np.ndarray, lab2: np.ndarray) -> int:

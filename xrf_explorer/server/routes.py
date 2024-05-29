@@ -18,8 +18,9 @@ from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
-    get_image, combine_bitmasks, get_clusters_using_k_means, 
-    get_elemental_clusters_using_k_means, merge_similar_colors
+    get_image, combine_bitmasks, get_clusters_using_k_means,
+    get_elemental_clusters_using_k_means, merge_similar_colors,
+    save_bitmask_as_png
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -280,22 +281,23 @@ def get_selection_sectra():
     print("send response")
     return response
 
-@app.route('/api/get_color_cluster_colors', methods=['GET'])
+@app.route("/api/get_color_cluster_colors", methods=["GET"])
 def get_color_clusters():
     """Gets the colors corresponding to the image-wide color clusters.
 
     :return json containing the ordered list of colors
     """
     # TODO: this should get the RGB image
-    path_to_image: str = Join(BACKEND_CONFIG['uploads-folder'], 'image.png')
+    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "image.png")
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
-    width: int = k_means_parameters['image-width']
-    height: int = k_means_parameters['image-height']
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
-    k: int = int(k_means_parameters['k'])
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG["color-segmentation"]["k-means-parameters"]
+    width: int = k_means_parameters["image-width"]
+    height: int = k_means_parameters["image-height"]
+    nr_attemps: int = int(k_means_parameters["nr_attemps"])
+    k: int = int(k_means_parameters["k"])
+    path_to_save: str = BACKEND_CONFIG["color-segmentation"]["folder"]
 
     labels, colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
 
@@ -303,47 +305,55 @@ def get_color_clusters():
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
     combined_bitmask = combine_bitmasks(bitmasks)
+    full_path: str = join(path_to_save, "imageClusters.png")
+    image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
 
-    response1 = json.dumps(colors)
-    # TODO:  save bitmasks as png files instead
-    response2 = json.dumps(combined_bitmask)
+    if (not image_saved):
+        return "Error occurred while saving bitmask as png", 404
 
-    return (response1, response2)
+    response = json.dumps(colors)
 
+    return (response, send_file(abspath(full_path), mimetype="image/png"))
 
-@app.route('/api/get_element_color_cluster_bitmask', methods=['GET'])
+@app.route("/api/get_element_color_cluster_bitmask", methods=["GET"])
 def get_element_color_cluster_bitmask():
     """Gets the bitmask corresponding to the color clusters of each element.
 
     :return json containing the combined bitmasks of the color clusters for each element.
     """
     # TODO: this should get the RGB image
-    path_to_image: str = Join(BACKEND_CONFIG['uploads-folder'], 'image.png')
+    path_to_image: str = join(BACKEND_CONFIG["uploads-folder"], "image.png")
     image: ndarray = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters['elem_threshold'])
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
-    k: int = int(k_means_parameters['k'])
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG["color-segmentation"]["elemental-k-means-parameters"]
+    elem_threshold: float = float(k_means_parameters["elem_threshold"])
+    nr_attemps: int = int(k_means_parameters["nr_attemps"])
+    k: int = int(k_means_parameters["k"])
+    path_to_save: str = BACKEND_CONFIG["color-segmentation"]["folder"]
 
-    # TODO: 'cube.dms' should be cube file name
+    # TODO: "cube.dms" should be cube file name
     clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, 'cube.dms', CONFIG_PATH,
+                                                             image, "cube.dms", CONFIG_PATH,
                                                              elem_threshold, -1, nr_attemps, k)
 
+    number_elem: int = len(clusters_per_elem)
+    img_paths = {}
     color_data = {}
-    combined_bitmasks = {}
-    for i in range(len(clusters_per_elem)):
+    for i in range(number_elem):
         # Merge similar clusters
         clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
 
         # Stored combined bitmask and colors
-        combined_bitmasks[i] = combine_bitmasks(bitmasks_per_elem[i])
+        combined_bitmask = combine_bitmasks(bitmasks_per_elem[i])
         color_data[i] = clusters_per_elem[i]
 
-    response1 = json.dumps(color_data)
-    # TODO: save bitmasks as png files instead
-    response2 = json.dumps(combined_bitmasks)
+        full_path: str = join(path_to_save, f"elementCluster_{i}.png")
+        img_paths[i] = full_path
+        image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
+        if (not image_saved):
+            return f"Error occurred while saving bitmask for element {i} as png", 404
 
-    return (response1, response2)
+    response = json.dumps(color_data)
+
+    return (response, [send_file(abspath(img_paths[i]), mimetype="image/png") for i in range(number_elem)])
