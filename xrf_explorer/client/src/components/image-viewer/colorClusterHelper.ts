@@ -9,7 +9,7 @@ import { hexToRgb } from "@/lib/utils";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-// TODO: hook up to back end 
+// TODO: hook up to back end
 // temporary, width should be number of elements plus 1
 const width = 27;
 // height should be max. number of clusters (currently is 20)
@@ -34,13 +34,12 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 
 /**
  * Creates color segmentation layers (for whole image and element-wise layers).
- *
  * @param workspace
  */
 export async function createColorClusterLayers(workspace: WorkspaceConfig) {
   const filenames = await getFilenames();
 
-  // Element-wise color clusters 
+  // Element-wise color clusters
   const layers = workspace.elementColorClusters
     .filter((cluster) => cluster.enabled && cluster.channel in filenames)
     .map((cluster) =>
@@ -57,8 +56,8 @@ export async function createColorClusterLayers(workspace: WorkspaceConfig) {
       createLayer(`colorSegmenationImage`, {
         name: `colorSegmenationImage`,
         imageLocation: filenames.at(-1),
-        recipeLocation: ""
-      })
+        recipeLocation: "",
+      }),
     );
   }
 
