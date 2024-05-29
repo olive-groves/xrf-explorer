@@ -36,8 +36,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_images",
-                                   "contextual_image.png"))
+        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.png"))
 
         # Execute
         set_contextual_image(self.TEST_IMAGE_PATH, self.CUSTOM_CONFIG_PATH)
@@ -52,8 +51,7 @@ class TestContextualImages:
     def test_invalid_file_type_set(self, caplog):
 
         # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images",
-                                   "contextual_images", "contextual_image.txt"))
+        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.txt"))
 
         # Execute
         set_contextual_image(self.INVALID_FILE_TYPE_PATH, self.CUSTOM_CONFIG_PATH)
@@ -76,8 +74,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images",
-                                   "contextual_images", "contextual_image.png"))
+        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.png"))
         image_path: str = normpath(image_path)
 
         # Execute

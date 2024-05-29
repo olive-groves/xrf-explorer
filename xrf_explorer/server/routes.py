@@ -187,7 +187,7 @@ def get_contextual_image_path():
         # Error log is handled by get_contextual_image() function.
         return error, 404
 
-    return send_file(image_path)
+    return send_file(abspath(image_path))
 
 
 @app.route('/api/get_average_data', methods=['GET'])
