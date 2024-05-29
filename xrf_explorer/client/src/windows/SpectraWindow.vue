@@ -256,15 +256,12 @@ const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(
-      `${url}/${dataSource}/element_names?`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`${url}/${dataSource}/element_names?`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
     const elements = await response.json();
     elements.unshift("No element");
     elements.splice(elements.indexOf("Continuum"), 1);

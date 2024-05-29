@@ -25,15 +25,12 @@ let dataAverages: Element[];
  */
 async function fetchAverages(url: string) {
   // Make API call
-  const response: Response = await fetch(
-    `${url}/${dataSource}/element_averages`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+  const response: Response = await fetch(`${url}/${dataSource}/element_averages`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+  });
   let fetchSuccessful: boolean = false;
 
   // Check that fetching the names was successful
