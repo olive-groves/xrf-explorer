@@ -6,9 +6,11 @@ from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
+from markupsafe import escape
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
@@ -33,6 +35,10 @@ def info():
 
 @app.route("/api/available_data_sources")
 def list_accessible_data_sources():
+    """Return a list of all available data sources stored in the data folder on the remote server as specified in the project's configuration.
+
+    :return: json list of strings representing the data sources names
+    """
     try:
         return json.dumps(get_data_sources_names())
     except Exception as e:
@@ -40,8 +46,46 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
+@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+def get_workspace(datasource: str):
+    """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
+
+    :param datasource: The name of the data source to get the workspace content for
+    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
+    """
+
+    if request.method == "POST":
+        # Get send json file
+        data: any = request.get_json()
+
+        # Write content to the workspace
+        result: bool = update_workspace(datasource, data)
+        
+        # Check if the write was successful
+        if not result:
+            abort(400)
+        
+        return f"Data written to workspace {escape(datasource)} successfully"
+    else:
+        # Read content from the workspace
+        path: str = get_path_to_workspace(datasource)
+
+        # Check if the workspace exists
+        if not path:
+            abort(404)
+        
+        # Send the json file
+        return send_file(abspath(path), mimetype='application/json')
+
+
 @app.route("/api/create_ds_dir", methods=["POST"])
 def create_data_source_dir():
+    """Create a directory for a new data source.
+    
+    :request form attributes:  **name** - the data source name 
+
+    :return: json with directory name
+    """
     # Check the 'name' field was provided in the request
     if "name" not in request.form:
         error_msg = "Data source name must be provided."
@@ -74,6 +118,10 @@ def create_data_source_dir():
 
 @app.route("/api/delete_data_source", methods=["DELETE"])
 def delete_data_source():
+    """Delete a data source directory.
+    
+    :request form attributes: **dir** - the directory name
+    """
     delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
 
     if exists(delete_dir):
@@ -86,6 +134,13 @@ def delete_data_source():
 
 @app.route("/api/upload_file_chunk", methods=["POST"])
 def upload_file_chunk():
+    """Upload a chunk of bytes to a file.
+    
+    :request form attributes: 
+        **dir** - the directory name \n 
+        **startByte** - the start byte from which bytes are uploaded \n 
+        **chunkBytes** - the chunk  of bytes to upload
+    """
     file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
@@ -103,6 +158,10 @@ def upload_file_chunk():
 
 @app.route("/api/element_averages")
 def list_element_averages():
+    """List the average amount per element accross the whole painting.
+
+    :return: json list of pairs with the element name and corresponding average value
+    """
     composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(composition)
@@ -113,6 +172,10 @@ def list_element_averages():
 
 @app.route("/api/element_names")
 def list_element_names():
+    """List the name of elements present in the painting.
+    
+    :return: json list of elements
+    """
     names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
     try:
         return json.dumps(names)
@@ -123,6 +186,12 @@ def list_element_names():
 
 @app.route("/api/get_dr_embedding")
 def get_dr_embedding():
+    """Generate the dimensionality reduction embedding of an element, given a threshold.
+    
+    :request args: 
+        **element** - element name \n 
+        **threshold** - element threshold from which a pixel is selected
+    """
     # check if element number is provided
     if "element" not in request.args:
         LOG.error("Missing element number")
@@ -144,6 +213,11 @@ def get_dr_embedding():
 
 @app.route("/api/get_dr_overlay")
 def get_dr_overlay():
+    """Generate the dimensionality reduction overlay with a given type.
+    
+    :request form attributes: **type** - the overlay type
+    :return: overlay image file
+    """
     # Check whether the overlay type is provided
     if "type" not in request.args:
         LOG.error("Missing overlay type")
@@ -162,8 +236,12 @@ def get_dr_overlay():
     
 @app.route('/api/get_average_data', methods=['GET'])
 def get_average_data():
-    """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
+    """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
+    :request args: 
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
     low = int(request.args.get('low'))
@@ -182,7 +260,7 @@ def get_average_data():
 
 @app.route('/api/get_elements', methods=['GET'])
 def get_elements():
-    """Collect the name of the elements present in the painting
+    """Collect the name of the elements present in the painting.
     
     :return: json list containing the names of the elements
     """
@@ -205,8 +283,14 @@ def get_elements():
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
 def get_element_sectra():
-    """Computes the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity
+    """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
+    :request args: 
+        **low** - the spectrum lower boundary \n 
+        **high** - the spectrum higher boundary \n 
+        **binSize** - the size of each bin \n 
+        **element** - element to be plotted \n 
+        **excitation** - excitation energy
     :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
     element = request.args.get('element')
@@ -222,8 +306,13 @@ def get_element_sectra():
 
 @app.route('/api/get_selection_spectrum', methods=['GET'])
 def get_selection_sectra():
-    """Gets the average spectrum of the selected pixels
+    """Get the average spectrum of the selected pixels.
 
+    :request args: 
+        **low** - the spectrum lower boundary \n
+        **high** - the spectrum higher boundary \n
+        **binSize** - the size of each bin \n
+        **pixels** - the array of corrdinates of selected pixels in the raw data coordinate system
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
     #selection to be retrieived from seletion tool 
