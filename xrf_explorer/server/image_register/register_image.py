@@ -182,6 +182,13 @@ def register_image_to_image(
         LOG.error(f"Control points file could not be found at {path_csv_points}")
         return False
 
+    path_result_dirname = dirname(path_result_registered_image)
+    if not exists(path_result_dirname):
+        LOG.error(
+            f"Registered image could not be saved at {path_result_dirname} because directory does not exist."
+        )
+        return False
+
     image_reference_height, image_reference_width = image_reference.shape[:2]
 
     image_register_resize = resize_image_fit_aspect_ratio(
@@ -195,13 +202,6 @@ def register_image_to_image(
     image_registered = apply_prespective_transformation(
         image_register_pad, points_source, points_destination
     )
-
-    path_result_dirname = dirname(path_result_registered_image)
-    if not exists(path_result_dirname):
-        LOG.error(
-            f"Registered image could not be saved at {path_result_dirname} because directory does not exist."
-        )
-        return False
 
     return imwrite(path_result_registered_image, image_registered)
 
@@ -217,6 +217,18 @@ def register_image_to_data_cube(
     :param path_result_registered_image: The path where the registered image will be saved.
     :return: True if the registered image has been written to the specified path successfully and false otherwise.
     """
+
+    path_result_dirname = dirname(path_result_registered_image)
+    if not exists(path_result_dirname):
+        LOG.error(
+            f"Registered image could not be saved at {path_result_registered_image} because directory does not exist."
+        )
+        return False
+
+    if not exists(path_data_cube):
+        LOG.error(f"Data cube not found at {path_data_cube}")
+        return False
+
     cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
     image_register = imread(path_image_register)
 
