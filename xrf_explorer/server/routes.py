@@ -6,9 +6,11 @@ from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
+from markupsafe import escape
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.file_system.file_access import *
@@ -44,6 +46,38 @@ def list_accessible_data_sources():
     except Exception as e:
         LOG.error(f"Failed to serialize files: {str(e)}")
         return "Error occurred while listing data sources", 500
+
+
+@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+def get_workspace(datasource: str):
+    """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
+
+    :param datasource: The name of the data source to get the workspace content for
+    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
+    """
+
+    if request.method == "POST":
+        # Get send json file
+        data: any = request.get_json()
+
+        # Write content to the workspace
+        result: bool = update_workspace(datasource, data)
+        
+        # Check if the write was successful
+        if not result:
+            abort(400)
+        
+        return f"Data written to workspace {escape(datasource)} successfully"
+    else:
+        # Read content from the workspace
+        path: str = get_path_to_workspace(datasource)
+
+        # Check if the workspace exists
+        if not path:
+            abort(404)
+        
+        # Send the json file
+        return send_file(abspath(path), mimetype='application/json')
 
 
 @app.route("/api/create_ds_dir", methods=["POST"])
@@ -190,8 +224,7 @@ def get_dr_embedding():
 def get_dr_overlay():
     """Generate the dimensionality reduction overlay with a given type.
     
-    :request form attributes: 
-        **type** - the overlay type
+    :request form attributes: **type** - the overlay type
     :return: overlay image file
     """
     # Check whether the overlay type is provided
@@ -216,7 +249,6 @@ def get_average_data(data_source):
 
     :param data_source: data_source to get the average raw data from
     :request args: 
-        **dataSource** - the name of the current datasource loaded on the client
         **low** - the spectrum lower boundary \n 
         **high** - the spectrum higher boundary \n 
         **binSize** - the size of each bin
@@ -263,9 +295,7 @@ def get_element_sectra():
 def get_selection_sectra(data_source):
     """Get the average spectrum of the selected pixels.
 
-    :param data_source: data_source to get the raw selection average from
-    :request args:
-        **dataSource** - the name of the current datasource loaded on the client 
+    :request args: 
         **low** - the spectrum lower boundary \n
         **high** - the spectrum higher boundary \n
         **binSize** - the size of each bin \n
