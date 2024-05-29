@@ -50,7 +50,6 @@ function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecip
   // Compensate for padding in the y-direction
   if (scaleH > scaleW) {
     const padding = target.height - scaleW * moving.height;
-    console.log("padding", padding);
     points.forEach((point) => {
       point[3] -= padding;
     });
@@ -77,7 +76,6 @@ function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecip
   const x = math.lusolve(A, B) as number[][]; // 8 x 1
 
   matrix.set(x[0][0], x[1][0], x[2][0], x[3][0], x[4][0], x[5][0], x[6][0], x[7][0], 1);
-  console.log("Set transform", recipe, matrix);
 }
 
 /**
