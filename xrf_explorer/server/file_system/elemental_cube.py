@@ -1,9 +1,8 @@
 import logging
 
 import numpy as np
-import json
 
-from os.path import isfile, join
+from os.path import join
 from pathlib import Path
 
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -51,49 +50,6 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
         normalized_cube[i] = normalize_ndarray_to_grayscale(raw_cube[i])
 
     return normalized_cube
-
-def get_elemental_cube_name(data_source: str, config_path: str = "config/backend.yml") -> str:
-    """Get the location of the elemental cube file (.dms) of a given datasource
-    
-    :param datasource: Name of the datasource.
-    :param config_path: Path to the backend config file.
-    :return: Path string pointing to the elemental cube location.
-    """
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return ""
-    
-    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
-    try:
-        with open(data_source_dir, 'r') as workspace:
-            data_json = workspace.read()
-            data = json.loads(data_json)
-            elemental_cube_name = data["elementalCubes"][0]["dataLocation"]
-    except OSError as err:
-        LOG.error("Error while getting dms file location: {%s}", err)
-        return 400
-    
-    return elemental_cube_name
-
-def get_elemental_cube_path(data_source: str, config_path: str = "config/backend.yml") -> str:
-    """Get the path to the elemental data cube of a data source.
-
-    :param data_source: Name of the data source.
-    :param config_path: Path to the backend config file.
-    :return: Path to the elemental data cube.
-    """
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return ""
-    
-    filename = get_elemental_cube_name(data_source, config_path)
-    path: str = join(Path(backend_config["uploads-folder"]), data_source, filename)
-    
-    return path
 
 def get_elemental_data_cube(path: str) -> np.ndarray:
     """Get the elemental data cube at the given path.

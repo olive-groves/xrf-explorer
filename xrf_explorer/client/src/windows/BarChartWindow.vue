@@ -29,12 +29,14 @@ async function fetchAverages(url: string) {
     `${url}/element_averages?` +
       new URLSearchParams({
         dataSource: datasource as unknown as string,
-      }), {
+      }),
+       {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-  });
+    },
+    );
   let fetchSuccessful: boolean = false;
 
   // Check that fetching the names was successful

@@ -262,12 +262,14 @@ async function getElements() {
       `${url}/element_names?` +
         new URLSearchParams({
           dataSource: datasource as unknown as string,
-        }), {
+        }),
+        {
         method: "GET",
         headers: {
-         "Content-Type": "application/json",
+          "Content-Type": "application/json",
         },
-    });
+      },
+    );
     const elements = await response.json();
     elements.unshift("No element");
     elements.splice(elements.indexOf("Continuum"), 1);
