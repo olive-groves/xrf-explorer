@@ -25,15 +25,10 @@ TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inv
 
 @app.route("/api")
 def api():
-    return "this is where the API is hosted"
+    return "Welcome to the XRF-Explorer API"
 
 
-@app.route("/api/info")
-def info():
-    return "adding more routes is quite trivial"
-
-
-@app.route("/api/available_data_sources")
+@app.route("/api/datasources")
 def list_accessible_data_sources():
     try:
         return json.dumps(get_data_sources_names())
@@ -42,7 +37,7 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+@app.route("/api/<datasource>/workspace", methods=["GET", "POST"])
 def get_workspace(datasource: str):
     """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
 

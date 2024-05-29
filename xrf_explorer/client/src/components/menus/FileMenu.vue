@@ -8,7 +8,7 @@ import { appState } from "@/lib/appState";
 const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
-const { data } = useFetch(`${config.api.endpoint}/available_data_sources`).get().json();
+const { data } = useFetch(`${config.api.endpoint}/datasources`).get().json();
 const sources = computed(() => {
   return data.value as string[];
 });
@@ -18,7 +18,7 @@ const sources = computed(() => {
  * @param source - The source to load.
  */
 async function loadWorkspace(source: string) {
-  appState.workspace = await (await fetch(`${config.api.endpoint}/workspace/${source}`)).json();
+  appState.workspace = await (await fetch(`${config.api.endpoint}/${source}/workspace`)).json();
   console.info(`Loading workspace ${source}`);
 }
 </script>
