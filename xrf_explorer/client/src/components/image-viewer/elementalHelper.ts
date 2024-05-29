@@ -111,7 +111,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     contrast: [1.0],
     saturation: [1.0],
     gamma: [1.0],
-    brightness: [1.0],
+    brightness: [0.0],
   };
 
   updateLayerGroupLayers(layerGroups.value.elemental);
