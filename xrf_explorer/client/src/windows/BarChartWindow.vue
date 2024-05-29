@@ -6,7 +6,7 @@ import { appState } from "@/lib/app_state";
 import * as d3 from "d3";
 
 const barchart = ref(null);
-const datasource = appState.workspace;
+const datasource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 
 type Element = {

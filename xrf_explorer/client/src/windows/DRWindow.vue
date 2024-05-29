@@ -7,7 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
-const datasource = appState.workspace;
+const datasource = appState.workspace?.name;
 const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
 const URL_EMBEDDING = `${config.api.endpoint}/get_dr_embedding`;
 

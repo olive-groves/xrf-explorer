@@ -10,7 +10,7 @@ let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
-const datasource = appState.workspace;
+const datasource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 const low = 50;
