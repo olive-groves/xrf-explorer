@@ -263,7 +263,7 @@ async function getElements() {
         new URLSearchParams({
           dataSource: datasource as unknown as string,
         }),
-        {
+      {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

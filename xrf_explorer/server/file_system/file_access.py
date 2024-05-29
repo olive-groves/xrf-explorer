@@ -80,7 +80,7 @@ def get_raw_rpl_names(data_source: str, config_path: str = "config/backend.yml")
             raw_data_name = data["spectralCubes"][0]["rawLocation"]
             rpl_name = data["spectralCubes"][0]["rplLocation"]
     except OSError as err:
-        LOG.error("Error while getting raw file location: {%s}", err)
+        LOG.error("Error while getting raw and rpl file locations: {%s}", err)
         return 400
     
     return raw_data_name, rpl_name
