@@ -11,6 +11,7 @@ from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
+from xrf_explorer.server.file_system.elemental_cube import get_data_cube_path
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
@@ -18,7 +19,7 @@ from xrf_explorer.server.spectra import *
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
-TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
+#TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
 
 @app.route("/api")
@@ -128,7 +129,11 @@ def list_element_averages():
 
     :return: json list of pairs with the element name and corresponding average value
     """
-    composition: list[dict[str, str | float]] = get_element_averages(TEMP_ELEMENTAL_CUBE)
+    
+    datasource_name = request.args.get('datasource')
+    data_cube_path = get_data_cube_path(datasource_name)
+    
+    composition: list[dict[str, str | float]] = get_element_averages(data_cube_path)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -142,7 +147,11 @@ def list_element_names():
     
     :return: json list of elements
     """
-    names: list[str] = get_short_element_names(TEMP_ELEMENTAL_CUBE)
+    
+    datasource_name = request.args.get('datasource')
+    data_cube_path = get_data_cube_path(datasource_name)
+
+    names: list[str] = get_short_element_names(data_cube_path)
     try:
         return json.dumps(names)
     except Exception as e:
@@ -213,8 +222,9 @@ def get_average_data():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
+    data_source = request.args.get('datasource')
     
-    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+    datacube = get_raw_data(data_source)
 
     if datacube.size == 0:
         return "Error occurred while loading data", 404
@@ -222,29 +232,6 @@ def get_average_data():
     average_values = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
-    return response
-
-@app.route('/api/get_elements', methods=['GET'])
-def get_elements():
-    """Collect the name of the elements present in the painting.
-    
-    :return: json list containing the names of the elements
-    """
-    filename = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
-    
-    info = parse_rpl('196_1989_M6_data 1069_1187.rpl')
-    width = int(info["width"])
-    height = int(info["height"])
-    c = 26
-
-    # reading names from file
-    names = []
-    with open(filename, 'r') as file:
-        file.seek(49 + width * height * c * 4)
-        for i in range(c):
-            names.append(file.readline().rstrip().replace(" ", ""))
-    
-    response = json.dumps(names)
     return response
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
@@ -286,8 +273,9 @@ def get_selection_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
+    data_source = request.args.get('datasource')
     
-    datacube = get_raw_data('196_1989_M6_data 1069_1187.raw', '196_1989_M6_data 1069_1187.rpl')
+    datacube = get_raw_data(data_source)
     
     result = get_average_selection(datacube, pixels, low, high, bin_size)
     

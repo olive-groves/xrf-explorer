@@ -2,17 +2,57 @@
 from os.path import join
 from pathlib import Path
 import numpy as np 
+import json
 import xraydb 
 import logging
 
 from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
+BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
-def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "config/backend.yml") -> np.ndarray:
-    """Parse the raw data cube as a 3-dimensional numpy array
+def get_raw_data_path(data_source: str) -> str:
+    """Get the location of the raw data file (.raw) of a given datasource
     
-    :param raw_filename: the path to the .raw file
-    :param rpl_filename: the path to the .rpl file
+    :param datasource: Name of the datasource.
+    :return: Path string pointing to the raw data location.
+    """
+    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source, "workspace.json")
+    try:
+        with open(data_source_dir, 'r') as workspace:
+            data_json = workspace.read()
+            data = json.loads(data_json)
+            raw_data_name = data["spectralCubes"][0]["dataLocation"]
+    except OSError as err:
+        LOG.error("Error while getting raw file location: {%s}", err)
+        return 400
+    
+    path = join(BACKEND_CONFIG["uploads-folder"], data_source, raw_data_name)
+    return path
+
+def get_rpl_path(data_source: str) -> str:
+    """Get the location of the .rpl file of a given datasource
+    
+    :param datasource: Name of the datasource.
+    :return: Path string pointing to the rpl file location.
+    """
+    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source, "workspace.json")
+    try:
+        with open(data_source_dir, 'r') as workspace:
+            data_json = workspace.read()
+            data = json.loads(data_json)
+            rpl_name = data["spectralCubes"][0]["rplLocation"]
+    except OSError as err:
+        LOG.error("Error while getting rpl file location: {%s}", err)
+        return 400
+    
+    path = join(BACKEND_CONFIG["uploads-folder"], data_source, rpl_name)
+    return path
+
+def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Parse the raw data cube of a data source as a 3-dimensional numpy array
+    
+    :param data_source: the path to the .raw file
+    :
     :return: 3-dimensional array containing the raw data in format {x, y, channel}
     """
     # load backend config
@@ -22,10 +62,10 @@ def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "confi
         return np.empty(0)
 
     # get the path to the file in the server
-    path_to_file: str = join(Path(backend_config['uploads-folder']), raw_filename)
+    path_to_file: str = get_raw_data_path(data_source)
     
     #get dimensions from rpl file
-    info = parse_rpl(rpl_filename)
+    info = parse_rpl(data_source)
     if not info:
         return np.empty(0)
 
@@ -42,8 +82,8 @@ def get_raw_data(raw_filename: str, rpl_filename: str, config_path: str = "confi
     datacube = np.reshape(datacube, (width, height, channels))
     return datacube
 
-def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
-    """Parse the given rpl file name as a dictionary, containing the following info:
+def parse_rpl(data_source, config_path: str = "config/backend.yml") -> dict:
+    """Parse the rpl file of a data source as a dictionary, containing the following info:
         - width
         - height
         - depth
@@ -53,7 +93,7 @@ def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
         - byte order
         - record by
         
-    :param filename: the path to the .rpl file
+    :param datasource: the name of the datasource
     :return: Dictionary containing the attributes' name and value
     """
     
@@ -64,7 +104,7 @@ def parse_rpl(filename, config_path: str = "config/backend.yml") -> dict:
         return np.empty(0)
 
     # get the path to the file in the server
-    path_to_file: str = join(Path(backend_config['uploads-folder']), filename)
+    path_to_file: str = get_rpl_path(data_source)
     
     try:
         with open(path_to_file, 'r') as in_file:
