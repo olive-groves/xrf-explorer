@@ -40,19 +40,19 @@ function selectionUpdated(newSelection: ElementSelection[]) {
   });
 
   // Create and dispose of layers in accordance with the selection.
-  newSelection.forEach((channel) => {
-    const layer = layerGroups.value.elemental.layers.filter(
-      (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
-    )[0];
-
-    if (layer.mesh == undefined && channel.selected) {
-      loadLayer(layer);
-    } else if (layer.mesh != undefined && !channel.selected) {
-      disposeLayer(layer);
-    }
-  });
-
   if (layerGroups.value.elemental != undefined) {
+    newSelection.forEach((channel) => {
+      const layer = layerGroups.value.elemental.layers.filter(
+        (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
+      )[0];
+
+      if (layer.mesh == undefined && channel.selected) {
+        loadLayer(layer);
+      } else if (layer.mesh != undefined && !channel.selected) {
+        disposeLayer(layer);
+      }
+    });
+
     updateDataTexture(layerGroups.value.elemental);
   }
 }

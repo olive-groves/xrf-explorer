@@ -39,7 +39,7 @@ async function fetchAverages(url: string) {
       .json()
       .then((data) => {
         dataAverages = data;
-        console.info("Successfully fetched averages");
+        console.debug("Successfully fetched averages");
         return true;
       })
       .catch((e) => {
@@ -51,7 +51,7 @@ async function fetchAverages(url: string) {
     fetchSuccessful = await response
       .text()
       .then((data) => {
-        console.info(data);
+        console.debug(data);
         return false;
       })
       .catch((e) => {

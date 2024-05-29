@@ -110,7 +110,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
     //modify visibility based on checkbox status
     updateGlobal();
   } catch (e) {
-    console.log("Error Getting Global Average Spectrum", e);
+    console.error("Error getting global average spectrum", e);
   }
 }
 
@@ -165,7 +165,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
     //modify visibility based on checkbox status
     updateSelection();
   } catch (e) {
-    console.log("Error Getting Selection Average Spectrum", e);
+    console.error("Error getting selection average spectrum", e);
   }
 }
 
@@ -233,7 +233,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
           .attr("y2", 430);
       });
     } catch (e) {
-      console.log("Error Getting Element theoretical Spectrum", e);
+      console.error("Error getting element theoretical spectrum", e);
     }
   } else {
     //remove previous element line
@@ -276,7 +276,7 @@ async function getElements() {
       },
     );
   } catch (e) {
-    console.log("Error Getting Elements", e);
+    console.error("Error getting elements", e);
   }
 }
 

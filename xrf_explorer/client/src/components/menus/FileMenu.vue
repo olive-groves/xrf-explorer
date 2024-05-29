@@ -19,6 +19,7 @@ const sources = computed(() => {
  */
 async function loadWorkspace(source: string) {
   appState.workspace = await (await fetch(`${config.api.endpoint}/workspace/${source}`)).json();
+  console.info(`Loading workspace ${source}`);
 }
 </script>
 
