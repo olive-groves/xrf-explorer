@@ -21,7 +21,7 @@ export type Selection = {
    * The selection made in the color segmentation window.
    * Will be null if there is no active color segmentation selection.
    */
-  colorSegmentation: ColorSegmentationSelection | null;
+  colorSegmentation: ColorSegmentationSelection[] | null;
   /**
    * The selection made in the dimensionality reduction window.
    * Will be null if there is no active dimensionality reduction selection.
@@ -90,7 +90,26 @@ export type ElementSelection = {
 /**
  * Describes the selected color segmentation segments.
  */
-export type ColorSegmentationSelection = null;
+export type ColorSegmentationSelection = {
+  /**
+   * The element corresponding to the clusters.
+   * If no element, then element should be one 
+   * more than the highest element index.
+   */
+  element: number;
+  /**
+   * The channel of the cluster.
+   */
+  channel: number;
+  /**
+   * Checks if elemental channel is selected.
+   */
+  selected: boolean;
+  /**
+   * The color associated with the element.
+   */
+  color: string;
+};
 
 /**
  * Describes the dimensionality reduction selection.
