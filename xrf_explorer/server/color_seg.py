@@ -13,7 +13,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
-                         threshold: int = 10) -> tuple(np.ndarray, np.ndarray):
+                         threshold: int = 10) -> tuple[np.ndarray, np.ndarray]:
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
@@ -68,7 +68,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
-                               nr_of_attempts: int = 10, k: int = 30) -> tuple(np.ndarray, np.ndarray):
+                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -112,7 +112,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 2) -> tuple(np.ndarray, np.ndarray):
+                                         nr_of_attempts: int = 10, k: int = 2) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
