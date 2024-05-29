@@ -207,7 +207,7 @@ def register_image_to_image(
 
 
 def register_image_to_data_cube(
-    path_data_cube: str, path_image_register: str, path_result_registered_image
+    path_data_cube: str, path_image_register: str, path_result_registered_image: str
 ) -> bool:
     """
     Registers an image (given by the path path_image_register) to align with the dimensions of the data cube (given by the path path_data_cube).
