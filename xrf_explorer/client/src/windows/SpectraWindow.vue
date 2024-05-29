@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
-import { appState } from "@/lib/appState";
 
 import * as d3 from "d3";
+import { datasource } from "@/lib/appState";
 
 const spectraChart = ref(null);
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
-const dataSource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 const low = 50;
@@ -77,7 +76,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
   try {
     //make api call
     const response = await fetch(
-      `${url}/${dataSource}/get_average_data?` +
+      `${url}/${datasource.value}/get_average_data?` +
         new URLSearchParams({
           low: low as unknown as string,
           high: high as unknown as string,
@@ -128,7 +127,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
   try {
     //make api call
     const response = await fetch(
-      `${url}/${dataSource}/get_selection_spectrum?` +
+      `${url}/${datasource.value}/get_selection_spectrum?` +
         new URLSearchParams({
           pixels: pixels as unknown as string,
           low: low as unknown as string,
@@ -256,7 +255,7 @@ const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(`${url}/${dataSource}/element_names?`, {
+    const response = await fetch(`${url}/${datasource.value}/element_names?`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

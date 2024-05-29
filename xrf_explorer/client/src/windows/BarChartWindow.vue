@@ -2,11 +2,10 @@
 import { inject, ref } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
-import { appState } from "@/lib/appState";
 import * as d3 from "d3";
+import { datasource } from "@/lib/appState";
 
 const barchart = ref(null);
-const dataSource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 
 type Element = {
@@ -25,7 +24,7 @@ let dataAverages: Element[];
  */
 async function fetchAverages(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/${dataSource}/element_averages`, {
+  const response: Response = await fetch(`${url}/${datasource.value}/element_averages`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

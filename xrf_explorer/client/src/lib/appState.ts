@@ -1,4 +1,4 @@
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import { WorkspaceConfig } from "./workspace";
 import { Selection } from "./selection";
 
@@ -15,6 +15,13 @@ export const appState = reactive<AppState>({
     dimensionalityReduction: null,
   },
 });
+
+/**
+ * Some useful variables directly computed from appState.
+ * Readonly, for writing you need to directly modify appState.
+ */
+export const datasource = computed(() => appState.workspace?.name ?? "");
+export const elements = computed(() => appState.workspace?.elementalChannels ?? []);
 
 /**
  * Type describing the state of the client.
