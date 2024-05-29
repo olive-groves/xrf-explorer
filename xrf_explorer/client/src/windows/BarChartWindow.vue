@@ -6,7 +6,7 @@ import { appState } from "@/lib/app_state";
 import * as d3 from "d3";
 
 const barchart = ref(null);
-const datasource = appState.workspace?.name;
+const dataSource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 
 type Element = {
@@ -26,10 +26,7 @@ let dataAverages: Element[];
 async function fetchAverages(url: string) {
   // Make API call
   const response: Response = await fetch(
-    `${url}/element_averages?` +
-      new URLSearchParams({
-        dataSource: datasource as unknown as string,
-      }),
+    `${url}/${dataSource}/element_averages`,
     {
       method: "GET",
       headers: {

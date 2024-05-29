@@ -124,16 +124,15 @@ def upload_file_chunk():
     return "Ok"
 
 
-@app.route("/api/element_averages")
-def list_element_averages():
+@app.route("/api/<data_source>/element_averages")
+def list_element_averages(data_source):
     """List the average amount per element accross the whole painting.
     
-    :request args: **dataSource** - the name of the current datasource loaded on the client
+    :param data_source: data_source to get the element averages from
     :return: json list of pairs with the element name and corresponding average value
     """
     
-    datasource_name = request.args.get('dataSource')
-    path = get_elemental_cube_path(datasource_name)
+    path = get_elemental_cube_path(data_source)
     
     composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
@@ -143,16 +142,14 @@ def list_element_averages():
         return "Error occurred while listing element averages", 500
 
 
-@app.route("/api/element_names")
-def list_element_names():
+@app.route("/api/<data_source>/element_names")
+def list_element_names(data_source):
     """List the name of elements present in the painting.
     
-    :request args: **dataSource** - the name of the current datasource loaded on the client
+    :param data_source: data_source to get the element names from
     :return: json list of elements
     """
-    
-    datasource_name = request.args.get('dataSource')
-    path = get_elemental_cube_path(datasource_name)
+    path = get_elemental_cube_path(data_source)
 
     names: list[str] = get_short_element_names(path)
     try:
@@ -213,10 +210,11 @@ def get_dr_overlay():
     return send_file(abspath(image_path), mimetype='image/png')
 
     
-@app.route('/api/get_average_data', methods=['GET'])
-def get_average_data():
+@app.route('/api/<data_source>/get_average_data', methods=['GET'])
+def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
+    :param data_source: data_source to get the average raw data from
     :request args: 
         **dataSource** - the name of the current datasource loaded on the client
         **low** - the spectrum lower boundary \n 
@@ -227,7 +225,6 @@ def get_average_data():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    data_source = request.args.get('dataSource')
     
     datacube = get_raw_data(data_source)
 
@@ -262,10 +259,11 @@ def get_element_sectra():
         
     return response
 
-@app.route('/api/get_selection_spectrum', methods=['GET'])
-def get_selection_sectra():
+@app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
+def get_selection_sectra(data_source):
     """Get the average spectrum of the selected pixels.
 
+    :param data_source: data_source to get the raw selection average from
     :request args:
         **dataSource** - the name of the current datasource loaded on the client 
         **low** - the spectrum lower boundary \n
@@ -279,7 +277,6 @@ def get_selection_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    data_source = request.args.get('dataSource')
     
     datacube = get_raw_data(data_source)
     

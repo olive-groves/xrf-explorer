@@ -10,7 +10,7 @@ let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<null, unknown, null, undefined>;
 
-const datasource = appState.workspace?.name;
+const dataSource = appState.workspace?.name;
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 const low = 50;
@@ -77,9 +77,8 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
   try {
     //make api call
     const response = await fetch(
-      `${url}/get_average_data?` +
+      `${url}/${dataSource}/get_average_data?` +
         new URLSearchParams({
-          dataSource: datasource as unknown as string,
           low: low as unknown as string,
           high: high as unknown as string,
           binSize: binSize as unknown as string,
@@ -129,9 +128,8 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
   try {
     //make api call
     const response = await fetch(
-      `${url}/get_selection_spectrum?` +
+      `${url}/${dataSource}/get_selection_spectrum?` +
         new URLSearchParams({
-          dataSource: datasource as unknown as string,
           pixels: pixels as unknown as string,
           low: low as unknown as string,
           high: high as unknown as string,
@@ -259,10 +257,7 @@ async function getElements() {
   try {
     //make api call
     const response = await fetch(
-      `${url}/element_names?` +
-        new URLSearchParams({
-          dataSource: datasource as unknown as string,
-        }),
+      `${url}/${dataSource}/element_names?`,
       {
         method: "GET",
         headers: {

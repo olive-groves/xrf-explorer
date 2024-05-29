@@ -1,4 +1,4 @@
-#module responsible for giving the different paths corresponding the the files of a data source
+#module responsible for giving the different paths corresponding to the files of a data source
 
 import logging
 import json
