@@ -363,7 +363,7 @@ def get_element_color_cluster_bitmask(data_source: str):
     :return json containing the combined bitmasks of the color clusters for each element.
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(data_source, TEMP_RGB_IMAGE)
+    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
     image: ndarray = get_image(path_to_image)
     data_cube_path: str = get_elemental_cube_path(data_source)
 
