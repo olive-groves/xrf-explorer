@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 
@@ -27,15 +27,15 @@ const properties: Property[] = [
   { name: "Brightness", min: -1, max: 1, propertyName: "brightnessProperty", nameRef: "brightness" },
 ];
 
+const groupNames = computed(() => Object.keys(layerGroups.value));
+
 /**
  * Loads the layer groups into the LayerSystem.
  */
 watch(
-  layerGroups,
+  groupNames,
   (newGroups) => {
-    groups.value = Object.keys(newGroups)
-      .map((key) => newGroups[key])
-      .sort((a, b) => a.index - b.index);
+    groups.value = newGroups.map((name) => layerGroups.value[name]).sort((a, b) => a.index - b.index);
   },
   { immediate: true },
 );
@@ -99,7 +99,7 @@ function checkedOutsideLens(group: LayerGroup) {
           <EyeOff v-else />
         </Button>
       </div>
-      <!-- SLIDERS FOR OPACITY, CONTRAST, AND SATURATION -->
+      <!-- SLIDERS FOR ALL PROPERTIES -->
       <div v-if="group.visible" class="space-y-2">
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />

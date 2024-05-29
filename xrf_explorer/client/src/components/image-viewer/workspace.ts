@@ -16,12 +16,12 @@ watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
  */
 function loadWorkspace(workspace: WorkspaceConfig) {
   // Unload existing workspace
-  console.info("Unloading existing workspace from layer system...");
+  console.info("Unloading existing workspace from layer system");
   layerGroups.value = {};
   layers.value.forEach(disposeLayer);
   layers.value = [];
 
-  console.info("Loading new workspace into layer system...");
+  console.info("Loading new workspace into layer system");
 
   // Create base image layer
   createBaseLayer(workspace.baseImage);
