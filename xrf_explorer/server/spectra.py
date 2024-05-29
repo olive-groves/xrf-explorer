@@ -16,12 +16,12 @@ def get_raw_data_path(data_source: str) -> str:
     :param datasource: Name of the datasource.
     :return: Path string pointing to the raw data location.
     """
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source, "workspace.json")
+    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, 'r') as workspace:
             data_json = workspace.read()
             data = json.loads(data_json)
-            raw_data_name = data["spectralCubes"][0]["dataLocation"]
+            raw_data_name = data["spectralCubes"][0]["rawLocation"]
     except OSError as err:
         LOG.error("Error while getting raw file location: {%s}", err)
         return 400
@@ -35,7 +35,7 @@ def get_rpl_path(data_source: str) -> str:
     :param datasource: Name of the datasource.
     :return: Path string pointing to the rpl file location.
     """
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source, "workspace.json")
+    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, 'r') as workspace:
             data_json = workspace.read()

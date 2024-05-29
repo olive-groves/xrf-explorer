@@ -83,7 +83,7 @@ def get_data_cube_path(data_source: str) -> str:
     :param datasource: Name of the datasource.
     :return: Path string pointing to the datacube location.
     """
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source, "workspace.json")
+    data_source_dir = join(Path(BACKEND_CONFIG["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, 'r') as workspace:
             data_json = workspace.read()
