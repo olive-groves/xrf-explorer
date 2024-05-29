@@ -9,7 +9,8 @@ sys.path.append('.')
 
 from xrf_explorer.server.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
-    get_elemental_clusters_using_k_means, combine_bitmasks)
+    get_elemental_clusters_using_k_means, combine_bitmasks
+)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -23,11 +24,11 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        small_image: np.array = get_image(self.BW_IMAGE_PATH)
+        small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
 
         # The default number of clusters is 30, which is what we use here. The image only has 2 colors, hence 15
         # clusters for each color.
-        expected_result: np.array = np.array([
+        expected_result: np.ndarray = np.array([
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
             [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
@@ -36,7 +37,7 @@ class TestColorSegmentation:
         ])
 
         # Execute
-        _, result, _ = get_clusters_using_k_means(small_image)
+        result, _ = get_clusters_using_k_means(small_image)
 
         # Verify
         assert len(expected_result) == len(result)
@@ -49,28 +50,28 @@ class TestColorSegmentation:
         caplog.set_level(logging.INFO)
 
         # Set-up
-        small_image: np.array = get_image(self.BW_IMAGE_PATH)
+        small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
 
         # Expected result is a list of two clusters, one for each color of the test image.
-        expected_result: np.array = np.array([
+        expected_result: np.ndarray = np.array([
             [0, 0, 0],
             [255, 255, 255]
         ])
-        white_cluster: np.array = np.zeros((100, 100), dtype=bool)
+        white_cluster: np.ndarray = np.zeros((100, 100), dtype=bool)
         white_cluster[:, 50:] = True
-        black_cluster: np.array = np.zeros((100, 100), dtype=bool)
+        black_cluster: np.ndarray = np.zeros((100, 100), dtype=bool)
         black_cluster[:, :50] = True
 
         # Execute
-        _, colors, bitmask = get_clusters_using_k_means(small_image, 100)
-        newColors, newBitmasks = merge_similar_colors(colors, bitmask)
+        colors, bitmask = get_clusters_using_k_means(small_image, 100)
+        new_colors, new_bitmasks = merge_similar_colors(colors, bitmask)
 
         # Verify
-        assert len(expected_result) == len(newColors)
-        assert np.array_equal(newColors, expected_result)
-        assert len(newColors) == len(newBitmasks)
-        assert np.array_equal(white_cluster, newBitmasks[1])
-        assert np.array_equal(black_cluster, newBitmasks[0])
+        assert len(expected_result) == len(new_colors)
+        assert np.array_equal(new_colors, expected_result)
+        assert len(new_colors) == len(new_bitmasks)
+        assert np.array_equal(white_cluster, new_bitmasks[1])
+        assert np.array_equal(black_cluster, new_bitmasks[0])
 
         # Verify log message
         assert "Similar clusters merged successfully." in caplog.text
@@ -80,7 +81,7 @@ class TestColorSegmentation:
         fake_path: str = join(RESOURCES_PATH, Path("fake"))
 
         # Execute
-        result: np.array = get_image(fake_path)
+        result: np.ndarray = get_image(fake_path)
 
         # Verify
         assert np.array_equal(result, np.empty(0))
@@ -91,16 +92,16 @@ class TestColorSegmentation:
 
     def test_combined_bitmasks(self):
         # Set-up
-        bitmask1 = np.array([[False, False, True], [True, False, False]], dtype=bool)
-        bitmask2 = np.array([[True, False, False], [False, False, True]], dtype=bool)
-        bitmask3 = np.array([[False, True, False], [False, False, False]], dtype=bool)
-        bitmasks = [bitmask1, bitmask2, bitmask3]
-        expected_entries = [[2, 3, 1], [1, 0, 2]]
-        expected_result = np.zeros((2, 3, 3), dtype=np.uint8)
+        bitmask1: np.ndarray = np.ndarray([[False, False, True], [True, False, False]], dtype=bool)
+        bitmask2: np.ndarray = np.ndarray([[True, False, False], [False, False, True]], dtype=bool)
+        bitmask3: np.ndarray = np.ndarray([[False, True, False], [False, False, False]], dtype=bool)
+        bitmasks: np.ndarray = [bitmask1, bitmask2, bitmask3]
+        expected_entries: np.ndarray = [[2, 3, 1], [1, 0, 2]]
+        expected_result: np.ndarray = np.zeros((2, 3, 3), dtype=np.uint8)
         expected_result[:, :, 0] = expected_entries
 
         # Execute
-        result = combine_bitmasks(bitmasks)
+        result: np.ndarray = combine_bitmasks(bitmasks)
 
         # Verify
         assert len(expected_result) == len(result)
@@ -109,19 +110,19 @@ class TestColorSegmentation:
     def test_get_elem_clusters_using_k_means(self):
         # Set-up
         small_image: str = get_image(self.BW_IMAGE_PATH)
-        expected_result0 = np.array([])
-        expected_result1 = np.array([
+        expected_result0: np.ndarray = np.ndarray([])
+        expected_result1: np.ndarray = np.ndarray([
             [0, 0, 0],
             [255, 255, 255]
         ])
-        elem_threshold = 0.1
+        elem_threshold: int = 0.1
 
         # Execute
-        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS, self.CUSTOM_CONFIG_PATH, elem_threshold, 100, 100)
+        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(small_image, self.DATA_CUBE_DMS,
+                                                                  self.CUSTOM_CONFIG_PATH, elem_threshold, 100, 100)
 
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
-
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)

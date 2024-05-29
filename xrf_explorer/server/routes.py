@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
+import numpy as np
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -14,10 +15,14 @@ from xrf_explorer.server.file_system import get_short_element_names, get_element
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
 from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.spectra import *
-from xrf_explorer.server.color_seg import get_image, combine_bitmasks, get_clusters_using_k_means, merge_similar_colors
+from xrf_explorer.server.color_seg import (
+    get_image, combine_bitmasks, get_clusters_using_k_means, 
+    get_elemental_clusters_using_k_means, merge_similar_colors
+)
 
 LOG: logging.Logger = logging.getLogger(__name__)
-BACKEND_CONFIG: dict = load_yml("config/backend.yml")
+CONFIG_PATH: str = 'config/backend.yml'
+BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
 TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
 
@@ -248,11 +253,11 @@ def get_color_clusters():
     :return json containing the ordered list of colors
     """
     # TODO: this should get the RGB image
-    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
+    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], 'image.png')
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = backend_config['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     width = k_means_parameters['image-width']
     height = k_means_parameters['image-height']
 
@@ -279,16 +284,16 @@ def get_element_color_cluster_bitmask():
     :return json containing the combined bitmasks of the color clusters for each element.
     """
     # TODO: this should get the RGB image
-    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], f'{image}.png')
-    image = get_image(path_to_image)
+    path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], 'image.png')
+    image: np.array = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = backend_config['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
 
     # TODO: 'cube.dms' should be cube file name
     clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
                                                              image, 'cube.dms',
-                                                             "config/backend.yml",
+                                                             CONFIG_PATH,
                                                              k_means_parameters['elem_threshold'],
                                                              -1,
                                                              k_means_parameters['nr-attemps'],
