@@ -1,4 +1,5 @@
 import numpy as np
+from os.path import exists, dirname
 import logging
 import csv
 from cv2 import (
@@ -170,12 +171,16 @@ def register_image_to_image(
     image_register = load_image_toregister(path_image_register)
 
     if image_reference is None:
-        raise FileNotFoundError(f"Reference image not found at {path_image_reference}")
+        LOG.error("Reference image could not be loaded")
+        return False
 
     if image_register is None:
-        raise FileNotFoundError(
-            f"Image for registering not found at {path_image_register}"
-        )
+        LOG.error("Image for registering could not be loaded")
+        return False
+
+    if not exists(path_csv_points):
+        LOG.error(f"Control points file could not be found at {path_csv_points}")
+        return False
 
     image_reference_height, image_reference_width = image_reference.shape[:2]
 
@@ -190,6 +195,13 @@ def register_image_to_image(
     image_registered = apply_prespective_transformation(
         image_register_pad, points_source, points_destination
     )
+
+    path_result_dirname = dirname(path_result_registered_image)
+    if not exists(path_result_dirname):
+        LOG.error(
+            f"Registered image could not be saved at {path_result_dirname} because directory does not exist."
+        )
+        return False
 
     return imwrite(path_result_registered_image, image_registered)
 
