@@ -3,6 +3,7 @@
 import { Teleport, ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
+import { appState } from "@/lib/appState";
 
 const props = defineProps<{
   /**
@@ -50,7 +51,6 @@ const content = ref<HTMLElement | null>(null);
 watch(
   content,
   (value, oldValue) => {
-    console.log("Mounted chart", value);
     if (value != null) {
       emit("windowMounted");
     } else if (oldValue != null) {
@@ -63,8 +63,9 @@ watch(
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <div ref="content">
+    <div ref="content" v-if="appState.workspace != undefined">
       <slot />
     </div>
+    <div v-else class="p-2 text-center">No workspace loaded yet.</div>
   </Teleport>
 </template>

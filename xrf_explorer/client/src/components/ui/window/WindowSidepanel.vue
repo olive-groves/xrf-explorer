@@ -390,7 +390,7 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="z-0 -mt-px overflow-hidden"
+            class="z-0 -mt-px overflow-hidden border-t border-border"
             :style="{
               height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
             }"

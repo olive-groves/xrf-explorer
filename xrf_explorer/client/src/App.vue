@@ -22,56 +22,6 @@ const props = defineProps<{
 }>();
 provide("config", props.config);
 console.log("XRF-Explorer client created with configuration: ", props.config);
-
-// Set up a default workspace
-// Temporary: Needs to be moved to the file menu in a later PR
-import { WorkspaceConfig } from "./lib/workspace";
-import { appState } from "./lib/appState";
-const workspace: WorkspaceConfig = {
-  name: "Amandelbloesem",
-  baseImage: {
-    name: "RGB",
-    imageLocation: "base.png",
-    recipeLocation: "",
-  },
-  contextualImages: [
-    {
-      name: "UV",
-      imageLocation: "uv.png",
-      recipeLocation: "recipe_uv.csv",
-    },
-    {
-      name: "Xray",
-      imageLocation: "xray.png",
-      recipeLocation: "recipe_xray.csv",
-    },
-  ],
-  spectralCubes: [
-    {
-      name: "Datacube",
-      rawLocation: "spectral.raw",
-      rplLocation: "spectral.rpl",
-      recipeLocation: "spectral_cube.json",
-    },
-  ],
-  elementalCubes: [
-    {
-      name: "Datacube",
-      fileType: "dms",
-      dataLocation: "elemental.dms",
-      recipeLocation: "spectral_cube.json",
-    },
-  ],
-  elementalChannels: [],
-};
-for (let i = 0; i < 26; i++) {
-  workspace.elementalChannels.push({
-    name: `element_${i}`,
-    channel: i,
-    enabled: true,
-  });
-}
-appState.workspace = workspace;
 </script>
 
 <template>
