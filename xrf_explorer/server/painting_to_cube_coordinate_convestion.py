@@ -1,14 +1,20 @@
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+import json
+from os import getcwd
+from cv2 import imread
+from xrf_explorer.server.file_system.from_dms import (
+    get_elemental_datacube_dimensions_from_dms,
+)
 
 
-def Slicing(name_cube, coord1, coord2):
-    scaled_datacube = get_elemental_data_cube(name_cube)
+def slicing(data_cube, coordinates):
+    coord1, coord2 = coordinates
     x1, y1 = coord1
     x2, y2 = coord2
 
     # Corner case 1: coord dimensions are right: do not surpass elemental cube maximum
     # shape of datacube: (c, h, w)
-    c, h, w = scaled_datacube.shape
+    c, h, w = data_cube.shape
     # if (y1<0) or (y2<0) or (h<y1) or (h<y2) or (x1<0) or (x2<0) or (w<x1) or (w<x2):
     #     return []
 
@@ -18,16 +24,16 @@ def Slicing(name_cube, coord1, coord2):
 
     # We implement the case distinction
     if (x1 < x2) and (y1 < y2):
-        return scaled_datacube[:, y1:y2, x1:x2]
+        return data_cube[:, y1:y2, x1:x2]
 
     elif (x1 < x2) and (y2 < y1):
-        return scaled_datacube[:, y2:y1, x1:x2]
+        return data_cube[:, y2:y1, x1:x2]
 
     elif (x2 < x1) and (y1 < y2):
-        return scaled_datacube[:, y1:y2, x2:x1]
+        return data_cube[:, y1:y2, x2:x1]
 
     else:
-        return scaled_datacube[:, y2:y1, x2:x1]
+        return data_cube[:, y2:y1, x2:x1]
 
 
 def get_cube_coordinates(
@@ -51,3 +57,27 @@ def get_cube_coordinates(
     y_2_new = y_2 * ratio_img_cube_height
 
     return ((x_1_new, y_1_new), (x_2_new, y_2_new))
+
+
+def get_selected_data_cube(
+    data_source_name: str, coordinates: tuple[tuple[int, int], tuple[int, int]]
+):
+    data_source_dir = f"xrf_explorer/server/data/{data_source_name}"
+
+    file = open(f"{data_source_dir}/workspace.json")
+    workspace_json = json.loads(file.read())
+    file.close()
+
+    base_img_name = workspace_json["baseImage"]["location"]
+    cube_name = workspace_json["elementalCubes"][0]["dmsLocation"]
+
+    img_h, img_w, _ = imread(f"{data_source_dir}/{base_img_name}").shape
+    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(
+        f"{data_source_dir}/{cube_name}"
+    )
+
+    data_cube = get_elemental_data_cube(cube_name)
+
+    return slicing(data_cube, coordinates)
+
+    mapped_coordinates = get_cube_coordinates(coordinates, img_w, img_h, cube_w, cube_h)
