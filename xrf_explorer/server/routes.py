@@ -6,10 +6,12 @@ from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
-import numpy as np
+from markupsafe import escape
+from numpy import ndarray
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.dim_reduction.embedding import generate_embedding
@@ -44,6 +46,38 @@ def list_accessible_data_sources():
     except Exception as e:
         LOG.error(f"Failed to serialize files: {str(e)}")
         return "Error occurred while listing data sources", 500
+
+
+@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+def get_workspace(datasource: str):
+    """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
+
+    :param datasource: The name of the data source to get the workspace content for
+    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
+    """
+
+    if request.method == "POST":
+        # Get send json file
+        data: any = request.get_json()
+
+        # Write content to the workspace
+        result: bool = update_workspace(datasource, data)
+        
+        # Check if the write was successful
+        if not result:
+            abort(400)
+        
+        return f"Data written to workspace {escape(datasource)} successfully"
+    else:
+        # Read content from the workspace
+        path: str = get_path_to_workspace(datasource)
+
+        # Check if the workspace exists
+        if not path:
+            abort(404)
+        
+        # Send the json file
+        return send_file(abspath(path), mimetype='application/json')
 
 
 @app.route("/api/create_ds_dir", methods=["POST"])
@@ -285,7 +319,7 @@ def get_element_color_cluster_bitmask():
     """
     # TODO: this should get the RGB image
     path_to_image: Path = Path(BACKEND_CONFIG['uploads-folder'], 'image.png')
-    image: np.array = get_image(path_to_image)
+    image: ndarray = get_image(path_to_image)
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
