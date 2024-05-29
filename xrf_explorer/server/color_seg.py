@@ -23,6 +23,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray, threshold: 
     """
 
     LOG.info("Merging similar clusters.")
+    clusters = [rgb_to_lab(c) for c in clusters]
 
     i: int = 0
     # Iterate over pairs of clusters
@@ -52,7 +53,10 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray, threshold: 
 
     LOG.info("Similar clusters merged successfully.")
 
-    return clusters, bitmasks
+    clusters = [lab_to_rgb(c).tolist() for c in clusters]
+    clusters = [[int(round(v)) for v in c] for c in clusters]
+
+    return np.array(clusters), np.array(bitmasks)
 
 
 def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100, 
@@ -244,7 +248,7 @@ def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
     :return: The RGB color.
     """
 
-    return skimage.color.lab2rgb([lab_color[0] / 255, lab_color[1] / 255, lab_color[2] / 255]) * 255
+    return skimage.color.lab2rgb([lab_color[0], lab_color[1], lab_color[2]]) * 255
 
 
 def rgb_to_hex(r: int, g: int, b: int) -> str:
