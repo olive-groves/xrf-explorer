@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useFetch } from "@vueuse/core";
-import { MenubarItem } from "../ui/menubar";
+import { MenubarItem } from "@/components/ui/menubar";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
 

@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 
 const channels = computed(() => appState.workspace?.elementalChannels);
 
+/**
+ * Watches the elemental channels defined in the workspace.
+ * Upon every change to these elemental channels, the selection is updated to reflect the workspace.
+ */
 watch(
   channels,
   (value) => {

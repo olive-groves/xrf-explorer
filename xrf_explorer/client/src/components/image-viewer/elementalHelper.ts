@@ -26,6 +26,8 @@ function selectionUpdated(newSelection: ElementSelection[]) {
     const start = channel.channel * 4;
     const second = start + width * 4;
 
+    // If channel n is selected, the color at (n, 0) is set to its selected color
+    // and the color at (n, 1) contains the thresholds.
     if (channel.selected) {
       const color = hexToRgb(channel.color);
       data[start + 0] = color[0];
@@ -42,17 +44,21 @@ function selectionUpdated(newSelection: ElementSelection[]) {
   // Create and dispose of layers in accordance with the selection.
   if (layerGroups.value.elemental != undefined) {
     newSelection.forEach((channel) => {
+      // Find the corresponding layer for the element in the selection.
       const layer = layerGroups.value.elemental.layers.filter(
         (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
       )[0];
 
       if (layer.mesh == undefined && channel.selected) {
+        // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
         loadLayer(layer);
       } else if (layer.mesh != undefined && !channel.selected) {
+        // If the layer has a mesh/is loaded, dispose of it from the image viewer if it is no longer selected.
         disposeLayer(layer);
       }
     });
 
+    // Update the data texture in the gpu to reflect possible changes as a result of updating the selection.
     updateDataTexture(layerGroups.value.elemental);
   }
 }
