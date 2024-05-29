@@ -8,10 +8,6 @@ import { LayerGroup, LayerVisibility } from "./types";
 // Makes sure workspace.ts gets loaded
 import "./workspace";
 
-// Makes sure the workspace.ts file gets loaded
-import "./workspace";
-// import "./"
-
 const groups = ref<LayerGroup[]>([]);
 
 // Used for generalizing the code.
