@@ -6,7 +6,6 @@ import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { createElementalLayers } from "./elementalHelper";
-import { createColorClusterLayers } from "./colorClusterHelper";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -36,7 +35,6 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   createElementalLayers(workspace);
 
   // Create color segmentation layers
-  createColorClusterLayers(workspace);
 
   // Create dimensionality reduction layers
 }
