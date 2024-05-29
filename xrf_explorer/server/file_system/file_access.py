@@ -132,8 +132,9 @@ def parse_rpl(path: str) -> dict:
     map = {}
     if info:    
         for line in info:
-            split = line.split("\t") #then split on tab
-            map[split[0].strip()] = split[1].strip() #add tuple to dictionary
+            split = line.split() #split on whitespace
+            if len(split) == 2:
+                map[split[0].strip()] = split[1].strip() #add tuple to dictionary
     else:
         LOG.error("Error while parsing rpl file: file empty")
                
