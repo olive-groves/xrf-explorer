@@ -6,7 +6,4 @@ from .elemental_cube import (
     get_path_to_elemental_cube,
     get_element_averages, to_dms
 )
-from .from_dms import (
-    get_elemental_datacube_dimensions_from_dms
-)
 from .workspace_handler import get_path_to_workspace, update_workspace

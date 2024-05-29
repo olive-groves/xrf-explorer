@@ -3,10 +3,11 @@ import logging
 import cv2
 import numpy as np
 import skimage
-import os
+from os import path, makedirs
 from skimage import color
 
-from xrf_explorer.server.file_system import get_elemental_data_cube, get_elemental_datacube_dimensions_from_dms
+from xrf_explorer.server.file_system import get_elemental_data_cube
+# , get_elemental_datacube_dimensions_from_dms
 from xrf_explorer.server.file_system import get_path_to_elemental_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
     # apply kmeans
-    ret, labels, colors = cv2.kmeans(reshaped_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    ret, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
     # Create bitmasks for each cluster
     bitmasks = []
@@ -125,8 +126,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:
-        data_cube_path = get_path_to_elemental_cube(data_cube_name, config_path)
-        dim = get_elemental_datacube_dimensions_from_dms(data_cube_path)[0:2]
+        dim = (data_cube.shape[2], data_cube.shape[1])
         # Rescale image to match data cube
         image = cv2.resize(image, dim)
     # Otherwise, we set the image and data cube to the given dimension
@@ -160,7 +160,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
         # k cannot be bigger than number of elements
         k = min(k, masked_image.size)
-        _, labels, center = cv2.kmeans(masked_image, k, None, criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+        _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
         print(center)
 
         cluster_bitmasks = []
@@ -221,9 +221,9 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
     """
     try:
         # Ensure the directory exists
-        dir_name = os.path.dirname(full_path)
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name)
+        dir_name = path.dirname(full_path)
+        if not path.exists(dir_name):
+            makedirs(dir_name)
 
         # Save the array as a PNG file using OpenCV
         success = cv2.imwrite(full_path, bitmask)
@@ -279,31 +279,6 @@ def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
     """
 
     return skimage.color.lab2rgb([lab_color[0], lab_color[1], lab_color[2]]) * 255
-
-
-def rgb_to_hex(r: int, g: int, b: int) -> str:
-    """
-    Turns a rgb triple into hex format.
-    :param r: the red value
-    :param g: the green value
-    :param b: the blue value
-    :return: the hex format
-    """
-
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
-
-
-def convert_to_hex(clusters: np.ndarray) -> np.ndarray:
-    """
-    Converts clusters to hex format.
-    :param clusters: the list of clusters in rgb format
-    :return: clusters in hex format
-    """
-
-    hex_clusters: np.ndarray = []
-    for col in clusters:
-        hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
-    return hex_clusters
 
 
 def reshape_image(small_image: np.ndarray) -> np.ndarray:
