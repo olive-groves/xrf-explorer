@@ -8,3 +8,11 @@
 !.gitignore
 !conf.py
 !index.rst
+!components.rst
+!windows.rst
+!bar_chart.rst
+!spectra_chart.rst
+!spectra.png
+!bar.png
+!menu.rst
+!viewer.rst
