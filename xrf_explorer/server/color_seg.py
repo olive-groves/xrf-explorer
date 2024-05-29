@@ -38,9 +38,9 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
             # If two clusters are close, merge them
             if calculate_color_difference(clusters[i], clusters[j]) < threshold:
                 # New cluster is average of the two
-                new_color = (clusters[i] + clusters[j]) / 2
+                new_color: np.ndarray = (clusters[i] + clusters[j]) / 2
                 # New bitmasks is bitwise OR
-                new_bitmask = np.bitwise_or(bitmasks[i], bitmasks[j])
+                new_bitmask: np.ndarray = np.bitwise_or(bitmasks[i], bitmasks[j])
 
                 # Remove old clusters/bitmasks
                 # Note that we remove j first since j > i
@@ -62,9 +62,9 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     clusters = [lab_to_rgb(c).tolist() for c in clusters]
     # when doing rgb_to_lab and then lab_to_rgb the numbers
     # get slightly altered (e.g. 255->254.9), this fixes it
-    clusters = [[int(round(v)) for v in c] for c in clusters]
+    clusters = np.array([[int(round(v)) for v in c] for c in clusters])
 
-    return np.array(clusters), np.array(bitmasks)
+    return clusters, bitmasks
 
 
 def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
@@ -84,7 +84,7 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     cv2.setRNGSeed(0)
 
     # reshape image
-    image = cv2.resize(image, (image_width, image_height))
+    image: np.ndarray = cv2.resize(image, (image_width, image_height))
     reshaped_image: np.ndarray = reshape_image(image)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
@@ -93,12 +93,14 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
     # apply kmeans
-    ret, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    colors: np.ndarray
+    labels: np.ndarray
+    _, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
     # Create bitmasks for each cluster
-    bitmasks = []
+    bitmasks: list[list[bool]] = []
     for i in range(k):
-        mask = (labels == i)
+        mask: np.ndarray = (labels == i)
         mask = mask.reshape(image.shape[:2])
         bitmasks.append(mask)
 
@@ -129,7 +131,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
-    data_cube = get_elemental_data_cube(data_cube_name, config_path)
+    data_cube: np.ndarray = get_elemental_data_cube(data_cube_name, config_path)
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:
@@ -156,8 +158,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
     for elem_index in range(data_cube.shape[0]):
         # Get bitmask of pixels with high element concentration
         # and get respective pixels in the image
-        bitmask = (data_cube[elem_index] >= elem_threshold).astype(bool)
-        masked_image = image[bitmask]
+        bitmask: np.ndarray = (data_cube[elem_index] >= elem_threshold).astype(bool)
+        masked_image: np.ndarray = image[bitmask]
         masked_image = reshape_image(masked_image)
 
         # If empty image, continue (elem. not present)
@@ -168,19 +170,21 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_name: str,
 
         # k cannot be bigger than number of elements
         k = min(k, masked_image.size)
+        labels: np.ndarray
+        center: np.ndarray
         _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
         print(center)
 
-        cluster_bitmasks = []
+        cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
-        subset_indices = np.nonzero(bitmask)
+        subset_indices: np.ndarray = np.nonzero(bitmask)
 
         # For each cluster
         for i in range(k):
             # Indices for cluster "i"
-            cluster_indices = (labels == i)
+            cluster_indices: np.ndarray = (labels == i)
             # Initialize empty mask
-            cluster_mask = np.zeros(image.shape[:2], dtype=bool)
+            cluster_mask: np.ndarray = np.zeros(image.shape[:2], dtype=bool)
             # Set values to true
             cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
             cluster_bitmasks.append(cluster_mask)
@@ -206,7 +210,7 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     height, width = bitmasks[0].shape
 
     # Initialize the resulting image with 3 color channels
-    combined_bitmask = np.zeros((height, width), dtype=np.uint8)
+    combined_bitmask: np.ndarray = np.zeros((height, width), dtype=np.uint8)
 
     # i gives index, bitmask gives object at bitmasks[i]
     for i, bitmask in enumerate(bitmasks):
@@ -214,7 +218,7 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
         # in range [1, i+1]
         combined_bitmask[bitmask] = i + 1
 
-    merged_image = np.zeros((height, width, 3), dtype=np.uint8)
+    merged_image: np.ndarray = np.zeros((height, width, 3), dtype=np.uint8)
     merged_image[:, :, 0] = combined_bitmask
 
     return merged_image
