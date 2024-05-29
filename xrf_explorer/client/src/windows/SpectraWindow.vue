@@ -258,10 +258,12 @@ const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(`${url}/element_names?` +
+    const response = await fetch(
+      `${url}/element_names?` +
         new URLSearchParams({
-          datasource: datasource as unknown as string
-        }), {
+          datasource: datasource as unknown as string,
+        }),
+        {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

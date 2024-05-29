@@ -25,9 +25,10 @@ let dataAverages: Element[];
  */
 async function fetchAverages(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/element_averages?` +
+  const response: Response = await fetch(
+    `${url}/element_averages?` +
         new URLSearchParams({
-          datasource: datasource as unknown as string
+          datasource: datasource as unknown as string,
         }), {
     method: "GET",
     headers: {

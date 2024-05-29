@@ -167,7 +167,7 @@ def get_elemental_map(element: int, name_cube: str, config_path: str = "config/b
 def get_element_names(path: str, config_path: str = "config/backend.yml") -> list[str]:
     """Get the names of the elements stored in the elemental data cube.
     
-    :param name_cube: Name of the elemental data cube.
+    :param path: path to the elemental data cube.
     :param config_path: Path to the backend config file.
     :return: List of the names of the elements. Empty list if error occurred.
     """
