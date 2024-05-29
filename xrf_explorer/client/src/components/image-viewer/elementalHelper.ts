@@ -101,7 +101,6 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     });
 
   layerGroups.value.elemental = {
-    type: "elemental",
     name: "Elemental maps",
     description: "",
     layers: layers,

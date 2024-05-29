@@ -47,7 +47,6 @@ function createBaseLayer(image: ContextualImage) {
   const layer = createLayer(`base_${snakeCase(image.name)}`, image);
 
   layerGroups.value.base = {
-    type: "base",
     name: image.name,
     description: "Base image",
     layers: [layer],
@@ -73,7 +72,6 @@ function createContextualLayer(image: ContextualImage) {
   const layer = createLayer(id, image);
 
   const layerGroup: LayerGroup = {
-    type: "contextual",
     name: image.name,
     description: "Contextual image",
     layers: [layer],
