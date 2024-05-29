@@ -22,9 +22,6 @@ from xrf_explorer.server.spectra import *
 LOG: logging.Logger = logging.getLogger(__name__)
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
-#TEMP_ELEMENTAL_CUBE: str = '196_1989_M6_elemental_datacube_1069_1187_rotated_inverted.dms'
-
-
 @app.route("/api")
 def api():
     return "this is where the API is hosted"
@@ -159,14 +156,14 @@ def upload_file_chunk():
 
 
 @app.route("/api/<data_source>/element_averages")
-def list_element_averages(data_source):
+def list_element_averages(data_source: str):
     """List the average amount per element accross the whole painting.
     
     :param data_source: data_source to get the element averages from
     :return: json list of pairs with the element name and corresponding average value
     """
     
-    path = get_elemental_cube_path(data_source)
+    path: str = get_elemental_cube_path(data_source)
     
     composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
@@ -177,13 +174,13 @@ def list_element_averages(data_source):
 
 
 @app.route("/api/<data_source>/element_names")
-def list_element_names(data_source):
+def list_element_names(data_source: str):
     """List the name of elements present in the painting.
     
     :param data_source: data_source to get the element names from
     :return: json list of elements
     """
-    path = get_elemental_cube_path(data_source)
+    path: str = get_elemental_cube_path(data_source)
 
     names: list[str] = get_short_element_names(path)
     try:
@@ -258,12 +255,12 @@ def get_average_data(data_source):
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data(data_source)
+    datacube: np.ndarray = get_raw_data(data_source)
 
     if datacube.size == 0:
         return "Error occurred while loading data", 404
 
-    average_values = get_average_global(datacube, low, high, bin_size)
+    average_values: list = get_average_global(datacube, low, high, bin_size)
     response = json.dumps(average_values)
     
     return response
@@ -280,13 +277,13 @@ def get_element_sectra():
         **excitation** - excitation energy
     :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
-    element = request.args.get('element')
+    element: str = request.args.get('element')
     excitation_energy_keV = int(request.args.get('excitation'))
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    response = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
+    response: list = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
     response = json.dumps(response)
         
     return response
@@ -303,14 +300,14 @@ def get_selection_sectra(data_source):
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
     #selection to be retrieived from seletion tool 
-    pixels = []
+    pixels: list[tuple[int, int]] = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
     
-    datacube = get_raw_data(data_source)
+    datacube: list = get_raw_data(data_source)
     
-    result = get_average_selection(datacube, pixels, low, high, bin_size)
+    result: list = get_average_selection(datacube, pixels, low, high, bin_size)
     
     response = json.dumps(result)
     print("send response")
