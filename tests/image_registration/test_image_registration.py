@@ -8,8 +8,8 @@ from xrf_explorer.server.image_register.register_image import (
 
 
 class TestImageRegistration:
-    PATH_IMAGE_REFERENCE = "tests/resources/image_registration/196_1989_RGB.tif"
-    PATH_IMAGE_REGISTER = "tests/resources/image_registration/196_1989_RGB.tif"
+    PATH_IMAGE_REFERENCE = "tests/resources/image_registration/image.png"
+    PATH_IMAGE_REGISTER = "tests/resources/image_registration/image.png"
     PATH_CUBE = "tests/resources/image_registration/cube.dms"
     PATH_CONTROL_POINTS = "tests/resources/image_registration/control_points.csv"
     PATH_RESULT = "tests/resources/image_registration/result.tif"
