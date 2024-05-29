@@ -22,8 +22,8 @@ RESOURCES_PATH: Path = Path('tests', 'resources')
 class TestElementalData:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
 
-    DATA_CUBE_DMS: str = '../resources/file_system/test_elemental_data/test.dms'
-    DATA_CUBE_CSV: str = '../resources/file_system/test_elemental_data/test.csv'
+    DATA_CUBE_DMS: str = 'xrf-explorer/tests/resources/file_system/test_elemental_data/test.dms'
+    DATA_CUBE_CSV: str = 'xrf-explorer/tests/resources/file_system/test_elemental_data/test.csv'
     NAME_CUBE_FROM_CSV: str = 'cube_from_csv'
     NON_EXISTING_CUBE: str = 'non-existing.dms'
 
