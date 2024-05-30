@@ -7,22 +7,15 @@ import PIL
 import numpy as np
 from PIL import ImageChops
 from PIL.Image import Image
-from cv2 import imread
 
 sys.path.append('.')
 
 from xrf_explorer.server.file_system.contextual_images import get_contextual_image, get_contextual_image_path, \
     get_contextual_image_size
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
-
-
-def are_images_identical(image1: Image, image2: Image) -> bool:
-    # Compare the images.
-    return np.sum(np.array(ImageChops.difference(image1, image2).getdata())) == 0
-
 
 class TestContextualImages:
+    RESOURCES_PATH: Path = Path('tests', 'resources')
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path("configs", "contextual-images.yml"))
     TEST_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "test.png")))
     INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "invalid.png")))
@@ -65,7 +58,8 @@ class TestContextualImages:
         result = get_contextual_image(self.TEST_IMAGE_PATH)
 
         # Verify
-        assert are_images_identical(correct, result)
+        # Compare the images.
+        assert np.sum(np.array(ImageChops.difference(correct, result).getdata())) == 0
 
     def test_get_contextual_image_invalid(self, caplog):
         caplog.set_level(logging.INFO)
