@@ -6,11 +6,10 @@ import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem } from "@/comp
   <MenubarMenu>
     <MenubarTrigger> Export </MenubarTrigger>
     <MenubarContent>
-      <MenubarItem> Main viewer image</MenubarItem>
-      <MenubarItem> Elemental composition visualization</MenubarItem>
-      <MenubarItem> Spectral visualization </MenubarItem>
-      <MenubarItem> Dimensionality reduction visualization</MenubarItem>
-      <MenubarItem> Context visualization </MenubarItem>
+      <MenubarItem> Main viewer </MenubarItem>
+      <MenubarItem> Elemental composition </MenubarItem>
+      <MenubarItem> Spectrum </MenubarItem>
+      <MenubarItem> Dimensionality reduction </MenubarItem>
     </MenubarContent>
   </MenubarMenu>
 </template>
