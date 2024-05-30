@@ -154,7 +154,7 @@ async function showChart() {
 </script>
 
 <template>
-  <Window title="Bar Chart Window" @window-mounted="showChart" opened location="right">
+  <Window title="Elemental decomposition" @window-mounted="showChart" location="right">
     <AspectRatio :ratio="4 / 3">
       <svg ref="barchart"></svg>
     </AspectRatio>
