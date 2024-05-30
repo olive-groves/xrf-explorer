@@ -5,6 +5,8 @@ import { WindowPortalTarget } from ".";
 import { ChevronRight } from "lucide-vue-next";
 import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
+import { BaseContextMenu } from "@/components/menus";
+import { ContextMenuRadioGroup, ContextMenuRadioItem } from "../context-menu";
 
 const props = defineProps<{
   /**
@@ -366,33 +368,48 @@ function handleDragMovement(event: MouseEvent) {
             'transition-none': disableAnimation,
           }"
         >
-          <div
-            @click="toggleTabSize(id)"
-            class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
-          >
-            <ChevronRight
-              class="size-5 min-w-5 duration-100"
-              :class="{
-                'rotate-90': !state[id].minimized,
-              }"
-            />
-            <div class="font-bold">
-              {{ state[id].title }}
+          <BaseContextMenu>
+            <div
+              @click="toggleTabSize(id)"
+              class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
+            >
+              <ChevronRight
+                class="size-5 min-w-5 duration-100"
+                :class="{
+                  'rotate-90': !state[id].minimized,
+                }"
+              />
+              <div class="font-bold">
+                {{ state[id].title }}
+              </div>
             </div>
-          </div>
-          <div
-            class="z-0 -mt-px overflow-hidden border-t border-border"
-            :style="{
-              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
-            }"
-          >
-            <WindowPortalTarget
-              ref="contentRefs"
-              :window-id="id"
-              @content-height="(entry) => onContentResize(id, entry)"
-              :area-height="state[id].height - headerSize"
-            />
-          </div>
+            <div
+              class="z-0 -mt-px overflow-hidden border-t border-border"
+              :style="{
+                height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
+              }"
+            >
+              <WindowPortalTarget
+                ref="contentRefs"
+                :window-id="id"
+                @content-height="(entry) => onContentResize(id, entry)"
+                :area-height="state[id].height - headerSize"
+              />
+            </div>
+            <template #menu>
+              <ContextMenuRadioGroup :model-value="windowState[id].opened ? windowState[id].location : 'closed'">
+                <ContextMenuRadioItem value="closed" @click="windowState[id].opened = false">
+                  Closed
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="left" @click="windowState[id].location = 'left'">
+                  Left sidepanel
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="right" @click="windowState[id].location = 'right'">
+                  Right sidepanel
+                </ContextMenuRadioItem>
+              </ContextMenuRadioGroup>
+            </template>
+          </BaseContextMenu>
         </div>
         <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
           <div class="mt-[calc(0.25rem-1px)] h-px bg-border" />
