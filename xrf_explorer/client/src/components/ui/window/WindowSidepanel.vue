@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-vue-next";
 import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
 import { BaseContextMenu } from "@/components/menus";
-import { ContextMenuRadioGroup, ContextMenuRadioItem } from "../context-menu";
+import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
 
 const props = defineProps<{
   /**
@@ -407,6 +407,10 @@ function handleDragMovement(event: MouseEvent) {
                 <ContextMenuRadioItem value="right" @click="windowState[id].location = 'right'">
                   Right sidepanel
                 </ContextMenuRadioItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem @click="() => toggleTabSize(id)">
+                  {{ state[id].minimized ? "Maximize" : "Minimize" }} window
+                </ContextMenuItem>
               </ContextMenuRadioGroup>
             </template>
           </BaseContextMenu>
