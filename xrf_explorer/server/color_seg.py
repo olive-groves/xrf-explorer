@@ -13,7 +13,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
-                         threshold: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                         threshold: int = 3) -> tuple[np.ndarray, np.ndarray]:
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
@@ -311,6 +311,7 @@ def get_image(image_file_path: str) -> np.ndarray:
     """
 
     raw_image: np.ndarray = cv2.imread(image_file_path)
+    raw_image: np.ndarray = cv2.cvtColor(raw_image,cv2.COLOR_BGR2RGB)
     if raw_image is None:
         LOG.error(f"The path '{image_file_path}' is not a valid file path.")
         return np.empty(0)

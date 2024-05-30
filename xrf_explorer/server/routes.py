@@ -8,6 +8,7 @@ from os import mkdir
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
+from typing import List
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -397,8 +398,8 @@ def get_element_color_cluster(data_source: str):
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters['elem_threshold'])
-    nr_attempts: int = int(k_means_parameters['nr_attempts'])
+    elem_threshold: float = float(k_means_parameters['elem-threshold'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
@@ -408,15 +409,15 @@ def get_element_color_cluster(data_source: str):
                                                              image, data_cube_path, elem_threshold, -1, nr_attempts, k)
 
     number_elem: int = len(colors_per_elem)
-    color_data: list[str] = []
+    color_data: list[list[str]] = []
     for i in range(number_elem):
         # Merge similar clusters
         colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
-        color_data.append(colors_per_elem[i])
+        color_data.append(convert_to_hex(colors_per_elem[i]))  # Convert to list
 
     response = json.dumps(color_data)
 
-    return (response)
+    return response
 
 @app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
