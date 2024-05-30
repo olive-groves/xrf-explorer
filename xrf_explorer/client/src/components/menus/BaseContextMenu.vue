@@ -6,6 +6,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { resetWindow } from "@/lib/utils";
 import { computed, useSlots } from "vue";
 
 /**
@@ -33,7 +34,14 @@ const hasMenuSlot = computed(() => {
       <slot />
     </ContextMenuTrigger>
     <ContextMenuContent>
-      <ContextMenuItem> Reload </ContextMenuItem>
+      <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
+        <ContextMenuItem> Github </ContextMenuItem>
+      </a>
+      <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
+        <ContextMenuItem> Documentation </ContextMenuItem>
+      </a>
+      <ContextMenuSeparator />
+      <ContextMenuItem @click="resetWindow"> Reset client </ContextMenuItem>
       <ContextMenuSeparator v-if="hasMenuSlot" />
       <slot name="menu" />
     </ContextMenuContent>
