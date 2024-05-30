@@ -11,9 +11,9 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_contextual_image_path(data_source: str, name: str, config_path: str = "config/backend.yml") -> str:
+def get_contextual_image_path(data_source: str, name: str, config_path: str = "config/backend.yml") -> str | None:
     """
-    Returns the path of the requested contextual image. If no file is found, it will return the empty string. This will
+    Returns the path of the requested contextual image. If no file is found, it will return None. This will
 also happen if the config file is empty.
     :param config_path: The path to the config file.
     :param data_source: The data source to fetch the image from.
@@ -28,7 +28,7 @@ contextual image.
     backend_config: dict = load_yml(config_path)
     if not backend_config:
         LOG.error("Config file is empty.")
-        return ""
+        return None
 
     data_source_dir = join(Path(backend_config["uploads-folder"]), data_source)
     workspace_path = join(data_source_dir, "workspace.json")
@@ -45,7 +45,7 @@ contextual image.
     except OSError as err:
         LOG.error("Error while getting elemental cube name: %s", err)
 
-    return ""
+    return None
 
 
 def get_contextual_image(image_path: str) -> Image | None:

@@ -1,124 +1,116 @@
 import logging
-import os.path
 import sys
-from os.path import join, normpath
+from os.path import join, normpath, abspath
 from pathlib import Path
 
+import PIL
 import numpy as np
+from PIL import ImageChops
+from PIL.Image import Image
 from cv2 import imread
 
 sys.path.append('.')
 
-from xrf_explorer.server.contextual_images import set_contextual_image, get_contextual_image
+from xrf_explorer.server.file_system.contextual_images import get_contextual_image, get_contextual_image_path, \
+    get_contextual_image_size
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
 
-def are_images_identical(file_path1: str, file_path2: str):
-    img1: np.array = imread(file_path1)
-    img2: np.array = imread(file_path2)
-
-    # Check if images are of the same shape, if not, return False.
-    if img1.shape != img2.shape:
-        return False
-
+def are_images_identical(image1: Image, image2: Image) -> bool:
     # Compare the images.
-    return np.array_equal(img1, img2)
+    return np.sum(np.array(ImageChops.difference(image1, image2).getdata())) == 0
 
 
 class TestContextualImages:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path("configs", "contextual-images.yml"))
-    TEST_IMAGE_PATH: str = join(RESOURCES_PATH, Path('contextual_images', 'test.png'))
-    INVALID_FILE_TYPE_PATH: str = join(RESOURCES_PATH, Path("contextual_images", "invalid_file_type.txt"))
-    FAKE_FILE_PATH: str = join(RESOURCES_PATH, Path("contextual_images", "fake_path.png"))
+    TEST_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "test.png")))
+    INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "invalid.png")))
+    NONEXISTENT_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "nonexistent.png")))
 
-    def test_set_contextual_image(self, caplog):
+    def test_get_contextual_image_path_base(self, caplog):
         caplog.set_level(logging.INFO)
 
-        # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.png"))
-
         # Execute
-        set_contextual_image(self.TEST_IMAGE_PATH, self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image_path("painting", "TEST", self.CUSTOM_CONFIG_PATH)
 
         # Verify
-        assert os.path.exists(image_path)  # Verify that the file exists.
-        assert are_images_identical(image_path, self.TEST_IMAGE_PATH)  # Check if images are the same.
+        assert result == abspath(self.TEST_IMAGE_PATH)
 
-        # Verify log message
-        assert "Contextual image saved successfully." in caplog.text
-
-    def test_invalid_file_type_set(self, caplog):
-
-        # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.txt"))
+    def test_get_contextual_image_path_contextual(self, caplog):
+        caplog.set_level(logging.INFO)
 
         # Execute
-        set_contextual_image(self.INVALID_FILE_TYPE_PATH, self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image_path("painting", "TEST2", self.CUSTOM_CONFIG_PATH)
 
         # Verify
-        assert not os.path.exists(image_path)  # Verify that the file does not exist.
+        assert result == abspath(self.TEST_IMAGE_PATH)
 
-        # Verify log message
-        assert "The provided file has an invalid type." in caplog.text
-
-    def test_invalid_file_path_set(self, caplog):
+    def test_get_contextual_image_path_nonexistent(self, caplog):
+        caplog.set_level(logging.INFO)
 
         # Execute
-        set_contextual_image(self.FAKE_FILE_PATH, self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image_path("painting", "FAKE", self.CUSTOM_CONFIG_PATH)
 
-        # Verify log message
-        assert f"The file at path {self.FAKE_FILE_PATH} does not exist." in caplog.text
+        # Verify
+        assert result is None
 
     def test_get_contextual_image(self, caplog):
         caplog.set_level(logging.INFO)
 
-        # Set-up
-        image_path: str = str(Path("tests", "resources", "contextual_images", "contextual_image.png"))
-        image_path: str = normpath(image_path)
+        # Setup
+        correct = PIL.Image.open(self.TEST_IMAGE_PATH)
 
         # Execute
-        result1: str = get_contextual_image("png", self.CUSTOM_CONFIG_PATH)
-        result2: str = get_contextual_image(".png", self.CUSTOM_CONFIG_PATH)
-        result3: str = get_contextual_image("PNG", self.CUSTOM_CONFIG_PATH)
-        result4: str = get_contextual_image(".PNG", self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image(self.TEST_IMAGE_PATH)
 
         # Verify
-        assert result1 == image_path
-        assert result2 == image_path
-        assert result3 == image_path
-        assert result4 == image_path
-        print(image_path)  # TODO, remove this
+        assert are_images_identical(correct, result)
 
-        # Verify log message
-        assert "Contextual image found." in caplog.text
-
-    def test_invalid_file_type_get(self, caplog):
+    def test_get_contextual_image_invalid(self, caplog):
+        caplog.set_level(logging.INFO)
 
         # Execute
-        result1: str = get_contextual_image("fake", self.CUSTOM_CONFIG_PATH)
-        result2: str = get_contextual_image(".fake", self.CUSTOM_CONFIG_PATH)
-        result3: str = get_contextual_image("FAKE", self.CUSTOM_CONFIG_PATH)
-        result4: str = get_contextual_image(".FAKE", self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image(self.INVALID_IMAGE_PATH)
 
         # Verify
-        assert result1 == ""
-        assert result2 == ""
-        assert result3 == ""
-        assert result4 == ""
+        assert result is None
 
-        # Verify log message
-        assert "The provided file type is invalid." in caplog.text
-
-    def test_file_not_found_get(self, caplog):
-
-        # NOTE: This test only works if no JPG contextual image has been set.
+    def test_get_contextual_image_nonexistent(self, caplog):
+        caplog.set_level(logging.INFO)
 
         # Execute
-        result: str = get_contextual_image("jpg", self.CUSTOM_CONFIG_PATH)
+        result = get_contextual_image(self.NONEXISTENT_IMAGE_PATH)
 
         # Verify
-        assert result == ""
+        assert result is None
 
-        # verify log message
-        assert "File was not found." in caplog.text
+    def test_get_contextual_image_size(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # Setup
+        correct = PIL.Image.open(self.TEST_IMAGE_PATH)
+
+        # Execute
+        result = get_contextual_image_size(self.TEST_IMAGE_PATH)
+
+        # Verify
+        assert result == (200, 150)
+
+    def test_get_contextual_image_invalid_size(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # Execute
+        result = get_contextual_image_size(self.INVALID_IMAGE_PATH)
+
+        # Verify
+        assert result is None
+
+    def test_get_contextual_image_nonexistent_size(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # Execute
+        result = get_contextual_image_size(self.NONEXISTENT_IMAGE_PATH)
+
+        # Verify
+        assert result is None

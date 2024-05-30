@@ -1,4 +1,4 @@
-from io import BytesIO
+from io import StringIO, BytesIO
 
 from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
@@ -42,6 +42,7 @@ def info():
     return "adding more routes is quite trivial"
 
 
+@app.route("/api/datasources")
 @app.route("/api/available_data_sources")
 def list_accessible_data_sources():
     """Return a list of all available data sources stored in the data folder on the remote server as specified in the project's configuration.
@@ -55,7 +56,7 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route("/api/workspace/<datasource>", methods=["GET", "POST"])
+@app.route("/api/<datasource>/workspace", methods=["GET", "POST"])
 def get_workspace(datasource: str):
     """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
 
