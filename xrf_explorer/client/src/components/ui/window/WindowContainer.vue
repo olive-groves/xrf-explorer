@@ -15,15 +15,15 @@ const rightWindows = computed(() =>
 
 <template>
   <ResizablePanelGroup direction="horizontal">
-    <ResizablePanel :default-size="20" :min-size="10">
+    <ResizablePanel :default-size="20" :min-size="15" collapsible :collapsed-size="0">
       <WindowSidepanel :windows="leftWindows" />
     </ResizablePanel>
-    <ResizableHandle />
+    <ResizableHandle with-handle />
     <ResizablePanel :min-size="10">
       <slot />
     </ResizablePanel>
-    <ResizableHandle />
-    <ResizablePanel :default-size="20" :min-size="10">
+    <ResizableHandle with-handle />
+    <ResizablePanel :default-size="20" :min-size="15" collapsible :collapsed-size="0">
       <WindowSidepanel :windows="rightWindows" />
     </ResizablePanel>
   </ResizablePanelGroup>
