@@ -26,7 +26,7 @@ const colorMode = useColorMode({
 <template>
   <Menubar class="m-0 h-min w-full rounded-none border-0 border-b">
     <MenubarMenu>
-      <MenubarTrigger class="font-bold"> XRF-Explorer </MenubarTrigger>
+      <MenubarTrigger class="whitespace-nowrap font-bold"> XRF-Explorer </MenubarTrigger>
       <MenubarContent>
         <MenubarItem> Github </MenubarItem>
         <MenubarSeparator />

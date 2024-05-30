@@ -3,9 +3,9 @@ import { inject, ref } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
+import { datasource } from "@/lib/appState";
 
 const barchart = ref(null);
-
 const config = inject<FrontendConfig>("config")!;
 
 type Element = {
@@ -24,7 +24,7 @@ let dataAverages: Element[];
  */
 async function fetchAverages(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/element_averages`, {
+  const response: Response = await fetch(`${url}/${datasource.value}/element_averages`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -39,7 +39,7 @@ async function fetchAverages(url: string) {
       .json()
       .then((data) => {
         dataAverages = data;
-        console.info("Successfully fetched averages");
+        console.debug("Successfully fetched averages");
         return true;
       })
       .catch((e) => {
@@ -51,7 +51,7 @@ async function fetchAverages(url: string) {
     fetchSuccessful = await response
       .text()
       .then((data) => {
-        console.info(data);
+        console.debug(data);
         return false;
       })
       .catch((e) => {

@@ -31,6 +31,18 @@ export type LayerUniform = {
    */
   iIndex: { value: number };
   /**
+   * The type of the layer, determines how the shader uses auxiliary data to render the layer.
+   */
+  iLayerType: { value: LayerType };
+  /**
+   * Contains a single number of auxiliary data.
+   */
+  iAuxiliary?: { value: number };
+  /**
+   * Contains a data texture of auxiliary data.
+   */
+  tAuxiliary?: { value: THREE.Texture; type: "t" };
+  /**
    * The current size and location of the viewport.
    */
   iViewport: { value: THREE.Vector4 };
@@ -108,10 +120,6 @@ export type Tool = "grab" | "lens" | "lasso";
  */
 export type LayerGroup = {
   /**
-   * The type of this layer group.
-   */
-  type: "base" | "contextual" | "elemental" | "colorSegmentation" | "dimensionalityReduction";
-  /**
    * The name of this group of layers.
    */
   name: string;
@@ -165,6 +173,16 @@ export enum LayerVisibility {
   Visible = 1,
   InsideLens = 2,
   OutsideLens = 3,
+}
+
+/**
+ * Indicates the type of a layer.
+ */
+export enum LayerType {
+  Image = 0,
+  Elemental = 1,
+  ColorSegmentation = 2,
+  DimensionalityReduction = 3,
 }
 
 /**

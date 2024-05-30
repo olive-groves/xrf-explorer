@@ -15,6 +15,7 @@ void main() {
 
   // Register vertices
   vec3 position = mRegister * vec3(position.xy, 1.0);
+  position = position / position.z;
 
   // Transform to viewport
   gl_Position = vec4(

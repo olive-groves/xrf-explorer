@@ -22,6 +22,10 @@ export type WorkspaceConfig = {
    * All elemental cubes in the workspace.
    */
   elementalCubes: ElementalCube[];
+  /**
+   * All elemental channels present in the elemental cubes.
+   */
+  elementalChannels: ElementalChannel[];
 };
 
 /**
@@ -70,7 +74,7 @@ export type SpectralCube = {
  */
 export type ElementalCube = {
   /**
-   * A unique id for the spectral cube.
+   * A unique name for the spectral cube.
    */
   name: string;
   /**
@@ -91,3 +95,21 @@ export type ElementalCube = {
  * The different elemental cube formats that we can handle.
  */
 export type ElementalCubeFileType = "csv" | "dms";
+
+/**
+ * Describes the configuration for each elemental channel.
+ */
+export type ElementalChannel = {
+  /**
+   * The name of the channel.
+   */
+  name: string;
+  /**
+   * The index of the channel.
+   */
+  channel: number;
+  /**
+   * Should the channel be visible to the client.
+   */
+  enabled: boolean;
+};

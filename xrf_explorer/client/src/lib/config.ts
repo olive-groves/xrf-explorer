@@ -15,7 +15,7 @@ export type FrontendConfig = {
   /**
    * Configuration related to uploading.
    */
-  uploadConfig: UploadConfig;
+  upload: UploadConfig;
   /**
    * The default theme of the client.
    */
@@ -72,7 +72,7 @@ export type ImageViewerConfig = {
     defaultLensSize: 100.0,
   },
   defaultTheme: "dark",
-  uploadConfig: {
+  upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
 };

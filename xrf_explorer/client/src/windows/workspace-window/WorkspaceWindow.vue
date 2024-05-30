@@ -1,9 +1,36 @@
 <script setup lang="ts">
 import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard } from ".";
-import { appState } from "@/lib/app_state";
-import { computed } from "vue";
+import { appState } from "@/lib/appState";
+import { FrontendConfig } from "@/lib/config";
+import { computed, inject, watch } from "vue";
+
+const config = inject<FrontendConfig>("config")!;
 
 const workspace = computed(() => appState.workspace);
+
+/**
+ * Update workspace on the backend whenever it gets changed.
+ */
+watch(
+  workspace,
+  (newWorkspace, oldWorkspace) => {
+    // Make sure to not update the backend on initial load/final unload
+    if (newWorkspace != undefined && oldWorkspace != undefined) {
+      // Make sure to not update the backend when switching between data sources.
+      if (newWorkspace.name == oldWorkspace.name) {
+        console.info("Saving changes to workspace", newWorkspace.name);
+        fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
+          method: "POST",
+          body: JSON.stringify(newWorkspace),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      }
+    }
+  },
+  { deep: true },
+);
 </script>
 
 <template>

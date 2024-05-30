@@ -12,13 +12,13 @@ const props = defineProps<{
   base?: boolean;
 }>();
 
-const model = defineModel<ContextualImage>();
+const model = defineModel<ContextualImage>({ required: true });
 
 /**
  * A local deeply cloned clone of the model.
  * Necessary to prevent constant reloads of the image viewer.
  */
-let localModel = deepClone(model.value!);
+let localModel = deepClone(model.value);
 
 /**
  * Update localModel with value from model when opened.
@@ -26,7 +26,7 @@ let localModel = deepClone(model.value!);
 const popoverOpen = ref(false);
 watch(popoverOpen, (value) => {
   if (value) {
-    localModel = deepClone(model.value!);
+    localModel = deepClone(model.value);
   }
 });
 

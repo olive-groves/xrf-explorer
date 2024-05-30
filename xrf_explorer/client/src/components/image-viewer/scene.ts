@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Layer, LayerUniform } from "./types";
+import { Layer, LayerGroup, LayerUniform } from "./types";
 
 export const scene: {
   /**
@@ -14,12 +14,20 @@ import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
 
 /**
- * Creates a layer and adds the given image to it.
+ * Creates a layer in the image viewer and adds the given image to it.
  * @param layer - The layer that should get loaded.
+ * @param interpolated - Whether the sampler should interpolate between pixels.
  */
-export function loadLayer(layer: Layer) {
+export function loadLayer(layer: Layer, interpolated: boolean = true) {
   new THREE.TextureLoader().loadAsync(layer.image).then((texture) => {
     texture.colorSpace = THREE.NoColorSpace;
+
+    // Disable interpolation if required
+    if (!interpolated) {
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      texture.generateMipmaps = false;
+    }
 
     // Create a square
     const shape = new THREE.Shape();
@@ -88,4 +96,46 @@ export function disposeLayer(layer: Layer) {
 
     layer.mesh = undefined;
   }
+}
+
+/**
+ * Creates a data texture of specified size and format. Every pixel contains 4 bytes of data.
+ * @param data - The data array.
+ * @param width - The width of the data texture.
+ * @param height - The height of the data texture.
+ * @returns The datatexture.
+ */
+export function createDataTexture(data: ArrayBufferView, width: number, height: number): THREE.DataTexture {
+  const texture = new THREE.DataTexture(
+    data,
+    width,
+    height,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    1,
+    THREE.NoColorSpace,
+  );
+  texture.needsUpdate = true;
+  texture.generateMipmaps = false;
+  return texture;
+}
+
+/**
+ * Update the data texture for every layer in the layergroup.
+ * @param group - The group to update.
+ */
+export function updateDataTexture(group: LayerGroup) {
+  group.layers.forEach((layer) => {
+    if (layer.mesh != undefined) {
+      (layer.mesh!.material as THREE.Material).needsUpdate = true;
+    }
+    if (layer.uniform.tAuxiliary != undefined) {
+      layer.uniform.tAuxiliary!.value.needsUpdate = true;
+    }
+  });
 }
