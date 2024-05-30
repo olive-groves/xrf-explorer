@@ -1,14 +1,14 @@
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
-import json
 from cv2 import imread
 import numpy as np
 from xrf_explorer.server.file_system.from_dms import (
     get_elemental_datacube_dimensions_from_dms,
 )
-from xrf_explorer.server.file_system.config_handler import load_yml
-from os.path import join
+from os.path import join, exists
+import logging
+import json
 
-BACKEND_CONFIG: dict = load_yml("config/backend.yml")
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def get_sliced_data_cube(
@@ -70,20 +70,22 @@ def get_cube_coordinates(
 
 
 def get_selected_data_cube(
-    data_source_folder_name: str,
+    data_source_dir: str,
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
 ) -> np.ndarray:
     """
     Extracts and returns a region of a data cube, based on the rectangular selection coordinates on the base image.
 
-    :param data_source_folder_name: The name of the data source folder. This should be the secure name of the data source directory,
+    :param data_source_dir: The data source directory.
     which can be derived using werkzeug.utils.secure_filename(data_source_name).
     :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
     :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
     :return: A numpy array containing the selected cube data.
     """
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_folder_name)
+
+    if not exists(data_source_dir):
+        LOG.error(f"Data source directory {data_source_dir} does not exist.")
 
     file = open(join(data_source_dir, "workspace.json"))
     workspace_json = json.loads(file.read())
