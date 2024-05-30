@@ -418,7 +418,7 @@ def get_element_color_cluster(data_source: str):
 
     return (response)
 
-@app.route('/api/<data_source>/get_element_color_cluster_bitmas', methods=['GET'])
+@app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
     '''Gets the colors and bitmasks corresponding to the color clusters of each element.
 
