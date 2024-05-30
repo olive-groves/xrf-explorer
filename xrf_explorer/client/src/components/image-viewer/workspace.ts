@@ -52,12 +52,7 @@ function createBaseLayer(image: ContextualImage) {
     layers: [layer],
     index: 0,
     visible: true,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   updateLayerGroupLayers(layerGroups.value.base);
@@ -77,14 +72,18 @@ function createContextualLayer(image: ContextualImage) {
     layers: [layer],
     index: -1,
     visible: false,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   layerGroups.value[id] = layerGroup;
   updateLayerGroupLayers(layerGroup);
 }
+
+export const layerGroupDefaults = {
+  visibility: LayerVisibility.InsideLens,
+  opacity: [1.0],
+  contrast: [1.0],
+  saturation: [1.0],
+  gamma: [1.0],
+  brightness: [0.0],
+};

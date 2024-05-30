@@ -2,15 +2,16 @@ import { appState } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { LayerType, LayerVisibility } from "./types";
+import { LayerType } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ElementSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
+import { layerGroupDefaults } from "./workspace";
 
 const selection = computed(() => appState.selection.elements);
 
-const width = 256;
-const height = 2;
+const width = 256; // Arbitrary amount, just needs to be greater than the maximal amount of elemental channels.
+const height = 2; // Top row of pixels will be used to store colors and the bottom to store thresholds.
 const data = new Uint8Array(width * height * 4);
 const dataTexture = createDataTexture(data, width, height);
 
@@ -106,12 +107,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     layers: layers,
     index: -2,
     visible: true,
-    visibility: LayerVisibility.InsideLens,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   updateLayerGroupLayers(layerGroups.value.elemental);
