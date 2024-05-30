@@ -321,7 +321,7 @@ def get_selection_sectra(data_source):
 
 @app.route('/api/get_color_cluster', methods=['GET'])
 def get_color_clusters():
-    '''Gets the colors and bitmask corresponding to the image-wide color clusters.
+    '''Gets the colors corresponding to the image-wide color clusters.
 
     :return json containing the ordered list of colors
     '''
@@ -342,21 +342,83 @@ def get_color_clusters():
     colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
 
     # Merge similar clusters
-    colors, bitmasks = merge_similar_colors(colors, bitmasks)
-    # Combine bitmasks into one
-    # combined_bitmask: ndarray = combine_bitmasks(bitmasks)
-    # full_path: str = join(path_to_save, 'imageClusters.png')
-    # image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
-
-    # if (not image_saved):
-        # return 'Error occurred while saving bitmask as png', 500
+    colors, _ = merge_similar_colors(colors, bitmasks)
 
     colors = convert_to_hex(colors)
     response = json.dumps(colors)
 
-    return (response) #, send_file(abspath(full_path), mimetype='image/png'))
+    return (response)
+
+@app.route('/api/get_color_cluster_bitmask', methods=['GET'])
+def get_color_clusters_bitmas():
+    '''Gets the bitmask corresponding to the image-wide color clusters.
+
+    :return json containing the ordered list of colors
+    '''
+    # currently hardcoded, this should be whatever name+path we give the RGB image
+    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    image = get_image(path_to_image)
+
+    # get default dim reduction config
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    width: int = k_means_parameters['image-width']
+    height: int = k_means_parameters['image-height']
+    nr_attemps: int = int(k_means_parameters['nr-attempts'])
+    k: int = int(k_means_parameters['k'])
+    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+
+    colors: ndarray
+    bitmasks: ndarray
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
+
+    # Merge similar clusters
+    _, bitmasks = merge_similar_colors(colors, bitmasks)
+    # Combine bitmasks into one
+    combined_bitmask: ndarray = combine_bitmasks(bitmasks)
+    full_path: str = join(path_to_save, 'imageClusters.png')
+    image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
+
+    if (not image_saved):
+        return 'Error occurred while saving bitmask as png', 500
+
+    return send_file(abspath(full_path), mimetype='image/png')
 
 @app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
+def get_element_color_cluster(data_source: str):
+    '''Gets the colors corresponding to the color clusters of each element.
+
+    :param data_source: data_source to get the element averages from
+    :return json containing the combined bitmasks of the color clusters for each element.
+    '''
+    # currently hardcoded, this should be whatever name+path we give the RGB image
+    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    image: ndarray = get_image(path_to_image)
+    data_cube_path: str = get_elemental_cube_path(data_source)
+
+    # get default dim reduction config
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters['elem_threshold'])
+    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    k: int = int(k_means_parameters['k'])
+    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+
+    colors_per_elem: ndarray
+    bitmasks_per_elem: ndarray
+    colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
+                                                             image, data_cube_path, elem_threshold, -1, nr_attemps, k)
+
+    number_elem: int = len(colors_per_elem)
+    color_data: list[str] = []
+    for i in range(number_elem):
+        # Merge similar clusters
+        colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        color_data.append(colors_per_elem[i])
+
+    response = json.dumps(color_data)
+
+    return (response)
+
+@app.route('/api/<data_source>/get_element_color_cluster_bitmas', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
     '''Gets the colors and bitmasks corresponding to the color clusters of each element.
 
@@ -382,14 +444,12 @@ def get_element_color_cluster_bitmask(data_source: str):
 
     number_elem: int = len(colors_per_elem)
     img_paths: list[ndarray] = []
-    color_data: list[str] = []
     for i in range(number_elem):
         # Merge similar clusters
-        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        _, bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
 
         # Stored combined bitmask and colors
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
-        color_data.append(colors_per_elem[i])
 
         full_path: str = join(path_to_save, f'elementCluster_{i}.png')
         img_paths.append(full_path)
@@ -397,6 +457,4 @@ def get_element_color_cluster_bitmask(data_source: str):
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
 
-    response = json.dumps(color_data)
-
-    return (response, [send_file(abspath(img_paths[i]), mimetype='image/png') for i in range(number_elem)])
+    return [send_file(abspath(img_paths[i]), mimetype='image/png') for i in range(number_elem)]
