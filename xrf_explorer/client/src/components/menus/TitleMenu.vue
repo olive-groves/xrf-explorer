@@ -9,14 +9,9 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { useColorMode } from "@vueuse/core";
-import { inject } from "vue";
-import { FrontendConfig } from "@/lib/config";
 import { resetWindow } from "@/lib/utils";
 
-const config = inject<FrontendConfig>("config")!;
-const colorMode = useColorMode({
-  initialValue: config.defaultTheme,
-});
+const colorMode = useColorMode({ emitAuto: true });
 </script>
 
 <template>
@@ -31,6 +26,7 @@ const colorMode = useColorMode({
       </a>
       <MenubarSeparator />
       <MenubarRadioGroup v-model:model-value="colorMode">
+        <MenubarRadioItem value="auto">Automatic mode</MenubarRadioItem>
         <MenubarRadioItem value="light">Light mode</MenubarRadioItem>
         <MenubarRadioItem value="dark">Dark mode</MenubarRadioItem>
       </MenubarRadioGroup>
