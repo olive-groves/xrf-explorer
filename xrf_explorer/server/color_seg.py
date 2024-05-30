@@ -315,3 +315,27 @@ def get_image(image_file_path: str) -> np.ndarray:
         LOG.error(f"The path '{image_file_path}' is not a valid file path.")
         return np.empty(0)
     return raw_image
+
+
+def rgb_to_hex(r: int, g: int, b: int) -> str:
+    """
+    Turns a rgb triple into hex format.
+    :param r: the red value
+    :param g: the green value
+    :param b: the blue value
+    :return: the hex format
+    """
+
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+def convert_to_hex(clusters: np.array) -> np.array:
+    """
+    Converts clusters to hex format.
+    :param clusters: the list of clusters in rgb format
+    :return: clusters in hex format
+    """
+
+    hex_clusters: np.array = []
+    for col in clusters:
+        hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
+    return hex_clusters

@@ -21,7 +21,7 @@ from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
     get_image, combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
-    save_bitmask_as_png
+    save_bitmask_as_png, convert_to_hex
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -351,6 +351,7 @@ def get_color_clusters():
     if (not image_saved):
         return 'Error occurred while saving bitmask as png', 500
 
+    colors = convert_to_hex(colors)
     response = json.dumps(colors)
 
     return (response, send_file(abspath(full_path), mimetype='image/png'))
