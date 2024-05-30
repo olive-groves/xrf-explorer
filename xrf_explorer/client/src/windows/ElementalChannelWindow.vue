@@ -35,7 +35,7 @@ const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
-  <Window title="Elemental channels" opened>
+  <Window title="Elemental channels" location="left">
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"
