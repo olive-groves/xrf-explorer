@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useFetch } from "@vueuse/core";
-import { MenubarItem } from "@/components/ui/menubar";
+import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarItem } from "@/components/ui/menubar";
+import { DialogMenuItem } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
 
@@ -24,7 +25,14 @@ async function loadWorkspace(source: string) {
 </script>
 
 <template>
-  <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
-    {{ source }}
-  </MenubarItem>
+  <MenubarMenu>
+    <MenubarTrigger> File </MenubarTrigger>
+    <MenubarContent>
+      <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
+      <MenubarSeparator />
+      <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
+        {{ source }}
+      </MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
 </template>
