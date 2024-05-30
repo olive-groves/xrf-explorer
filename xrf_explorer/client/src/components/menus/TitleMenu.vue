@@ -11,6 +11,7 @@ import {
 import { useColorMode } from "@vueuse/core";
 import { inject } from "vue";
 import { FrontendConfig } from "@/lib/config";
+import { resetWindow } from "@/lib/utils";
 
 const config = inject<FrontendConfig>("config")!;
 const colorMode = useColorMode({
@@ -33,6 +34,8 @@ const colorMode = useColorMode({
         <MenubarRadioItem value="light">Light mode</MenubarRadioItem>
         <MenubarRadioItem value="dark">Dark mode</MenubarRadioItem>
       </MenubarRadioGroup>
+      <MenubarSeparator />
+      <MenubarItem @click="resetWindow">Reset client</MenubarItem>
     </MenubarContent>
   </MenubarMenu>
 </template>

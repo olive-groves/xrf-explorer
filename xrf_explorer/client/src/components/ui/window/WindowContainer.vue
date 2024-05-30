@@ -19,7 +19,7 @@ const rightWindows = computed(() =>
       <WindowSidepanel :windows="leftWindows" />
     </ResizablePanel>
     <ResizableHandle with-handle />
-    <ResizablePanel :min-size="10">
+    <ResizablePanel :min-size="20">
       <slot />
     </ResizablePanel>
     <ResizableHandle with-handle />
