@@ -5,6 +5,7 @@ import { appState } from "@/lib/app_state";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
+import { config } from "@/main";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -40,7 +41,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
  * @param image - The image to use as the base image.
  */
 function createBaseLayer(image: ContextualImage) {
-  const layer = createLayer(`base_${snakeCase(image.name)}`, image);
+  const layer = createLayer(`base_${snakeCase(image.name)}`, getContextualImageUrl(image));
 
   layerGroups.value.base = {
     type: "base",
@@ -66,7 +67,7 @@ function createBaseLayer(image: ContextualImage) {
  */
 function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;
-  const layer = createLayer(id, image);
+  const layer = createLayer(id, getContextualImageUrl(image));
 
   const layerGroup: LayerGroup = {
     type: "contextual",
@@ -85,4 +86,15 @@ function createContextualLayer(image: ContextualImage) {
 
   layerGroups.value[id] = layerGroup;
   updateLayerGroupLayers(layerGroup, "initialProperty");
+}
+
+/**
+ * Gets the url for a specified contextual image.
+ * @param image - The contextual image.
+ * @returns The url to the image represented by the contextual image.
+ */
+function getContextualImageUrl(image: ContextualImage): string {
+  // We directly access config from main.ts.
+  // This is required as this is not done from a component and should be avoided where possible.
+  return `${config.api.endpoint}/${appState.workspace!.name}/image/${image.name}`;
 }
