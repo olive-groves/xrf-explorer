@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff } from "lucide-vue-next";
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
+import { LayerGroup, LayerVisibility } from "./types";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
-import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
@@ -15,27 +15,28 @@ interface Property {
   name: string;
   min: number;
   max: number;
+  default: number;
   propertyName: string;
   nameRef: keyof LayerGroup;
 }
 
 const properties: Property[] = [
-  { name: "Opacity", min: 0, max: 1, propertyName: "opacityProperty", nameRef: "opacity" },
-  { name: "Contrast", min: 0, max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
-  { name: "Saturation", min: 0, max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
-  { name: "Gamma", min: 0, max: 5, propertyName: "gammaProperty", nameRef: "gamma" },
-  { name: "Brightness", min: -1, max: 1, propertyName: "brightnessProperty", nameRef: "brightness" },
+  { name: "Opacity", min: 0, max: 1, default: 1, propertyName: "opacityProperty", nameRef: "opacity" },
+  { name: "Contrast", min: 0, max: 5, default: 1, propertyName: "contrastProperty", nameRef: "contrast" },
+  { name: "Saturation", min: 0, max: 5, default: 1, propertyName: "saturationProperty", nameRef: "saturation" },
+  { name: "Gamma", min: 0, max: 5, default: 1, propertyName: "gammaProperty", nameRef: "gamma" },
+  { name: "Brightness", min: -1, max: 1, default: 0, propertyName: "brightnessProperty", nameRef: "brightness" },
 ];
+
+const groupNames = computed(() => Object.keys(layerGroups.value));
 
 /**
  * Loads the layer groups into the LayerSystem.
  */
 watch(
-  layerGroups,
+  groupNames,
   (newGroups) => {
-    groups.value = Object.keys(newGroups)
-      .map((key) => newGroups[key])
-      .sort((a, b) => a.index - b.index);
+    groups.value = newGroups.map((name) => layerGroups.value[name]).sort((a, b) => a.index - b.index);
   },
   { immediate: true },
 );
@@ -99,13 +100,18 @@ function checkedOutsideLens(group: LayerGroup) {
           <EyeOff v-else />
         </Button>
       </div>
-      <!-- SLIDERS FOR OPACITY, CONTRAST, AND SATURATION -->
+      <!-- SLIDERS FOR ALL PROPERTIES -->
       <div v-if="group.visible" class="space-y-2">
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
-        <div class="space-y-2" v-for="property in properties" :key="property.name">
+        <div
+          class="space-y-2"
+          v-for="property in properties"
+          :key="property.name"
+          @dblclick="() => ((group[property.nameRef] as number[])[0] = property.default)"
+        >
           <div class="flex items-center justify-between">
             <div>{{ property.name }}</div>
             <div>{{ group[property.nameRef].toString() }}</div>

@@ -1,4 +1,4 @@
-name: Execute ESLint
+name: Build client
 
 on: [push]
 
@@ -15,6 +15,6 @@ jobs:
       - name: Setup
         working-directory: ./xrf_explorer/client
         run: npm ci
-      - name: Check code
+      - name: Build code
         working-directory: ./xrf_explorer/client
-        run: npx eslint . --max-warnings 1
+        run: npm run build
