@@ -41,7 +41,7 @@ const height = canvasSize.height;
 onMounted(setup);
 
 /**
- * Sets up the a very basic scene in THREE for rendering.
+ * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
   camera = new THREE.OrthographicCamera();

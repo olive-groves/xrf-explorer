@@ -9,3 +9,14 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 contextual-images-folder: "xrf_explorer/server/temp/contextual_images"
+color-segmentation:
+  folder: "xrf_explorer/server/temp/color_segmentation"
+  k-means-parameters:
+    k: 20
+    nr-attempts: 10
+    image-width: 500
+    image-height: 500
+  elemental-k-means-parameters:
+    k: 2
+    nr-attempts: 10
+    elem-threshold: 0.1
