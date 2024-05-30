@@ -23,8 +23,9 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def load_image_toregister(path_image_toregister: str) -> MatLike | None:
     """Loads an image from the specified path. Preserves the alpha channel of .png files.
+    
     :param path_image_toregister: Path of the image to be loaded for registering.
-    :return: A MatLike represnetation of the image. If the image cannot be read, it returns None
+    :return: A MatLike representation of the image. If the image cannot be read, it returns None
     """
 
     if path_image_toregister.endswith(".png"):  # Preserve the alpha channel if a PNG.
