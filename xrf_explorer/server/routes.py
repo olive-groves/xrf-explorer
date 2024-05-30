@@ -333,13 +333,13 @@ def get_color_clusters():
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
-    nr_attemps: int = int(k_means_parameters['nr-attempts'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
 
     # Merge similar clusters
     colors, _ = merge_similar_colors(colors, bitmasks)
@@ -350,7 +350,7 @@ def get_color_clusters():
     return (response)
 
 @app.route('/api/get_color_cluster_bitmask', methods=['GET'])
-def get_color_clusters_bitmas():
+def get_color_clusters_bitmask():
     '''Gets the bitmask corresponding to the image-wide color clusters.
 
     :return json containing the ordered list of colors
@@ -363,13 +363,13 @@ def get_color_clusters_bitmas():
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
-    nr_attemps: int = int(k_means_parameters['nr-attempts'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
 
     # Merge similar clusters
     _, bitmasks = merge_similar_colors(colors, bitmasks)
@@ -398,14 +398,14 @@ def get_element_color_cluster(data_source: str):
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem_threshold'])
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    nr_attempts: int = int(k_means_parameters['nr_attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, nr_attemps, k)
+                                                             image, data_cube_path, elem_threshold, -1, nr_attempts, k)
 
     number_elem: int = len(colors_per_elem)
     color_data: list[str] = []
@@ -418,7 +418,7 @@ def get_element_color_cluster(data_source: str):
 
     return (response)
 
-@app.route('/api/<data_source>/get_element_color_cluster_bitmas', methods=['GET'])
+@app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
     '''Gets the colors and bitmasks corresponding to the color clusters of each element.
 
@@ -433,14 +433,14 @@ def get_element_color_cluster_bitmask(data_source: str):
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem_threshold'])
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    nr_attempts: int = int(k_means_parameters['nr_attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, nr_attemps, k)
+                                                             image, data_cube_path, elem_threshold, -1, nr_attempts, k)
 
     number_elem: int = len(colors_per_elem)
     img_paths: list[ndarray] = []
