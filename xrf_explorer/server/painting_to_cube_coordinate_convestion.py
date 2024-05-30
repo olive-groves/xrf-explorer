@@ -11,7 +11,21 @@ from os.path import join
 BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
 
-def get_sliced_data_cube(data_cube, selection_coord_1, selection_coord_2):
+def get_sliced_data_cube(
+    data_cube: np.ndarray,
+    selection_coord_1: tuple[int, int],
+    selection_coord_2: tuple[int, int],
+) -> np.ndarray:
+    """
+    Extracts and returns a rectangular region from the specified data cube. This rectangular region is specified by the
+    two diagonal corners - selection_coord_1 and selection_coord_2.
+
+    :param data_cube: The data cube.
+    :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region.
+    :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region.
+    :return: A numpy array containing the data from the defined rectangular region within the original data cube.
+
+    """
     x1, y1 = selection_coord_1
     x2, y2 = selection_coord_2
 
@@ -30,6 +44,17 @@ def get_cube_coordinates(
     cube_width: int,
     cube_height: int,
 ) -> tuple[tuple[int, int], tuple[int, int]]:
+    """
+    Calculates and returns the coordinates of a rectangular region within the data cube, scaled from the coordinates of a base image.
+
+    :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
+    :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
+    :param base_img_width: The width of the base image in pixels.
+    :param base_img_height: The height of the base image in pixels.
+    :param cube_width: The width of the cube.
+    :param cube_height: The height of the cube.
+    :return: A tuple containing two tuples, representing the scaled coordinates.
+    """
     x_1, y_1 = selection_coord_1
     x_2, y_2 = selection_coord_2
 
@@ -41,11 +66,6 @@ def get_cube_coordinates(
     y_1_new = round(y_1 * ratio_cube_img_height)
     y_2_new = round(y_2 * ratio_cube_img_height)
 
-    # Let's assume the cube has exactly 2 times smaller height and the same width
-    # And a seelction is makde (0, 0) and (500, 300)
-    # then ratio_img_cube_height = 2
-    # and then y_1_new and y_2_new become 0 and 600
-
     return (x_1_new, y_1_new), (x_2_new, y_2_new)
 
 
@@ -54,6 +74,15 @@ def get_selected_data_cube(
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
 ) -> np.ndarray:
+    """
+    Extracts and returns a region of a data cube, based on the rectangular selection coordinates on the base image.
+
+    :param data_source_folder_name: The name of the data source folder. This should be the secure name of the data source directory,
+    which can be derived using werkzeug.utils.secure_filename(data_source_name).
+    :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
+    :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
+    :return: A numpy array containing the selected cube data.
+    """
     data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_folder_name)
 
     file = open(join(data_source_dir, "workspace.json"))
