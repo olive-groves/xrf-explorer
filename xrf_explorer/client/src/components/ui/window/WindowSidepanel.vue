@@ -42,7 +42,7 @@ watch(
     newWindows.forEach((id, index) => {
       if (state.value[id].height == 0) {
         // Perform setup
-        console.debug("setting up");
+        console.debug("Setting up window", id);
         if (availableHeight < headerSize) {
           shrinkAnyTab(headerSize - availableHeight);
         }
@@ -58,7 +58,7 @@ watch(
     oldWindows.forEach((id) => {
       if (!newWindows.includes(id)) {
         // Clean up window properly
-        console.debug("cleaning up", newWindows, oldWindows);
+        console.debug("Cleaning up window", id);
         if (id in state.value) {
           shrinkTab(id, state.value[id].height);
         }
@@ -114,11 +114,9 @@ function toggleTabSize(id: string) {
  * @param oldHeight The height of the side panel before resizing.
  */
 function onResize(height: number, oldHeight: number) {
-  console.debug("onResize", height, oldHeight);
   const growth = height - oldHeight;
 
   totalHeight += growth;
-  console.debug("Updating availableHeight", growth);
   availableHeight += growth;
 
   disableAnimation.value = true;
@@ -129,7 +127,6 @@ function onResize(height: number, oldHeight: number) {
   }
   disableAnimation.value = false;
 
-  console.debug("Indicating mount");
   mounted.value = true;
 }
 
@@ -139,7 +136,6 @@ function onResize(height: number, oldHeight: number) {
  * @param height The new size of the content.
  */
 function onContentResize(id: string, height: number) {
-  console.debug("content", id, height);
   const tab = state.value[id];
   const oldHeight = tab.maxContentHeight;
   const growth = height - oldHeight;
@@ -159,7 +155,7 @@ function onContentResize(id: string, height: number) {
  * @param id The id of the window to maximize.
  */
 function maximize(id: string) {
-  console.debug("maximize", id);
+  console.debug("Maximizing window", id);
   const tab = state.value[id];
 
   const openWindows = windows.value.filter((id) => !state.value[id].minimized);
@@ -175,7 +171,6 @@ function maximize(id: string) {
 
   const reduction = Math.min(available, Math.max(0, desiredGrowth - availableHeight));
 
-  console.debug(id, desiredGrowth, availableHeight, available, reduction);
   if (available > 0) {
     for (const i in largeWindows) {
       const [tabId, exceededHeight] = largeWindows[i];
@@ -194,7 +189,7 @@ function maximize(id: string) {
  * @param id The id of the window to shrink.
  */
 function minimize(id: string) {
-  console.debug("minimize", id);
+  console.debug("Minimizing window", id);
   const tab = state.value[id];
   tab.minimized = true;
 
@@ -221,7 +216,6 @@ function growTab(id: string, px: number): number {
   const actualGrowth = Math.min(px, canGrow);
 
   tab.height += actualGrowth;
-  console.debug("Updating availableHeight", actualGrowth);
   availableHeight -= actualGrowth;
 
   removeTarget(id);
@@ -245,7 +239,6 @@ function shrinkTab(id: string, px: number): number {
   const actualShrink = Math.min(px, canShrink);
 
   tab.height -= actualShrink;
-  console.debug("Updating availableHeight", actualShrink);
   availableHeight += actualShrink;
 
   removeTarget(id);
@@ -310,7 +303,6 @@ function removeTarget(id: string) {
   if (shrinkTargets.includes(id)) {
     shrinkTargets.splice(shrinkTargets.indexOf(id), 1);
   }
-  console.debug(growthTargets, shrinkTargets);
 }
 
 /**
@@ -339,7 +331,6 @@ function handleDragMovement(event: MouseEvent) {
   if (mouseState.dragging) {
     const growth = event.movementY;
     if (growth > 0) {
-      console.debug(growth, availableHeight);
       if (growth > availableHeight) {
         shrinkAnyTab(growth - availableHeight, state.value[mouseState.handle].index);
       }
@@ -377,7 +368,7 @@ function handleDragMovement(event: MouseEvent) {
         >
           <div
             @click="toggleTabSize(id)"
-            class="left-0 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
+            class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
           >
             <ChevronRight
               class="size-5 min-w-5 duration-100"
@@ -390,7 +381,7 @@ function handleDragMovement(event: MouseEvent) {
             </div>
           </div>
           <div
-            class="-mt-px overflow-hidden"
+            class="z-0 -mt-px overflow-hidden border-t border-border"
             :style="{
               height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
             }"

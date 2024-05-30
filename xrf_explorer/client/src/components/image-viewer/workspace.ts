@@ -1,11 +1,12 @@
 import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
 import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { computed, watch } from "vue";
-import { appState } from "@/lib/app_state";
+import { appState } from "@/lib/appState";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { config } from "@/main";
+import { createElementalLayers } from "./elementalHelper";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -16,12 +17,12 @@ watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
  */
 function loadWorkspace(workspace: WorkspaceConfig) {
   // Unload existing workspace
-  console.info("Unloading existing workspace from layer system...");
+  console.info("Unloading existing workspace from layer system");
   layerGroups.value = {};
   layers.value.forEach(disposeLayer);
   layers.value = [];
 
-  console.info("Loading new workspace into layer system...");
+  console.info("Loading new workspace into layer system");
 
   // Create base image layer
   createBaseLayer(workspace.baseImage);
@@ -32,7 +33,10 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   });
 
   // Create elemental layers
+  createElementalLayers(workspace);
+
   // Create color segmentation layers
+
   // Create dimensionality reduction layers
 }
 
@@ -44,21 +48,15 @@ function createBaseLayer(image: ContextualImage) {
   const layer = createLayer(`base_${snakeCase(image.name)}`, getContextualImageUrl(image));
 
   layerGroups.value.base = {
-    type: "base",
     name: image.name,
     description: "Base image",
     layers: [layer],
-    index: 1,
+    index: 0,
     visible: true,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
-  updateLayerGroupLayers(layerGroups.value.base, "initialProperty");
+  updateLayerGroupLayers(layerGroups.value.base);
 }
 
 /**
@@ -70,22 +68,16 @@ function createContextualLayer(image: ContextualImage) {
   const layer = createLayer(id, getContextualImageUrl(image));
 
   const layerGroup: LayerGroup = {
-    type: "contextual",
     name: image.name,
     description: "Contextual image",
     layers: [layer],
-    index: 0,
+    index: -1,
     visible: false,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   layerGroups.value[id] = layerGroup;
-  updateLayerGroupLayers(layerGroup, "initialProperty");
+  updateLayerGroupLayers(layerGroup);
 }
 
 /**
@@ -98,3 +90,15 @@ function getContextualImageUrl(image: ContextualImage): string {
   // This is required as this is not done from a component and should be avoided where possible.
   return `${config.api.endpoint}/${appState.workspace!.name}/image/${image.name}`;
 }
+
+/**
+ * Default values for some LayerGroup fields.
+ */
+export const layerGroupDefaults = {
+  visibility: LayerVisibility.InsideLens,
+  opacity: [1.0],
+  contrast: [1.0],
+  saturation: [1.0],
+  gamma: [1.0],
+  brightness: [0.0],
+};

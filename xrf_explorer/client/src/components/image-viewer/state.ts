@@ -1,7 +1,9 @@
 import { ref } from "vue";
-import { Layer, LayerGroup, LayerVisibility } from "./types";
+import { Layer, LayerGroup, LayerType, LayerVisibility } from "./types";
+import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
+import { registerLayer } from "./registering";
 
 /**
  * Contains data for all layers.
@@ -22,19 +24,21 @@ export const layerGroups = ref<{
  * Handles registering and loading in the image viewer.
  * @param id - The ID to associate with the layer.
  * @param imageLocation - The image to load in the layer.
+ * @param load - Whether the layer should be loaded into the image viewer.
  * @returns The layer that was created by calling the function.
  */
-export function createLayer(id: string, imageLocation: string): Layer {
-  console.info("Creating layer", id, imageLocation);
+export function createLayer(id: string, imageLocation: string, load: boolean = true): Layer {
+  console.debug("Creating layer", id, imageLocation);
 
   const layer: Layer = {
     id: id,
     image: imageLocation,
     uniform: {
       iIndex: { value: 0 },
+      iLayerType: { value: LayerType.Image },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
-      iShowLayer: { value: 0 },
+      iShowLayer: { value: LayerVisibility.Invisible },
       uOpacity: { value: 1 },
       uContrast: { value: 1 },
       uSaturation: { value: 1 },
@@ -47,7 +51,9 @@ export function createLayer(id: string, imageLocation: string): Layer {
 
   layers.value.push(layer);
 
-  loadLayer(layer);
+  if (load) loadLayer(layer);
+
+  registerLayer(layer, image);
 
   return layer;
 }
@@ -55,12 +61,13 @@ export function createLayer(id: string, imageLocation: string): Layer {
 /**
  * Helper function that completely updates the layers in a layer group.
  * @param group - The layer group that should be updated.
- * @param property - The property to update (e.g., "opacity", "contrast", "saturation").
  */
-export function updateLayerGroupLayers(group: LayerGroup, property: string) {
+export function updateLayerGroupLayers(group: LayerGroup) {
   setLayerGroupIndex(group);
   setLayerGroupVisibility(group);
-  setLayerGroupProperty(group, property);
+  setLayerGroupProperty(group, "opacityProperty");
+  setLayerGroupProperty(group, "contrastProperty");
+  setLayerGroupProperty(group, "saturationProperty");
 }
 
 /**

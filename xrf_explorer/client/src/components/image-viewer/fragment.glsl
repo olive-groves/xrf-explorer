@@ -5,9 +5,16 @@ const int TRANSPARENT = 0x00;
 const int WHOLE = 0x01;
 const int IN_LENS = 0x02;
 const int OUTSIDE_LENS = 0x03;
+const int TYPE_IMAGE = 0x00;
+const int TYPE_ELEMENTAL = 0x01;
+const int TYPE_CS = 0x02;
+const int TYPE_DR = 0x03;
 const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
 
+uniform int iLayerType;
 uniform sampler2D tImage;
+uniform int iAuxiliary;
+uniform sampler2D tAuxiliary;
 uniform vec2 uMouse; 
 uniform float uRadius;
 uniform int iShowLayer;
@@ -103,6 +110,25 @@ void main() {
   else 
   {
     gl_FragColor = transparent;
+  }
+
+  // Modify color based on layer type
+  if (iLayerType == TYPE_ELEMENTAL) {
+    // Get auxiliary data from texture
+    // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
+    // and (channel/256, 1) for the thresholds.
+    // We get the color from the auxiliary and render in alphascale.
+    vec4 auxiliaryColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
+    vec2 threshold = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
+    if (auxiliaryColor.w == 0.0) {
+      gl_FragColor = transparent;
+    } else {
+      float alpha = (gl_FragColor.x - threshold.x) / (threshold.y - threshold.x);
+      gl_FragColor = vec4(
+        auxiliaryColor.xyz,
+        clamp(alpha, 0.0, 1.0)
+      );
+    }
   }
 
   // Apply contrast

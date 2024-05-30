@@ -34,16 +34,10 @@ TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
 
 @app.route("/api")
 def api():
-    return "this is where the API is hosted"
-
-
-@app.route("/api/info")
-def info():
-    return "adding more routes is quite trivial"
+    return "Welcome to the XRF-Explorer API"
 
 
 @app.route("/api/datasources")
-@app.route("/api/available_data_sources")
 def list_accessible_data_sources():
     """Return a list of all available data sources stored in the data folder on the remote server as specified in the project's configuration.
 
@@ -56,11 +50,11 @@ def list_accessible_data_sources():
         return "Error occurred while listing data sources", 500
 
 
-@app.route("/api/<datasource>/workspace", methods=["GET", "POST"])
-def get_workspace(datasource: str):
+@app.route("/api/<data_source>/workspace", methods=["GET", "POST"])
+def get_workspace(data_source: str):
     """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
 
-    :param datasource: The name of the data source to get the workspace content for
+    :param data_source: The name of the data source to get the workspace content for
     :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
     """
 
@@ -69,16 +63,16 @@ def get_workspace(datasource: str):
         data: any = request.get_json()
 
         # Write content to the workspace
-        result: bool = update_workspace(datasource, data)
+        result: bool = update_workspace(data_source, data)
         
         # Check if the write was successful
         if not result:
             abort(400)
         
-        return f"Data written to workspace {escape(datasource)} successfully"
+        return f"Data written to workspace {escape(data_source)} successfully"
     else:
         # Read content from the workspace
-        path: str = get_path_to_workspace(datasource)
+        path: str = get_path_to_workspace(data_source)
 
         # Check if the workspace exists
         if not path:

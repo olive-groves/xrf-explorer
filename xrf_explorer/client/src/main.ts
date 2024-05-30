@@ -25,6 +25,7 @@ import { Window } from "@/components/ui/window";
 export const config = await getConfig();
 
 const app = createApp(App, { config: config });
+
 app.component("Button", Button);
 app.component("Card", Card);
 app.component("Checkbox", Checkbox);
@@ -40,4 +41,5 @@ app.component("SelectValue", SelectValue);
 app.component("Separator", Separator);
 app.component("Slider", Slider);
 app.component("Window", Window);
+
 app.mount("#app");
