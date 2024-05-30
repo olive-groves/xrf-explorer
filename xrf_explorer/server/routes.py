@@ -1,17 +1,17 @@
-import logging
-import json
+from io import BytesIO
 
+from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
-from os.path import exists, join, abspath
+from os.path import exists, abspath
 from os import mkdir
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
 
 from xrf_explorer import app
-from xrf_explorer.server.contextual_images import allowed_formats, get_contextual_image
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
+                                                               get_contextual_image)
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
@@ -250,34 +250,46 @@ def get_dr_overlay():
     return send_file(abspath(image_path), mimetype='image/png')
 
 
-@app.route("/api/get_contextual_image")
-def get_contextual_image_path():
-    # Check whether the file type is provided.
-    if "file_type" not in request.args:
-        error: str = "No file type was provided."
-        LOG.error(error)
-        return error, 400
+@app.route("/api/<data_source>/image/<name>")
+def contextual_image(data_source: str, name: str):
+    path: str = get_contextual_image_path(data_source, name)
+    if not path:
+        return f"Image {name} not found in source {data_source}", 404
 
-    file_type: str = request.args["file_type"]
-    file_type: str = f".{file_type.lower()}" if not file_type.startswith('.') else file_type.lower()
+    LOG.info("Opening contextual image")
 
-    # Check whether the file type provided is allowed.
-    if file_type not in allowed_formats:
-        error: str = "The provided file type is invalid."
-        LOG.error(error)
-        return error, 400
+    image: Image = get_contextual_image(path)
+    if not image:
+        return f"Failed to open image {name} from source {data_source}", 500
 
-    image_path: str = get_contextual_image(file_type)
+    LOG.info("Converting contextual image")
 
-    # Check if the file actually exists. (If empty string is returned it can only be that the file does not exist, since
-    # we already checked that the extension is valid).
-    if image_path == "":
-        error: str = "File was not found."
-        # Error log is handled by get_contextual_image() function.
-        return error, 404
+    image_io = BytesIO()
+    image.save(image_io, "png")
+    image_io.seek(0)
 
-    return send_file(abspath(image_path))
+    LOG.info("Serving converted contextual image")
 
+    # Ensure that the converted images are cached by the client
+    response = send_file(image_io, mimetype='image/png')
+    response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return response
+
+
+@app.route("/api/<data_source>/image/<name>/size")
+def contextual_image_size(data_source: str, name: str):
+    path: str = get_contextual_image_path(data_source, name)
+    if not path:
+        return f"Image {name} not found in source {data_source}", 404
+
+    size = get_contextual_image_size(path)
+    if not size:
+        return f"Failed to get size of image {name} from source {data_source}", 500
+
+    return {
+        "width": size[0],
+        "height": size[1]
+    }
     
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
