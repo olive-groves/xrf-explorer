@@ -49,16 +49,14 @@ const state = defineModel<ToolState>("state", { required: true });
           </div>
           <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.scrollSpeed" />
         </div>
-        <div v-if="state.tool == 'lens'">
-          <div class="grid gap-3">
-            <div class="flex items-center justify-between">
-              <Label for="lenszoom">Lens size </Label>
-              <div class="text-muted-foreground">
-                {{ state.lensSize[0] }}
-              </div>
+        <div class="grid gap-3">
+          <div class="flex items-center justify-between">
+            <Label for="lenszoom">Lens size </Label>
+            <div class="text-muted-foreground">
+              {{ state.lensSize[0] }}
             </div>
-            <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state.lensSize" />
           </div>
+          <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state.lensSize" />
         </div>
       </PopoverContent>
     </Popover>
