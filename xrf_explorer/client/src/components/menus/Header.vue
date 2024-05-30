@@ -10,9 +10,8 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import { WindowMenu } from "@/components/ui/window";
 import { DialogMenuItem } from "@/components/ui/dialog";
-import { FileMenu } from "@/components/menus";
+import { FileMenu, WindowMenu } from ".";
 import { useColorMode } from "@vueuse/core";
 import { inject } from "vue";
 import { FrontendConfig } from "@/lib/config";

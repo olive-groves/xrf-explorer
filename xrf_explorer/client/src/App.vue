@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { provide } from "vue";
-import { Header } from "@/components";
+import { Header } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 import { FrontendConfig } from "./lib/config";
@@ -12,6 +12,7 @@ import { DRWindow, BarChartWindow, SpectraWindow, ElementalChannelWindow } from 
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
+import BaseContextMenu from "./components/menus/BaseContextMenu.vue";
 
 // Provide configuration to app
 const props = defineProps<{
@@ -25,21 +26,23 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
 </script>
 
 <template>
-  <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
-    <Header />
-    <WindowContainer>
-      <ImageViewer />
+  <BaseContextMenu>
+    <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
+      <Header />
+      <WindowContainer>
+        <ImageViewer />
 
-      <!-- Place all windows below here -->
-      <ElementalChannelWindow />
-      <LayerWindow />
-      <WorkspaceWindow />
-      <BarChartWindow />
-      <DRWindow />
-      <SpectraWindow />
-    </WindowContainer>
+        <!-- Place all windows below here -->
+        <ElementalChannelWindow />
+        <LayerWindow />
+        <WorkspaceWindow />
+        <BarChartWindow />
+        <DRWindow />
+        <SpectraWindow />
+      </WindowContainer>
 
-    <!-- Place all reusable dialogs here -->
-    <UploadFileDialog />
-  </div>
+      <!-- Place all reusable dialogs here -->
+      <UploadFileDialog />
+    </div>
+  </BaseContextMenu>
 </template>
