@@ -106,7 +106,7 @@ function getContextualImageRecipeUrl(image: ContextualImage): string {
  * Default values for some LayerGroup fields.
  */
 export const layerGroupDefaults = {
-  visibility: LayerVisibility.InsideLens,
+  visibility: LayerVisibility.Visible,
   opacity: [1.0],
   contrast: [1.0],
   saturation: [1.0],
