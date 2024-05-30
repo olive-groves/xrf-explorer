@@ -7,6 +7,7 @@ import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { config } from "@/main";
 import { createElementalLayers } from "./elementalHelper";
+import { registerLayer } from "./registering";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -66,6 +67,7 @@ function createBaseLayer(image: ContextualImage) {
 function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;
   const layer = createLayer(id, getContextualImageUrl(image));
+  registerLayer(layer, getContextualImageRecipeUrl(image));
 
   const layerGroup: LayerGroup = {
     name: image.name,
@@ -89,6 +91,15 @@ function getContextualImageUrl(image: ContextualImage): string {
   // We directly access config from main.ts.
   // This is required as this is not done from a component and should be avoided where possible.
   return `${config.api.endpoint}/${appState.workspace!.name}/image/${image.name}`;
+}
+
+/**
+ * Gets the url for the recipe of a specified contextual image.
+ * @param image - The contextual image.
+ * @returns The url to the image represented by the contextual image.
+ */
+function getContextualImageRecipeUrl(image: ContextualImage): string {
+  return image.recipeLocation;
 }
 
 /**

@@ -1,9 +1,7 @@
 import { ref } from "vue";
 import { Layer, LayerGroup, LayerType, LayerVisibility } from "./types";
-import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
-import { registerLayer } from "./registering";
 
 /**
  * Contains data for all layers.
@@ -52,8 +50,6 @@ export function createLayer(id: string, imageLocation: string, load: boolean = t
   layers.value.push(layer);
 
   if (load) loadLayer(layer);
-
-  registerLayer(layer, image);
 
   return layer;
 }
