@@ -333,28 +333,28 @@ def get_color_clusters():
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    nr_attemps: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
-    _, colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
 
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
-    combined_bitmask: ndarray = combine_bitmasks(bitmasks)
-    full_path: str = join(path_to_save, 'imageClusters.png')
-    image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
+    # combined_bitmask: ndarray = combine_bitmasks(bitmasks)
+    # full_path: str = join(path_to_save, 'imageClusters.png')
+    # image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
 
-    if (not image_saved):
-        return 'Error occurred while saving bitmask as png', 500
+    # if (not image_saved):
+        # return 'Error occurred while saving bitmask as png', 500
 
     colors = convert_to_hex(colors)
     response = json.dumps(colors)
 
-    return (response, send_file(abspath(full_path), mimetype='image/png'))
+    return (response) #, send_file(abspath(full_path), mimetype='image/png'))
 
 @app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):

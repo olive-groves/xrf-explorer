@@ -73,7 +73,7 @@ async function fetchColors(url: string) {
  */
  async function fetchElements(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/element_names`, {
+  const response: Response = await fetch(`${url}/Amandelbloesem/element_names`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
