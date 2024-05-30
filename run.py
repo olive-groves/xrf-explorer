@@ -1,8 +1,6 @@
 import logging
 import argparse
 
-from waitress import serve
-
 LOG: logging.Logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(prog="python run.py", description="XRF-Explorer")
@@ -29,6 +27,7 @@ if __name__ == '__main__':
     LOG.info("Starting XRF-Explorer")
 
     # import app dependencies only after showing initial log message
+    from waitress import serve
     from xrf_explorer import app
     from xrf_explorer.server.file_system.config_handler import load_yml
 
@@ -37,5 +36,12 @@ if __name__ == '__main__':
     # load config
     config = load_yml(args.config)
 
+    # enable cors
+    if config["cors"]:
+        from flask_cors import CORS
+
+        CORS(app)
+
+    # serve XRF-Explorer
     serve(app, host=config["bind-address"], port=config["port"], max_request_body_size=1073741824000000,
           max_request_header_size=85899345920000)
