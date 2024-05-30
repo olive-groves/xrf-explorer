@@ -1,9 +1,6 @@
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 from cv2 import imread
 import numpy as np
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
 from os.path import join, exists
 import logging
 import json
@@ -73,7 +70,7 @@ def get_selected_data_cube(
     data_source_dir: str,
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
-) -> np.ndarray:
+) -> np.ndarray | None:
     """
     Extracts and returns a region of a data cube, based on the rectangular selection coordinates on the base image.
 
@@ -81,11 +78,12 @@ def get_selected_data_cube(
     which can be derived using werkzeug.utils.secure_filename(data_source_name).
     :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
     :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
-    :return: A numpy array containing the selected cube data.
+    :return: A numpy array containing the selected cube data or None if data source directory is not found.
     """
 
     if not exists(data_source_dir):
         LOG.error(f"Data source directory {data_source_dir} does not exist.")
+        return None
 
     file = open(join(data_source_dir, "workspace.json"))
     workspace_json = json.loads(file.read())
@@ -96,12 +94,13 @@ def get_selected_data_cube(
     # files gets implemented
     cube_name = workspace_json["elementalCubes"][0]["dmsLocation"]
 
-    img_h, img_w, _ = imread(f"{data_source_dir}/{base_img_name}").shape
-    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(
-        join(data_source_dir, cube_name)
-    )
+    base_img_dir = join(data_source_dir, base_img_name)
+    cube_dir = join(data_source_dir, cube_name)
 
-    data_cube = get_elemental_data_cube(cube_name)
+    data_cube = get_elemental_data_cube(cube_dir)
+
+    img_h, img_w, _ = imread(base_img_dir).shape
+    cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
 
     selection_coord_1_cube, selection_coord_2_cube = get_cube_coordinates(
         selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
