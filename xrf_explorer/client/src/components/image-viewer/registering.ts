@@ -2,6 +2,10 @@ import { Layer } from "./types";
 import * as THREE from "three";
 import * as math from "mathjs";
 
+const recipePromises: {
+  [key: string]: Promise<Response>;
+} = {};
+
 const recipes: {
   [key: string]: RegisteringRecipe;
 } = {};
@@ -16,7 +20,13 @@ export async function registerLayer(layer: Layer, recipeLocation: string) {
 
   // Make sure that the recipe is known to the client.
   if (!(recipeLocation in recipes)) {
-    const recipe = (await (await fetch(recipeLocation.replace(".csv", ".json"))).json()) as RegisteringRecipe;
+    // Start fetching the recipe if it has not been started already.
+    if (!(recipeLocation in recipePromises)) {
+      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json"));
+    }
+
+    // Await the fetch completing.
+    const recipe = (await (await recipePromises[recipeLocation]).json()) as RegisteringRecipe;
     recipes[recipeLocation] = recipe;
   }
 
