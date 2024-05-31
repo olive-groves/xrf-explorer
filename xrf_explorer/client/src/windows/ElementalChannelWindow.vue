@@ -52,6 +52,7 @@ const selection = computed(() => appState.selection.elements);
           <div class="flex">
             <Label
               v-if="channel.selected"
+              title="Select color"
               :for="`color_${channel.channel}`"
               class="mt-2 size-4 rounded-md border border-border"
               :style="{

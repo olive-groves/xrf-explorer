@@ -58,7 +58,7 @@ function updateImage() {
       </div>
       <Popover v-model:open="popoverOpen">
         <PopoverTrigger as-child>
-          <Button variant="ghost" class="size-8 p-2">
+          <Button variant="ghost" class="size-8 p-2" title="Configure image">
             <Settings />
           </Button>
         </PopoverTrigger>
