@@ -3,6 +3,7 @@ import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
 
 import * as d3 from "d3";
+import { datasource } from "@/lib/appState";
 
 const spectraChart = ref(null);
 let x: d3.ScaleLinear<number, number, never>;
@@ -75,7 +76,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
   try {
     //make api call
     const response = await fetch(
-      `${url}/get_average_data?` +
+      `${url}/${datasource.value}/get_average_data?` +
         new URLSearchParams({
           low: low as unknown as string,
           high: high as unknown as string,
@@ -110,7 +111,7 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
     //modify visibility based on checkbox status
     updateGlobal();
   } catch (e) {
-    console.log("Error Getting Global Average Spectrum", e);
+    console.error("Error getting global average spectrum", e);
   }
 }
 
@@ -126,7 +127,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
   try {
     //make api call
     const response = await fetch(
-      `${url}/get_selection_spectrum` +
+      `${url}/${datasource.value}/get_selection_spectrum?` +
         new URLSearchParams({
           pixels: pixels as unknown as string,
           low: low as unknown as string,
@@ -165,7 +166,7 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
     //modify visibility based on checkbox status
     updateSelection();
   } catch (e) {
-    console.log("Error Getting Selection Average Spectrum", e);
+    console.error("Error getting selection average spectrum", e);
   }
 }
 
@@ -233,7 +234,7 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
           .attr("y2", 430);
       });
     } catch (e) {
-      console.log("Error Getting Element theoretical Spectrum", e);
+      console.error("Error getting element theoretical spectrum", e);
     }
   } else {
     //remove previous element line
@@ -254,7 +255,7 @@ const elementRef = ref([]);
 async function getElements() {
   try {
     //make api call
-    const response = await fetch(`${url}/element_names`, {
+    const response = await fetch(`${url}/${datasource.value}/element_names?`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -276,7 +277,7 @@ async function getElements() {
       },
     );
   } catch (e) {
-    console.log("Error Getting Elements", e);
+    console.error("Error getting elements", e);
   }
 }
 

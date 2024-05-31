@@ -5,14 +5,16 @@ import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
-import { appState } from "@/lib/appState";
+import { appState, elements } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const channels = computed(() => appState.workspace?.elementalChannels);
-
+/**
+ * Watches the elemental channels defined in the workspace.
+ * Upon every change to these elemental channels, the selection is updated to reflect the workspace.
+ */
 watch(
-  channels,
+  elements,
   (value) => {
     appState.selection.elements = [];
     value?.forEach((channel) => {

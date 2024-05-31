@@ -22,7 +22,7 @@ const viewport: {
 };
 
 const toolState = ref<ToolState>({
-  tool: "lens",
+  tool: "grab",
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
   lensSize: [config.imageViewer.defaultLensSize],

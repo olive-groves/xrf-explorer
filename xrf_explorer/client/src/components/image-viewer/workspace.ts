@@ -17,12 +17,12 @@ watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
  */
 function loadWorkspace(workspace: WorkspaceConfig) {
   // Unload existing workspace
-  console.info("Unloading existing workspace from layer system...");
+  console.info("Unloading existing workspace from layer system");
   layerGroups.value = {};
   layers.value.forEach(disposeLayer);
   layers.value = [];
 
-  console.info("Loading new workspace into layer system...");
+  console.info("Loading new workspace into layer system");
 
   // Create base image layer
   createBaseLayer(workspace.baseImage);
@@ -49,18 +49,12 @@ function createBaseLayer(image: ContextualImage) {
   const layer = createLayer(`base_${snakeCase(image.name)}`, image);
 
   layerGroups.value.base = {
-    type: "base",
     name: image.name,
     description: "Base image",
     layers: [layer],
     index: 0,
     visible: true,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   updateLayerGroupLayers(layerGroups.value.base);
@@ -75,20 +69,23 @@ function createContextualLayer(image: ContextualImage) {
   const layer = createLayer(id, image);
 
   const layerGroup: LayerGroup = {
-    type: "contextual",
     name: image.name,
     description: "Contextual image",
     layers: [layer],
     index: -1,
     visible: false,
-    visibility: LayerVisibility.Visible,
-    opacity: [1.0],
-    contrast: [1.0],
-    saturation: [1.0],
-    gamma: [1.0],
-    brightness: [0.0],
+    ...layerGroupDefaults,
   };
 
   layerGroups.value[id] = layerGroup;
   updateLayerGroupLayers(layerGroup);
 }
+
+export const layerGroupDefaults = {
+  visibility: LayerVisibility.InsideLens,
+  opacity: [1.0],
+  contrast: [1.0],
+  saturation: [1.0],
+  gamma: [1.0],
+  brightness: [0.0],
+};

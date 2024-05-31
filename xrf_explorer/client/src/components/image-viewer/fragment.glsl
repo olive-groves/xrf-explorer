@@ -115,7 +115,8 @@ void main() {
   // Modify color based on layer type
   if (iLayerType == TYPE_ELEMENTAL) {
     // Get auxiliary data from texture
-    // Texture is 256x1 (wxh), we can hence sample at channel/256, 0
+    // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
+    // and (channel/256, 1) for the thresholds.
     // We get the color from the auxiliary and render in alphascale.
     vec4 auxiliaryColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
     vec2 threshold = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;

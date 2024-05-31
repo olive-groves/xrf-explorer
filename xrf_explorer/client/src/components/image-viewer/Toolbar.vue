@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Hand, Search, SquareDashedMousePointer, Settings } from "lucide-vue-next";
 import { ToolState } from "./types";
 
-const state = defineModel<ToolState>("state");
+const state = defineModel<ToolState>("state", { required: true });
 </script>
 
 <template>
@@ -12,7 +12,7 @@ const state = defineModel<ToolState>("state");
     class="absolute bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background
       p-1 shadow-sm"
   >
-    <ToggleGroup type="single" v-model:model-value="state!.tool">
+    <ToggleGroup type="single" v-model:model-value="state.tool">
       <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
         <Hand />
       </ToggleGroupItem>
@@ -35,29 +35,29 @@ const state = defineModel<ToolState>("state");
           <div class="flex items-center justify-between">
             <Label for="movementspeed">Movement speed</Label>
             <div class="text-muted-foreground">
-              {{ state!.movementSpeed[0] }}
+              {{ state.movementSpeed[0] }}
             </div>
           </div>
-          <Slider id="movementspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state!.movementSpeed" />
+          <Slider id="movementspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.movementSpeed" />
         </div>
         <div class="grid gap-3">
           <div class="flex items-center justify-between">
             <Label for="scrollspeed">Scroll speed</Label>
             <div class="text-muted-foreground">
-              {{ state!.scrollSpeed[0] }}
+              {{ state.scrollSpeed[0] }}
             </div>
           </div>
-          <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state!.scrollSpeed" />
+          <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.scrollSpeed" />
         </div>
-        <div v-if="state!.tool == 'lens'">
+        <div v-if="state.tool == 'lens'">
           <div class="grid gap-3">
             <div class="flex items-center justify-between">
               <Label for="lenszoom">Lens size </Label>
               <div class="text-muted-foreground">
-                {{ state!.lensSize[0] }}
+                {{ state.lensSize[0] }}
               </div>
             </div>
-            <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state!.lensSize" />
+            <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state.lensSize" />
           </div>
         </div>
       </PopoverContent>

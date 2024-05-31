@@ -21,7 +21,7 @@ const props = defineProps<{
   config: FrontendConfig;
 }>();
 provide("config", props.config);
-console.log("XRF-Explorer client created with configuration: ", props.config);
+console.info("XRF-Explorer client created with configuration: ", props.config);
 </script>
 
 <template>

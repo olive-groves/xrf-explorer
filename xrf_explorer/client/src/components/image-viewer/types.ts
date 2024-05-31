@@ -120,10 +120,6 @@ export type Tool = "grab" | "lens" | "lasso";
  */
 export type LayerGroup = {
   /**
-   * The type of this layer group.
-   */
-  type: "base" | "contextual" | "elemental" | "colorSegmentation" | "dimensionalityReduction";
-  /**
    * The name of this group of layers.
    */
   name: string;
