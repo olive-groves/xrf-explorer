@@ -413,7 +413,7 @@ def get_element_color_cluster(data_source: str):
     for i in range(number_elem):
         # Merge similar clusters
         colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
-        color_data.append(convert_to_hex(colors_per_elem[i]))  # Convert to list
+        color_data.append(convert_to_hex(colors_per_elem[i])) 
 
     response = json.dumps(color_data)
 

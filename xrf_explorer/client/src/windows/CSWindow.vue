@@ -17,7 +17,6 @@ import {
 const config = inject<FrontendConfig>("config")!;
 const colors = ref<string[]>([]);
 const colorsElements = ref<Record<string, string[]>>({});
-const colorsElements2 = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
 const elements = ref<string[]>([]);
 const datasource = appState.workspace?.name;
@@ -34,6 +33,7 @@ const datasource = appState.workspace?.name;
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
+    //assign the full color palette if the selection is made for the complete painting
     colorsElements.value["complete"] = data;
     console.info("Successfully fetched colors", colorsElements.value["complete"]);
     return true;
@@ -45,7 +45,7 @@ const datasource = appState.workspace?.name;
 
 
 /**
- * Fetch the hexadecimal colors data.
+ * Fetch the hexadecimal colors data per element.
  * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
@@ -55,30 +55,11 @@ const datasource = appState.workspace?.name;
     if (!response.ok) throw new Error("Failed to fetch element colors");
 
     const data = await response.json();
+    //for each element assign the corresponding palette at that index
     elements.value.forEach((element, index) => {
       colorsElements.value[element] = data[index];
     });
     console.info("Successfully fetched element colors", colorsElements.value);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-}
-
-/**
- * Fetch the hexadecimal colors data.
- * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
- * @returns True if the colors were fetched successfully, false otherwise.
- */
- async function fetchColorstest(url: string) {
-  try {
-    const response = await fetch(`${url}/${datasource}/get_element_color_cluster`);
-    if (!response.ok) throw new Error("Failed to fetch colors");
-
-    const data = await response.json();
-    colorsElements2.value = data;
-    console.info("Successfully fetched colors", colorsElements2.value);
     return true;
   } catch (e) {
     console.error(e);
@@ -157,12 +138,6 @@ async function showColors() {
   } catch (e) {
     console.error("Error fetching element colors data", e);
   }
-  try {
-    // Whether the colors were fetched properly
-    await fetchColorstest(config.api.endpoint);
-  } catch (e) {
-    console.error("Error fetching element colors data", e);
-  }
 }
 
 // Watch for changes in selectedElement and update colors accordingly
@@ -209,12 +184,8 @@ watch(selectedElement, (newValue) => {
     </div>
 
     <!-- COLOR PALETTE --> 
-    
-    <div> {{ colorsElements }}</div>
-
     <div v-if="selectedElement" class="color-palette">
       <div v-for="color in colors" :key="color" class="color-shape" :style="{'background-color': color}"></div>
-      <div v-if = "colors.length == 0"> zero </div>
       </div>
     </Window>
   </template>

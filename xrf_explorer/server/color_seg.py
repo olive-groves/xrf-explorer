@@ -6,14 +6,13 @@ import skimage
 from os import path, makedirs
 from skimage import color
 
-from xrf_explorer.server.file_system import get_elemental_data_cube
-from xrf_explorer.server.file_system.file_access import *
+from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_elemental_cube_per_layer
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
-                         threshold: int = 3) -> tuple[np.ndarray, np.ndarray]:
+                         threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
@@ -68,7 +67,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
-                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
+                               nr_of_attempts: int = 10, k: int = 25) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -113,7 +112,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 2) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10, k: int = 25) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -131,6 +130,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
+    # Normalize the elemental data cube
+    data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:
