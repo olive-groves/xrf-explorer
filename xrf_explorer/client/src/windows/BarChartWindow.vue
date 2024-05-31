@@ -14,21 +14,11 @@ type Element = {
   average: number;
 };
 
-type ElementVisibility = {
-  name: string;
-  visible: boolean;
-};
-
 // Elemental data averages
 let dataAverages: Element[] = [];
 
 // Visibility for all elements
-const elementVisibility: ElementVisibility[] = [
-  { name: "P K", visible: true },
-  { name: "Si K", visible: true },
-  { name: "chisq", visible: false },
-];
-const selectedElements: Ref<ElementSelection[]> = computed(() => appState.selection.elements)
+const selectedElements: Ref<ElementSelection[]> = computed(() => appState.selection.elements);
 
 // Actual displayed data, i.e. elements which are selected
 let displayedData: Element[] = [];
@@ -81,16 +71,13 @@ async function fetchAverages(url: string) {
 }
 
 /**
- * Mask out the element data of the elements which are selected
- * to not be visible.
+ * Mask out the element data of the elements which are selected to not be visible.
+ * @param selection The selection of elements.
  */
 function maskData(selection: ElementSelection[]) {
-  //displayedData = dataAverages.filter((elementAvg) =>
-    //elementVisibility.some((elementVis) => elementVis.name == elementAvg.name && elementVis.visible),
-  //);
-
   displayedData = dataAverages.filter((_, index) =>
-    selection.some((elementVis) => elementVis.channel == index && elementVis.selected));
+    selection.some((elementVis) => elementVis.channel == index && elementVis.selected),
+  );
 }
 
 /**
@@ -190,18 +177,21 @@ async function showChart() {
     if (fetched) {
       // If everything went right, mask the data and display the chart
       maskData(selectedElements.value);
-      updateChart(dataAverages);
+      updateChart(displayedData);
     }
   } catch (e) {
     console.error("Error fetching average data", e);
   }
 }
 
-//watch(selectedElements, (selection) => {
-    //console.log("Selection changed!");
-    //maskData(selection);
-    //updateChart(displayedData);
-//});
+watch(
+  selectedElements,
+  (selection) => {
+    maskData(selection);
+    updateChart(displayedData);
+  },
+  { deep: true },
+);
 </script>
 
 <template>
