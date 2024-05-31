@@ -4,6 +4,7 @@ import { datasource } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
@@ -157,11 +158,14 @@ async function updateEmbedding() {
       <!-- GENERATION OF THE IMAGE -->
       <Separator class="my-2" />
       <p class="font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square items-center justify-center text-center">
+      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center">
         <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
-        <span v-if="status == Status.LOADING">Loading...</span>
-        <span v-if="status == Status.GENERATING">Generating...</span>
+        <span v-if="status == Status.LOADING">Loading</span>
+        <span v-if="status == Status.GENERATING">Generating</span>
         <span v-if="status == Status.ERROR">{{ currentError }}</span>
+        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-4">
+          <LoaderPinwheel class="size-full animate-spin" />
+        </div>
         <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
       </div>
     </div>
