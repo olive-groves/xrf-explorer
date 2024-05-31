@@ -1,5 +1,6 @@
-import json
 import logging
+
+import json
 from os.path import join, normpath, abspath
 from pathlib import Path
 
