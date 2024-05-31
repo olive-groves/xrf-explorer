@@ -313,7 +313,7 @@ def get_average_data(data_source):
 
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
-def get_element_sectra():
+def get_element_spectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
     :request args: 
@@ -337,7 +337,7 @@ def get_element_sectra():
     return response
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
-def get_selection_sectra(data_source):
+def get_selection_spectra(data_source):
     """Get the average spectrum of the selected pixels.
 
     :request args: 
