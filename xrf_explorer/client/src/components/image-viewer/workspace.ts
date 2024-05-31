@@ -36,7 +36,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   createElementalLayers(workspace);
 
   // Create color segmentation layers
-  createColorClusterLayers(workspace);
+  createColorClusterLayers();
 
   // Create dimensionality reduction layers
 }

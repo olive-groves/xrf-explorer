@@ -1,8 +1,7 @@
 import { appState } from "@/lib/appState";
-import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { LayerType } from "./types";
+import { LayerType, Layer } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
@@ -80,7 +79,7 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
  * Creates color segmentation layers (for whole image and element-wise layers).
  * @param workspace
  */
-export async function createColorClusterLayers(workspace: WorkspaceConfig) {
+export async function createColorClusterLayers() {
   const filenames = await getFilenames();
 
   const layers: Layer[] = [];

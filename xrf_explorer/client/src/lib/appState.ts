@@ -11,6 +11,7 @@ export const appState = reactive<AppState>({
     lens: null,
     rectangles: [],
     elements: [],
+    colorSegmentation: [],
     dimensionalityReduction: null,
   },
 });
