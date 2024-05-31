@@ -44,8 +44,9 @@ contextual image.
                     if image["name"] == name:
                         return abspath(join(data_source_dir, image["imageLocation"]))
     except OSError as err:
-        LOG.error("Error while getting elemental cube name: %s", err)
+        LOG.error("Error while getting contextual image path: %s", err)
 
+    LOG.error("Could not find contextual image %s in source %s", name, data_source)
     return None
 
 

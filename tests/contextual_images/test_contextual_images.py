@@ -25,86 +25,82 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result = get_contextual_image_path("painting", "TEST", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "TEST", self.CUSTOM_CONFIG_PATH)
 
         # Verify
         assert result == abspath(self.TEST_IMAGE_PATH)
+        assert "TEST in data source painting" in caplog.text
 
     def test_get_contextual_image_path_contextual(self, caplog):
         caplog.set_level(logging.INFO)
 
         # Execute
-        result = get_contextual_image_path("painting", "TEST2", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "TEST2", self.CUSTOM_CONFIG_PATH)
 
         # Verify
         assert result == abspath(self.TEST_IMAGE_PATH)
+        assert "TEST2 in data source painting" in caplog.text
 
     def test_get_contextual_image_path_nonexistent(self, caplog):
         caplog.set_level(logging.INFO)
 
         # Execute
-        result = get_contextual_image_path("painting", "FAKE", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "FAKE", self.CUSTOM_CONFIG_PATH)
 
         # Verify
         assert result is None
+        assert "FAKE in data source painting" in caplog.text
+        assert "Could not find contextual image" in caplog.text
 
-    def test_get_contextual_image(self, caplog):
-        caplog.set_level(logging.INFO)
-
+    def test_get_contextual_image(self):
         # Setup
         correct = PIL.Image.open(self.TEST_IMAGE_PATH)
 
         # Execute
-        result = get_contextual_image(self.TEST_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.TEST_IMAGE_PATH)
 
         # Verify
         # Compare the images.
+        assert result
         assert np.sum(np.array(ImageChops.difference(correct, result).getdata())) == 0
 
     def test_get_contextual_image_invalid(self, caplog):
         caplog.set_level(logging.INFO)
 
         # Execute
-        result = get_contextual_image(self.INVALID_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.INVALID_IMAGE_PATH)
 
         # Verify
         assert result is None
+        assert "PIL could not open" in caplog.text
 
     def test_get_contextual_image_nonexistent(self, caplog):
         caplog.set_level(logging.INFO)
 
         # Execute
-        result = get_contextual_image(self.NONEXISTENT_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.NONEXISTENT_IMAGE_PATH)
 
         # Verify
         assert result is None
+        assert "not found" in caplog.text
 
-    def test_get_contextual_image_size(self, caplog):
-        caplog.set_level(logging.INFO)
-
-        # Setup
-        correct = PIL.Image.open(self.TEST_IMAGE_PATH)
-
+    def test_get_contextual_image_size(self):
         # Execute
-        result = get_contextual_image_size(self.TEST_IMAGE_PATH)
+        result: tuple[int, int] | None = get_contextual_image_size(self.TEST_IMAGE_PATH)
 
         # Verify
         assert result == (200, 150)
 
-    def test_get_contextual_image_invalid_size(self, caplog):
-        caplog.set_level(logging.INFO)
-
+    def test_get_contextual_image_invalid_size(self):
         # Execute
-        result = get_contextual_image_size(self.INVALID_IMAGE_PATH)
+        result: tuple[int, int] | None = get_contextual_image_size(self.INVALID_IMAGE_PATH)
 
         # Verify
         assert result is None
 
-    def test_get_contextual_image_nonexistent_size(self, caplog):
-        caplog.set_level(logging.INFO)
-
+    def test_get_contextual_image_nonexistent_size(self):
         # Execute
-        result = get_contextual_image_size(self.NONEXISTENT_IMAGE_PATH)
+        result: tuple[int, int] | None = get_contextual_image_size(self.NONEXISTENT_IMAGE_PATH)
 
         # Verify
         assert result is None
