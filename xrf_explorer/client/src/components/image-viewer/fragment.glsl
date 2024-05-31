@@ -2,9 +2,9 @@ precision highp float;
 precision highp int;
 
 const int TRANSPARENT = 0x00;
-const int WHOLE = 0x01;
-const int IN_LENS = 0x02;
-const int OUTSIDE_LENS = 0x03;
+const int IN_LENS = 0x01;
+const int OUTSIDE_LENS = 0x02;
+const int WHOLE = 0x03;
 const int TYPE_IMAGE = 0x00;
 const int TYPE_ELEMENTAL = 0x01;
 const int TYPE_CS = 0x02;
@@ -79,37 +79,15 @@ vec3 rgbFromHsl(vec3 hsl) {
 }
 
 void main() {
-  if (iShowLayer == TRANSPARENT) 
-  {
-    gl_FragColor = transparent;
-  }
-  else if (iShowLayer == WHOLE) 
-  {
-    gl_FragColor = texture2D(tImage, vUv);
-  }
-  else if (iShowLayer == IN_LENS) 
-  {
-    // Eucledian distance from pixel to mouse position
-    float distance = distance(gl_FragCoord.xy, uMouse);
-    if (distance <= uRadius) {
-      gl_FragColor = texture2D(tImage, vUv);
-    } else {
-      gl_FragColor = transparent;
-    }
-  }
-  else if (iShowLayer == OUTSIDE_LENS) 
-  {
-    // Eucledian distance from pixel to mouse position
-    float distance = distance(gl_FragCoord.xy, uMouse);
-    if (distance <= uRadius) {
-      gl_FragColor = transparent;
-    } else {
+  float distance = distance(gl_FragCoord.xy, uMouse);
+  if (distance <= uRadius) {
+    if (iShowLayer & IN_LENS) {
       gl_FragColor = texture2D(tImage, vUv);
     }
-  }
-  else 
-  {
-    gl_FragColor = transparent;
+  } else {
+    if (iShowLayer & OUTSIDE_LENS) {
+      gl_FragColor = texture2D(tImage, vUv);
+    }
   }
 
   // Modify color based on layer type
@@ -135,16 +113,15 @@ void main() {
     // of current index
     // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
     // if cluster i of element j is selected
-    int clusterIndex = texture2D(tImage, vUv).r;
-    vec4 color = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
-    gl_FragColor = color; 
+    float clusterIndex = texture2D(tImage, vUv).r;
+    gl_FragColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
   }
 
   // Apply contrast
-  gl_FragColor.rgb = ((gl_FragColor.rgb - 0.5) * max(uContrast, 0.0)) + 0.5;
+  gl_FragColor.xyz = ((gl_FragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5;
 
   // Create HSL color vector for brightness and saturation
-  vec3 hslColor = rgbToHsl(gl_FragColor.rgb);
+  vec3 hslColor = rgbToHsl(gl_FragColor.xyz);
 
   // Apply brightness
   hslColor.z = hslColor.z + uBrightness;
@@ -153,11 +130,11 @@ void main() {
   hslColor.y = hslColor.y * uSaturation;
 
   // Revert HSL back to RGB
-  gl_FragColor.rgb = rgbFromHsl(hslColor);
-
-  // Apply opacity
-  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
+  gl_FragColor.xyz = rgbFromHsl(hslColor);
 
   // Apply gamma correction
-  gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/uGamma));
+  gl_FragColor.xyz = pow(gl_FragColor.xyz, vec3(1.0/uGamma));
+  
+  // Apply opacity
+  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
 }

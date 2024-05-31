@@ -170,9 +170,9 @@ export type LayerGroup = {
  */
 export enum LayerVisibility {
   Invisible = 0,
-  Visible = 1,
-  InsideLens = 2,
-  OutsideLens = 3,
+  InsideLens = 1,
+  OutsideLens = 2,
+  Visible = 3,
 }
 
 /**
