@@ -30,7 +30,7 @@ const datasource = appState.workspace?.name;
  */
  async function fetchColors(url: string) {
   try {
-    const response = await fetch(`${url}/get_color_cluster`);
+    const response = await fetch(`${url}/${datasource}/get_color_cluster`);
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
