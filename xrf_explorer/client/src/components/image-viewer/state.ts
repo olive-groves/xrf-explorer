@@ -1,9 +1,7 @@
 import { ref } from "vue";
 import { Layer, LayerGroup, LayerType, LayerVisibility } from "./types";
-import { ContextualImage } from "@/lib/workspace";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
-import { registerLayer } from "./registering";
 
 /**
  * Contains data for all layers.
@@ -23,16 +21,16 @@ export const layerGroups = ref<{
  * Create a layer from an image resource.
  * Handles registering and loading in the image viewer.
  * @param id - The ID to associate with the layer.
- * @param image - The image to load in the layer.
+ * @param imageLocation - The image to load in the layer.
  * @param load - Whether the layer should be loaded into the image viewer.
  * @returns The layer that was created by calling the function.
  */
-export function createLayer(id: string, image: ContextualImage, load: boolean = true): Layer {
-  console.debug("Creating layer", id, image);
+export function createLayer(id: string, imageLocation: string, load: boolean = true): Layer {
+  console.debug("Creating layer", id, imageLocation);
 
   const layer: Layer = {
     id: id,
-    image: image.imageLocation,
+    image: imageLocation,
     uniform: {
       iIndex: { value: 0 },
       iLayerType: { value: LayerType.Image },
@@ -52,8 +50,6 @@ export function createLayer(id: string, image: ContextualImage, load: boolean = 
   layers.value.push(layer);
 
   if (load) loadLayer(layer);
-
-  registerLayer(layer, image);
 
   return layer;
 }

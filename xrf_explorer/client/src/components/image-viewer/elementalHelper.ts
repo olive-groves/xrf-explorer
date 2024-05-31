@@ -7,6 +7,7 @@ import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from ".
 import { ElementSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { layerGroupDefaults } from "./workspace";
+import { registerLayer } from "./registering";
 
 const selection = computed(() => appState.selection.elements);
 
@@ -86,15 +87,8 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   const layers = workspace.elementalChannels
     .filter((channel) => channel.enabled && channel.channel in filenames)
     .map((channel) => {
-      const layer = createLayer(
-        `elemental_${channel.channel}`,
-        {
-          name: `elemental_${channel.channel}`,
-          imageLocation: filenames[channel.channel],
-          recipeLocation: "recipe_cube.csv",
-        },
-        false,
-      );
+      const layer = createLayer(`elemental_${channel.channel}`, filenames[channel.channel], false);
+      registerLayer(layer, "/recipe_cube.csv");
       layer.uniform.iLayerType.value = LayerType.Elemental;
       layer.uniform.iAuxiliary = { value: channel.channel };
       layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
