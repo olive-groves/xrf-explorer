@@ -2,7 +2,7 @@ import { appState } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { LayerType, LayerVisibility } from "./types";
+import { LayerType } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
@@ -10,13 +10,16 @@ import { layerGroupDefaults } from "./workspace";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
+const num_elements = 26;
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
 const width = 256; 
 // Arbitrary amount, needs to be greater than maximum number of clusters.
-const height = 30;
+const height = 32;
 // One data entry for each of the elements + one for the whole picture
-const data = Uint8Array(width * height * 4);
+const data = new Uint8Array(width * height * 4);
 const dataTexture = createDataTexture(data, width, height);
+
+watch(selection, selectionUpdated, { immediate: true, deep: true });
 
 /**
  * Update image viewer to show updated selection.
@@ -55,7 +58,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
     });
 
     // Update the data texture in the gpu to reflect possible changes as a result of updating the selection.
-    updateDataTexture(layerGroups.value.elemental);
+    updateDataTexture(layerGroups.value.colorClusters);
   }
 }
 
@@ -64,12 +67,12 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
  */
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < num_elements; i++) {
     filenames[i] = `elementCluster_${i}.png`;
   }
 
   // For simplicity, we put the image-wide bitmask last
-  filenames[26] = `imageClusters.png`;
+  filenames[num_elements] = `imageClusters.png`;
   return filenames;
 }
 
@@ -80,44 +83,39 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 export async function createColorClusterLayers(workspace: WorkspaceConfig) {
   const filenames = await getFilenames();
 
-  // Element-wise color clusters
-  const layers = workspace.elementColorClusters
-    .filter((cluster) => cluster.enabled && cluster.channel in filenames)
-    .map((cluster) => {
+  const layers: Layer[] = [];
+  // iAuxiliary passes corresponding element index [0, num_elements - 1]
+  for (let i = 0; i < num_elements; i++) {
       const layer = createLayer(
-        `colorSegmenationElem_${cluster.channel}`,
+        `colorSegmenationElem_${i}`,
         {
-            name: `colorSegmenationElem_${cluster.channel}`,
-            imageLocation: filenames[cluster.channel],
+            name: `colorSegmenationElem_${i}`,
+            imageLocation: filenames[i],
             recipeLocation: "recipe_cube.csv",
         },
         false,
       );
       layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-      layer.uniform.iAuxiliary = { value: cluster.channel };
+      layer.uniform.iAuxiliary = { value: i };
       layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-      return layer;
-    });
-
-  // Image-wide color clusters
-  if (workspace.colorClusters.enabled && workspace.colorClusters.name in filenames) {
-      const layer = createLayer(
-        `colorSegmenationImage`,
-        {
-          name: `colorSegmenationImage`,
-          imageLocation: filenames.at(-1),
-          recipeLocation: "recipe_cube.csv",
-        },
-        false,
-      );
-      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-      layer.uniform.iAuxiliary = { value: (filenames.length - 1) };
-      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-      layers.push(layer)
+      layers.push(layer);
   }
+  // Element-wise color clusters
+  const layer = createLayer(
+    `colorSegmenationImage`,
+    {
+        name: `colorSegmenationImage`,
+        imageLocation: filenames[num_elements],
+        recipeLocation: "recipe_cube.csv",
+    },
+    false,
+  );
+  layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+  layer.uniform.iAuxiliary = { value: num_elements };
+  layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+  layers.push(layer)
 
   layerGroups.value.colorClusters = {
-    type: "colorSegmentation",
     name: "Color clusters",
     description: "",
     layers: layers,

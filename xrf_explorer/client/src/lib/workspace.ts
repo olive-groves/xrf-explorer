@@ -26,14 +26,6 @@ export type WorkspaceConfig = {
    * All elemental channels present in the elemental cubes.
    */
   elementalChannels: ElementalChannel[];
-  /**
-   * All color clusters present in the whole image.
-   */
-  colorClusters: ColorCluster[];
-  /**
-   * All the color clusters present per element.
-   */
-  elementColorClusters: ElementColorClusters[];
 };
 
 /**
@@ -120,37 +112,4 @@ export type ElementalChannel = {
    * Should the channel be visible to the client.
    */
   enabled: boolean;
-};
-
-/**
- * Describes the configuration for the full-image color clusters.
- */
-export type ColorCluster = {
-  /**
-   * The name of the cluster.
-   */
-  name: string;
-  /**
-   * Should the cluster be visible to the client.
-   */
-  enable: boolean;
-};
-
-/**
- * Describes the configuration for the color clusters of a
- * single element.
- */
-export type ElementColorClusters = {
-  /**
-   * The name of the element.
-   */
-  name: string;
-  /**
-   * The clusters corresponding to the element.
-   */
-  cluster: ColorCluster[];
-  /**
-   * The channel/index of the element.
-   */
-  channel: number;
 };

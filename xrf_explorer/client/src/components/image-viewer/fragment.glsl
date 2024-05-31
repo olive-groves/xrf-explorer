@@ -137,11 +137,7 @@ void main() {
     // if cluster i of element j is selected
     int clusterIndex = texture2D(tImage, vUv).r;
     vec4 color = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
-    if (color.w == 0.0) {
-      gl_FragColor = transparent;
-    } else {
-      gl_FragColor = color; 
-    }
+    gl_FragColor = color; 
   }
 
   // Apply contrast
