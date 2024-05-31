@@ -172,7 +172,13 @@ watch(selectedElement, (newValue) => {
  * @param selectedElement The selected element.
  * @returns The index of the selected element in the elements array.
  */
-function getElementIndex(selectedElement: string, color: string, colorIndex: number) {
+function setSelection(selectedElement: string, color: string, colorIndex: number) {
+  // Deselect all channels
+  selection.value.forEach(channel => {
+    channel.selected = false;
+  });
+
+  // Get index of new channel
   let index: number = 0;
   if (selectedElement == "complete") {
     index = 0;
@@ -180,12 +186,16 @@ function getElementIndex(selectedElement: string, color: string, colorIndex: num
     index = elements.value.findIndex(element => element === selectedElement) + 1;
     if (index == 0) {
       console.error("Error fetching selected element");
+      return;
     }
   }
+
+  // Update selection
   selection.value[index].channel = colorIndex;
   selection.value[index].color= color;
   selection.value[index].selected = true;
 }
+
 </script>
 
 
@@ -227,7 +237,7 @@ function getElementIndex(selectedElement: string, color: string, colorIndex: num
         :key="color" 
         class="color-shape" 
         :style="{'background-color': color}"
-        @click="getElementIndex(selectedElement, color, colorIndex)"
+        @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
     </div>
     </Window>
