@@ -30,6 +30,7 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.164.1",
+    "title-case": "^4.3.1",
     "vee-validate": "^4.12.8",
     "vue": "^3.4.21",
     "vue-draggable-next": "^2.2.1",

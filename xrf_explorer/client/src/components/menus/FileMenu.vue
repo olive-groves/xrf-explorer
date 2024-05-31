@@ -5,7 +5,7 @@ import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarI
 import { DialogMenuItem } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
-import { sentenceCase } from "change-case";
+import { titleCase } from "title-case";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -32,7 +32,7 @@ async function loadWorkspace(source: string) {
       <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
       <MenubarSeparator />
       <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
-        {{ sentenceCase(source) }}
+        {{ titleCase(source) }}
       </MenubarItem>
     </MenubarContent>
   </MenubarMenu>
