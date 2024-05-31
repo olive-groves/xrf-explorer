@@ -24,7 +24,9 @@ uniform float uSaturation;
 uniform float uGamma;
 uniform float uBrightness;
 
-varying vec2 vUv;
+in vec2 vUv;
+
+out vec4 fragColor;
 
 // Convert RGB to HSL
 vec3 rgbToHsl(vec3 rgb) {
@@ -81,12 +83,12 @@ vec3 rgbFromHsl(vec3 hsl) {
 void main() {
   float distance = distance(gl_FragCoord.xy, uMouse);
   if (distance <= uRadius) {
-    if (iShowLayer & IN_LENS) {
-      gl_FragColor = texture2D(tImage, vUv);
+    if ((iShowLayer & IN_LENS) != 0) {
+      fragColor = texture(tImage, vUv);
     }
   } else {
-    if (iShowLayer & OUTSIDE_LENS) {
-      gl_FragColor = texture2D(tImage, vUv);
+    if ((iShowLayer & OUTSIDE_LENS) != 0) {
+      fragColor = texture(tImage, vUv);
     }
   }
 
@@ -96,13 +98,13 @@ void main() {
     // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
     // and (channel/256, 1) for the thresholds.
     // We get the color from the auxiliary and render in alphascale.
-    vec4 auxiliaryColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
-    vec2 threshold = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
+    vec4 auxiliaryColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
+    vec2 threshold = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
     if (auxiliaryColor.w == 0.0) {
-      gl_FragColor = transparent;
+      fragColor = transparent;
     } else {
-      float alpha = (gl_FragColor.x - threshold.x) / (threshold.y - threshold.x);
-      gl_FragColor = vec4(
+      float alpha = (fragColor.x - threshold.x) / (threshold.y - threshold.x);
+      fragColor = vec4(
         auxiliaryColor.xyz,
         clamp(alpha, 0.0, 1.0)
       );
@@ -113,15 +115,15 @@ void main() {
     // of current index
     // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
     // if cluster i of element j is selected
-    float clusterIndex = texture2D(tImage, vUv).r;
-    gl_FragColor = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
+    float clusterIndex = texture(tImage, vUv).r;
+    fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
   }
 
   // Apply contrast
-  gl_FragColor.xyz = ((gl_FragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5;
+  fragColor.xyz = ((fragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5;
 
   // Create HSL color vector for brightness and saturation
-  vec3 hslColor = rgbToHsl(gl_FragColor.xyz);
+  vec3 hslColor = rgbToHsl(fragColor.xyz);
 
   // Apply brightness
   hslColor.z = hslColor.z + uBrightness;
@@ -130,11 +132,11 @@ void main() {
   hslColor.y = hslColor.y * uSaturation;
 
   // Revert HSL back to RGB
-  gl_FragColor.xyz = rgbFromHsl(hslColor);
+  fragColor.xyz = rgbFromHsl(hslColor);
 
   // Apply gamma correction
-  gl_FragColor.xyz = pow(gl_FragColor.xyz, vec3(1.0/uGamma));
+  fragColor.xyz = pow(fragColor.xyz, vec3(1.0/uGamma));
   
   // Apply opacity
-  gl_FragColor = vec4(gl_FragColor.xyz, gl_FragColor.w * uOpacity);
+  fragColor = vec4(fragColor.xyz, fragColor.w * uOpacity);
 }
