@@ -412,7 +412,7 @@ def get_element_color_cluster(data_source: str):
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
         colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
-        color_data.append(convert_to_hex(colors_per_elem[i])) 
+        color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])

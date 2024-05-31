@@ -92,7 +92,7 @@ class TestColorSegmentation:
         assert np.array_equal(result, np.empty(0))
 
         # Verify log message
-        assert f"The path '{fake_path}' is not a valid file path." in caplog.text
+        assert f"The path '{fake_path}' is not a valid file path" in caplog.text
 
     def test_combined_bitmasks(self):
         # Set-up
@@ -114,7 +114,10 @@ class TestColorSegmentation:
     def test_get_elem_clusters_using_k_means(self):
         # Set-up
         small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
-        expected_result0: np.ndarray = np.array([])
+        expected_result0: np.ndarray = np.array([
+            [255, 255, 255],
+            [0, 0, 0]
+        ])
         expected_result1: np.ndarray = np.array([
             [0, 0, 0],
             [255, 255, 255]

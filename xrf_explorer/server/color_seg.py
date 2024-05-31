@@ -67,7 +67,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
-                               nr_of_attempts: int = 10, k: int = 25) -> tuple[np.ndarray, np.ndarray]:
+                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -108,11 +108,11 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     return np.array(colors), np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str,
+def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 25) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -311,7 +311,12 @@ def get_image(image_file_path: str) -> np.ndarray:
     """
 
     raw_image: np.ndarray = cv2.imread(image_file_path)
-    raw_image: np.ndarray = cv2.cvtColor(raw_image,cv2.COLOR_BGR2RGB)
+    try:
+        raw_image: np.ndarray = cv2.cvtColor(raw_image,cv2.COLOR_BGR2RGB)
+    except Exception as e:
+        LOG.error(f"The path '{image_file_path}' is not a valid file path: {e}")
+        return np.empty(0)
+
     if raw_image is None:
         LOG.error(f"The path '{image_file_path}' is not a valid file path.")
         return np.empty(0)
