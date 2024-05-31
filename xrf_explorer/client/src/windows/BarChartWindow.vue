@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { Ref, inject, ref, computed } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { datasource } from "@/lib/appState";
+import { ElementSelection } from "@/lib/selection";
+import { appState, datasource } from "@/lib/appState";
 
 const barchart = ref(null);
 const config = inject<FrontendConfig>("config")!;
@@ -27,6 +28,7 @@ const elementVisibility: ElementVisibility[] = [
   { name: "Si K", visible: true },
   { name: "chisq", visible: false },
 ];
+const selectedElements: Ref<ElementSelection[]> = computed(() => appState.selection.elements)
 
 // Actual displayed data, i.e. elements which are selected
 let displayedData: Element[];
@@ -186,6 +188,7 @@ async function showChart() {
       // If everything went right, mask the data and display the chart
       maskData();
       setup(displayedData);
+      console.log("Selected elements", selectedElements.value);
     }
   } catch (e) {
     console.error("Error fetching average data", e);
