@@ -10,7 +10,7 @@ import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
-// Used for generalizing the code. 
+// Used for generalizing the code.
 interface Property {
   name: string;
   max: number;

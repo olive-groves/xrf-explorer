@@ -22,10 +22,10 @@ type ElementVisibility = {
 let dataAverages: Element[];
 
 // Visibility for all elements
-let elementVisibility: ElementVisibility[] = [
-  {"name": "P K", "visible": true},
-  {"name": "Si K", "visible": true},
-  {"name": "chisq", "visible": false}
+const elementVisibility: ElementVisibility[] = [
+  { name: "P K", visible: true },
+  { name: "Si K", visible: true },
+  { name: "chisq", visible: false },
 ];
 
 // Actual displayed data, i.e. elements which are selected
@@ -83,16 +83,21 @@ async function fetchAverages(url: string) {
  * to not be visible.
  */
 function maskData() {
-  displayedData = dataAverages.filter(elementAvg =>
-    elementVisibility.some(elementVis => elementVis.name == elementAvg.name && elementVis.visible));
-  
-  console.log("Displayed data", displayedData);
-  console.log("Element visibility", elementVisibility);
-  console.log("Averages data", dataAverages);
+  displayedData = dataAverages.filter((elementAvg) =>
+    elementVisibility.some((elementVis) => elementVis.name == elementAvg.name && elementVis.visible),
+  );
+}
+
+/**
+ * Clear the bar chart.
+ */
+function clearChart() {
+  d3.select(barchart.value).selectAll("*").remove();
 }
 
 /**
  * Set up the bar chart's SVG container, add axes and data.
+ * @param data Element data array that we want to display on the chart.
  */
 function setup(data: Element[]) {
   // Declare chart dimensions and margins
@@ -100,6 +105,9 @@ function setup(data: Element[]) {
     width = 860 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
   const max: number = d3.max(data, (d) => d.average) as number;
+
+  // Clear the bar chart first
+  clearChart();
 
   // Select SVG container
   const svg = d3
@@ -177,9 +185,6 @@ async function showChart() {
     if (fetched) {
       // If everything went right, mask the data and display the chart
       maskData();
-      // TODO: see if there's a callback to update the chart
-      // TODO: check that it actually updates everything right
-      // TODO: change the chart to use this visible data thing
       setup(displayedData);
     }
   } catch (e) {
