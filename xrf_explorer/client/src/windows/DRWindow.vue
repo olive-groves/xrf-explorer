@@ -5,6 +5,8 @@ import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 
+import * as d3 from "d3";
+
 // Constants
 const config = inject<FrontendConfig>("config")!;
 const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
@@ -29,12 +31,35 @@ const selectedOverlay = ref();
 // Dimensionality reduction image
 const imageSourceUrl = ref();
 
-// list of selected points
+// Selection
+const drImage = ref(null);
 const selectedPoints: { x: number; y: number }[] = [];
 
 // canvas to draw on
 const canvas = ref<HTMLCanvasElement>(<HTMLCanvasElement>document.getElementById("canvas"));
 const context = ref<CanvasRenderingContext2D | null>(canvas.value?.getContext("2d"));
+
+function setup() {
+  const svg = d3.select(drImage.value)
+      .append("svg")
+      .attr("width", 640)
+      .attr("height", 640);
+
+  const mr_incredible = svg
+      .append("image")
+      .attr("xlink:href", "file:///C:/Users/20210682/Documents/sep/xrf-explorer/xrf_explorer/client/src/windows/mr-incredible.png")
+      // .attr("xlink:href", "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.reddit.com%2Fr%2FMemeTemplatesOfficial%2Fcomments%2Frt9bc8%2Fmr_incredible_becomes_ascended%2F&psig=AOvVaw2tzjoDgI25vxwQ-M_sHdAk&ust=1717242705408000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJiRmt3pt4YDFQAAAAAdAAAAABAE")
+      .attr("width", 640)
+      .attr("height", 640);
+
+  svg.append("line")
+      .attr("x1", 100)
+      .attr("y1", 100)
+      .attr("x2", 200)
+      .attr("y2", 200)
+      .style("stroke", "rgb(255,0,0)")
+      .style("stroke-width", 2);
+}
 
 /**
  * Fetch the dimensionality reduction image
@@ -127,7 +152,7 @@ function visualizeSelectedPoints() {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" opened>
+  <Window title="Dimensionality reduction" opened @window-mounted="setup">
     <!-- OVERLAY SECTION -->
     <div class="p-2">
       <p class="font-bold">Overlay:</p>
@@ -177,13 +202,19 @@ function visualizeSelectedPoints() {
       <!-- GENERATION OF THE IMAGE -->
       <Separator class="my-2" />
       <p class="font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown">
-        <canvas ref="canvas" class="w-full" style="background: red"></canvas>
+<!--      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown">-->
+<!--        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>-->
+<!--        <span v-if="status == Status.LOADING">Loading...</span>-->
+<!--        <span v-if="status == Status.GENERATING">Generating...</span>-->
+<!--        <span v-if="status == Status.ERROR">{{ currentError }}</span>-->
+<!--        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />-->
+<!--      </div>-->
+      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown" id="svg-container">
         <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
         <span v-if="status == Status.LOADING">Loading...</span>
         <span v-if="status == Status.GENERATING">Generating...</span>
         <span v-if="status == Status.ERROR">{{ currentError }}</span>
-        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
+        <svg v-if="status == Status.SUCCESS" ref="drImage"></svg>
       </div>
     </div>
   </Window>
