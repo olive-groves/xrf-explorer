@@ -24,6 +24,9 @@ from xrf_explorer.server.color_seg import (
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
+from xrf_explorer.server.file_system.from_dms import (
+    get_elemental_datacube_dimensions_from_dms,
+)
 
 LOG: logging.Logger = logging.getLogger(__name__)
 CONFIG_PATH: str = 'config/backend.yml'
@@ -329,11 +332,13 @@ def get_color_clusters(data_source: str):
     # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
     image = get_image(path_to_image)
+    data_cube_path: str = get_elemental_cube_path(data_source)
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
-    width: int = k_means_parameters['image-width']
-    height: int = k_means_parameters['image-height']
+    width: int
+    height: int
+    width, height, _, _ = get_elemental_datacube_dimensions_from_dms(data_cube_path)
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
@@ -401,7 +406,7 @@ def get_element_color_cluster(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, nr_attempts, k)
+                                                             image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
 
     color_data: list[list[str]] = []
     for i in range(len(colors_per_elem)):
@@ -417,7 +422,6 @@ def get_element_color_cluster(data_source: str):
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
-        print(f'Clusters of element {i} computed')
 
     response = json.dumps(color_data)
 

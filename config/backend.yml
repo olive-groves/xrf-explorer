@@ -11,11 +11,9 @@ dim-reduction:
 color-segmentation:
   folder: "xrf_explorer/server/temp/color_segmentation"
   k-means-parameters:
-    k: 25
+    k: 20
     nr-attempts: 10
-    image-width: 400
-    image-height: 600
   elemental-k-means-parameters:
-    k: 25
+    k: 5
     nr-attempts: 10
-    elem-threshold: 20
+    elem-threshold: 0.5

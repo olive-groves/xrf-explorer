@@ -243,11 +243,11 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
             raise IOError(f"Failed to save image to {full_path}")
             return False
 
-        print(f"Image successfully saved to {full_path}")
+        LOG.info(f"Image successfully saved to {full_path}")
         return True
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        LOG.error(f"An error occurred: {e}")
 
     return False
 

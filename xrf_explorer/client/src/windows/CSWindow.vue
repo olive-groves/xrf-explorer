@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, inject, watch } from "vue";
-import { appState } from "@/lib/app_state";
+import { appState, datasource } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { FrontendConfig } from "@/lib/config";
 import {
@@ -19,7 +19,6 @@ const colors = ref<string[]>([]);
 const colorsElements = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
 const elements = ref<string[]>([]);
-const datasource = appState.workspace?.name;
 
 
 /**
@@ -29,7 +28,7 @@ const datasource = appState.workspace?.name;
  */
  async function fetchColors(url: string) {
   try {
-    const response = await fetch(`${url}/${datasource}/get_color_cluster`);
+    const response = await fetch(`${url}/${datasource.value}/get_color_cluster`);
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
@@ -51,7 +50,7 @@ const datasource = appState.workspace?.name;
  */
  async function fetchElementColors(url: string) {
   try {
-    const response = await fetch(`${url}/${datasource}/get_element_color_cluster`);
+    const response = await fetch(`${url}/${datasource.value}/get_element_color_cluster`);
     if (!response.ok) throw new Error("Failed to fetch element colors");
 
     const data = await response.json();
@@ -74,7 +73,7 @@ const datasource = appState.workspace?.name;
  */
  async function fetchElements(url: string) {
   // Make API call
-  const response: Response = await fetch(`${url}/${datasource}/element_names`, {
+  const response: Response = await fetch(`${url}/${appState.workspace?.name}/element_names`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
