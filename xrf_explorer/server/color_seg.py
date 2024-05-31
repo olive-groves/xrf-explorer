@@ -173,7 +173,6 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
         labels: np.ndarray
         center: np.ndarray
         _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
-        print(center)
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()

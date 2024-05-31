@@ -422,6 +422,7 @@ def get_element_color_cluster(data_source: str):
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
+        print(f'Clusters of element {i} computed')
 
     response = json.dumps(color_data)
 
