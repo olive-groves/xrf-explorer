@@ -34,6 +34,7 @@ const imageSourceUrl = ref();
 // Selection
 const drImage = ref(null);
 const selectedPoints: { x: number; y: number }[] = [];
+const mrIncredible: string = "src/windows/mr-incredible.png";
 
 // canvas to draw on
 const canvas = ref<HTMLCanvasElement>(<HTMLCanvasElement>document.getElementById("canvas"));
@@ -45,20 +46,20 @@ function setup() {
       .attr("width", 640)
       .attr("height", 640);
 
-  const mr_incredible = svg
-      .append("image")
-      .attr("xlink:href", "file:///C:/Users/20210682/Documents/sep/xrf-explorer/xrf_explorer/client/src/windows/mr-incredible.png")
-      // .attr("xlink:href", "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.reddit.com%2Fr%2FMemeTemplatesOfficial%2Fcomments%2Frt9bc8%2Fmr_incredible_becomes_ascended%2F&psig=AOvVaw2tzjoDgI25vxwQ-M_sHdAk&ust=1717242705408000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJiRmt3pt4YDFQAAAAAdAAAAABAE")
-      .attr("width", 640)
-      .attr("height", 640);
+  // const mr_incredible = svg
+  //     .append("img")
+  //     .attr("xlink:href", "file:///C:/Users/20210682/Documents/sep/xrf-explorer/xrf_explorer/client/src/windows/mr-incredible.png")
+  //     // .attr("xlink:href", "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.reddit.com%2Fr%2FMemeTemplatesOfficial%2Fcomments%2Frt9bc8%2Fmr_incredible_becomes_ascended%2F&psig=AOvVaw2tzjoDgI25vxwQ-M_sHdAk&ust=1717242705408000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJiRmt3pt4YDFQAAAAAdAAAAABAE")
+  //     .attr("width", 640)
+  //     .attr("height", 640);
 
-  svg.append("line")
-      .attr("x1", 100)
-      .attr("y1", 100)
-      .attr("x2", 200)
-      .attr("y2", 200)
-      .style("stroke", "rgb(255,0,0)")
-      .style("stroke-width", 2);
+  svg.append("rect")
+      .attr("x", 100)
+      .attr("y", 100)
+      .attr("width", 200)
+      .attr("height", 200)
+      .attr("fill", "red")
+      .attr("opacity", 1);
 }
 
 /**
@@ -209,12 +210,14 @@ function visualizeSelectedPoints() {
 <!--        <span v-if="status == Status.ERROR">{{ currentError }}</span>-->
 <!--        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />-->
 <!--      </div>-->
-      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair" @mousedown="onMouseDown" id="svg-container">
-        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
-        <span v-if="status == Status.LOADING">Loading...</span>
-        <span v-if="status == Status.GENERATING">Generating...</span>
-        <span v-if="status == Status.ERROR">{{ currentError }}</span>
-        <svg v-if="status == Status.SUCCESS" ref="drImage"></svg>
+      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="svg-container">
+<!--        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>-->
+<!--        <span v-if="status == Status.LOADING">Loading...</span>-->
+<!--        <span v-if="status == Status.GENERATING">Generating...</span>-->
+<!--        <span v-if="status == Status.ERROR">{{ currentError }}</span>-->
+<!--        <svg v-if="status == Status.SUCCESS" ref="drImage"></svg>-->
+        <img :src="mrIncredible" @error="status = Status.ERROR" />
+        <svg ref="drImage" style="position: absolute"></svg>
       </div>
     </div>
   </Window>
