@@ -27,6 +27,15 @@ export function exportToImage(name: string, element: HTMLElement) {
       height: element.clientHeight * scale,
     })
     .then((blob) => {
-      saveAs(blob, `${snakeCase(name)}.png`);
+      saveBlob(name, blob);
     });
+}
+
+/**
+ * Saves a blob from the client as an image file.
+ * @param name - The name to use for the image.
+ * @param blob - The blob to save to the image file.
+ */
+export function saveBlob(name: string, blob: Blob) {
+  saveAs(blob, `${snakeCase(name)}.png`);
 }
