@@ -23,9 +23,9 @@ let dataAverages: Element[];
 
 // Visibility for all elements
 let elementVisibility: ElementVisibility[] = [
-  {"name": "AlK", "visible": true},
-  {"name": "SiK", "visible": true},
-  {"name": "chi", "visible": false}
+  {"name": "P K", "visible": true},
+  {"name": "Si K", "visible": true},
+  {"name": "chisq", "visible": false}
 ];
 
 // Actual displayed data, i.e. elements which are selected
@@ -86,18 +86,20 @@ function maskData() {
   displayedData = dataAverages.filter(elementAvg =>
     elementVisibility.some(elementVis => elementVis.name == elementAvg.name && elementVis.visible));
   
-  console.log(displayedData);
+  console.log("Displayed data", displayedData);
+  console.log("Element visibility", elementVisibility);
+  console.log("Averages data", dataAverages);
 }
 
 /**
  * Set up the bar chart's SVG container, add axes and data.
  */
-function setup() {
+function setup(data: Element[]) {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
-  const max: number = d3.max(dataAverages, (d) => d.average) as number;
+  const max: number = d3.max(data, (d) => d.average) as number;
 
   // Select SVG container
   const svg = d3
@@ -110,7 +112,7 @@ function setup() {
   // Declare the horizontal position scale
   const x = d3
     .scaleBand()
-    .domain(dataAverages.map((d) => d.name))
+    .domain(data.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
@@ -155,7 +157,7 @@ function setup() {
   // Add data
   svg
     .selectAll("svg")
-    .data(dataAverages)
+    .data(data)
     .join("rect")
     .attr("x", (d) => x(d.name) as number)
     .attr("y", (d) => y(d.average))
@@ -178,7 +180,7 @@ async function showChart() {
       // TODO: see if there's a callback to update the chart
       // TODO: check that it actually updates everything right
       // TODO: change the chart to use this visible data thing
-      setup();
+      setup(displayedData);
     }
   } catch (e) {
     console.error("Error fetching average data", e);
