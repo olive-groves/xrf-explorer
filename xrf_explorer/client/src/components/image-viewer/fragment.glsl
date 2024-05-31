@@ -129,6 +129,19 @@ void main() {
         clamp(alpha, 0.0, 1.0)
       );
     }
+  } else if (iLayerType == TYPE_CS) {
+    // Get auxiliary data from texture
+    // Element index j given by iAuxiliary, cluster index i given by R value
+    // of current index
+    // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
+    // if cluster i of element j is selected
+    int clusterIndex = texture2D(tImage, vUv).r;
+    vec4 color = texture2D(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
+    if (color.w == 0.0) {
+      gl_FragColor = transparent;
+    } else {
+      gl_FragColor = color; 
+    }
   }
 
   // Apply contrast

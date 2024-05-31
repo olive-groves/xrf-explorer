@@ -103,6 +103,10 @@ export type ColorSegmentationSelection = {
    * Checks if elemental channel is selected.
    */
   selected: boolean;
+  /**
+   * The color associated with the element.
+   */
+  color: string;
 };
 
 /**

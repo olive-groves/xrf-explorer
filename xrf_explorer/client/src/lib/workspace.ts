@@ -29,11 +29,11 @@ export type WorkspaceConfig = {
   /**
    * All color clusters present in the whole image.
    */
-  colorClusters: ColorCluster;
+  colorClusters: ColorCluster[];
   /**
    * All the color clusters present per element.
    */
-  elementColorClusters: ElementColorCluster[];
+  elementColorClusters: ElementColorClusters[];
 };
 
 /**
@@ -131,34 +131,26 @@ export type ColorCluster = {
    */
   name: string;
   /**
-   * Should the clusters be visible to the client.
+   * Should the cluster be visible to the client.
    */
   enable: boolean;
-  /**
-   * The index of the cluster (if any) that should be visible to the client.
-   */
-  chosenCluster: number;
 };
 
 /**
  * Describes the configuration for the color clusters of a
  * single element.
  */
-export type ElementColorCluster = {
+export type ElementColorClusters = {
   /**
-   * The name of the clusters.
+   * The name of the element.
    */
   name: string;
   /**
-   * The index of the corresponding elemental channel.
+   * The clusters corresponding to the element.
+   */
+  cluster: ColorCluster[];
+  /**
+   * The channel/index of the element.
    */
   channel: number;
-  /**
-   * Should the clusters be visible to the client.
-   */
-  enabled: boolean;
-  /**
-   * The index of the cluster (if any) that should be visible to the client.
-   */
-  chosenCluster: number;
 };

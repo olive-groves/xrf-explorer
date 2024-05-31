@@ -6,6 +6,7 @@ import { LayerType, LayerVisibility } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
+import { layerGroupDefaults } from "./workspace";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
@@ -14,7 +15,7 @@ const width = 256;
 // Arbitrary amount, needs to be greater than maximum number of clusters.
 const height = 30;
 // One data entry for each of the elements + one for the whole picture
-const data = Uint8Array(width * height);
+const data = Uint8Array(width * height * 4);
 const dataTexture = createDataTexture(data, width, height);
 
 /**
@@ -24,11 +25,15 @@ const dataTexture = createDataTexture(data, width, height);
 function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   newSelection.forEach((channel) => {
     // Get index for cluster channel.channel of element channel.element
-    const index = (channel.channel * width + channel.element);
+    const start = (channel.channel * width + channel.element) * 4;
     if (channel.selected) {
-      data[index] = 1;
+      const color = hexToRgb(channel.color);
+      data[start + 0] = color[0];
+      data[start + 1] = color[1];
+      data[start + 2] = color[2];
+      data[start + 3] = 255;
     } else {
-      data[index] = 0;
+      data[start + 3] = 0;
     }
   });
 
@@ -37,7 +42,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
     newSelection.forEach((channel) => {
       // Find the corresponding layer for the element in the selection.
       const layer = layerGroups.value.elemental.layers.filter(
-        (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
+        (layer) => layer.uniform.iAuxiliary!.value == channel.element,
       )[0];
 
       if (layer.mesh == undefined && channel.selected) {
@@ -84,7 +89,7 @@ export async function createColorClusterLayers(workspace: WorkspaceConfig) {
         {
             name: `colorSegmenationElem_${cluster.channel}`,
             imageLocation: filenames[cluster.channel],
-            recipeLocation: "",
+            recipeLocation: "recipe_cube.csv",
         },
         false,
       );
@@ -101,12 +106,12 @@ export async function createColorClusterLayers(workspace: WorkspaceConfig) {
         {
           name: `colorSegmenationImage`,
           imageLocation: filenames.at(-1),
-          recipeLocation: "",
+          recipeLocation: "recipe_cube.csv",
         },
         false,
       );
       layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-      layer.uniform.iAuxiliary = { value: 0 };
+      layer.uniform.iAuxiliary = { value: (filenames.length - 1) };
       layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
       layers.push(layer)
   }
@@ -118,8 +123,7 @@ export async function createColorClusterLayers(workspace: WorkspaceConfig) {
     layers: layers,
     index: -2,
     visible: true,
-    visibility: LayerVisibility.InsideLens,
-    opacity: [1.0],
+    ...layerGroupDefaults,
   };
 
   updateLayerGroupLayers(layerGroups.value.colorClusters);
