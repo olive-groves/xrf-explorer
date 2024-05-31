@@ -19,7 +19,7 @@ const state = defineModel<ToolState>("state", { required: true });
       <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
         <Search />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
+      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Rectangle selection">
         <SquareDashedMousePointer />
       </ToggleGroupItem>
     </ToggleGroup>
