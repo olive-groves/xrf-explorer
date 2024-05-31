@@ -324,7 +324,7 @@ def get_selection_sectra(data_source):
     return response
 
 @app.route('/api/<data_source>/get_color_cluster', methods=['GET'])
-def get_color_clusters():
+def get_color_clusters(data_source: str):
     '''Gets the colors corresponding to the image-wide color clusters, and saves the 
     corresponding bitmasks.
 
