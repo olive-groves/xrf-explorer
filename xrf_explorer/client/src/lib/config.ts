@@ -62,7 +62,8 @@ export type ImageViewerConfig = {
 
 /**
  * The default configuration for the client.
- */ export const DefaultConfig: FrontendConfig = {
+ */
+export const DefaultConfig: FrontendConfig = {
   api: {
     endpoint: "http://localhost:8001/api",
   },

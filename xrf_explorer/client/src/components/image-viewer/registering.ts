@@ -1,7 +1,10 @@
-import { ContextualImage } from "@/lib/workspace";
 import { Layer } from "./types";
 import * as THREE from "three";
 import * as math from "mathjs";
+
+const recipePromises: {
+  [key: string]: Promise<Response>;
+} = {};
 
 const recipes: {
   [key: string]: RegisteringRecipe;
@@ -10,18 +13,24 @@ const recipes: {
 /**
  * Sets the mRegister uniform on a layer in accordance with the specified recipe.
  * @param layer - The layer for which the perspective transform should be set.
- * @param image - The image resource that will be used to request the correct recipe.
+ * @param recipeLocation - The url to the registering recipe.
  */
-export async function registerLayer(layer: Layer, image: ContextualImage) {
-  if (image.recipeLocation == "") return;
+export async function registerLayer(layer: Layer, recipeLocation: string) {
+  if (recipeLocation == "") return;
 
   // Make sure that the recipe is known to the client.
-  if (!(image.recipeLocation in recipes)) {
-    const recipe = (await (await fetch(image.recipeLocation.replace(".csv", ".json"))).json()) as RegisteringRecipe;
-    recipes[image.recipeLocation] = recipe;
+  if (!(recipeLocation in recipes)) {
+    // Start fetching the recipe if it has not been started already.
+    if (!(recipeLocation in recipePromises)) {
+      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json"));
+    }
+
+    // Await the fetch completing.
+    const recipe = (await (await recipePromises[recipeLocation]).json()) as RegisteringRecipe;
+    recipes[recipeLocation] = recipe;
   }
 
-  const recipe = recipes[image.recipeLocation];
+  const recipe = recipes[recipeLocation];
   setPerspectiveTransform(layer.uniform.mRegister.value, recipe);
 }
 
