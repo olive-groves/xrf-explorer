@@ -164,6 +164,12 @@ Code Documentation
 
    modules
 
+.. toctree::
+   :maxdepth: 3
+   :caption: Vue Components:
+
+   components
+
 Indices and tables
 ==================
 
