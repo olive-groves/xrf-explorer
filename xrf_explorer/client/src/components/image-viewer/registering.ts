@@ -1,9 +1,10 @@
 import { Layer } from "./types";
 import * as THREE from "three";
 import * as math from "mathjs";
+import { deepClone } from "@/lib/utils";
 
 const recipePromises: {
-  [key: string]: Promise<Response>;
+  [key: string]: Promise<RegisteringRecipe>;
 } = {};
 
 const recipes: {
@@ -22,11 +23,14 @@ export async function registerLayer(layer: Layer, recipeLocation: string) {
   if (!(recipeLocation in recipes)) {
     // Start fetching the recipe if it has not been started already.
     if (!(recipeLocation in recipePromises)) {
-      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json"));
+      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json")).then((response) =>
+        response.json(),
+      );
     }
 
     // Await the fetch completing.
-    const recipe = (await (await recipePromises[recipeLocation]).json()) as RegisteringRecipe;
+    const recipe = (await recipePromises[recipeLocation]) as RegisteringRecipe;
+
     recipes[recipeLocation] = recipe;
   }
 
@@ -40,7 +44,7 @@ export async function registerLayer(layer: Layer, recipeLocation: string) {
  * @param recipe - The recipe to use to calculate the transform.
  */
 function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecipe) {
-  const points = recipe.points;
+  const points = deepClone(recipe.points);
   const target = recipe.targetSize;
   const moving = recipe.movingSize;
 
