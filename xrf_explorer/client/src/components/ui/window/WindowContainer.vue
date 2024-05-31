@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { windowState } from "./state";
-import { WindowSidepanel } from ".";
+import { SidepanelContextMenu, WindowSidepanel } from ".";
 import { computed, ref } from "vue";
 import { BaseContextMenu } from "@/components/menus";
-import { ContextMenuItem } from "../context-menu";
 
 const leftWindows = computed(() =>
   Object.keys(windowState).filter((key) => windowState[key].opened && windowState[key].location == "left"),
@@ -33,8 +32,7 @@ const rightPanel = ref<InstanceType<typeof ResizablePanel>>();
           <WindowSidepanel :windows="leftWindows" />
         </div>
         <template #menu>
-          <ContextMenuItem v-if="leftPanel?.isExpanded" @click="leftPanel?.collapse">Collapse sidebar</ContextMenuItem>
-          <ContextMenuItem v-else @click="leftPanel?.expand">Expand sidebar</ContextMenuItem>
+          <SidepanelContextMenu location="left" v-model="leftPanel" />
         </template>
       </BaseContextMenu>
     </ResizablePanel>
@@ -56,10 +54,7 @@ const rightPanel = ref<InstanceType<typeof ResizablePanel>>();
           <WindowSidepanel :windows="rightWindows" />
         </div>
         <template #menu>
-          <ContextMenuItem v-if="rightPanel?.isExpanded" @click="rightPanel?.collapse">
-            Collapse sidebar
-          </ContextMenuItem>
-          <ContextMenuItem v-else @click="rightPanel?.expand">Expand sidebar</ContextMenuItem>
+          <SidepanelContextMenu location="right" v-model="rightPanel" />
         </template>
       </BaseContextMenu>
     </ResizablePanel>
