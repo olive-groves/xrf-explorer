@@ -46,11 +46,8 @@ const selection = computed(() => appState.selection.elements);
         }"
       >
         <div class="flex justify-between">
-          <div>
-            <div>
-              {{ channel.channel }}
-            </div>
-            <div class="whitespace-nowrap text-muted-foreground" />
+          <div class="mt-1.5">
+            {{ channel.channel }}
           </div>
           <div class="flex">
             <Label
@@ -82,7 +79,7 @@ const selection = computed(() => appState.selection.elements);
         <div v-if="channel.selected" class="space-y-2">
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <div>Thresholds</div>
+              <div>Intensity thresholds</div>
               <div>{{ channel.thresholds[0] }} – {{ channel.thresholds[1] }}</div>
             </div>
             <Slider v-model="channel.thresholds" :min="0" :step="0.01" :max="1" class="pb-2" />
