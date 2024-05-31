@@ -1,7 +1,7 @@
 import logging
 
 import json
-from os.path import join, normpath, abspath
+from os.path import join, abspath
 from pathlib import Path
 
 import PIL
