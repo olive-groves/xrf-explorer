@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, inject, ref, computed } from "vue";
+import { Ref, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
@@ -20,7 +20,7 @@ type ElementVisibility = {
 };
 
 // Elemental data averages
-let dataAverages: Element[];
+let dataAverages: Element[] = [];
 
 // Visibility for all elements
 const elementVisibility: ElementVisibility[] = [
@@ -31,7 +31,7 @@ const elementVisibility: ElementVisibility[] = [
 const selectedElements: Ref<ElementSelection[]> = computed(() => appState.selection.elements)
 
 // Actual displayed data, i.e. elements which are selected
-let displayedData: Element[];
+let displayedData: Element[] = [];
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -84,10 +84,13 @@ async function fetchAverages(url: string) {
  * Mask out the element data of the elements which are selected
  * to not be visible.
  */
-function maskData() {
-  displayedData = dataAverages.filter((elementAvg) =>
-    elementVisibility.some((elementVis) => elementVis.name == elementAvg.name && elementVis.visible),
-  );
+function maskData(selection: ElementSelection[]) {
+  //displayedData = dataAverages.filter((elementAvg) =>
+    //elementVisibility.some((elementVis) => elementVis.name == elementAvg.name && elementVis.visible),
+  //);
+
+  displayedData = dataAverages.filter((_, index) =>
+    selection.some((elementVis) => elementVis.channel == index && elementVis.selected));
 }
 
 /**
@@ -101,7 +104,7 @@ function clearChart() {
  * Set up the bar chart's SVG container, add axes and data.
  * @param data Element data array that we want to display on the chart.
  */
-function setup(data: Element[]) {
+function updateChart(data: Element[]) {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -186,14 +189,19 @@ async function showChart() {
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) {
       // If everything went right, mask the data and display the chart
-      maskData();
-      setup(displayedData);
-      console.log("Selected elements", selectedElements.value);
+      maskData(selectedElements.value);
+      updateChart(dataAverages);
     }
   } catch (e) {
     console.error("Error fetching average data", e);
   }
 }
+
+//watch(selectedElements, (selection) => {
+    //console.log("Selection changed!");
+    //maskData(selection);
+    //updateChart(displayedData);
+//});
 </script>
 
 <template>
