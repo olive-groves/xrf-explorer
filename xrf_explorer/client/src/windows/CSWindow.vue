@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, inject, watch } from "vue";
+import { ref, inject, computed, watch } from "vue";
 import { appState, datasource } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
+import { ColorSegmentationSelection } from "@/lib/selection"
 import { FrontendConfig } from "@/lib/config";
 import {
   Select,
@@ -20,6 +21,13 @@ const colorsElements = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
 const elements = ref<string[]>([]);
 
+const selection = computed(() => appState.selection.colorSegmentation);
+
+watch(datasource,
+  (_) => {
+    setup();
+  }
+)
 
 /**
  * Fetch the hexadecimal colors data.
@@ -115,14 +123,25 @@ const elements = ref<string[]>([]);
 
 
 /**
- * Show the colors and element names.
+ * Show the colors and element names, and initialize CS selection.
  */
-async function showColors() {
+async function setup() {
   try {
     // Whether the colors were fetched properly
     await fetchElements(config.api.endpoint);
   } catch (e) {
     console.error("Error fetching names data", e);
+  }
+
+  // Initialize CS selection
+  for (let i = 0; i <= elements.value.length; i++) {
+    const sel: ColorSegmentationSelection = {
+      element: i, 
+      channel: 0, 
+      selected: false, 
+      color: "#FFFFFF",
+    };
+    selection.value.push(sel);
   }
 
   try {
@@ -148,6 +167,25 @@ watch(selectedElement, (newValue) => {
   } 
 });
 
+/**
+ * Get the index of the selected element in the elements array.
+ * @param selectedElement The selected element.
+ * @returns The index of the selected element in the elements array.
+ */
+function getElementIndex(selectedElement: string, color: string, colorIndex: number) {
+  let index: number = 0;
+  if (selectedElement == "complete") {
+    index = 0;
+  } else {
+    index = elements.value.findIndex(element => element === selectedElement) + 1;
+    if (index == 0) {
+      console.error("Error fetching selected element");
+    }
+  }
+  selection.value[index].channel = colorIndex;
+  selection.value[index].color= color;
+  selection.value[index].selected = true;
+}
 </script>
 
 
@@ -165,7 +203,7 @@ watch(selectedElement, (newValue) => {
 </style>
 
 <template>
-  <Window title="Color Segmentation Window" @window-mounted="showColors" opened location="right">
+  <Window title="Color Segmentation Window" opened location="right">
     <!-- SELECTION MENU -->
     <div class="mt-1 flex items-center">
       <Select v-model="selectedElement">
@@ -184,7 +222,13 @@ watch(selectedElement, (newValue) => {
 
     <!-- COLOR PALETTE --> 
     <div v-if="selectedElement" class="color-palette">
-      <div v-for="color in colors" :key="color" class="color-shape" :style="{'background-color': color}"></div>
-      </div>
+      <div 
+        v-for="(color, colorIndex) in colors" 
+        :key="color" 
+        class="color-shape" 
+        :style="{'background-color': color}"
+        @click="getElementIndex(selectedElement, color, colorIndex)"
+      ></div>
+    </div>
     </Window>
   </template>
