@@ -168,9 +168,10 @@ watch(selectedElement, (newValue) => {
 });
 
 /**
- * Get the index of the selected element in the elements array.
+ * Sets the CS selection.
  * @param selectedElement The selected element.
- * @returns The index of the selected element in the elements array.
+ * @param color The selected color.
+ * @param colorIndex The index of the selected color.
  */
 function setSelection(selectedElement: string, color: string, colorIndex: number) {
   // Deselect all channels
@@ -179,7 +180,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   });
 
   // Get index of new channel
-  let index: number = 0;
+  let index: number;
   if (selectedElement == "complete") {
     index = 0;
   } else {
@@ -189,10 +190,13 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
       return;
     }
   }
+  console.log(index);
+  console.log(colorIndex);
+  console.log(color);
 
   // Update selection
-  selection.value[index].channel = colorIndex;
-  selection.value[index].color= color;
+  selection.value[index].channel = colorIndex + 1;
+  selection.value[index].color = color;
   selection.value[index].selected = true;
 }
 

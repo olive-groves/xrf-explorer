@@ -30,6 +30,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
     const start = (channel.channel * width + channel.element) * 4;
     if (channel.selected) {
       const color = hexToRgb(channel.color);
+      console.log(`selected is elem: ${channel.element} with channel: ${channel.channel} and color: ${color}`)
       data[start + 0] = color[0];
       data[start + 1] = color[1];
       data[start + 2] = color[2];
@@ -40,10 +41,10 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   });
 
   // Create and dispose of layers in accordance with the selection.
-  if (layerGroups.value.elemental != undefined) {
+  if (layerGroups.value.colorClusters != undefined) {
     newSelection.forEach((channel) => {
       // Find the corresponding layer for the element in the selection.
-      const layer = layerGroups.value.elemental.layers.filter(
+      const layer = layerGroups.value.colorClusters.layers.filter(
         (layer) => layer.uniform.iAuxiliary!.value == channel.element,
       )[0];
 
@@ -67,10 +68,10 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
   // For simplicity, we put the image-wide bitmask first
-  filenames[num_elements] = `imageClusters.png`;
+  filenames[0] = `imageClusters.png`;
 
   for (let i = 1; i <= num_elements; i++) {
-    filenames[i] = `elementCluster_${i}.png`;
+    filenames[i] = `elementCluster_${i-1}.png`;
   }
 
   return filenames;
@@ -84,28 +85,12 @@ export async function createColorClusterLayers() {
   const filenames = await getFilenames();
 
   const layers: Layer[] = [];
-  // iAuxiliary passes corresponding element index [0, num_elements - 1]
-  for (let i = 1; i <= num_elements; i++) {
-      const layer = createLayer(
-        `colorSegmenationElem_${i}`,
-        {
-            name: `colorSegmenationElem_${i-1}`,
-            imageLocation: filenames[i],
-            recipeLocation: "recipe_cube.csv",
-        },
-        false,
-      );
-      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-      layer.uniform.iAuxiliary = { value: i };
-      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-      layers.push(layer);
-  }
-  // Element-wise color clusters
+  // Whole-image color clusters
   const layer = createLayer(
     `colorSegmenationImage`,
     {
         name: `colorSegmenationImage`,
-        imageLocation: filenames[num_elements],
+        imageLocation: filenames[0],
         recipeLocation: "recipe_cube.csv",
     },
     false,
@@ -114,6 +99,23 @@ export async function createColorClusterLayers() {
   layer.uniform.iAuxiliary = { value: 0 };
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
   layers.push(layer)
+  // Element-wise color clusters
+  for (let i = 1; i <= num_elements; i++) {
+      const layer = createLayer(
+        `colorSegmenationElem_${i}`,
+        {
+            name: `colorSegmenationElem_${i}`,
+            imageLocation: filenames[i],
+            recipeLocation: "recipe_cube.csv",
+        },
+        false,
+      );
+      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+      // iAuxiliary passes corresponding element index [1, num_elements]
+      layer.uniform.iAuxiliary = { value: i };
+      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+      layers.push(layer);
+  }
 
   layerGroups.value.colorClusters = {
     name: "Color clusters",
