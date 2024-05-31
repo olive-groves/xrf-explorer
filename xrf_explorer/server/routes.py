@@ -3,11 +3,12 @@ import json
 
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
-from os.path import exists, join, abspath
+from os.path import exists, join, abspath, basename
 from os import mkdir
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
+from typing import List
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import load_yml
@@ -21,7 +22,7 @@ from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
     get_image, combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
-    save_bitmask_as_png
+    save_bitmask_as_png, convert_to_hex
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -29,6 +30,9 @@ CONFIG_PATH: str = 'config/backend.yml'
 BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
 TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
+
+colors_per_elem: ndarray
+bitmasks_per_elem: ndarray
 
 
 @app.route("/api")
@@ -314,10 +318,12 @@ def get_selection_sectra(data_source):
     print("send response")
     return response
 
-@app.route('/api/get_color_cluster', methods=['GET'])
-def get_color_clusters():
-    '''Gets the colors and bitmask corresponding to the image-wide color clusters.
+@app.route('/api/<data_source>/get_color_cluster', methods=['GET'])
+def get_color_clusters(data_source: str):
+    '''Gets the colors corresponding to the image-wide color clusters, and saves the 
+    corresponding bitmasks.
 
+    :param data_source: data_source to get the element averages from
     :return json containing the ordered list of colors
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
@@ -328,34 +334,57 @@ def get_color_clusters():
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
-    _, colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attemps, k)
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
 
     # Merge similar clusters
-    colors, bitmasks = merge_similar_colors(colors, bitmasks)
+    colors, _ = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
     combined_bitmask: ndarray = combine_bitmasks(bitmasks)
-    full_path: str = join(path_to_save, 'imageClusters.png')
-    image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
 
+    # Save bitmask
+    full_path: str = join(path_to_save, data_source, 'imageClusters.png')
+    image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
     if (not image_saved):
         return 'Error occurred while saving bitmask as png', 500
 
+    colors = convert_to_hex(colors)
     response = json.dumps(colors)
 
-    return (response, send_file(abspath(full_path), mimetype='image/png'))
+    return (response)
 
-@app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
-def get_element_color_cluster_bitmask(data_source: str):
-    '''Gets the colors and bitmasks corresponding to the color clusters of each element.
+@app.route('/api/<data_source>/get_color_cluster_bitmask', methods=['GET'])
+def get_color_cluster_bitmask(data_source: str):
+    """
+    Returns the png bitmask for the color clusters over the whole painting.
 
     :param data_source: data_source to get the element averages from
-    :return json containing the combined bitmasks of the color clusters for each element.
+    :return bitmask png file for the whole image
+    """
+
+    # Get element and threshold
+    element: int = int(request.args["element"])
+
+    # Get path to image
+    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+    full_path: str = join(path_to_save, data_source, f'imageClusters.png')
+    if not exists(full_path):
+        return f'Bitmasks for element {element} not generated', 500
+
+    response = send_file(abspath(full_path), mimetype='image/png')
+    return response
+
+@app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
+def get_element_color_cluster(data_source: str):
+    '''Gets the colors corresponding to the color clusters of each element.
+
+    :param data_source: data_source to get the element averages from
+    :return json containing the color clusters for each element.
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
@@ -364,33 +393,60 @@ def get_element_color_cluster_bitmask(data_source: str):
 
     # get default dim reduction config
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters['elem_threshold'])
-    nr_attemps: int = int(k_means_parameters['nr_attemps'])
+    elem_threshold: float = float(k_means_parameters['elem-threshold'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, nr_attemps, k)
+                                                             image, data_cube_path, elem_threshold, -1, nr_attempts, k)
 
-    number_elem: int = len(colors_per_elem)
-    img_paths: list[ndarray] = []
-    color_data: list[str] = []
-    for i in range(number_elem):
+    color_data: list[list[str]] = []
+    for i in range(len(colors_per_elem)):
         # Merge similar clusters
-        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
-        color_data.append(colors_per_elem[i])
 
-        full_path: str = join(path_to_save, f'elementCluster_{i}.png')
-        img_paths.append(full_path)
+        # Save bitmask
+        full_path: str = join(path_to_save, data_source, f'elementCluster_{i}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
+        print(f'Clusters of element {i} computed')
 
     response = json.dumps(color_data)
 
-    return (response, [send_file(abspath(img_paths[i]), mimetype='image/png') for i in range(number_elem)])
+    return response
+
+@app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
+def get_element_color_cluster_bitmask(data_source: str):
+    """
+    Returns, for the requested element, the png bitmask for the color clusters.
+
+    :param data_source: data_source to get the element averages from
+
+    :request args:
+        **element** - element index
+    :return bitmask png file for the given element
+    """
+    # check if element number is provided
+    if "element" not in request.args:
+        LOG.error("Missing element number")
+        abort(400)
+
+    # Get element and threshold
+    element: int = int(request.args["element"])
+
+    # Save bitmask
+    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+    full_path: str = join(path_to_save, data_source, f'elementCluster_{element}.png')
+    if not exists(full_path):
+        return f'Bitmasks for element {element} not generated', 500
+
+    response = send_file(abspath(full_path), mimetype='image/png')
+    return response

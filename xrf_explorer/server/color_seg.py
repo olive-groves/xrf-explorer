@@ -6,14 +6,13 @@ import skimage
 from os import path, makedirs
 from skimage import color
 
-from xrf_explorer.server.file_system import get_elemental_data_cube
-from xrf_explorer.server.file_system.file_access import *
+from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_elemental_cube_per_layer
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
-                         threshold: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                         threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
     """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
 
     :param clusters: the currently available clusters
@@ -109,11 +108,11 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     return np.array(colors), np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str,
+def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 2) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
@@ -131,6 +130,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
+    # Normalize the elemental data cube
+    data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:
@@ -172,7 +173,6 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
         labels: np.ndarray
         center: np.ndarray
         _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
-        print(center)
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
@@ -311,7 +311,37 @@ def get_image(image_file_path: str) -> np.ndarray:
     """
 
     raw_image: np.ndarray = cv2.imread(image_file_path)
+    try:
+        raw_image: np.ndarray = cv2.cvtColor(raw_image,cv2.COLOR_BGR2RGB)
+    except Exception as e:
+        LOG.error(f"The path '{image_file_path}' is not a valid file path: {e}")
+        return np.empty(0)
+
     if raw_image is None:
         LOG.error(f"The path '{image_file_path}' is not a valid file path.")
         return np.empty(0)
     return raw_image
+
+
+def rgb_to_hex(r: int, g: int, b: int) -> str:
+    """
+    Turns a rgb triple into hex format.
+    :param r: the red value
+    :param g: the green value
+    :param b: the blue value
+    :return: the hex format
+    """
+
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+def convert_to_hex(clusters: np.array) -> np.array:
+    """
+    Converts clusters to hex format.
+    :param clusters: the list of clusters in rgb format
+    :return: clusters in hex format
+    """
+
+    hex_clusters: np.array = []
+    for col in clusters:
+        hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
+    return hex_clusters
