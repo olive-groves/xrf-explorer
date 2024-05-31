@@ -2,21 +2,57 @@ import { appState } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { LayerVisibility } from "./types";
+import { LayerType, LayerVisibility } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-// TODO: hook up to back end
-// temporary, width should be number of elements plus 1
-const width = 27;
-// height should be max. number of clusters (currently is 20)
-const height = 20;
+// Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
+const width = 256; 
+// Arbitrary amount, needs to be greater than maximum number of clusters.
+const height = 30;
 // One data entry for each of the elements + one for the whole picture
-const data = Uint8Array(width * height * 4);
+const data = Uint8Array(width * height);
 const dataTexture = createDataTexture(data, width, height);
+
+/**
+ * Update image viewer to show updated selection.
+ * @param newSelection - The updated selection.
+ */
+function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
+  newSelection.forEach((channel) => {
+    // Get index for cluster channel.channel of element channel.element
+    const index = (channel.channel * width + channel.element);
+    if (channel.selected) {
+      data[index] = 1;
+    } else {
+      data[index] = 0;
+    }
+  });
+
+  // Create and dispose of layers in accordance with the selection.
+  if (layerGroups.value.elemental != undefined) {
+    newSelection.forEach((channel) => {
+      // Find the corresponding layer for the element in the selection.
+      const layer = layerGroups.value.elemental.layers.filter(
+        (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
+      )[0];
+
+      if (layer.mesh == undefined && channel.selected) {
+        // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
+        loadLayer(layer);
+      } else if (layer.mesh != undefined && !channel.selected) {
+        // If the layer has a mesh/is loaded, dispose of it from the image viewer if it is no longer selected.
+        disposeLayer(layer);
+      }
+    });
+
+    // Update the data texture in the gpu to reflect possible changes as a result of updating the selection.
+    updateDataTexture(layerGroups.value.elemental);
+  }
+}
 
 /**
  * Gets the names of the image files for each element.
@@ -42,23 +78,37 @@ export async function createColorClusterLayers(workspace: WorkspaceConfig) {
   // Element-wise color clusters
   const layers = workspace.elementColorClusters
     .filter((cluster) => cluster.enabled && cluster.channel in filenames)
-    .map((cluster) =>
-      createLayer(`colorSegmenationElem_${cluster.channel}`, {
-        name: `colorSegmenationElem_${cluster.channel}`,
-        imageLocation: filenames[cluster.channel],
-        recipeLocation: "",
-      }),
-    );
+    .map((cluster) => {
+      const layer = createLayer(
+        `colorSegmenationElem_${cluster.channel}`,
+        {
+            name: `colorSegmenationElem_${cluster.channel}`,
+            imageLocation: filenames[cluster.channel],
+            recipeLocation: "",
+        },
+        false,
+      );
+      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+      layer.uniform.iAuxiliary = { value: cluster.channel };
+      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+      return layer;
+    });
 
   // Image-wide color clusters
   if (workspace.colorClusters.enabled && workspace.colorClusters.name in filenames) {
-    layers.push(
-      createLayer(`colorSegmenationImage`, {
-        name: `colorSegmenationImage`,
-        imageLocation: filenames.at(-1),
-        recipeLocation: "",
-      }),
-    );
+      const layer = createLayer(
+        `colorSegmenationImage`,
+        {
+          name: `colorSegmenationImage`,
+          imageLocation: filenames.at(-1),
+          recipeLocation: "",
+        },
+        false,
+      );
+      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+      layer.uniform.iAuxiliary = { value: 0 };
+      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+      layers.push(layer)
   }
 
   layerGroups.value.colorClusters = {
