@@ -3,7 +3,6 @@ import { ScrollArea } from "../scroll-area";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { windowState } from "./state";
 import { useResizeObserver } from "@vueuse/core";
-import { deepClone } from "@/lib/utils";
 
 const props = defineProps<{
   /**
