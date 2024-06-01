@@ -22,7 +22,7 @@ export const appState = reactive<AppState>({
  */
 export const datasource = computed(() => appState.workspace?.name ?? "");
 export const elements = computed(() => appState.workspace?.elementalChannels ?? []);
-export const activeElements = computed(() => elements.value.filter((element) => element.enabled))
+export const activeElements = computed(() => elements.value.filter((element) => element.enabled));
 
 /**
  * Type describing the state of the client.

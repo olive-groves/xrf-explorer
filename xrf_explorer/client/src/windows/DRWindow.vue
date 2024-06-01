@@ -12,22 +12,22 @@ const URL_IMAGE = `${config.api.endpoint}/${datasource.value}/get_dr_overlay`;
 const URL_EMBEDDING = `${config.api.endpoint}/${datasource.value}/get_dr_embedding`;
 
 const contextualImages = computed(() => {
-  const allImages: ContextualImage[] = []
+  const allImages: ContextualImage[] = [];
 
   // Get all contextual images
-  const baseImage = appState.workspace?.baseImage
-  const contextualImages = appState.workspace?.contextualImages ?? []
+  const baseImage = appState.workspace?.baseImage;
+  const contextualImages = appState.workspace?.contextualImages ?? [];
 
   // Add the base image to the list of contextual images
   if (baseImage != undefined) {
-    allImages.push(baseImage)
+    allImages.push(baseImage);
   }
   if (contextualImages != undefined) {
-    allImages.push(...contextualImages)
+    allImages.push(...contextualImages);
   }
 
-  return allImages
-})
+  return allImages;
+});
 
 // Status dimensionaility reduction
 enum Status {
