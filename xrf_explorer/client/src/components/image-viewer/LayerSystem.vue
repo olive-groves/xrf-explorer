@@ -106,6 +106,7 @@ function checkedOutsideLens(group: LayerGroup) {
                 v-model="group[property.nameRef]"
                 :min="property.min"
                 :max="property.max"
+                :default="[property.default]"
                 @update="() => setLayerGroupProperty(group, property.propertyName)"
               />
             </PopoverContent>
@@ -140,6 +141,7 @@ function checkedOutsideLens(group: LayerGroup) {
           v-model="group[property.nameRef]"
           :min="property.min"
           :max="property.max"
+          :default="[property.default]"
           @update="() => setLayerGroupProperty(group, property.propertyName)"
         />
       </div>

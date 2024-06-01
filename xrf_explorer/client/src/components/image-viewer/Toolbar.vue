@@ -4,6 +4,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { LabeledSlider } from "@/components/ui/slider";
 import { Hand, Search, SquareMousePointer, Settings, LassoSelect } from "lucide-vue-next";
 import { ToolState } from "./types";
+import { FrontendConfig } from "@/lib/config";
+import { inject } from "vue";
+
+const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
 </script>
@@ -35,9 +39,31 @@ const state = defineModel<ToolState>("state", { required: true });
         </Button>
       </PopoverTrigger>
       <PopoverContent class="m-2 w-60 space-y-2">
-        <LabeledSlider label="Movement speed" :min="0.1" :max="3.0" :step="0.1" v-model="state.movementSpeed" />
-        <LabeledSlider label="Scroll speed" :min="0.1" :max="3.0" :step="0.1" v-model="state.scrollSpeed" />
-        <LabeledSlider label="Lens size" :min="1" :max="400" :step="1" unit="px" v-model="state.lensSize" />
+        <LabeledSlider
+          label="Movement speed"
+          :min="0.1"
+          :max="3.0"
+          :step="0.1"
+          :default="[config.imageViewer.defaultMovementSpeed]"
+          v-model="state.movementSpeed"
+        />
+        <LabeledSlider
+          label="Scroll speed"
+          :min="0.1"
+          :max="3.0"
+          :step="0.1"
+          :default="[config.imageViewer.defaultScrollSpeed]"
+          v-model="state.scrollSpeed"
+        />
+        <LabeledSlider
+          label="Lens size"
+          :min="1"
+          :max="400"
+          :step="1"
+          unit="px"
+          :default="[config.imageViewer.defaultLensSize]"
+          v-model="state.lensSize"
+        />
       </PopoverContent>
     </Popover>
   </div>

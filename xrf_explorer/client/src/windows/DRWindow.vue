@@ -134,7 +134,7 @@ async function updateEmbedding() {
       </div>
       <!-- PARAMETERS SECTIONS -->
       <p class="mt-4 font-bold">Embedding:</p>
-      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" />
+      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
       <div class="mt-1 flex items-center">
         <Select v-model="selectedElement">
           <SelectTrigger>

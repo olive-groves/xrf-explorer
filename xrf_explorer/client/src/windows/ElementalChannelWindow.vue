@@ -85,6 +85,7 @@ const selection = computed(() => appState.selection.elements);
           label="Intensity thresholds"
           :min="0"
           :max="1"
+          :default="[0, 1]"
           v-model="channel.thresholds"
         />
       </Card>
