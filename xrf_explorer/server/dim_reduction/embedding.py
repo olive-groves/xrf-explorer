@@ -57,6 +57,8 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: i
     indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
 
     if indices.shape[0] > max_indices:
+        LOG.info("Number of data points for dimensionality reduction is higher than the configured limit. "
+                 "Points will be randomly downsampled, (%i -> %i)", indices.shape[0], max_indices)
         indices = indices[np.random.choice(indices.shape[0], size=max_indices)]
 
     # return the filtered indices
