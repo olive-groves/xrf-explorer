@@ -2,7 +2,6 @@ temp-folder: "xrf_explorer/server/temp"
 uploads-folder: "xrf_explorer/server/data"
 bind-address: 127.0.0.1
 port: 8001
-cors: false
 upload-buffer-size: 16384
 dim-reduction:
   folder: "xrf_explorer/server/temp/dim_reduction"
