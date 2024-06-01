@@ -31,6 +31,7 @@ async function loadWorkspace(source: string) {
     <MenubarContent>
       <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
       <MenubarSeparator />
+      <MenubarItem disabled v-if="sources.length <= 0">No data sources available</MenubarItem>
       <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
         {{ titleCase(source) }}
       </MenubarItem>
