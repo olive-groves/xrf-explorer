@@ -62,7 +62,12 @@ watch(
         // Clean up window properly
         console.debug("Cleaning up window", id);
         if (id in state.value) {
-          shrinkTab(id, state.value[id].height);
+          removeTarget(id);
+          const height = state.value[id].height;
+          availableHeight += height;
+          console.debug("Available height increased by ", height);
+          growAnyTab(height);
+          state.value[id].height = 0;
         }
       }
     });
@@ -120,6 +125,7 @@ function onResize(height: number, oldHeight: number) {
 
   totalHeight += growth;
   availableHeight += growth;
+  console.debug("Available height increased by ", growth);
 
   disableAnimation.value = true;
   if (growth > 0) {
@@ -219,6 +225,7 @@ function growTab(id: string, px: number): number {
 
   tab.height += actualGrowth;
   availableHeight -= actualGrowth;
+  console.debug("Available height shrunk by ", actualGrowth);
 
   removeTarget(id);
   console.debug(`Adding ${id} as target after growth`);
@@ -242,6 +249,7 @@ function shrinkTab(id: string, px: number): number {
 
   tab.height -= actualShrink;
   availableHeight += actualShrink;
+  console.debug("Available height increased by ", actualShrink);
 
   removeTarget(id);
   if (tab.height <= headerSize && !tab.minimized) {
