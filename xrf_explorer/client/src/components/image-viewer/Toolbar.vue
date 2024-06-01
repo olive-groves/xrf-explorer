@@ -2,7 +2,7 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
-import { Hand, Search, SquareDashedMousePointer, Settings } from "lucide-vue-next";
+import { Hand, Search, SquareMousePointer, Settings, LassoSelect } from "lucide-vue-next";
 import { ToolState } from "./types";
 
 const state = defineModel<ToolState>("state", { required: true });
@@ -20,8 +20,11 @@ const state = defineModel<ToolState>("state", { required: true });
       <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
         <Search />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Rectangle selection">
-        <SquareDashedMousePointer />
+      <ToggleGroupItem value="rectangle" class="size-8 p-2" title="Rectangle selection">
+        <SquareMousePointer />
+      </ToggleGroupItem>
+      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
+        <LassoSelect />
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
