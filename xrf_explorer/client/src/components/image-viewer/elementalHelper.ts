@@ -97,7 +97,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
 
   layerGroups.value.elemental = {
     name: "Elemental maps",
-    description: "",
+    description: "Generated layer",
     layers: layers,
     index: -2,
     visible: true,
