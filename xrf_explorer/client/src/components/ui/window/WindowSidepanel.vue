@@ -92,7 +92,8 @@ const container = ref<HTMLElement | null>(null);
 const containerSize = useElementSize(container);
 watch(containerSize.height, onResize);
 
-const disableAnimation = ref(false);
+let lastDisabled = Date.now();
+const disableAnimation = ref(true);
 
 const mouseState: {
   handle: string;
@@ -107,11 +108,18 @@ const mouseState: {
  * @param id The id of the window that should be minimized or maximized.
  */
 function toggleTabSize(id: string) {
+  lastDisabled = Date.now();
+  disableAnimation.value = false;
+
   if (state.value[id].minimized) {
     maximize(id);
   } else {
     minimize(id);
   }
+
+  setTimeout(() => {
+    if (Date.now() - lastDisabled >= 100) disableAnimation.value = true;
+  }, 100);
 }
 
 /**
@@ -127,13 +135,11 @@ function onResize(height: number, oldHeight: number) {
   availableHeight += growth;
   console.debug("Available height increased by ", growth);
 
-  disableAnimation.value = true;
   if (growth > 0) {
     growAnyTab(growth);
   } else {
     shrinkAnyTab(-growth);
   }
-  disableAnimation.value = false;
 
   mounted.value = true;
 }
@@ -330,7 +336,6 @@ function startDragging(handle: string) {
  */
 function stopDragging() {
   mouseState.dragging = false;
-  disableAnimation.value = false;
 }
 
 /**
@@ -392,15 +397,20 @@ function handleDragMovement(event: MouseEvent) {
               </div>
             </div>
             <div
-              class="z-0 -mt-px overflow-hidden border-t border-border"
+              class="z-0 -mt-px overflow-hidden border-t border-border duration-100"
               :style="{
                 height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize + 1}px`}`,
+              }"
+              :class="{
+                'transition-all': !disableAnimation,
+                'transition-none': disableAnimation,
               }"
             >
               <WindowPortalTarget
                 ref="contentRefs"
                 :window-id="id"
                 @content-height="(entry) => onContentResize(id, entry)"
+                :disallow-shrink="!disableAnimation"
                 :area-height="state[id].height - headerSize"
               />
             </div>
@@ -423,7 +433,7 @@ function handleDragMovement(event: MouseEvent) {
             </template>
           </BaseContextMenu>
         </div>
-        <div class="relative z-10">
+        <div class="relative z-10 -mt-px border-b">
           <div
             class="absolute left-0 -mt-2 flex h-4 w-full cursor-ns-resize"
             @mousedown="startDragging(id)"
