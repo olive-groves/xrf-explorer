@@ -14,8 +14,8 @@ const state = defineModel<ToolState>("state", { required: true });
 
 <template>
   <div
-    class="absolute bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background
-      p-1 shadow-sm"
+    class="absolute bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 cursor-default space-x-1 rounded-md border
+      bg-background p-1 shadow-sm"
   >
     <ToggleGroup type="single" v-model:model-value="state.tool">
       <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
@@ -34,7 +34,7 @@ const state = defineModel<ToolState>("state", { required: true });
     <Separator orientation="vertical" class="h-8" />
     <Popover>
       <PopoverTrigger as-child>
-        <Button variant="ghost" class="size-8 p-2 hover:text-muted-foreground" title="Tool configuration">
+        <Button variant="ghost" class="size-8 p-2" title="Tool configuration">
           <Settings />
         </Button>
       </PopoverTrigger>
