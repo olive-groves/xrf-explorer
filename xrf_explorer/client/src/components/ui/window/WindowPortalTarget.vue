@@ -42,14 +42,11 @@ onBeforeUnmount(() => {
  */
 const height = ref(0);
 watch(props, (value) => {
-  console.log(deepClone(value));
-  console.log(height.value);
   if (value.disallowShrink) {
     height.value = Math.max(height.value, value.areaHeight);
   } else {
     height.value = value.areaHeight;
   }
-  console.log(height.value);
 });
 </script>
 
