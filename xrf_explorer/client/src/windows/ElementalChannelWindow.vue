@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
 import { appState, elements } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LabeledSlider } from "@/components/ui/slider";
 
 /**
  * Watches the elemental channels defined in the workspace.
@@ -82,15 +80,13 @@ const selection = computed(() => appState.selection.elements);
             </Button>
           </div>
         </div>
-        <div v-if="channel.selected" class="space-y-2">
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <div>Intensity thresholds</div>
-              <div>{{ channel.thresholds[0] }} – {{ channel.thresholds[1] }}</div>
-            </div>
-            <Slider v-model="channel.thresholds" :min="0" :step="0.01" :max="1" class="pb-2" />
-          </div>
-        </div>
+        <LabeledSlider
+          v-if="channel.selected"
+          label="Intensity thresholds"
+          :min="0"
+          :max="1"
+          v-model="channel.thresholds"
+        />
       </Card>
     </div>
   </Window>

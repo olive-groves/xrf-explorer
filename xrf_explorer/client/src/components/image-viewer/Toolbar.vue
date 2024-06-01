@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { LabeledSlider } from "@/components/ui/slider";
 import { Hand, Search, SquareDashedMousePointer, Settings } from "lucide-vue-next";
 import { ToolState } from "./types";
 
@@ -31,33 +32,9 @@ const state = defineModel<ToolState>("state", { required: true });
         </Button>
       </PopoverTrigger>
       <PopoverContent class="m-2 w-60 space-y-2">
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="movementspeed">Movement speed</Label>
-            <div class="text-muted-foreground">
-              {{ state.movementSpeed[0] }}
-            </div>
-          </div>
-          <Slider id="movementspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.movementSpeed" />
-        </div>
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="scrollspeed">Scroll speed</Label>
-            <div class="text-muted-foreground">
-              {{ state.scrollSpeed[0] }}
-            </div>
-          </div>
-          <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.scrollSpeed" />
-        </div>
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="lenszoom">Lens size </Label>
-            <div class="text-muted-foreground">
-              {{ state.lensSize[0] }}
-            </div>
-          </div>
-          <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state.lensSize" />
-        </div>
+        <LabeledSlider label="Movement speed" :min="0.1" :max="3.0" :step="0.1" v-model="state.movementSpeed" />
+        <LabeledSlider label="Scroll speed" :min="0.1" :max="3.0" :step="0.1" v-model="state.scrollSpeed" />
+        <LabeledSlider label="Lens size" :min="1" :max="400" :step="1" unit="px" v-model="state.lensSize" />
       </PopoverContent>
     </Popover>
   </div>

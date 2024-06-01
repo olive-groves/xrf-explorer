@@ -5,6 +5,7 @@ import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { LabeledSlider } from "@/components/ui/slider";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
@@ -97,26 +98,16 @@ function checkedOutsideLens(group: LayerGroup) {
               </Button>
             </PopoverTrigger>
             <PopoverContent>
-              <!-- SLIDERS FOR ALL PROPERTIES -->
-              <div
-                class="space-y-2"
+              <!-- SLIDERS FOR ALL NON-MAIN PROPERTIES -->
+              <LabeledSlider
                 v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
                 :key="property.name"
-                @dblclick="() => ((group[property.nameRef] as number[])[0] = property.default)"
-              >
-                <div class="flex items-center justify-between">
-                  <div>{{ property.name }}</div>
-                  <div>{{ group[property.nameRef].toString() }}</div>
-                </div>
-                <Slider
-                  v-model="group[property.nameRef]"
-                  :min="property.min"
-                  :step="0.01"
-                  :max="property.max"
-                  class="pb-2"
-                  @update:model-value="() => setLayerGroupProperty(group, property.propertyName)"
-                />
-              </div>
+                :label="property.name"
+                v-model="group[property.nameRef]"
+                :min="property.min"
+                :max="property.max"
+                @update="() => setLayerGroupProperty(group, property.propertyName)"
+              />
             </PopoverContent>
           </Popover>
           <!-- VISIBILITY TOGGLE -->
@@ -142,25 +133,15 @@ function checkedOutsideLens(group: LayerGroup) {
         </div>
 
         <!-- SLIDERS FOR ALL MAIN PROPERTIES -->
-        <div
-          class="space-y-2"
+        <LabeledSlider
           v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
-          @dblclick="() => ((group[property.nameRef] as number[])[0] = property.default)"
-        >
-          <div class="flex items-center justify-between">
-            <div>{{ property.name }}</div>
-            <div>{{ group[property.nameRef].toString() }}</div>
-          </div>
-          <Slider
-            v-model="group[property.nameRef]"
-            :min="property.min"
-            :step="0.01"
-            :max="property.max"
-            class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, property.propertyName)"
-          />
-        </div>
+          :label="property.name"
+          v-model="group[property.nameRef]"
+          :min="property.min"
+          :max="property.max"
+          @update="() => setLayerGroupProperty(group, property.propertyName)"
+        />
       </div>
     </Card>
   </VueDraggableNext>

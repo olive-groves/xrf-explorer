@@ -5,6 +5,7 @@ import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { LoaderPinwheel } from "lucide-vue-next";
+import { LabeledSlider } from "@/components/ui/slider";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
@@ -114,7 +115,7 @@ async function updateEmbedding() {
       <p class="font-bold">Overlay:</p>
       <div class="mt-1 flex items-center">
         <Select v-model="selectedOverlay">
-          <SelectTrigger class="w-32">
+          <SelectTrigger>
             <SelectValue placeholder="Select an overlay" />
           </SelectTrigger>
           <SelectContent>
@@ -129,19 +130,14 @@ async function updateEmbedding() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button class="ml-4 block w-28" @click="fetchDRImage">Show overlay</Button>
+        <Button class="ml-2 w-40" @click="fetchDRImage">Show overlay</Button>
       </div>
       <!-- PARAMETERS SECTIONS -->
-      <Separator class="my-2" />
-      <p class="font-bold">Parameters:</p>
-      <Slider class="mt-2 w-64" v-model="threshold" id="threshold" :min="0" :max="255" :step="1" />
-      <div class="-mt-1">
-        <span class="text-xs italic">Threshold value: </span>
-        <span class="text-xs italic">{{ threshold?.[0] }}</span>
-      </div>
+      <p class="mt-4 font-bold">Embedding:</p>
+      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" />
       <div class="mt-1 flex items-center">
         <Select v-model="selectedElement">
-          <SelectTrigger class="w-32">
+          <SelectTrigger>
             <SelectValue placeholder="Select an element" />
           </SelectTrigger>
           <SelectContent>
@@ -153,17 +149,16 @@ async function updateEmbedding() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button class="ml-4 block w-28" @click="updateEmbedding">Generate</Button>
+        <Button class="ml-2 w-40" @click="updateEmbedding">Generate</Button>
       </div>
       <!-- GENERATION OF THE IMAGE -->
-      <Separator class="my-2" />
-      <p class="font-bold">Generated image:</p>
+      <p class="mt-4 font-bold">Generated image:</p>
       <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center">
         <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
         <span v-if="status == Status.LOADING">Loading</span>
         <span v-if="status == Status.GENERATING">Generating</span>
         <span v-if="status == Status.ERROR">{{ currentError }}</span>
-        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-4">
+        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
           <LoaderPinwheel class="size-full animate-spin" />
         </div>
         <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
