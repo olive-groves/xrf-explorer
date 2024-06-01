@@ -86,7 +86,7 @@ let availableHeight = 1;
 const growthTargets: string[] = [];
 const shrinkTargets: string[] = [];
 
-const headerSize = remToPx(1.75) + 1;
+const headerSize = remToPx(2) + 1;
 
 const container = ref<HTMLElement | null>(null);
 const containerSize = useElementSize(container);
@@ -379,7 +379,7 @@ function handleDragMovement(event: MouseEvent) {
           <BaseContextMenu>
             <div
               @click="toggleTabSize(id)"
-              class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
+              class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1.5"
             >
               <ChevronRight
                 class="size-5 min-w-5 duration-100"
@@ -394,7 +394,7 @@ function handleDragMovement(event: MouseEvent) {
             <div
               class="z-0 -mt-px overflow-hidden border-t border-border"
               :style="{
-                height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
+                height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize + 1}px`}`,
               }"
             >
               <WindowPortalTarget
