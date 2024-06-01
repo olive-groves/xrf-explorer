@@ -10,9 +10,9 @@ import { titleCase } from "title-case";
 const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
-const { data } = useFetch(`${config.api.endpoint}/datasources`).get().json();
+const request = useFetch(`${config.api.endpoint}/datasources`);
 const sources = computed(() => {
-  return data.value as string[];
+  return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });
 
 /**
@@ -27,7 +27,7 @@ async function loadWorkspace(source: string) {
 
 <template>
   <MenubarMenu>
-    <MenubarTrigger> File </MenubarTrigger>
+    <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
     <MenubarContent>
       <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
       <MenubarSeparator />
