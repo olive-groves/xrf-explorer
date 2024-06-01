@@ -12,13 +12,15 @@ from xrf_explorer.server.color_seg import (
     get_elemental_clusters_using_k_means, combine_bitmasks
 )
 
+from xrf_explorer.server.file_system.elemental_cube import to_dms
+
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
 
 class TestColorSegmentation:
     BW_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'black_and_white_image.png'))
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
-    DATA_CUBE_PATH: str = str(Path('tests', 'resources', 'file_system', 'test_elemental_data', 'test.dms'))
+    DATA_CUBE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'test_cube.dms'))
 
     def test_get_clusters_using_k_means_colors(self, caplog):
         caplog.set_level(logging.INFO)
@@ -102,7 +104,7 @@ class TestColorSegmentation:
         bitmasks: list[np.ndarray] = [bitmask1, bitmask2, bitmask3]
         expected_entries: np.ndarray = np.array([[2, 3, 1], [1, 0, 2]], dtype=np.uint8)
         expected_result: np.ndarray = np.zeros((2, 3, 3), dtype=np.uint8)
-        expected_result[:, :, 0] = expected_entries
+        expected_result[:, :, 2] = expected_entries
 
         # Execute
         result: np.ndarray = combine_bitmasks(bitmasks)
@@ -115,12 +117,16 @@ class TestColorSegmentation:
         # Set-up
         small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
         expected_result0: np.ndarray = np.array([
-            [255, 255, 255],
-            [0, 0, 0]
+            [0, 0, 0],
+            [255, 255, 255]
         ])
         expected_result1: np.ndarray = np.array([
             [0, 0, 0],
             [255, 255, 255]
+        ])
+        expected_result2: np.ndarray = np.array([
+            [255, 255, 255],
+            [0, 0, 0]
         ])
         elem_threshold: float = 0.1
 
@@ -136,3 +142,4 @@ class TestColorSegmentation:
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)
         assert np.array_equal(clusters_per_elem[1], expected_result1)
+        assert np.array_equal(clusters_per_elem[2], expected_result2)

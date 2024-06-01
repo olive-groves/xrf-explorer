@@ -218,7 +218,7 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
         combined_bitmask[bitmask] = i + 1
 
     merged_image: np.ndarray = np.zeros((height, width, 3), dtype=np.uint8)
-    merged_image[:, :, 0] = combined_bitmask
+    merged_image[:, :, 2] = combined_bitmask
 
     return merged_image
 
