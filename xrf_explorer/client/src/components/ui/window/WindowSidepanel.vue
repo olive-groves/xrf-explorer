@@ -415,8 +415,12 @@ function handleDragMovement(event: MouseEvent) {
             </template>
           </BaseContextMenu>
         </div>
-        <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
-          <div class="mt-[calc(0.25rem-1px)] h-px bg-border" />
+        <div class="relative z-10 -mt-px h-px w-full bg-border">
+          <div
+            class="absolute left-0 -mt-2 h-4 w-full cursor-ns-resize"
+            @mousedown="startDragging(id)"
+            v-if="!state[id].minimized"
+          />
         </div>
       </template>
     </div>

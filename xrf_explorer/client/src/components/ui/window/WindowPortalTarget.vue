@@ -39,6 +39,8 @@ onBeforeUnmount(() => {
       height: state.scrollable ? `${props.areaHeight}px` : 'min-content',
     }"
   >
-    <div ref="content" :id="`window-${state.id}`" />
+    <div ref="content">
+      <div class="pb-px" :id="`window-${state.id}`" />
+    </div>
   </ScrollArea>
 </template>
