@@ -1,4 +1,1 @@
-*
-!test_data_source
-!test_data_source/*.*
-!.gitignore
+embedded_data.npy
