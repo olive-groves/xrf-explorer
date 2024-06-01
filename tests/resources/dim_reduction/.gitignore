@@ -1,0 +1,4 @@
+*
+!test_data_source
+!test_data_source/*.*
+!.gitignore

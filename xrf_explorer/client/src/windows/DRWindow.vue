@@ -8,9 +8,6 @@ import { ContextualImage } from "@/lib/workspace";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
-const URL_IMAGE = `${config.api.endpoint}/${datasource.value}/get_dr_overlay`;
-const URL_EMBEDDING = `${config.api.endpoint}/${datasource.value}/get_dr_embedding`;
-
 const contextualImages = computed(() => {
   const allImages: ContextualImage[] = [];
 
@@ -64,7 +61,7 @@ async function fetchDRImage() {
   status.value = Status.LOADING;
 
   // Set the overlay type
-  const url = new URL(URL_IMAGE);
+  const url = new URL(`${config.api.endpoint}/${datasource.value}/get_dr_overlay`);
   url.searchParams.set("type", selectedOverlay.value.toString());
 
   // Fetch the image
@@ -103,7 +100,7 @@ async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
-  const _url = new URL(URL_EMBEDDING);
+  const _url = new URL(`${config.api.endpoint}/${datasource.value}/get_dr_embedding`);
   _url.searchParams.set("element", selectedElement.value.toString());
   _url.searchParams.set("threshold", threshold.value.toString());
 

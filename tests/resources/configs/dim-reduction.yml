@@ -1,7 +1,8 @@
 uploads-folder: "tests/resources/dim_reduction"
 temp-folder: "tests/resources/dim_reduction"
+generated-folder: "tests/resources/dim_reduction"
 dim-reduction:
-  folder: "tests/resources/dim_reduction/dim_reduction"
+  folder-name: "from_dim_reduction"
   umap-parameters:
     n-neighbors: 10
     min-dist: 0

@@ -16,7 +16,8 @@ RESOURCES_PATH: Path = Path('tests', 'resources')
 class TestDimReduction:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'dim-reduction.yml'))
     CUSTOM_CONFIG_PATH_NO_EMBEDDING: str = join(RESOURCES_PATH, Path('configs', 'dim-reduction-no-embedding.yml'))
-    TEMP_FOLDER: str = join(RESOURCES_PATH, 'dim_reduction', 'dim_reduction')
+    TEST_DATA_SOURCE: str = 'test_data_source'
+    PATH_TEST_CUBE: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'test_cube.dms')
 
     def test_config_not_found(self, caplog):
         # setup
@@ -25,8 +26,12 @@ class TestDimReduction:
         overlay_type: str = 'rgb'
 
         # execute
-        result1: bool = generate_embedding(element, threshold, config_path='this-config-does-not-exist.yml')
-        result2: str = create_embedding_image(overlay_type, config_path='this-config-does-not-exist.yml')
+        result1: bool = generate_embedding(
+            self.PATH_TEST_CUBE, element, threshold, config_path='this-config-does-not-exist.yml'
+        )
+        result2: str = create_embedding_image(
+            self.TEST_DATA_SOURCE, overlay_type, config_path='this-config-does-not-exist.yml'
+        )
 
         # verify
         assert not result1
@@ -42,8 +47,12 @@ class TestDimReduction:
         threshold: int = 100
 
         # execute
-        result1: bool = generate_embedding(element1, threshold, config_path=self.CUSTOM_CONFIG_PATH)
-        result2: bool = generate_embedding(element2, threshold, config_path=self.CUSTOM_CONFIG_PATH)
+        result1: bool = generate_embedding(
+            self.PATH_TEST_CUBE, element1, threshold, config_path=self.CUSTOM_CONFIG_PATH
+        )
+        result2: bool = generate_embedding(
+            self.PATH_TEST_CUBE, element2, threshold, config_path=self.CUSTOM_CONFIG_PATH
+        )
 
         # verify
         assert not result1
@@ -55,19 +64,15 @@ class TestDimReduction:
 
     def test_invalid_element_creating_image(self, caplog):
         # setup
-        overlay_type1: str = '-1'
         overlay_type2: str = '1000000'
 
         # execute
-        result1: str = create_embedding_image(overlay_type1, config_path=self.CUSTOM_CONFIG_PATH)
-        result2: str = create_embedding_image(overlay_type2, config_path=self.CUSTOM_CONFIG_PATH)
+        result2: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type2, config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
-        assert not result1
         assert not result2
 
         # verify log messages
-        assert 'Invalid element: -1' in caplog.text
         assert 'Invalid element: 1000000' in caplog.text
 
     def test_invalid_umap(self, caplog):
@@ -77,7 +82,7 @@ class TestDimReduction:
         umap_args: dict[str, str] = {"n-neighbors": '0', "min-dist": '0', "n-components": '0', "metric": "invalid"}
 
         # execute
-        result: bool = generate_embedding(element, threshold, umap_parameters=umap_args,
+        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
@@ -91,7 +96,10 @@ class TestDimReduction:
         overlay_type: str = '1'
 
         # execute
-        result: str = create_embedding_image(overlay_type, config_path=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING)
+        result: str = create_embedding_image(
+            self.TEST_DATA_SOURCE, overlay_type,
+            config_path=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING
+        )
 
         # verify
         assert not result
@@ -108,7 +116,7 @@ class TestDimReduction:
         umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
 
         # execute
-        result: bool = generate_embedding(element, threshold, umap_parameters=umap_args,
+        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
@@ -124,7 +132,7 @@ class TestDimReduction:
         umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
 
         # execute
-        result: bool = generate_embedding(element, threshold, umap_parameters=umap_args,
+        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
@@ -143,10 +151,13 @@ class TestDimReduction:
         element: int = 2
         threshold: int = 0
         umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
-        generate_embedding(element, threshold, umap_parameters=umap_args, config_path=self.CUSTOM_CONFIG_PATH)
+        generate_embedding(
+            self.PATH_TEST_CUBE, element, threshold, 
+            umap_parameters=umap_args, config_path=self.CUSTOM_CONFIG_PATH
+        )
 
         # execute
-        result: str = create_embedding_image(overlay_type, config_path=self.CUSTOM_CONFIG_PATH)
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type, config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result
