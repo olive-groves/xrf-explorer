@@ -29,6 +29,15 @@ watch(
   { immediate: true },
 );
 
+/**
+ * Gets the name of a channel from the workspace.
+ * @param index - The channel to get the name of.
+ * @returns The name of the channel.
+ */
+function getChannelName(index: number): string {
+  return elements.value.find((channel) => channel.channel == index)?.name ?? "";
+}
+
 const selection = computed(() => appState.selection.elements);
 </script>
 
@@ -44,9 +53,7 @@ const selection = computed(() => appState.selection.elements);
         }"
       >
         <div class="flex justify-between">
-          <div class="mt-1.5">
-            {{ channel.channel }}
-          </div>
+          <div class="mt-1.5" v-text="getChannelName(channel.channel)" />
           <div class="flex">
             <Label
               v-if="channel.selected"
