@@ -39,12 +39,13 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
         return None
 
 
-def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: int) -> np.ndarray:
+def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: int, max_indices: int) -> np.ndarray:
     """Get indices for which the value of the given element in the normalized elemental data cube is above the threshold.
 
     :param elemental_cube: shape (3, m, n) elemental data cube.
     :param element: The element to filter on.
     :param threshold: The threshold to filter by.
+    :param max_indices: The maximum number of indices to return.
     :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold.
     """
 
@@ -54,6 +55,9 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: i
     
     # get all indices for which the intensity of the given element is above the threshold
     indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
+
+    if indices.shape[0] > max_indices:
+        indices = indices[np.random.choice(indices.shape[0], size=max_indices)]
 
     # return the filtered indices
     return indices
@@ -98,7 +102,8 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
         return False
 
     # filter data
-    indices: np.ndarray = filter_elemental_cube(data_cube, element, threshold)
+    max_samples = int(backend_config['dim-reduction']['max-samples'])
+    indices: np.ndarray = filter_elemental_cube(data_cube, element, threshold, max_samples)
     filtered_data: np.ndarray = data_cube[:, indices[:, 0], indices[:, 1]].transpose()
 
     # compute embedding

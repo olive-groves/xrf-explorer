@@ -3,6 +3,7 @@ temp-folder: "tests/resources/dim_reduction"
 generated-folder: "tests/resources/dim_reduction"
 dim-reduction:
   folder-name: "no_embedding"
+  max-samples: 100
   umap-parameters:
     n-neighbors: 10
     min-dist: 0

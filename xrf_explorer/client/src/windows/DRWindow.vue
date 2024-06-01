@@ -99,12 +99,12 @@ async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
-  const _url = new URL(
+  const url = new URL(
     `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`,
   );
 
   // Create the embedding
-  const { response, data } = await useFetch(_url.toString()).get().blob();
+  const { response, data } = await useFetch(url.toString()).get().blob();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {

@@ -4,6 +4,7 @@ generated-folder: "xrf_explorer/server/temp"
 upload-buffer-size: 16384
 dim-reduction:
   folder-name: "dim_reduction"
+  max-samples: 50000
   umap-parameters:
     n-neighbors: 10
     min-dist: 0
