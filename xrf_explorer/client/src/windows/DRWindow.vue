@@ -1,14 +1,33 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { datasource } from "@/lib/appState";
+import { ref, computed } from "vue";
+import { appState, datasource, activeElements } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { ContextualImage } from "@/lib/workspace";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
-const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
-const URL_EMBEDDING = `${config.api.endpoint}/get_dr_embedding`;
+const URL_IMAGE = `${config.api.endpoint}/${datasource.value}/get_dr_overlay`;
+const URL_EMBEDDING = `${config.api.endpoint}/${datasource.value}/get_dr_embedding`;
+
+const contextualImages = computed(() => {
+  const allImages: ContextualImage[] = []
+
+  // Get all contextual images
+  const baseImage = appState.workspace?.baseImage
+  const contextualImages = appState.workspace?.contextualImages ?? []
+
+  // Add the base image to the list of contextual images
+  if (baseImage != undefined) {
+    allImages.push(baseImage)
+  }
+  if (contextualImages != undefined) {
+    allImages.push(...contextualImages)
+  }
+
+  return allImages
+})
 
 // Status dimensionaility reduction
 enum Status {
@@ -47,7 +66,6 @@ async function fetchDRImage() {
   // Set the overlay type
   const url = new URL(URL_IMAGE);
   url.searchParams.set("type", selectedOverlay.value.toString());
-  url.searchParams.set("dataSource", datasource.value);
 
   // Fetch the image
   const { response, data } = await useFetch(url.toString()).get().blob();
@@ -88,7 +106,6 @@ async function updateEmbedding() {
   const _url = new URL(URL_EMBEDDING);
   _url.searchParams.set("element", selectedElement.value.toString());
   _url.searchParams.set("threshold", threshold.value.toString());
-  _url.searchParams.set("dataSource", datasource.value);
 
   // Create the embedding
   const { response, data } = await useFetch(_url.toString()).get().blob();
@@ -118,13 +135,14 @@ async function updateEmbedding() {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Overlays</SelectLabel>
-              <SelectItem value="rgb"> RGB </SelectItem>
-              <SelectItem value="uv"> UV </SelectItem>
-              <SelectItem value="xray"> XRay </SelectItem>
-              <SelectItem value="0"> Element 0 </SelectItem>
-              <SelectItem value="1"> Element 1 </SelectItem>
-              <SelectItem value="9"> Element 9 </SelectItem>
+              <SelectLabel>Contextual images:</SelectLabel>
+              <SelectItem v-for="image in contextualImages" :key="image.name" :value="image.name">
+                {{ image.name }}
+              </SelectItem>
+              <SelectLabel>Elements:</SelectLabel>
+              <SelectItem v-for="element in activeElements" :key="element.channel" :value="element.channel">
+                {{ element.name }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -146,9 +164,9 @@ async function updateEmbedding() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem value="0"> Element 0 </SelectItem>
-              <SelectItem value="1"> Element 1 </SelectItem>
-              <SelectItem value="9"> Element 9 </SelectItem>
+              <SelectItem v-for="element in activeElements" :key="element.channel" :value="element.channel">
+                {{ element.name }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
