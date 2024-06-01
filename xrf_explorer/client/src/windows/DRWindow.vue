@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { appState, datasource, activeElements } from "@/lib/appState";
+import { appState, datasource, elements } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -61,8 +61,7 @@ async function fetchDRImage() {
   status.value = Status.LOADING;
 
   // Set the overlay type
-  const url = new URL(`${config.api.endpoint}/${datasource.value}/get_dr_overlay`);
-  url.searchParams.set("type", selectedOverlay.value.toString());
+  const url = new URL(`${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`);
 
   // Fetch the image
   const { response, data } = await useFetch(url.toString()).get().blob();
@@ -100,9 +99,9 @@ async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
-  const _url = new URL(`${config.api.endpoint}/${datasource.value}/get_dr_embedding`);
-  _url.searchParams.set("element", selectedElement.value.toString());
-  _url.searchParams.set("threshold", threshold.value.toString());
+  const _url = new URL(
+    `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`,
+  );
 
   // Create the embedding
   const { response, data } = await useFetch(_url.toString()).get().blob();
@@ -133,11 +132,13 @@ async function updateEmbedding() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Contextual images:</SelectLabel>
-              <SelectItem v-for="image in contextualImages" :key="image.name" :value="image.name">
+              <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
                 {{ image.name }}
               </SelectItem>
+            </SelectGroup>
+            <SelectGroup>
               <SelectLabel>Elements:</SelectLabel>
-              <SelectItem v-for="element in activeElements" :key="element.channel" :value="element.channel">
+              <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
                 {{ element.name }}
               </SelectItem>
             </SelectGroup>
@@ -161,7 +162,7 @@ async function updateEmbedding() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem v-for="element in activeElements" :key="element.channel" :value="element.channel">
+              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
                 {{ element.name }}
               </SelectItem>
             </SelectGroup>

@@ -194,26 +194,14 @@ def list_element_names(data_source: str):
         return "Error occurred while listing element names", 500
 
 
-@app.route("/api/<data_source>/get_dr_embedding")
-def get_dr_embedding(data_source: str):
+@app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
+def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
     
     :param data_source: data_source to generate the embedding from
-    :request args: 
-        **element** - element name \n 
-        **threshold** - element threshold from which a pixel is selected
+    :param element: element to generate the embedding for
+    :param threshold: threshold from which a pixel is selected
     """
-    # check if element number is provided
-    if "element" not in request.args:
-        LOG.error("Missing element number")
-        abort(400)
-    elif "threshold" not in request.args:
-        LOG.error("Missing threshold value")
-        abort(400)
-
-    # Get element and threshold
-    element: int = int(request.args["element"])
-    threshold: int = int(request.args["threshold"])
 
     # Get path to elemental cube
     path: str = get_elemental_cube_path(data_source)
@@ -225,20 +213,14 @@ def get_dr_embedding(data_source: str):
     return "Generated embedding successfully"
 
 
-@app.route("/api/<data_source>/get_dr_overlay")
-def get_dr_overlay(data_source: str):
+@app.route("/api/<data_source>/dr/overlay/<overlay_type>")
+def get_dr_overlay(data_source: str, overlay_type: str):
     """Generate the dimensionality reduction overlay with a given type.
     
     :param data_source: data_source to get the overlay from
-    :request form attributes: **type** - the overlay type
+    :param overlay_type: the overlay type. Images are prefixed with contextual_ and element by elemental_
     :return: overlay image file
     """
-    # Check whether the overlay type is provided
-    if "type" not in request.args:
-        LOG.error("Missing overlay type")
-        abort(400)
-
-    overlay_type: str = request.args["type"]
 
     # Try to get the embedding image
     image_path: str = create_embedding_image(data_source, overlay_type)

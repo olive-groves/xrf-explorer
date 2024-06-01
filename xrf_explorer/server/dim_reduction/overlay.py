@@ -21,7 +21,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
     """Creates the embedding image from the embedding.
 
     :param data_source: Name of the data source to create the embedding image for.
-    :param overlay_type: The type of overlay to create. Can be name of image or an element number.
+    :param overlay_type: The type of overlay to create. Can be name of image prefixed by contextual_ or an element number prefixed by elemental_.
     :param config_path: Path to the backend config file
     :return: Path to created embedding image is successful, otherwise empty string.
     """
@@ -50,9 +50,12 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
     # Create the overlay
     overlay: np.ndarray
 
-    if not overlay_type.isdigit():
+    if overlay_type.startswith("contextual_"):
+        # Get image type
+        image_type: str = overlay_type.removeprefix("contextual_")
+
         # Get the pixels of registered image
-        registered_image: np.ndarray = get_registered_image(data_source, overlay_type, config_path=config_path)
+        registered_image: np.ndarray = get_registered_image(data_source, image_type, config_path=config_path)
         if len(registered_image) == 0:
             return ""
 
@@ -61,7 +64,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
     else:
         # Show element overlay
         # Get the element
-        element: int = int(overlay_type)
+        element: int = int(overlay_type.removeprefix("elemental_"))
 
         # Get elemental data cube
         data_cube: np.ndarray = get_elemental_data_cube(cube_path)

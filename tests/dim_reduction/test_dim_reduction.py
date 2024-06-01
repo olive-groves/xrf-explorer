@@ -25,7 +25,7 @@ class TestDimReduction:
         # setup
         element: int = 9
         threshold: int = 100
-        overlay_type: str = 'rgb'
+        overlay_type: str = 'contextual_rgb'
 
         # execute
         result1: bool = generate_embedding(
@@ -66,7 +66,7 @@ class TestDimReduction:
 
     def test_invalid_element_creating_image(self, caplog):
         # setup
-        overlay_type2: str = '1000000'
+        overlay_type2: str = 'elemental_1000000'
 
         # execute
         result2: str = create_embedding_image(
@@ -97,7 +97,7 @@ class TestDimReduction:
 
     def test_no_embedding(self, caplog):
         # setup
-        overlay_type: str = '1'
+        overlay_type: str = 'elemental_1'
 
         # execute
         result: str = create_embedding_image(
@@ -152,7 +152,7 @@ class TestDimReduction:
         caplog.set_level(logging.INFO)
 
         # setup
-        overlay_type: str = '1'
+        overlay_type: str = 'elemental_1'
         path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'embedding_present', 'embedding.png')
 
         # execute
