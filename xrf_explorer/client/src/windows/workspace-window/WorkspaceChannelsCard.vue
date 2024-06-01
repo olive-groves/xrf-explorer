@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { SpectralCube } from "@/lib/workspace";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ElementalChannel } from "@/lib/workspace";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AudioWaveform, Settings } from "lucide-vue-next";
+import { Layers3, Settings } from "lucide-vue-next";
 import { ref, watch } from "vue";
 import { deepClone } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-const model = defineModel<SpectralCube>({ required: true });
+const model = defineModel<ElementalChannel[]>({ required: true });
 
 /**
  * A local deeply cloned clone of the model.
@@ -37,38 +39,31 @@ function updateModel() {
     <div class="flex content-center justify-between">
       <div class="flex content-center space-x-2">
         <div class="aspect-square h-full p-1">
-          <AudioWaveform class="size-full" />
+          <Layers3 class="size-full" />
         </div>
         <div class="whitespace-nowrap">
-          <div>
-            {{ model!.name }}
-          </div>
-          <div class="text-muted-foreground">Spectral datacube</div>
+          <div>Elemental channels</div>
+          <div class="text-muted-foreground">Generated data</div>
         </div>
       </div>
       <Popover v-model:open="popoverOpen">
         <PopoverTrigger as-child>
-          <Button variant="ghost" class="size-8 p-2" title="Configure spectral cube">
+          <Button variant="ghost" class="size-8 p-2" title="Configure elemental cube">
             <Settings />
           </Button>
         </PopoverTrigger>
         <PopoverContent class="space-y-2">
-          <div class="space-y-1">
-            <Label for="name">Name</Label>
-            <Input id="name" v-model="localModel.name" />
-          </div>
-          <div class="space-y-1">
-            <Label for="raw">RAW location</Label>
-            <Input id="raw" v-model="localModel.rawLocation" />
-          </div>
-          <div class="space-y-1">
-            <Label for="rpl">RPL location</Label>
-            <Input id="rpl" v-model="localModel.rplLocation" />
-          </div>
-          <div class="space-y-1">
-            <Label for="recipe">Recipe location</Label>
-            <Input id="recipe" v-model="localModel.recipeLocation" />
-          </div>
+          <ScrollArea class="h-64">
+            <div class="grid grid-cols-[min-content,min-content,1fr] grid-rows-[repeat(2.25rem)] gap-2">
+              <template v-for="channel in localModel" :key="channel.channel">
+                <div class="flex justify-end text-muted-foreground">
+                  <div v-text="channel.channel" class="h-min self-center" />
+                </div>
+                <Checkbox v-model:checked="channel.enabled" class="my-2.5 size-4" />
+                <Input v-model="channel.name" />
+              </template>
+            </div>
+          </ScrollArea>
           <Button @click="updateModel">Save</Button>
         </PopoverContent>
       </Popover>

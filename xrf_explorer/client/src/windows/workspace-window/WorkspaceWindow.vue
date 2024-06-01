@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard } from ".";
+import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard, WorkspaceChannelsCard } from ".";
 import { appState } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
 import { computed, inject, watch } from "vue";
@@ -59,6 +59,7 @@ watch(
             :key="index"
             v-model="workspace.spectralCubes[index]"
           />
+          <WorkspaceChannelsCard v-model="workspace.elementalChannels" />
         </div>
       </div>
     </div>
