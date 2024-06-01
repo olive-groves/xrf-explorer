@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Eye, EyeOff } from "lucide-vue-next";
+import { Eye, EyeOff, SlidersHorizontal } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
@@ -20,6 +21,7 @@ interface Property {
   nameRef: keyof LayerGroup;
 }
 
+const mainProperties = ["Opacity"];
 const properties: Property[] = [
   { name: "Opacity", min: 0, max: 1, default: 1, propertyName: "opacityProperty", nameRef: "opacity" },
   { name: "Contrast", min: 0, max: 5, default: 1, propertyName: "contrastProperty", nameRef: "contrast" },
@@ -86,29 +88,63 @@ function checkedOutsideLens(group: LayerGroup) {
             {{ group.description }}
           </div>
         </div>
-        <!-- VISIBILITY TOGGLE -->
-        <Button
-          @click="
-            group.visible = !group.visible;
-            setLayerGroupVisibility(group);
-          "
-          variant="ghost"
-          class="size-8 p-2"
-          title="Toggle visibility"
-        >
-          <Eye v-if="group.visible" />
-          <EyeOff v-else />
-        </Button>
+        <div>
+          <!-- SLIDERS POPOVER -->
+          <Popover v-if="group.visible">
+            <PopoverTrigger>
+              <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
+                <SlidersHorizontal />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <!-- SLIDERS FOR ALL PROPERTIES -->
+              <div
+                class="space-y-2"
+                v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
+                :key="property.name"
+                @dblclick="() => ((group[property.nameRef] as number[])[0] = property.default)"
+              >
+                <div class="flex items-center justify-between">
+                  <div>{{ property.name }}</div>
+                  <div>{{ group[property.nameRef].toString() }}</div>
+                </div>
+                <Slider
+                  v-model="group[property.nameRef]"
+                  :min="property.min"
+                  :step="0.01"
+                  :max="property.max"
+                  class="pb-2"
+                  @update:model-value="() => setLayerGroupProperty(group, property.propertyName)"
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+          <!-- VISIBILITY TOGGLE -->
+          <Button
+            @click="
+              group.visible = !group.visible;
+              setLayerGroupVisibility(group);
+            "
+            variant="ghost"
+            class="size-8 p-2"
+            title="Toggle visibility"
+          >
+            <Eye v-if="group.visible" />
+            <EyeOff v-else />
+          </Button>
+        </div>
       </div>
-      <!-- SLIDERS FOR ALL PROPERTIES -->
       <div v-if="group.visible" class="space-y-2">
+        <!-- VISIBILITY CHECKBOX -->
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
+
+        <!-- SLIDERS FOR ALL MAIN PROPERTIES -->
         <div
           class="space-y-2"
-          v-for="property in properties"
+          v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
           @dblclick="() => ((group[property.nameRef] as number[])[0] = property.default)"
         >
