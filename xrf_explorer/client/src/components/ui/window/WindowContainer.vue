@@ -24,7 +24,7 @@ const hitArea = {
 </script>
 
 <template>
-  <ResizablePanelGroup direction="horizontal" class="px-0">
+  <ResizablePanelGroup direction="horizontal">
     <ResizablePanel
       ref="leftPanel"
       :default-size="20"
@@ -34,7 +34,7 @@ const hitArea = {
       style="overflow: visible"
     >
       <BaseContextMenu>
-        <div class="-ml-0 h-full">
+        <div class="h-full">
           <WindowSidepanel :windows="leftWindows" />
         </div>
         <template #menu>
@@ -56,7 +56,7 @@ const hitArea = {
       style="overflow: visible"
     >
       <BaseContextMenu>
-        <div class="-mr-0 h-full">
+        <div class="h-full">
           <WindowSidepanel :windows="rightWindows" />
         </div>
         <template #menu>
