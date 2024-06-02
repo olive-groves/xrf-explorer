@@ -147,12 +147,22 @@ function setupLineChart() {
     .x((d) => x(d.name)! + x.bandwidth() / 2)
     .y((d) => y(d.average));
 
+  // Adds black line behind the colored line for better visibility
   svg
     .append("path")
     .datum(dataAverages)
     .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-width", 3)
+    .attr("stroke", "hsl(var(--background))")
+    .attr("stroke-width", 4)
+    .attr("d", line);
+
+  // Adds the colored line
+  svg
+    .append("path")
+    .datum(dataAverages)
+    .attr("fill", "none")
+    .attr("stroke", "currentColor")
+    .attr("stroke-width", 2)
     .attr("d", line);
 }
 
@@ -169,7 +179,7 @@ function setupBarChart() {
     .attr("y", (d) => y(d.average))
     .attr("width", x.bandwidth())
     .attr("height", (d) => y(0) - y(d.average))
-    .attr("fill", "#FACC15");
+    .attr("fill", "currentColor");
 }
 
 /**
