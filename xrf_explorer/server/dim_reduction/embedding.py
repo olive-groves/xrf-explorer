@@ -39,14 +39,15 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
         return None
 
 
-def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: int, max_indices: int) -> np.ndarray:
+def filter_elemental_cube(elemental_cube: np.ndarray, element: int, 
+                          threshold: int, max_indices: int) -> tuple[np.ndarray, bool]:
     """Get indices for which the value of the given element in the normalized elemental data cube is above the threshold.
 
     :param elemental_cube: shape (3, m, n) elemental data cube.
     :param element: The element to filter on.
     :param threshold: The threshold to filter by.
     :param max_indices: The maximum number of indices to return.
-    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold.
+    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; boolean whether the indices were downsampled.
     """
 
     # normalize the elemental map to [0, 255]
@@ -56,17 +57,21 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int, threshold: i
     # get all indices for which the intensity of the given element is above the threshold
     indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
 
+    # check if the number of indices is higher than the configured limit
+    # if so, the indices are randomly downsampled
+    down_sampled = False
     if indices.shape[0] > max_indices:
         LOG.info("Number of data points for dimensionality reduction is higher than the configured limit. "
                  "Points will be randomly downsampled, (%i -> %i)", indices.shape[0], max_indices)
         indices = indices[np.random.choice(indices.shape[0], size=max_indices)]
+        down_sampled = True
 
     # return the filtered indices
-    return indices
+    return indices, down_sampled
 
 
 def generate_embedding(path: str, element: int, threshold: int, umap_parameters: dict[str, str] = {},
-                       config_path: str = "config/backend.yml") -> bool:
+                       config_path: str = "config/backend.yml") -> str:
     """Generate the embedding (lower dimensional representation of the data) of the
     elemental data cube using the dimensionality reduction method "UMAP". The embedding 
     with the list of indices (which pixels from the elemental data cube are in the embedding) 
@@ -79,14 +84,14 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
     :param threshold: The threshold to filter the data cube by.
     :param umap_parameters: The parameters passed on to the UMAP algorithm.
     :param config_path: Path to the backend config file.
-    :return: True if the embedding was successfully generated. Otherwise, False.
+    :return: string code indicating the status of the embedding generation. "error" when error occured, "success" when embedding was generated successfully, "downsampled" when successfull and the number of data points was down sampled.
     """
 
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
         LOG.error("Failed to compute DR embedding")
-        return False
+        return "error"
 
     # get default dim reduction config
     combined_umap_parameters: dict[str, str] = backend_config['dim-reduction']['umap-parameters']
@@ -97,15 +102,15 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
     # get data cube
     data_cube: np.ndarray = get_elemental_data_cube(path)
     if len(data_cube) == 0:
-        return False
+        return "error"
 
     # check if element is valid
     if not valid_element(element, data_cube):
-        return False
+        return "error"
 
     # filter data
     max_samples = int(backend_config['dim-reduction']['max-samples'])
-    indices: np.ndarray = filter_elemental_cube(data_cube, element, threshold, max_samples)
+    indices, down_sampled = filter_elemental_cube(data_cube, element, threshold, max_samples)
     filtered_data: np.ndarray = data_cube[:, indices[:, 0], indices[:, 1]].transpose()
 
     # compute embedding
@@ -124,7 +129,7 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
 
     if embedded_data is None:
         LOG.error("Failed to compute embedding")
-        return False
+        return "error"
 
     # get path to folder to store the embedding and the indices
     generated_folder: str = backend_config['generated-folder']
@@ -140,4 +145,6 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
     np.save(join(dr_folder, 'embedded_data.npy'), embedded_data)
 
     LOG.info("Generated embedding successfully")
-    return True
+    if down_sampled:
+        return "downsampled"
+    return "success"

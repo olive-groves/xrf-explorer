@@ -201,16 +201,18 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     :param data_source: data_source to generate the embedding from
     :param element: element to generate the embedding for
     :param threshold: threshold from which a pixel is selected
+    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successfull and the number of data points was down sampled.
     """
 
     # Get path to elemental cube
     path: str = get_elemental_cube_path(data_source)
 
     # Try to generate the embedding
-    if not generate_embedding(path, element, threshold, request.args):
-        abort(400)
+    result = generate_embedding(path, element, threshold, request.args)
+    if result == "success" or result == "downsampled":
+        return result
 
-    return "Generated embedding successfully"
+    abort(400)
 
 
 @app.route("/api/<data_source>/dr/overlay/<overlay_type>")

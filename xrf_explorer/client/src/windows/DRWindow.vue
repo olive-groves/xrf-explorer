@@ -7,6 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
+import { toast } from "vue-sonner";
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
@@ -63,10 +64,10 @@ async function fetchDRImage() {
   status.value = Status.LOADING;
 
   // Set the overlay type
-  const url = new URL(`${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`);
+  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`;
 
   // Fetch the image
-  const { response, data } = await useFetch(url.toString()).get().blob();
+  const { response, data } = await useFetch(apiURL).get().blob();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
@@ -101,15 +102,17 @@ async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
-  const url = new URL(
-    `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`,
-  );
+  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
 
   // Create the embedding
-  const { response, data } = await useFetch(url.toString()).get().blob();
+  const { response, data } = await useFetch(apiURL).get().text();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
+    if (data.value == 'downsampled') {
+      toast.warning("The number of data points has been downsampled.");
+    }
+
     // Load the new embedding
     await fetchDRImage();
     return;

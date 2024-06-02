@@ -28,7 +28,7 @@ class TestDimReduction:
         overlay_type: str = 'contextual_rgb'
 
         # execute
-        result1: bool = generate_embedding(
+        result1: str = generate_embedding(
             self.PATH_TEST_CUBE, element, threshold, config_path='this-config-does-not-exist.yml'
         )
         result2: str = create_embedding_image(
@@ -36,7 +36,7 @@ class TestDimReduction:
         )
 
         # verify
-        assert not result1
+        assert result1 == 'error'
         assert not result2
 
         # verify log messages
@@ -49,16 +49,16 @@ class TestDimReduction:
         threshold: int = 100
 
         # execute
-        result1: bool = generate_embedding(
+        result1: str = generate_embedding(
             self.PATH_TEST_CUBE, element1, threshold, config_path=self.CUSTOM_CONFIG_PATH
         )
-        result2: bool = generate_embedding(
+        result2: str = generate_embedding(
             self.PATH_TEST_CUBE, element2, threshold, config_path=self.CUSTOM_CONFIG_PATH
         )
 
         # verify
-        assert not result1
-        assert not result2
+        assert result1 == 'error'
+        assert result2 == 'error'
 
         # verify log messages
         assert 'Invalid element: -1' in caplog.text
@@ -86,11 +86,11 @@ class TestDimReduction:
         umap_args: dict[str, str] = {"n-neighbors": '0', "min-dist": '0', "n-components": '0', "metric": "invalid"}
 
         # execute
-        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
-        assert not result
+        assert result == 'error'
 
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
@@ -121,11 +121,11 @@ class TestDimReduction:
         path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'from_dim_reduction', 'embedded_data.npy')
 
         # execute
-        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
-        assert result
+        assert result == 'success'
         assert isfile(path_generated_file)
         assert 'Generated embedding successfully' in caplog.text
 
@@ -139,11 +139,11 @@ class TestDimReduction:
         umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
 
         # execute
-        result: bool = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
                                           config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
-        assert not result
+        assert result == 'error'
 
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
