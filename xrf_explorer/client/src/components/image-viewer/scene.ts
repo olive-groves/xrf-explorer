@@ -12,6 +12,8 @@ export const scene: {
 
 import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
+import { toast } from "vue-sonner";
+import { h, markRaw } from "vue";
 
 /**
  * Creates a layer in the image viewer and adds the given image to it.
@@ -19,58 +21,66 @@ import vertex from "./vertex.glsl?raw";
  * @param interpolated - Whether the sampler should interpolate between pixels.
  */
 export function loadLayer(layer: Layer, interpolated: boolean = true) {
-  new THREE.TextureLoader().loadAsync(layer.image).then((texture) => {
-    texture.colorSpace = THREE.NoColorSpace;
+  new THREE.TextureLoader().loadAsync(layer.image).then(
+    (texture) => {
+      texture.colorSpace = THREE.NoColorSpace;
 
-    // Disable interpolation if required
-    if (!interpolated) {
-      texture.magFilter = THREE.NearestFilter;
-      texture.minFilter = THREE.NearestFilter;
-      texture.generateMipmaps = false;
-    }
+      // Disable interpolation if required
+      if (!interpolated) {
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestFilter;
+        texture.generateMipmaps = false;
+      }
 
-    // Create a square
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(1, 0);
-    shape.lineTo(1, 1);
-    shape.lineTo(0, 1);
+      // Create a square
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(1, 0);
+      shape.lineTo(1, 1);
+      shape.lineTo(0, 1);
 
-    const geometry = new THREE.ShapeGeometry(shape);
+      const geometry = new THREE.ShapeGeometry(shape);
 
-    // Scale the square to the same dimensions as the texture.
-    // By scaling through this method, the UV coordinates of the shape are preserved.
-    const mat = new THREE.Matrix4();
-    mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    geometry.applyMatrix4(mat);
+      // Scale the square to the same dimensions as the texture.
+      // By scaling through this method, the UV coordinates of the shape are preserved.
+      const mat = new THREE.Matrix4();
+      mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+      geometry.applyMatrix4(mat);
 
-    // Add the texture to the uniform to allow it to be used in the shaders
-    layer.uniform.tImage = {
-      type: "t",
-      value: texture,
-    };
+      // Add the texture to the uniform to allow it to be used in the shaders
+      layer.uniform.tImage = {
+        type: "t",
+        value: texture,
+      };
 
-    // Create a material to render the texture on to the created shape.
-    // The vertex shader handles the movement of the texture for registering and the viewport.
-    // The fragment shader handles sampling colors from the texture.
-    const material = new THREE.RawShaderMaterial({
-      vertexShader: vertex,
-      fragmentShader: fragment,
-      uniforms: layer.uniform,
-      side: THREE.DoubleSide,
-      transparent: true,
-      blending: THREE.NormalBlending,
-    });
+      // Create a material to render the texture on to the created shape.
+      // The vertex shader handles the movement of the texture for registering and the viewport.
+      // The fragment shader handles sampling colors from the texture.
+      const material = new THREE.RawShaderMaterial({
+        vertexShader: vertex,
+        fragmentShader: fragment,
+        uniforms: layer.uniform,
+        side: THREE.DoubleSide,
+        transparent: true,
+        blending: THREE.NormalBlending,
+      });
 
-    const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(geometry, material);
 
-    // Set the correct initial render order.
-    mesh.renderOrder = -layer.uniform.iIndex.value;
+      // Set the correct initial render order.
+      mesh.renderOrder = -layer.uniform.iIndex.value;
 
-    layer.mesh = mesh;
+      layer.mesh = mesh;
 
-    scene.scene.add(mesh);
-  });
+      scene.scene.add(mesh);
+    },
+    (reason) => {
+      console.warn(`Failed to load layer ${layer.id}`, reason);
+      toast.warning("Failed to load layer", {
+        description: markRaw(h("div", ["Request to ", h("code", layer.image), " failed"])),
+      });
+    },
+  );
 }
 
 /**

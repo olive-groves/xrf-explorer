@@ -12,7 +12,7 @@ const model = defineModel<ElementalCube>({ required: true });
  * A local deeply cloned clone of the model.
  * Necessary to prevent constant reloads of the image viewer.
  */
-let localModel = deepClone(model.value);
+const localModel = ref(deepClone(model.value));
 
 /**
  * Update localModel with value from model when opened.
@@ -20,15 +20,15 @@ let localModel = deepClone(model.value);
 const popoverOpen = ref(false);
 watch(popoverOpen, (value) => {
   if (value) {
-    localModel = deepClone(model.value);
+    localModel.value = deepClone(model.value);
   }
 });
 
 /**
- * Updates the contextual image after pressing save in the popover.
+ * Updates the workspace after pressing save in the popover.
  */
-function updateImage() {
-  model.value = deepClone(localModel);
+function updateModel() {
+  model.value = deepClone(localModel.value);
   popoverOpen.value = false;
 }
 </script>
@@ -49,7 +49,7 @@ function updateImage() {
       </div>
       <Popover v-model:open="popoverOpen">
         <PopoverTrigger as-child>
-          <Button variant="ghost" class="size-8 p-2">
+          <Button variant="ghost" class="size-8 p-2" title="Configure elemental cube">
             <Settings />
           </Button>
         </PopoverTrigger>
@@ -82,7 +82,7 @@ function updateImage() {
             <Label for="recipe">Recipe location</Label>
             <Input id="recipe" v-model="localModel.recipeLocation" />
           </div>
-          <Button @click="updateImage">Save</Button>
+          <Button @click="updateModel">Save</Button>
         </PopoverContent>
       </Popover>
     </div>
