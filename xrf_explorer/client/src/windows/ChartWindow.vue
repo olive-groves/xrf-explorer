@@ -18,9 +18,9 @@ const barChecked = ref(false);
 const lineChecked = ref(false);
 
 // SVG container
-const svg = d3.select(chart.value);
-const x = d3.scaleBand();
-const y = d3.scaleLinear();
+let svg = d3.select(chart.value);
+let x = d3.scaleBand();
+let y = d3.scaleLinear();
 
 // Elemental data averages
 let dataAverages: Element[];
@@ -102,6 +102,8 @@ function setup() {
     .scaleLinear()
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
+    
+  if (lineChecked.value) setupLineChart(); // Display the line chart
 
   // Adjust axes
   svg
@@ -135,6 +137,8 @@ function setup() {
     )
     .selectAll("text")
     .style("font-size", "18px");
+    
+    if (barChecked.value) setupBarChart(); // Display the bar chart
 }
 
 /**
@@ -183,8 +187,6 @@ async function showChart() {
     if (fetched) {
       // Checks if the data was fetched properly
       setup(); // Display the chart
-      if (barChecked.value) setupBarChart(); // Display the bar chart
-      if (lineChecked.value) setupLineChart(); // Display the line chart
     }
   } catch (e) {
     console.error("Error fetching average data", e);
