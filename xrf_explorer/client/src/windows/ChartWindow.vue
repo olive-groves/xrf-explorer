@@ -5,7 +5,7 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { datasource } from "@/lib/appState";
 
-const barchart = ref(null);
+const chart = ref(null);
 const config = inject<FrontendConfig>("config")!;
 
 type Element = {
@@ -64,9 +64,9 @@ async function fetchAverages(url: string) {
 }
 
 /**
- * Set up the bar chart's SVG container, add axes and data.
+ * Set up the line chart's SVG container, add axes and data.
  */
- function setup() {
+ function setupLineChart() {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -75,7 +75,7 @@ async function fetchAverages(url: string) {
 
   // Select SVG container
   const svg = d3
-    .select(barchart.value)
+    .select(chart.value)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -103,8 +103,8 @@ async function fetchAverages(url: string) {
   svg.append("path")
     .datum(dataAverages)
     .attr("fill", "none")
-    .attr("stroke", "steelblue")
-    .attr("stroke-width", 2)
+    .attr("stroke", "white")
+    .attr("stroke-width", 3)
     .attr("d", line);
 
   // Adjust axes
@@ -141,6 +141,81 @@ async function fetchAverages(url: string) {
     .style("font-size", "18px");
 }
 
+/**
+ * Set up the bar chart's SVG container, add axes and data.
+ */
+ function setupBarChart() {
+  // Declare chart dimensions and margins
+  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
+    width = 860 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+  const max: number = d3.max(dataAverages, (d) => d.average) as number;
+
+  // Select SVG container
+  const svg = d3
+    .select(chart.value)
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto;");
+
+  // Declare the horizontal position scale
+  const x = d3
+    .scaleBand()
+    .domain(dataAverages.map((d) => d.name))
+    .range([margin.left, width - margin.right])
+    .padding(0.1);
+
+  // Declare the vertical position scale
+  const y = d3
+    .scaleLinear()
+    .domain([0, max])
+    .range([height - margin.bottom, margin.top]);
+
+  // Add axes
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .selectAll("text")
+    .style("font-size", "18px")
+    .attr("transform", "translate(-13, 15)rotate(-45)");
+  svg
+    .append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y))
+    .call((g) => g.select(".domain").remove())
+    .call((g) =>
+      g
+        .selectAll(".tick line")
+        .clone()
+        .attr("x2", width - margin.left - margin.right)
+        .attr("stroke-opacity", 0.1),
+    )
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", -margin.left)
+        .attr("y", 20)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text("↑ Average abundance"),
+    )
+    .selectAll("text")
+    .style("font-size", "18px");
+
+  // Add data
+  svg
+    .selectAll("svg")
+    .data(dataAverages)
+    .join("rect")
+    .attr("x", (d) => x(d.name) as number)
+    .attr("y", (d) => y(d.average))
+    .attr("width", x.bandwidth())
+    .attr("height", (d) => y(0) - y(d.average))
+    .attr("fill", "#FACC15");
+}
+
 
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
@@ -150,7 +225,9 @@ async function showChart() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched) setup(); // If everything went right, display the chart
+    if (fetched) 
+      setupBarChart(); // If everything went right, display the bar chart
+      setupLineChart(); // If everything went right, display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
@@ -160,7 +237,7 @@ async function showChart() {
 <template>
   <Window title="Elemental charts" @window-mounted="showChart" location="right">
     <AspectRatio :ratio="4 / 3">
-      <svg ref="barchart"></svg>
+      <svg ref="chart"></svg>
     </AspectRatio>
   </Window>
 </template>
