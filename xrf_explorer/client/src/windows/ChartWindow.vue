@@ -13,8 +13,14 @@ type Element = {
   average: number;
 };
 
+// Chart type checkboxes
 const barChecked = ref(false);
 const lineChecked = ref(false);
+
+// SVG container
+const svg = d3.select(chart.value);
+const x = d3.scaleBand();
+const y = d3.scaleLinear();
 
 // Elemental data averages
 let dataAverages: Element[];
@@ -66,6 +72,9 @@ async function fetchAverages(url: string) {
   return fetchSuccessful;
 }
 
+/**
+ * Set up the chart's SVG container and axes.
+ */
 function setup() {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
@@ -74,7 +83,7 @@ function setup() {
   const max = d3.max(dataAverages, (d) => d.average) as number;
 
   // Select SVG container
-  const svg = d3
+  let svg = d3
     .select(chart.value)
     .attr("width", width)
     .attr("height", height)
@@ -82,19 +91,19 @@ function setup() {
     .attr("style", "max-width: 100%; height: auto;");
 
   // Declare the horizontal position scale
-  const x = d3
+  let x = d3
     .scaleBand()
     .domain(dataAverages.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
   // Declare the vertical position scale
-  const y = d3
+  let y = d3
     .scaleLinear()
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
 
-      // Adjust axes
+  // Adjust axes
   svg
     .append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -132,13 +141,10 @@ function setup() {
  * Set up the line chart's SVG container, add axes and data.
  */
  function setupLineChart() {
-  setup();
-
   // Add a line generator
   const line = d3.line<Element>()
     .x((d) => x(d.name)! + x.bandwidth() / 2)
     .y((d) => y(d.average));
-
 
   svg.append("path")
     .datum(dataAverages)
@@ -146,41 +152,12 @@ function setup() {
     .attr("stroke", "white")
     .attr("stroke-width", 3)
     .attr("d", line);
-
-
 }
 
 /**
  * Set up the bar chart's SVG container, add axes and data.
  */
  function setupBarChart() {
-  // Declare chart dimensions and margins
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
-    width = 860 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-  const max: number = d3.max(dataAverages, (d) => d.average) as number;
-
-  // Select SVG container
-  const svg = d3
-    .select(chart.value)
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
-
-  // Declare the horizontal position scale
-  const x = d3
-    .scaleBand()
-    .domain(dataAverages.map((d) => d.name))
-    .range([margin.left, width - margin.right])
-    .padding(0.1);
-
-  // Declare the vertical position scale
-  const y = d3
-    .scaleLinear()
-    .domain([0, max])
-    .range([height - margin.bottom, margin.top]);
-
   // Add data
   svg
     .selectAll("svg")
@@ -204,12 +181,12 @@ async function showChart() {
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) // Checks if the data was fetched properly
       setup(); // Display the chart
-      // if (barChecked.value)
-      //   setupBarChart(); // Display the bar chart
-      //   if (lineChecked.value)
-      //     setupLineChart(); // Displaying the line chart over the bar chart
-      // else if (lineChecked.value)
-      //   setupLineChart(); // Display the line chart
+      if (barChecked.value)
+        setupBarChart(); // Display the bar chart
+        if (lineChecked.value)
+          setupLineChart(); // Displaying the line chart over the bar chart
+      else if (lineChecked.value)
+        setupLineChart(); // Display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
