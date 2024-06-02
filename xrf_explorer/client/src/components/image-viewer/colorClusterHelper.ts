@@ -26,6 +26,9 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  */
 function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   newSelection.forEach((channel) => {
+    const prevStart = (channel.prevChannel * width + channel.element) * 4;
+    data[prevStart + 3] = 0;
+
     // Get index for cluster channel.channel of element channel.element
     const start = (channel.channel * width + channel.element) * 4;
     if (channel.selected) {
@@ -35,8 +38,6 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
       data[start + 1] = color[1];
       data[start + 2] = color[2];
       data[start + 3] = 255;
-    } else {
-      data[start + 3] = 0;
     }
   });
 
@@ -49,6 +50,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
       )[0];
 
       if (layer.mesh == undefined && channel.selected) {
+        console.log(`Loading layer for element: ${channel.element} for channel: ${channel.channel}`)
         // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
         loadLayer(layer);
       } else if (layer.mesh != undefined && !channel.selected) {

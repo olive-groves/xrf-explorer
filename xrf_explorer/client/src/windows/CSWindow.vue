@@ -23,11 +23,28 @@ const elements = ref<string[]>([]);
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-watch(datasource,
-  (_) => {
-    setup();
+watch(datasource,  () => {
+  setup();
+});
+
+watch(colorsElements, () => {
+  if (selectedElement.value) {
+    if (selectedElement.value === "complete") {
+      colors.value = colorsElements.value["complete"];
+    } else {
+      colors.value = colorsElements.value[selectedElement.value] || [];
+    }
   }
-)
+});
+
+// Watch for changes in selectedElement and update colors accordingly
+watch(selectedElement, (newValue) => {
+  if (newValue === "complete") {
+    colors.value = colorsElements.value["complete"];
+  } else if (newValue) {
+    colors.value = colorsElements.value[newValue] || [];
+  } 
+});
 
 /**
  * Fetch the hexadecimal colors data.
@@ -42,6 +59,7 @@ watch(datasource,
     const data = await response.json();
     //assign the full color palette if the selection is made for the complete painting
     colorsElements.value["complete"] = data;
+    //selection.value[0].numClusters = data.length;
     console.info("Successfully fetched colors", colorsElements.value["complete"]);
     return true;
   } catch (e) {
@@ -65,6 +83,7 @@ watch(datasource,
     //for each element assign the corresponding palette at that index
     elements.value.forEach((element, index) => {
       colorsElements.value[element] = data[index];
+      //selection.value[index].numClusters = data[index].length;
     });
     console.info("Successfully fetched element colors", colorsElements.value);
     return true;
@@ -139,6 +158,7 @@ async function setup() {
       element: i, 
       channel: 0, 
       selected: false, 
+      prevChannel: 0,
       color: "#FFFFFF",
     };
     selection.value.push(sel);
@@ -157,15 +177,6 @@ async function setup() {
     console.error("Error fetching element colors data", e);
   }
 }
-
-// Watch for changes in selectedElement and update colors accordingly
-watch(selectedElement, (newValue) => {
-  if (newValue === "complete") {
-    colors.value = colorsElements.value["complete"];
-  } else if (newValue) {
-    colors.value = colorsElements.value[newValue] || [];
-  } 
-});
 
 /**
  * Sets the CS selection.
@@ -195,6 +206,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   console.log(color);
 
   // Update selection
+  selection.value[index].prevChannel = selection.value[index].channel;
   selection.value[index].channel = colorIndex + 1;
   selection.value[index].color = color;
   selection.value[index].selected = true;

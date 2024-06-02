@@ -96,7 +96,7 @@ export type ColorSegmentationSelection = {
    */
   element: number;
   /**
-   * The channel of the cluster.
+   * The channel of the selected cluster.
    */
   channel: number;
   /**
@@ -104,7 +104,11 @@ export type ColorSegmentationSelection = {
    */
   selected: boolean;
   /**
-   * The color associated with the element.
+   * The channel of the previously selected cluster.
+   */
+  prevChannel: number;
+  /**
+   * The color associated with the selected cluster.
    */
   color: string;
 };
