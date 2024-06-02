@@ -48,6 +48,14 @@ function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecip
     (point[2] = point[2] / scale), (point[3] = point[3] / scale);
   });
 
+  // Scale all points to uv coordinates
+  points.forEach((point) => {
+    point[0] = point[0] / target.width;
+    point[1] = point[1] / target.height;
+    point[2] = point[2] / moving.width;
+    point[3] = point[3] / moving.height;
+  });
+
   // Matrices for Ax=B
   const A: number[][] = []; // 8 x 8
   const B = []; // 8 x 1
@@ -63,7 +71,7 @@ function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecip
   // Solve Ax = B and extract solution
   const x = math.lusolve(A, B) as number[][]; // 8 x 1
 
-  matrix.set(x[0][0], x[1][0], x[2][0], x[3][0], x[4][0], x[5][0], x[6][0], x[7][0], 1);
+  matrix.set(x[0][0], x[1][0], x[2][0], x[3][0], x[4][0], x[5][0], x[6][0], x[7][0], 1).invert();
 }
 
 /**

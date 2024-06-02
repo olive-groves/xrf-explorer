@@ -17,8 +17,8 @@ const viewport: {
   center: { x: number; y: number };
   zoom: number;
 } = {
-  center: { x: 4000, y: 3000 },
-  zoom: 2,
+  center: { x: 0, y: 0 },
+  zoom: 0.01,
 };
 
 const toolState = ref<ToolState>({
