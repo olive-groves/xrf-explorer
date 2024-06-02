@@ -1,7 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { appState, datasource } from "./appState";
-import { config } from "@/main";
 
 /**
  * Combines arrays of tailwind classes, removing duplicate and overriding classes.
