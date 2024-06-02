@@ -184,9 +184,7 @@ async function showChart() {
       // Checks if the data was fetched properly
       setup(); // Display the chart
     if (barChecked.value) setupBarChart(); // Display the bar chart
-    if (lineChecked.value)
-      setupLineChart(); // Displaying the line chart over the bar chart
-    else if (lineChecked.value) setupLineChart(); // Display the line chart
+    if (lineChecked.value) setupLineChart(); // Display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
