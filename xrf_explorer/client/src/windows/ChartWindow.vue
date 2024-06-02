@@ -102,8 +102,6 @@ function setup() {
     .scaleLinear()
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
-    
-  if (lineChecked.value) setupLineChart(); // Display the line chart
 
   // Adjust axes
   svg
@@ -137,8 +135,6 @@ function setup() {
     )
     .selectAll("text")
     .style("font-size", "18px");
-    
-    if (barChecked.value) setupBarChart(); // Display the bar chart
 }
 
 /**
@@ -187,6 +183,14 @@ async function showChart() {
     if (fetched) {
       // Checks if the data was fetched properly
       setup(); // Display the chart
+      if (barChecked.value) setupBarChart(); // Display the bar chart
+      if (!barChecked.value) {
+        svg.selectAll("rect").remove(); // Remove existing bar chart
+      }
+      if (lineChecked.value) setupLineChart(); // Display the line chart
+      if (!lineChecked.value) {
+        svg.selectAll("path").remove(); // Remove existing line chart
+      }
     }
   } catch (e) {
     console.error("Error fetching average data", e);
