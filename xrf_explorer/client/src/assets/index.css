@@ -74,4 +74,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  code {
+    @apply relative;
+    @apply rounded;
+    @apply bg-muted;
+    @apply px-[0.3rem];
+    @apply py-[0.2rem];
+    @apply font-mono;
+    @apply text-xs;
+    @apply font-semibold;
+  }
 }

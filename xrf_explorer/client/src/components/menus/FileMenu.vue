@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, h, inject, markRaw } from "vue";
 import { useFetch } from "@vueuse/core";
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarItem } from "@/components/ui/menubar";
 import { DialogMenuItem } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
 import { titleCase } from "title-case";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -19,9 +20,28 @@ const sources = computed(() => {
  * Loads a workspace from the backend.
  * @param source - The source to load.
  */
-async function loadWorkspace(source: string) {
-  appState.workspace = await (await fetch(`${config.api.endpoint}/${source}/workspace`)).json();
-  console.info(`Loading workspace ${source}`);
+function loadWorkspace(source: string) {
+  fetch(`${config.api.endpoint}/${source}/workspace`).then(
+    async (value) => {
+      value.json().then(
+        (workspace) => {
+          toast.info(`Loading workspace ${titleCase(source)}`, {
+            description: "This should take less than a minute",
+          });
+          console.info(`Loading workspace ${source}`);
+          appState.workspace = workspace;
+        },
+        () =>
+          toast.error(`Failed to load workspace ${titleCase(source)}`, {
+            description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
+          }),
+      );
+    },
+    () =>
+      toast.error(`Failed to load workspace ${titleCase(source)}`, {
+        description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
+      }),
+  );
 }
 </script>
 

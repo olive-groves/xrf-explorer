@@ -3,6 +3,7 @@ import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard, Work
 import { appState } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
 import { computed, inject, watch } from "vue";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -25,7 +26,16 @@ watch(
           headers: {
             "Content-Type": "application/json",
           },
-        });
+        }).then(
+          () =>
+            toast.success("Successfully updated workspace", {
+              description: "The updates are persistent between sessions",
+            }),
+          () =>
+            toast.warning("Failed to update workspace", {
+              description: "The updates made to the workspace will not persist between sessions",
+            }),
+        );
       }
     }
   },
