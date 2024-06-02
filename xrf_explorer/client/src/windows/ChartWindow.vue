@@ -13,6 +13,9 @@ type Element = {
   average: number;
 };
 
+const barChecked = ref(false);
+const lineChecked = ref(false);
+
 // Elemental data averages
 let dataAverages: Element[];
 
@@ -225,9 +228,13 @@ async function showChart() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched) 
-      setupBarChart(); // If everything went right, display the bar chart
-      setupLineChart(); // If everything went right, display the line chart
+    if (fetched) // Checks if the data was fetched properly
+      if (barChecked.value)
+        setupBarChart(); // Display the bar chart
+        if (lineChecked.value)
+          setupLineChart(); // Displaying the line chart over the bar chart
+      else if (lineChecked.value)
+        setupLineChart(); // Display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
@@ -236,6 +243,17 @@ async function showChart() {
 
 <template>
   <Window title="Elemental charts" @window-mounted="showChart" location="right">
+    <div class="space-y-1">
+      <p class="ml-1 font-bold">Select which type of chart to show:</p>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="showChart" />
+        <label class="ml-1" for="globalCheck">Bar chart</label>
+      </div>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="showChart" />
+        <label class="ml-1" for="selectionCheck">Line chart</label>
+      </div>
+    </div>
     <AspectRatio :ratio="4 / 3">
       <svg ref="chart"></svg>
     </AspectRatio>
