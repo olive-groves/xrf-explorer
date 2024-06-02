@@ -12,15 +12,14 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_contextual_image_path(data_source: str, name: str, config_path: str = "config/backend.yml") -> str | None:
+def get_contextual_image(data_source: str, name: str, config_path: str = "config/backend.yml") -> dict | None:
     """
-    Returns the path of the requested contextual image. If no file is found, it will return None. This will
-also happen if the config file is empty.
+    Returns a contextual image from workspace.json. Returns None if the image or data_source does not exist.
     :param config_path: The path to the config file.
     :param data_source: The data source to fetch the image from.
     :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
 contextual image.
-    :return: The path to the file.
+    :return: Dict containing the name, imageLocation and recipeLocation of a contextual image.
     """
 
     LOG.info("Searching for contextual image %s in data source %s.", name, data_source)
@@ -38,19 +37,75 @@ contextual image.
             data_json: str = workspace.read()
             data = json.loads(data_json)
             if data["baseImage"]["name"] == name:
-                return abspath(join(data_source_dir, data["baseImage"]["imageLocation"]))
+                return data["baseImage"]
             else:
                 for image in data["contextualImages"]:
                     if image["name"] == name:
-                        return abspath(join(data_source_dir, image["imageLocation"]))
+                        return image
     except OSError as err:
-        LOG.error("Error while getting contextual image path: %s", err)
+        LOG.error("Error while getting contextual image: %s", err)
 
     LOG.error("Could not find contextual image %s in source %s", name, data_source)
     return None
 
 
-def get_contextual_image(image_path: str) -> Image | None:
+def get_contextual_image_path(data_source: str, name: str, config_path: str = "config/backend.yml") -> str | None:
+    """
+    Returns the path of the requested contextual image. If no file is found, it will return None. This will
+also happen if the config file is empty.
+    :param config_path: The path to the config file.
+    :param data_source: The data source to fetch the image from.
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
+contextual image.
+    :return: The path to the file.
+    """
+
+    # Get the contextual image
+    image: dict = get_contextual_image(data_source, name, config_path)
+    if not image:
+        return None
+
+    # Find the folder where the contextual image is stored.
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:
+        LOG.error("Config file is empty.")
+        return None
+
+    return abspath(join(Path(backend_config["uploads-folder"]), data_source, image["imageLocation"]))
+
+
+def get_contextual_image_recipe_path(data_source: str, name: str,
+                                     config_path: str = "config/backend.yml") -> str | None:
+    """
+    Returns the path of the registering recipe of the requested contextual image. If no file is found, it will return
+None. This will also happen if the config file is empty.
+    :param config_path: The path to the config file.
+    :param data_source: The data source to fetch the image from.
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
+contextual image.
+    :return: The path to the file.
+    """
+
+    # Get the contextual image
+    image: dict = get_contextual_image(data_source, name, config_path)
+    if not image:
+        return None
+
+    location: str = image["recipeLocation"]
+    if not location:
+        LOG.error("Image %s in source %s has no configured recipe location.", name, data_source)
+        return None
+
+    # Find the folder where the contextual image is stored.
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:
+        LOG.error("Config file is empty.")
+        return None
+
+    return abspath(join(Path(backend_config["uploads-folder"]), data_source, location))
+
+
+def get_contextual_image_image(image_path: str) -> Image | None:
     """Open and returns an image at a specified path.
 
     :param image_path: The path to the image file.
@@ -74,7 +129,7 @@ def get_contextual_image_size(image_path: str) -> tuple[int, int] | None:
     :return: The dimensions of the image.
     """
 
-    image: Image = get_contextual_image(image_path)
+    image: Image = get_contextual_image_image(image_path)
     if not image:
         return None
 
