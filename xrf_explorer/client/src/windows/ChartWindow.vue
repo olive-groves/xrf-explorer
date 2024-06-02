@@ -66,10 +66,7 @@ async function fetchAverages(url: string) {
   return fetchSuccessful;
 }
 
-/**
- * Set up the line chart's SVG container, add axes and data.
- */
- function setupLineChart() {
+function setup() {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -97,20 +94,7 @@ async function fetchAverages(url: string) {
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
 
-  // Add a line generator
-  const line = d3.line<Element>()
-    .x((d) => x(d.name)! + x.bandwidth() / 2)
-    .y((d) => y(d.average));
-
-
-  svg.append("path")
-    .datum(dataAverages)
-    .attr("fill", "none")
-    .attr("stroke", "white")
-    .attr("stroke-width", 3)
-    .attr("d", line);
-
-  // Adjust axes
+      // Adjust axes
   svg
     .append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -142,6 +126,28 @@ async function fetchAverages(url: string) {
     )
     .selectAll("text")
     .style("font-size", "18px");
+}
+
+/**
+ * Set up the line chart's SVG container, add axes and data.
+ */
+ function setupLineChart() {
+  setup();
+
+  // Add a line generator
+  const line = d3.line<Element>()
+    .x((d) => x(d.name)! + x.bandwidth() / 2)
+    .y((d) => y(d.average));
+
+
+  svg.append("path")
+    .datum(dataAverages)
+    .attr("fill", "none")
+    .attr("stroke", "white")
+    .attr("stroke-width", 3)
+    .attr("d", line);
+
+
 }
 
 /**
@@ -175,38 +181,6 @@ async function fetchAverages(url: string) {
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
 
-  // Add axes
-  svg
-    .append("g")
-    .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).tickSizeOuter(0))
-    .selectAll("text")
-    .style("font-size", "18px")
-    .attr("transform", "translate(-13, 15)rotate(-45)");
-  svg
-    .append("g")
-    .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y))
-    .call((g) => g.select(".domain").remove())
-    .call((g) =>
-      g
-        .selectAll(".tick line")
-        .clone()
-        .attr("x2", width - margin.left - margin.right)
-        .attr("stroke-opacity", 0.1),
-    )
-    .call((g) =>
-      g
-        .append("text")
-        .attr("x", -margin.left)
-        .attr("y", 20)
-        .attr("fill", "currentColor")
-        .attr("text-anchor", "start")
-        .text("↑ Average abundance"),
-    )
-    .selectAll("text")
-    .style("font-size", "18px");
-
   // Add data
   svg
     .selectAll("svg")
@@ -229,12 +203,13 @@ async function showChart() {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) // Checks if the data was fetched properly
-      if (barChecked.value)
-        setupBarChart(); // Display the bar chart
-        if (lineChecked.value)
-          setupLineChart(); // Displaying the line chart over the bar chart
-      else if (lineChecked.value)
-        setupLineChart(); // Display the line chart
+      setup(); // Display the chart
+      // if (barChecked.value)
+      //   setupBarChart(); // Display the bar chart
+      //   if (lineChecked.value)
+      //     setupLineChart(); // Displaying the line chart over the bar chart
+      // else if (lineChecked.value)
+      //   setupLineChart(); // Display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
