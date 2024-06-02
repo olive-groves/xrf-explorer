@@ -138,7 +138,7 @@ function setup() {
 }
 
 /**
- * Set up the line chart's SVG container, add axes and data.
+ * Add the line chart to the SVG container.
  */
 function setupLineChart() {
   // Add a line generator
@@ -157,7 +157,7 @@ function setupLineChart() {
 }
 
 /**
- * Set up the bar chart's SVG container, add axes and data.
+ * Add the bar chart to the SVG container.
  */
 function setupBarChart() {
   // Add data
@@ -180,11 +180,12 @@ async function showChart() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched)
+    if (fetched) {
       // Checks if the data was fetched properly
       setup(); // Display the chart
-    if (barChecked.value) setupBarChart(); // Display the bar chart
-    if (lineChecked.value) setupLineChart(); // Display the line chart
+      if (barChecked.value) setupBarChart(); // Display the bar chart
+      if (lineChecked.value) setupLineChart(); // Display the line chart
+    }
   } catch (e) {
     console.error("Error fetching average data", e);
   }
