@@ -83,7 +83,7 @@ function setup() {
   const max = d3.max(dataAverages, (d) => d.average) as number;
 
   // Select SVG container
-  let svg = d3
+  const svg = d3
     .select(chart.value)
     .attr("width", width)
     .attr("height", height)
@@ -91,14 +91,14 @@ function setup() {
     .attr("style", "max-width: 100%; height: auto;");
 
   // Declare the horizontal position scale
-  let x = d3
+  const x = d3
     .scaleBand()
     .domain(dataAverages.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
   // Declare the vertical position scale
-  let y = d3
+  const y = d3
     .scaleLinear()
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
@@ -140,13 +140,15 @@ function setup() {
 /**
  * Set up the line chart's SVG container, add axes and data.
  */
- function setupLineChart() {
+function setupLineChart() {
   // Add a line generator
-  const line = d3.line<Element>()
+  const line = d3
+    .line<Element>()
     .x((d) => x(d.name)! + x.bandwidth() / 2)
     .y((d) => y(d.average));
 
-  svg.append("path")
+  svg
+    .append("path")
     .datum(dataAverages)
     .attr("fill", "none")
     .attr("stroke", "white")
@@ -157,7 +159,7 @@ function setup() {
 /**
  * Set up the bar chart's SVG container, add axes and data.
  */
- function setupBarChart() {
+function setupBarChart() {
   // Add data
   svg
     .selectAll("svg")
@@ -170,7 +172,6 @@ function setup() {
     .attr("fill", "#FACC15");
 }
 
-
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
  * which is displayed in the chart.
@@ -179,14 +180,13 @@ async function showChart() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched) // Checks if the data was fetched properly
+    if (fetched)
+      // Checks if the data was fetched properly
       setup(); // Display the chart
-      if (barChecked.value)
-        setupBarChart(); // Display the bar chart
-        if (lineChecked.value)
-          setupLineChart(); // Displaying the line chart over the bar chart
-      else if (lineChecked.value)
-        setupLineChart(); // Display the line chart
+    if (barChecked.value) setupBarChart(); // Display the bar chart
+    if (lineChecked.value)
+      setupLineChart(); // Displaying the line chart over the bar chart
+    else if (lineChecked.value) setupLineChart(); // Display the line chart
   } catch (e) {
     console.error("Error fetching average data", e);
   }
