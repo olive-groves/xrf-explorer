@@ -174,7 +174,7 @@ function setupBarChart() {
 }
 
 /**
- * Show the bar chart. This function includes the fetching of the elemental data
+ * Show the bar and/or line chart. This function includes the fetching of the elemental data
  * which is displayed in the chart.
  */
 async function showChart() {
@@ -183,7 +183,6 @@ async function showChart() {
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) {
       // Checks if the data was fetched properly
-      setup(); // Display the chart
       if (barChecked.value) setupBarChart(); // Display the bar chart
       if (!barChecked.value) {
         svg.selectAll("rect").remove(); // Remove existing bar chart
@@ -197,10 +196,27 @@ async function showChart() {
     console.error("Error fetching average data", e);
   }
 }
+
+/**
+ * Set up the chart when the window is mounted. This function includes the fetching of the elemental data
+ * which is displayed in the chart.
+ */
+async function setupChart() {
+  try {
+    // Whether the elemental data was fetched properly
+    const fetched: boolean = await fetchAverages(config.api.endpoint);
+    if (fetched) {
+      // Checks if the data was fetched properly
+      setup(); // Display the chart
+    }
+  } catch (e) {
+    console.error("Error fetching average data", e);
+  }
+}
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="showChart" location="right">
+  <Window title="Elemental charts" @window-mounted="setupChart" location="right">
     <!-- CHART TYPE CHECKBOXES -->
     <div class="mx-2 space-y-1">
       <p class="font-bold">Select which type of chart to show:</p>
