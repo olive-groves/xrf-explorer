@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard } from ".";
+import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard, WorkspaceChannelsCard } from ".";
 import { appState } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
 import { computed, inject, watch } from "vue";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -25,7 +26,16 @@ watch(
           headers: {
             "Content-Type": "application/json",
           },
-        });
+        }).then(
+          () =>
+            toast.success("Updated workspace", {
+              description: "The updates are persistent between sessions",
+            }),
+          () =>
+            toast.warning("Failed to update workspace", {
+              description: "The updates made to the workspace will not persist between sessions",
+            }),
+        );
       }
     }
   },
@@ -59,6 +69,7 @@ watch(
             :key="index"
             v-model="workspace.spectralCubes[index]"
           />
+          <WorkspaceChannelsCard v-model="workspace.elementalChannels" />
         </div>
       </div>
     </div>

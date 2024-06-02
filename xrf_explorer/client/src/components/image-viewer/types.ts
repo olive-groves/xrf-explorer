@@ -113,7 +113,7 @@ export type ToolState = {
 /**
  * The different tools in the image viewer.
  */
-export type Tool = "grab" | "lens" | "lasso";
+export type Tool = "grab" | "lens" | "rectangle" | "lasso";
 
 /**
  * Type describing a group of layers as used in the LayerSystem.

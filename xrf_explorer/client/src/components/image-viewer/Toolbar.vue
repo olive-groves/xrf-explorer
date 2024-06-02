@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Hand, Search, SquareDashedMousePointer, Settings } from "lucide-vue-next";
+import { LabeledSlider } from "@/components/ui/slider";
+import { Hand, Search, SquareMousePointer, Settings, LassoSelect } from "lucide-vue-next";
 import { ToolState } from "./types";
+import { FrontendConfig } from "@/lib/config";
+import { inject } from "vue";
+
+const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
 </script>
 
 <template>
   <div
-    class="absolute bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 space-x-1 rounded-md border bg-background
-      p-1 shadow-sm"
+    class="absolute bottom-0 left-1/2 z-50 my-2 flex w-min -translate-x-1/2 cursor-default space-x-1 rounded-md border
+      bg-background p-1 shadow-sm"
   >
     <ToggleGroup type="single" v-model:model-value="state.tool">
       <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
@@ -19,47 +24,46 @@ const state = defineModel<ToolState>("state", { required: true });
       <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
         <Search />
       </ToggleGroupItem>
+      <ToggleGroupItem value="rectangle" class="size-8 p-2" title="Rectangle selection">
+        <SquareMousePointer />
+      </ToggleGroupItem>
       <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
-        <SquareDashedMousePointer />
+        <LassoSelect />
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
     <Popover>
       <PopoverTrigger as-child>
-        <Button variant="ghost" class="size-8 p-2 hover:text-muted-foreground" title="Tool configuration">
+        <Button variant="ghost" class="size-8 p-2" title="Tool configuration">
           <Settings />
         </Button>
       </PopoverTrigger>
       <PopoverContent class="m-2 w-60 space-y-2">
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="movementspeed">Movement speed</Label>
-            <div class="text-muted-foreground">
-              {{ state.movementSpeed[0] }}
-            </div>
-          </div>
-          <Slider id="movementspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.movementSpeed" />
-        </div>
-        <div class="grid gap-3">
-          <div class="flex items-center justify-between">
-            <Label for="scrollspeed">Scroll speed</Label>
-            <div class="text-muted-foreground">
-              {{ state.scrollSpeed[0] }}
-            </div>
-          </div>
-          <Slider id="scrollspeed" :min="0.1" :max="3.0" :step="0.1" v-model:model-value="state.scrollSpeed" />
-        </div>
-        <div v-if="state.tool == 'lens'">
-          <div class="grid gap-3">
-            <div class="flex items-center justify-between">
-              <Label for="lenszoom">Lens size </Label>
-              <div class="text-muted-foreground">
-                {{ state.lensSize[0] }}
-              </div>
-            </div>
-            <Slider id="lenszoom" :min="1" :max="400" :step="10" v-model:model-value="state.lensSize" />
-          </div>
-        </div>
+        <LabeledSlider
+          label="Movement speed"
+          :min="0.1"
+          :max="3.0"
+          :step="0.1"
+          :default="[config.imageViewer.defaultMovementSpeed]"
+          v-model="state.movementSpeed"
+        />
+        <LabeledSlider
+          label="Scroll speed"
+          :min="0.1"
+          :max="3.0"
+          :step="0.1"
+          :default="[config.imageViewer.defaultScrollSpeed]"
+          v-model="state.scrollSpeed"
+        />
+        <LabeledSlider
+          label="Lens size"
+          :min="1"
+          :max="400"
+          :step="1"
+          unit="px"
+          :default="[config.imageViewer.defaultLensSize]"
+          v-model="state.lensSize"
+        />
       </PopoverContent>
     </Popover>
   </div>

@@ -329,7 +329,7 @@ if (false) {
 </script>
 
 <template>
-  <Window title="Spectrum" location="right" opened @window-mounted="setup">
+  <Window title="Spectrum" location="right" @window-mounted="setup">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
