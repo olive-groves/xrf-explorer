@@ -1,4 +1,4 @@
-import { appState } from "@/lib/appState";
+import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
@@ -8,6 +8,8 @@ import { ElementSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { layerGroupDefaults } from "./workspace";
 import { registerLayer } from "./registering";
+import { getDataSize, getRecipe, getTargetSize } from "./api";
+import { config } from "@/main";
 
 const selection = computed(() => appState.selection.elements);
 
@@ -83,12 +85,15 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
  */
 export async function createElementalLayers(workspace: WorkspaceConfig) {
   const filenames = await getFilenames();
+  const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
+  recipe.movingSize = await getDataSize();
+  recipe.targetSize = await getTargetSize();
 
   const layers = workspace.elementalChannels
     .filter((channel) => channel.enabled && channel.channel in filenames)
     .map((channel) => {
       const layer = createLayer(`elemental_${channel.channel}`, filenames[channel.channel], false);
-      registerLayer(layer, "/recipe_cube.csv");
+      registerLayer(layer, recipe);
       layer.uniform.iLayerType.value = LayerType.Elemental;
       layer.uniform.iAuxiliary = { value: channel.channel };
       layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };

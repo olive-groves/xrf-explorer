@@ -304,6 +304,21 @@ def contextual_image_recipe(data_source: str, name: str):
     return points, 200
 
 
+@app.route("/api/<data_source>/data/size")
+def data_cube_size(data_source: str):
+    # As XRF-Explorer only supports a single data cube, we take the size of the first spectral cube
+    _, path = get_raw_rpl_paths(data_source)
+
+    # Parse the .rpl file
+    rpl_data = parse_rpl(path)
+
+    # Return the width and height
+    return {
+        "width": rpl_data["width"],
+        "height": rpl_data["height"]
+    }, 200
+
+
 @app.route("/api/<data_source>/data/recipe")
 def data_cube_recipe(data_source: str):
     # As XRF-Explorer only supports a single data cube, we take the recipe of the first elemental cube

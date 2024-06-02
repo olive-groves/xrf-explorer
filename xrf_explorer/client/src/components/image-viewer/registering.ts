@@ -2,40 +2,15 @@ import { Layer } from "./types";
 import * as THREE from "three";
 import * as math from "mathjs";
 import { deepClone } from "@/lib/utils";
-
-const recipePromises: {
-  [key: string]: Promise<RegisteringRecipe>;
-} = {};
-
-const recipes: {
-  [key: string]: RegisteringRecipe;
-} = {};
+import { Size } from "./api";
 
 /**
  * Sets the mRegister uniform on a layer in accordance with the specified recipe.
  * @param layer - The layer for which the perspective transform should be set.
- * @param recipeLocation - The url to the registering recipe.
+ * @param recipe - The recipe to use to register the layer.
  */
-export async function registerLayer(layer: Layer, recipeLocation: string) {
-  if (recipeLocation == "") return;
-
-  // Make sure that the recipe is known to the client.
-  if (!(recipeLocation in recipes)) {
-    // Start fetching the recipe if it has not been started already.
-    if (!(recipeLocation in recipePromises)) {
-      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json")).then((response) =>
-        response.json(),
-      );
-    }
-
-    // Await the fetch completing.
-    const recipe = (await recipePromises[recipeLocation]) as RegisteringRecipe;
-
-    recipes[recipeLocation] = recipe;
-  }
-
-  const recipe = recipes[recipeLocation];
-  setPerspectiveTransform(layer.uniform.mRegister.value, recipe);
+export function registerLayer(layer: Layer, recipe: RegisteringRecipe) {
+  setPerspectiveTransform(layer.uniform.mRegister.value, deepClone(recipe));
 }
 
 /**
@@ -44,9 +19,9 @@ export async function registerLayer(layer: Layer, recipeLocation: string) {
  * @param recipe - The recipe to use to calculate the transform.
  */
 function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecipe) {
-  const points = deepClone(recipe.points);
-  const target = recipe.targetSize;
-  const moving = recipe.movingSize;
+  const points = recipe.target.map((dst, i) => [dst[0], dst[1], recipe.moving[i][0], recipe.moving[i][1]]);
+  const target = recipe.targetSize!;
+  const moving = recipe.movingSize!;
 
   // Flip the y-coordinates
   // In the recipe y=0 is the top, in the image viewer y=0 is the bottom
@@ -96,27 +71,21 @@ function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecip
  */
 export type RegisteringRecipe = {
   /**
-   * The size of the target image, always the base image.
+   * The size of the target image.
+   * Used to scale points to uv coordinates.
    */
-  targetSize: {
-    width: number;
-    height: number;
-  };
+  targetSize?: Size;
   /**
-   * The size of the moving image, the image that needs to be registered.
+   * The size of the moving image.
+   * Used to scale points to uv coordinates.
    */
-  movingSize: {
-    width: number;
-    height: number;
-  };
+  movingSize?: Size;
   /**
-   * The four sets of points describing the perspective transform.
+   * The target point coordinates on the base image.
    */
-  points: [RegisteringRecipePoint, RegisteringRecipePoint, RegisteringRecipePoint, RegisteringRecipePoint];
+  target: [[number, number], [number, number], [number, number], [number, number]];
+  /**
+   * The corresponding moving points on the registering image.
+   */
+  moving: [[number, number], [number, number], [number, number], [number, number]];
 };
-
-/**
- * A set of values describing the translation of a point.
- * In the format targetX, targetY, movingX, movingY.
- */
-export type RegisteringRecipePoint = [number, number, number, number];
