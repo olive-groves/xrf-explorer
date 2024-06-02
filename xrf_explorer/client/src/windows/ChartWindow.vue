@@ -138,7 +138,7 @@ function setupLineChart() {
     .x((d) => x(d.name)! + x.bandwidth() / 2)
     .y((d) => y(d.average));
 
-  // Adds black line behind the colored line for better visibility
+  // Adds opposite colored line behind the colored line for better visibility
   svg
     .append("path")
     .datum(dataAverages)
@@ -201,6 +201,7 @@ async function showChart() {
 
 <template>
   <Window title="Elemental charts" @window-mounted="showChart" location="right">
+    <!-- CHART TYPE CHECKBOXES -->
     <div class="mx-2 space-y-1">
       <p class="font-bold">Select which type of chart to show:</p>
       <div class="mt-1 flex items-center">
@@ -212,6 +213,7 @@ async function showChart() {
         <label class="ml-1" for="selectionCheck">Line chart</label>
       </div>
     </div>
+    <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
     <p class="ml-2 font-bold">Average abundance chart:</p>
     <AspectRatio :ratio="5 / 2">
