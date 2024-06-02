@@ -333,7 +333,7 @@ if (false) {
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
-        <p class="ml-1 font-bold">Select which spectra to show:</p>
+        <p class="font-bold">Select which spectra to show:</p>
         <div class="mt-1 flex items-center">
           <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
           <label class="ml-1" for="globalCheck">Global average</label>
