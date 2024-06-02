@@ -205,7 +205,7 @@ async function showChart() {
         <label class="ml-1" for="selectionCheck">Line chart</label>
       </div>
     </div>
-    <AspectRatio :ratio="4 / 3">
+    <AspectRatio :ratio="5 / 2">
       <svg ref="chart"></svg>
     </AspectRatio>
   </Window>
