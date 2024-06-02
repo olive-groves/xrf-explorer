@@ -210,7 +210,7 @@ async function showChart() {
 
 <template>
   <Window title="Elemental charts" @window-mounted="showChart" location="right">
-    <div class="space-y-1 mx-2">
+    <div class="mx-2 space-y-1">
       <p class="font-bold">Select which type of chart to show:</p>
       <div class="mt-1 flex items-center">
         <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="showChart" />
