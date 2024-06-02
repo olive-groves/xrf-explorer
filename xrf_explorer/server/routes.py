@@ -32,7 +32,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 CONFIG_PATH: str = 'config/backend.yml'
 BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
-TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
+TEMP_RGB_IMAGE: str = 'rgb.tif'
 
 colors_per_elem: ndarray
 bitmasks_per_elem: ndarray
@@ -330,7 +330,7 @@ def get_color_clusters(data_source: str):
     :return json containing the ordered list of colors
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
     image = get_image(path_to_image)
     data_cube_path: str = get_elemental_cube_path(data_source)
 
@@ -392,7 +392,7 @@ def get_element_color_cluster(data_source: str):
     :return json containing the color clusters for each element.
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
     image: ndarray = get_image(path_to_image)
     data_cube_path: str = get_elemental_cube_path(data_source)
 

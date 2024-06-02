@@ -156,9 +156,9 @@ async function setup() {
   for (let i = 0; i <= elements.value.length; i++) {
     const sel: ColorSegmentationSelection = {
       element: i, 
-      channel: 0, 
+      channel: 1, 
       selected: false, 
-      prevChannel: 0,
+      prevChannel: 1,
       color: "#FFFFFF",
     };
     selection.value.push(sel);
