@@ -3,6 +3,7 @@ import { provide } from "vue";
 import { Header } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
+import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
 
 // Import all windows
@@ -26,6 +27,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
 </script>
 
 <template>
+  <Toaster position="top-center" />
   <BaseContextMenu>
     <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
       <Header />
