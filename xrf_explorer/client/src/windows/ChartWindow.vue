@@ -124,15 +124,6 @@ function setup() {
         .attr("x2", width - margin.left - margin.right)
         .attr("stroke-opacity", 0.1),
     )
-    .call((g) =>
-      g
-        .append("text")
-        .attr("x", -margin.left)
-        .attr("y", 20)
-        .attr("fill", "currentColor")
-        .attr("text-anchor", "start")
-        .text("Average abundance"),
-    )
     .selectAll("text")
     .style("font-size", "18px");
 }
@@ -221,8 +212,10 @@ async function showChart() {
         <label class="ml-1" for="selectionCheck">Line chart</label>
       </div>
     </div>
+    <Separator class = "mt-2 mb-1" />
+    <p class="ml-2 font-bold">Average abundance chart:</p>
     <AspectRatio :ratio="5 / 2">
-      <svg class="mx-2" ref="chart"></svg>
+      <svg class="ml-2" ref="chart"></svg>
     </AspectRatio>
   </Window>
 </template>
