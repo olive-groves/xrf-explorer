@@ -222,7 +222,7 @@ async function showChart() {
       </div>
     </div>
     <AspectRatio :ratio="5 / 2">
-      <svg ref="chart"></svg>
+      <svg class="mx-2" ref="chart"></svg>
     </AspectRatio>
   </Window>
 </template>
