@@ -83,7 +83,7 @@ function setup() {
   const max = d3.max(dataAverages, (d) => d.average) as number;
 
   // Select SVG container
-  const svg = d3
+  let svg = d3
     .select(chart.value)
     .attr("width", width)
     .attr("height", height)
@@ -91,14 +91,14 @@ function setup() {
     .attr("style", "max-width: 100%; height: auto;");
 
   // Declare the horizontal position scale
-  const x = d3
+  let x = d3
     .scaleBand()
     .domain(dataAverages.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
   // Declare the vertical position scale
-  const y = d3
+  let y = d3
     .scaleLinear()
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
@@ -131,7 +131,7 @@ function setup() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("↑ Average abundance"),
+        .text("Average abundance"),
     )
     .selectAll("text")
     .style("font-size", "18px");
