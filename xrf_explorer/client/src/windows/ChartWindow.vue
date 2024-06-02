@@ -212,7 +212,7 @@ async function showChart() {
         <label class="ml-1" for="selectionCheck">Line chart</label>
       </div>
     </div>
-    <Separator class = "mt-2 mb-1" />
+    <Separator class="mb-1 mt-2" />
     <p class="ml-2 font-bold">Average abundance chart:</p>
     <AspectRatio :ratio="5 / 2">
       <svg class="ml-2" ref="chart"></svg>
