@@ -66,12 +66,12 @@ async function fetchAverages(url: string) {
 /**
  * Set up the bar chart's SVG container, add axes and data.
  */
-function setup() {
+ function setup() {
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
-  const max: number = d3.max(dataAverages, (d) => d.average) as number;
+  const max = d3.max(dataAverages, (d) => d.average) as number;
 
   // Select SVG container
   const svg = d3
@@ -94,7 +94,20 @@ function setup() {
     .domain([0, max])
     .range([height - margin.bottom, margin.top]);
 
-  // Add axes
+  // Add a line generator
+  const line = d3.line<Element>()
+    .x((d) => x(d.name)! + x.bandwidth() / 2)
+    .y((d) => y(d.average));
+
+
+  svg.append("path")
+    .datum(dataAverages)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 2)
+    .attr("d", line);
+
+  // Adjust axes
   svg
     .append("g")
     .attr("transform", `translate(0,${height - margin.bottom})`)
@@ -102,6 +115,7 @@ function setup() {
     .selectAll("text")
     .style("font-size", "18px")
     .attr("transform", "translate(-13, 15)rotate(-45)");
+
   svg
     .append("g")
     .attr("transform", `translate(${margin.left},0)`)
@@ -125,18 +139,8 @@ function setup() {
     )
     .selectAll("text")
     .style("font-size", "18px");
-
-  // Add data
-  svg
-    .selectAll("svg")
-    .data(dataAverages)
-    .join("rect")
-    .attr("x", (d) => x(d.name) as number)
-    .attr("y", (d) => y(d.average))
-    .attr("width", x.bandwidth())
-    .attr("height", (d) => y(0) - y(d.average))
-    .attr("fill", "steelblue");
 }
+
 
 /**
  * Show the bar chart. This function includes the fetching of the elemental data
