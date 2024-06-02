@@ -3,11 +3,11 @@ import argparse
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-parser = argparse.ArgumentParser(prog="python run.py", description="XRF-Explorer")
+parser: argparse.ArgumentParser = argparse.ArgumentParser(prog="python run.py", description="XRF-Explorer")
 parser.add_argument("-c", "--config", dest="config", default="config/backend.yml", metavar="PATH",
                     help="path to the XRF-Explorer configuration file")
 parser.add_argument("-l", "--log", dest="loglevel", default="INFO", metavar="LEVEL",
-                    help="set logging level, can be any of ERROR, WARN, INFO, DEBUG")
+                    help="set logging level, can be any of CRITICAL, ERROR, WARN, INFO, DEBUG")
 
 if __name__ == '__main__':
     # read commandline arguments
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     LOG.info("Finished loading XRF-Explorer")
 
     # load config
-    config = load_yml(args.config)
+    config: dict = load_yml(args.config)
 
     # serve XRF-Explorer
     serve(app, host=config["bind-address"], port=config["port"], max_request_body_size=1073741824000000,

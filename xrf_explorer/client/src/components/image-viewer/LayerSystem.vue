@@ -22,6 +22,9 @@ interface Property {
   nameRef: keyof LayerGroup;
 }
 
+// Adjustable properties of each layer group.
+// Main properties are always directly visible in the Layer System,
+// all other properties are placed in a separate popover.
 const mainProperties = ["Opacity"];
 const properties: Property[] = [
   { name: "Opacity", min: 0, max: 1, default: 1, propertyName: "opacityProperty", nameRef: "opacity" },

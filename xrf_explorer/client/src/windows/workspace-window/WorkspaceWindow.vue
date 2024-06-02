@@ -28,7 +28,7 @@ watch(
           },
         }).then(
           () =>
-            toast.success("Successfully updated workspace", {
+            toast.success("Updated workspace", {
               description: "The updates are persistent between sessions",
             }),
           () =>
