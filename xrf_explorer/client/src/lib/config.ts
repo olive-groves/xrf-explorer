@@ -77,6 +77,14 @@ export type SelectionToolConfig = {
    * Button that will consolidate the current selection (not applicable to rectangle selection).
    */
   confirmButton: number;
+  /**
+   * Color in which the selected area should be displayed.
+   */
+  color: string,
+  /**
+   * Set the opacity of the selection overlay.
+   */
+  opacity: number,
 }
 
 /**
@@ -99,6 +107,8 @@ export const DefaultConfig: FrontendConfig = {
     addPointButton: 0,    // left mouse button
     cancelButton: 1,      // wheel mouse button
     confirmButton: 2,     // right mouse button
+    color: "lighblue",
+    opacity: 0.5,
   }
 };
 

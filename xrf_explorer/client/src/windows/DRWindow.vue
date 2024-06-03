@@ -81,8 +81,8 @@ function drawSelection() {
         .attr("y", selectionTool.getOrigin().y)
         .attr("width", selectionTool.getWidth())
         .attr("height", selectionTool.getHeight())
-        .attr("fill", "lightblue")
-        .attr("opacity", 0.5);
+        .attr("fill", config.selectionToolConfig.color)
+        .attr("opacity", config.selectionToolConfig.opacity);
   }
 }
 
