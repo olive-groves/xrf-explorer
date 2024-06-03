@@ -20,11 +20,14 @@ let dataAverages: Element[] = [];
 // Visibility for all elements
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
-// Actual displayed data, i.e. elements which are selected
-let displayedData: Element[] = [];
-
-// Colors of the data being displayed (encoded as string like "#RRGGBB")
+// Visibility of only selected elements
 let displayedSelection: ElementSelection[] = [];
+
+// Actual displayed data, i.e. elements which are selected
+let selectedData: Element[] = [];
+
+// Whether we should display the averages of elements outside the selection in grey
+const displayAll = ref(false);
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -80,7 +83,7 @@ async function fetchAverages(url: string) {
 function maskData(selection: ElementSelection[]) {
   displayedSelection = selection.filter((element) => element.selected);
 
-  displayedData = dataAverages.filter((_, index) =>
+  selectedData = dataAverages.filter((_, index) =>
     displayedSelection.some((elementVis) => elementVis.channel == index),
   );
 }
@@ -97,6 +100,11 @@ function clearChart() {
  * @param data Element data array that we want to display on the chart.
  */
 function updateChart(data: Element[]) {
+  // If we are displaying all elements, set that to be the data
+  if (displayAll.value) {
+    data = dataAverages;
+  }
+
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -168,7 +176,18 @@ function updateChart(data: Element[]) {
     .attr("y", (d) => y(d.average))
     .attr("width", x.bandwidth())
     .attr("height", (d) => y(0) - y(d.average))
-    .attr("fill", (_, i) => displayedSelection[i].color);
+    .attr("fill", (_, i) => {
+      if (displayAll.value) {
+        // If it is selected, display it in its own color, otherwise gray
+        if (elementSelection.value[i].selected) {
+          return elementSelection.value[i].color;
+        } else {
+          return "hsl(var(--border))";
+        }
+      } else {
+        return displayedSelection[i].color;
+      }
+    });
 }
 
 /**
@@ -182,7 +201,7 @@ async function showChart() {
     if (fetched) {
       // If everything went right, mask the data and display the chart
       maskData(elementSelection.value);
-      updateChart(displayedData);
+      updateChart(selectedData);
     }
   } catch (e) {
     console.error("Error fetching average data", e);
@@ -193,14 +212,27 @@ watch(
   elementSelection,
   (selection) => {
     maskData(selection);
-    updateChart(displayedData);
+    updateChart(selectedData);
   },
   { deep: true },
 );
+
+/**
+ * Updates chart to display all elements or only selected elements.
+ */
+function updateDisplayAll() {
+  maskData(elementSelection.value);
+  updateChart(selectedData);
+}
 </script>
 
 <template>
   <Window title="Bar Chart Window" @window-mounted="showChart" opened location="right">
+    <div class="mt-1 flex items-center">
+      <Checkbox id="displayAll" v-model:checked="displayAll" @update:checked="updateDisplayAll" />
+      <label class="ml-1" for="displayGrey">Display all elements</label>
+    </div>
+    <Separator />
     <AspectRatio :ratio="4 / 3">
       <svg ref="barchart"></svg>
     </AspectRatio>
