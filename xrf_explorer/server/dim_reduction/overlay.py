@@ -21,7 +21,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
     """Creates the embedding image from the embedding.
 
     :param data_source: Name of the data source to create the embedding image for.
-    :param overlay_type: The type of overlay to create. Can be name of image prefixed by contextual_ or an element number prefixed by elemental_.
+    :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_.
     :param config_path: Path to the backend config file
     :return: Path to created embedding image is successful, otherwise empty string.
     """
@@ -43,7 +43,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
         return ""
 
     # Get the path to the elemental data cube
-    cube_path: str = get_elemental_cube_path(data_source, config_path=config_path)
+    cube_path: str = get_elemental_cube_path(data_source, config_path)
     if not cube_path:
         return ""
 
@@ -55,7 +55,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
         image_type: str = overlay_type.removeprefix("contextual_")
 
         # Get the pixels of registered image
-        registered_image: np.ndarray = get_registered_image(data_source, image_type, config_path=config_path)
+        registered_image: np.ndarray = get_registered_image(data_source, image_type, config_path)
         if len(registered_image) == 0:
             return ""
 
@@ -92,7 +92,7 @@ def create_image_overlay(registered_image: np.ndarray, indices: np.ndarray) -> n
     """Creates the overlay based on the given image type. This is done
     by getting the pixels out of the image at the given indices.
 
-    :param registered_image: The pixels of the registred image to create the overlay from.
+    :param registered_image: The pixels of the registered image to create the overlay from.
     :param indices: The indices to get the pixels from.
     :return: The normalized pixels at the given indices of the image.
     """

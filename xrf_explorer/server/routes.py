@@ -198,10 +198,10 @@ def list_element_names(data_source: str):
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
     
-    :param data_source: data_source to generate the embedding from
+    :param data_source: data source to generate the embedding from
     :param element: element to generate the embedding for
     :param threshold: threshold from which a pixel is selected
-    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successfull and the number of data points was down sampled.
+    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled.
     """
 
     # Get path to elemental cube
@@ -219,8 +219,8 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
 def get_dr_overlay(data_source: str, overlay_type: str):
     """Generate the dimensionality reduction overlay with a given type.
     
-    :param data_source: data_source to get the overlay from
-    :param overlay_type: the overlay type. Images are prefixed with contextual_ and element by elemental_
+    :param data_source: data source to get the overlay from
+    :param overlay_type: the overlay type. Images are prefixed with contextual_ and elements by elemental_
     :return: overlay image file
     """
 

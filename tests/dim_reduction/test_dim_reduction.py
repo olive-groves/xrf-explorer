@@ -49,12 +49,8 @@ class TestDimReduction:
         threshold: int = 100
 
         # execute
-        result1: str = generate_embedding(
-            self.PATH_TEST_CUBE, element1, threshold, config_path=self.CUSTOM_CONFIG_PATH
-        )
-        result2: str = generate_embedding(
-            self.PATH_TEST_CUBE, element2, threshold, config_path=self.CUSTOM_CONFIG_PATH
-        )
+        result1: str = generate_embedding(self.PATH_TEST_CUBE, element1, threshold, config_path=self.CUSTOM_CONFIG_PATH)
+        result2: str = generate_embedding(self.PATH_TEST_CUBE, element2, threshold, config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result1 == 'error'
@@ -69,9 +65,8 @@ class TestDimReduction:
         overlay_type2: str = 'elemental_1000000'
 
         # execute
-        result2: str = create_embedding_image(
-            self.TEST_DATA_SOURCE, overlay_type2, config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT
-        )
+        result2: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type2,
+                                              config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # verify
         assert not result2
@@ -87,7 +82,7 @@ class TestDimReduction:
 
         # execute
         result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
-                                          config_path=self.CUSTOM_CONFIG_PATH)
+                                         config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result == 'error'
@@ -100,10 +95,8 @@ class TestDimReduction:
         overlay_type: str = 'elemental_1'
 
         # execute
-        result: str = create_embedding_image(
-            self.TEST_DATA_SOURCE, overlay_type,
-            config_path=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING
-        )
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type,
+                                             config_path=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING)
 
         # verify
         assert not result
@@ -122,7 +115,7 @@ class TestDimReduction:
 
         # execute
         result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
-                                          config_path=self.CUSTOM_CONFIG_PATH)
+                                         config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result == 'success'
@@ -140,7 +133,7 @@ class TestDimReduction:
 
         # execute
         result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
-                                          config_path=self.CUSTOM_CONFIG_PATH)
+                                         config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
         assert result == 'error'
@@ -156,7 +149,8 @@ class TestDimReduction:
         path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'embedding_present', 'embedding.png')
 
         # execute
-        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type, config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type,
+                                             config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # verify
         assert result
