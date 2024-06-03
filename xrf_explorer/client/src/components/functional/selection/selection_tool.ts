@@ -22,8 +22,8 @@ export class SelectionTool {
      */
     finishedSelection: boolean = false;
 
-    constructor() {
-        this.selectionType = SelectionOption.Rectangle;
+    constructor(selectionType: SelectionOption = SelectionOption.Rectangle) {
+        this.selectionType = selectionType;
     }
 
     /**
@@ -33,6 +33,14 @@ export class SelectionTool {
         this.selectedPoints = [];
         this.activeSelection = false;
         this.finishedSelection = false;
+    }
+
+    /**
+     * Set the necessary values to mark the selection as complete.
+     */
+    confirmSelection() {
+        this.activeSelection = false;
+        this.finishedSelection = true;
     }
 
     /**
@@ -55,7 +63,7 @@ export class SelectionTool {
 
         switch (this.selectionType) {
             case SelectionOption.Lasso: {
-                // TODO: add lasso selection
+                this.handleLassoSelection();
                 break;
             }
 
@@ -76,7 +84,7 @@ export class SelectionTool {
     }
 
     /**
-     * Update the list of points based on a rectangle selection method and update the object's status accordingly.
+     * Update the list of points to achieve a list of format `[top-left, bottom-right]`.
      */
     handleRectangleSelection() {
 
@@ -99,18 +107,49 @@ export class SelectionTool {
         }
     }
 
+    /**
+     * Update the list of points to avoid colliding areas.
+     */
+    handleLassoSelection() {
+        // TODO: i have no clue how to actually do this
+    }
+
+    /**
+     * Get the first point in the list.
+     * @returns The first point in the list.
+     */
     getOrigin() {
         return this.selectedPoints[0];
     }
 
+    /**
+     * Get the width of the selection (Rectangle selection only).
+     * @returns The width of the selection for Rectangle selection, 0 otherwise.
+     */
     getWidth() {
         return (this.selectionType == SelectionOption.Rectangle) ?
             Math.abs(this.selectedPoints[0].x - this.selectedPoints[1].x) : 0;
     }
 
+    /**
+     * Get the height of the selection (Rectangle selection only).
+     * @returns The height of the selection for Rectangle selection, 0 otherwise.
+     */
     getHeight() {
         return (this.selectionType == SelectionOption.Rectangle) ?
             Math.abs(this.selectedPoints[0].y - this.selectedPoints[1].y) : 0;
+    }
+
+    /**
+     * Format the coordinates of the selection as a string as: "x1,y1 x2,y2".
+     * @returns The coordinates of the selection as a formatted string.
+     */
+    getPointsAsString() {
+        const coordinates: string[] = [];
+        for (const point of this.selectedPoints)
+            coordinates.push(`${point.x},${point.y}`);
+
+        return coordinates.join(" ");
     }
 
 }

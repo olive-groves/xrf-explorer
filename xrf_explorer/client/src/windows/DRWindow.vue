@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import {ref, computed} from "vue";
+import {computed, inject, ref} from "vue";
 import {appState, datasource, elements} from "@/lib/appState";
-import {inject} from "vue";
 import {useFetch} from "@vueuse/core";
 import {FrontendConfig} from "@/lib/config";
 import {ContextualImage} from "@/lib/workspace";
-import {LoaderPinwheel} from "lucide-vue-next";
 import {LabeledSlider} from "@/components/ui/slider";
 import {toast} from "vue-sonner";
-import {SelectionTool, SelectionOption} from "@/components/functional/selection/selection_tool.ts";
+import {SelectionOption, SelectionTool} from "@/components/functional/selection/selection_tool.ts";
 
 import * as d3 from "d3";
 
@@ -54,7 +52,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool = new SelectionTool();
+const selectionTool = new SelectionTool(SelectionOption.Lasso);
 const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
@@ -152,6 +150,9 @@ function onMouseDown(event: MouseEvent) {
     }
   }
 
+  else if (event.button == config.selectionToolConfig.confirmButton)
+    selectionTool.confirmSelection();
+
   drawSelection();
 }
 
@@ -176,6 +177,14 @@ function drawSelection() {
         .attr("y", selectionTool.getOrigin().y)
         .attr("width", selectionTool.getWidth())
         .attr("height", selectionTool.getHeight())
+        .attr("fill", config.selectionToolConfig.fill_color)
+        .attr("stroke", config.selectionToolConfig.stroke_color)
+        .attr("opacity", config.selectionToolConfig.opacity);
+  }
+
+  else if (selectionTool.selectionType == SelectionOption.Lasso) {
+    svg.append("polygon")
+        .attr("points", selectionTool.getPointsAsString())
         .attr("fill", config.selectionToolConfig.fill_color)
         .attr("stroke", config.selectionToolConfig.stroke_color)
         .attr("opacity", config.selectionToolConfig.opacity);
