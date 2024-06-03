@@ -216,12 +216,11 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
         # in range [1, i+1]
         combined_bitmask[bitmask] = i + 1
 
-    # Initialize the resulting image with 3 color channels + 1 alpha channel
-    merged_image: np.ndarray = np.zeros((height, width, 4), dtype=np.uint8)
+    # Initialize the resulting image with 3 color channels
+    merged_image: np.ndarray = np.zeros((height, width, 3), dtype=np.uint8)
     merged_image[:, :, 0] = combined_bitmask
     merged_image[:, :, 1] = combined_bitmask
     merged_image[:, :, 2] = combined_bitmask
-    merged_image[:, :, 3] = combined_bitmask
 
     return merged_image
 

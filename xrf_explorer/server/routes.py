@@ -345,7 +345,7 @@ def get_color_clusters(data_source: str):
 
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(image, 100, 100, nr_attempts, k)
 
     # Merge similar clusters
     colors, _ = merge_similar_colors(colors, bitmasks)
@@ -406,7 +406,7 @@ def get_element_color_cluster(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
+                                                             image, data_cube_path, elem_threshold, 100, 100, nr_attempts, k)
 
     color_data: list[list[str]] = []
     for i in range(len(colors_per_elem)):

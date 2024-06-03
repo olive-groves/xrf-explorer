@@ -38,6 +38,8 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
       data[start + 1] = color[1];
       data[start + 2] = color[2];
       data[start + 3] = 255;
+    } else {
+      data[start + 3] = 255;
     }
   });
 
@@ -50,7 +52,6 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
       )[0];
 
       if (layer.mesh == undefined && channel.selected) {
-        console.log(`Loading layer for element: ${channel.element} for channel: ${channel.channel}`)
         // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
         loadLayer(layer);
       } else if (layer.mesh != undefined && !channel.selected) {
