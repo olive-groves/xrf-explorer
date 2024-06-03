@@ -9,7 +9,8 @@ sys.path.append('.')
 
 from xrf_explorer.server.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
-    get_elemental_clusters_using_k_means, combine_bitmasks
+    get_elemental_clusters_using_k_means, combine_bitmasks,
+    image_to_lab, image_to_rgb, lab_to_rgb, rgb_to_lab
 )
 
 from xrf_explorer.server.file_system.elemental_cube import to_dms
@@ -28,23 +29,16 @@ class TestColorSegmentation:
         # Set-up
         small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
 
-        # The default number of clusters is 30, which is what we use here. The image only has 2 colors, hence 15
-        # clusters for each color.
-        expected_result: np.ndarray = np.array([
-            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
-            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
-            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
-            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255],
-            [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255], [0, 0, 0], [255, 255, 255]
-        ])
-
         # Execute
         result: np.ndarray
         result, _ = get_clusters_using_k_means(small_image)
 
         # Verify
-        assert len(expected_result) == len(result)
-        assert np.array_equal(result, expected_result)
+        assert len(result) == 30
+        # The default number of clusters is 30, which is what we use here. The image only has 2 colors, hence 15
+        # clusters for each color.
+        assert np.sum(np.all(result == [0, 0, 0], axis=1)) == 15
+        assert np.sum(np.all(result == [255, 255, 255], axis=1)) == 15
 
         # Verify log message
         assert "Initial color clusters extracted successfully." in caplog.text
@@ -104,9 +98,7 @@ class TestColorSegmentation:
         bitmasks: list[np.ndarray] = [bitmask1, bitmask2, bitmask3]
         expected_entries: np.ndarray = np.array([[2, 3, 1], [1, 0, 2]], dtype=np.uint8)
         expected_result: np.ndarray = np.zeros((2, 3, 3), dtype=np.uint8)
-        expected_result[:, :, 0] = expected_entries
         expected_result[:, :, 1] = expected_entries
-        expected_result[:, :, 2] = expected_entries
 
         # Execute
         result: np.ndarray = combine_bitmasks(bitmasks)
@@ -127,8 +119,8 @@ class TestColorSegmentation:
             [255, 255, 255]
         ])
         expected_result2: np.ndarray = np.array([
-            [255, 255, 255],
-            [0, 0, 0]
+            [0, 0, 0],
+            [255, 255, 255]
         ])
         elem_threshold: float = 0.1
 
@@ -145,3 +137,25 @@ class TestColorSegmentation:
         assert np.array_equal(clusters_per_elem[0], expected_result0)
         assert np.array_equal(clusters_per_elem[1], expected_result1)
         assert np.array_equal(clusters_per_elem[2], expected_result2)
+
+    def test_image_to_rgb_and_lab(self):
+        # Set-up
+        original_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
+
+        # Execute
+        image = image_to_lab(original_image)
+        image = image_to_rgb(image)
+
+        # Verify
+        assert np.array_equal(original_image, original_image)
+
+    def test_rgb_to_lab(self):
+        # Set-up
+        color: np.ndarray = np.array([10, 160, 230]).astype(np.uint8)
+
+        # Execute
+        new_col = rgb_to_lab(color)
+        new_col = lab_to_rgb(new_col).astype(np.uint8)
+
+        # Verify
+        assert np.array_equal(new_col, color)

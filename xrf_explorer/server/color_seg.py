@@ -59,9 +59,6 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
     # Transform back to RGB
     clusters = [lab_to_rgb(c).tolist() for c in clusters]
-    # when doing rgb_to_lab and then lab_to_rgb the numbers
-    # get slightly altered (e.g. 255->254.9), this fixes it
-    clusters = np.array([[int(round(v)) for v in c] for c in clusters])
 
     return clusters, bitmasks
 
@@ -85,6 +82,8 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     # reshape image
     image: np.ndarray = cv2.resize(image, (image_width, image_height))
     reshaped_image: np.ndarray = reshape_image(image)
+    # Transform image to LAB format
+    reshaped_image = image_to_lab(reshaped_image)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
@@ -103,6 +102,8 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
         mask = mask.reshape(image.shape[:2])
         bitmasks.append(mask)
 
+    # Transform back to rgb
+    colors = [lab_to_rgb(c) for c in colors]
     LOG.info("Initial color clusters extracted successfully.")
 
     return np.array(colors), np.array(bitmasks)
@@ -143,6 +144,9 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
         image = cv2.resize(image, (image_width, image_height))
         target_dim = (image.shape[1], image.shape[0])
         data_cube = np.array([cv2.resize(img, target_dim) for img in data_cube])
+
+    # Transform image to lab
+    image = image_to_lab(image)
 
     # set seed so results are consistent
     cv2.setRNGSeed(0)
@@ -188,6 +192,8 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
             cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
             cluster_bitmasks.append(cluster_mask)
 
+        # Transform back to rgb
+        center = [lab_to_rgb(c) for c in center]
         colors.append(center)
         bitmasks.append(cluster_bitmasks)
 
@@ -218,9 +224,8 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
 
     # Initialize the resulting image with 3 color channels
     merged_image: np.ndarray = np.zeros((height, width, 3), dtype=np.uint8)
-    # merged_image[:, :, 0] = combined_bitmask
+    # Store bitmask in G(reen) channel
     merged_image[:, :, 1] = combined_bitmask
-    # merged_image[:, :, 2] = combined_bitmask
 
     return merged_image
 
@@ -239,7 +244,7 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
         if not path.exists(dir_name):
             makedirs(dir_name)
 
-        # Save the array as a PNG file using OpenCV
+        # Save the array as a png file
         success = cv2.imwrite(full_path, bitmask)
         if not success:
             raise IOError(f"Failed to save image to {full_path}")
@@ -265,14 +270,27 @@ def calculate_color_difference(lab1: np.ndarray, lab2: np.ndarray) -> int:
     return np.linalg.norm(lab1 - lab2)
 
 
-def image_to_lab(small_image: np.ndarray) -> np.ndarray:
+def image_to_lab(image: np.ndarray) -> np.ndarray:
     """
     Turns an image of RGB triples into an image of LAB triples.
-    :param small_image: The scaled down version of the image.
+    :param image: The image in RGB format (range: [0, 255]).
     :return: The image in LAB format.
     """
 
-    return color.rgb2lab(small_image)
+    return color.rgb2lab(image / 255)
+
+
+def image_to_rgb(image: np.ndarray) -> np.ndarray:
+    """
+    Turns an image of LAB triples into an image of RGB triples.
+    :param image: The image in LAB format (range: L = [0,100], AB = [-127,127])
+    :return: The image in RGB format.
+    """
+
+    rgb_image = color.lab2rgb(image) * 255
+    # Round to the nearest integer and clip values to stay within valid range
+    rgb_image = np.clip(np.round(rgb_image * 255), 0, 255).astype(np.uint8)
+    return rgb_image
 
 
 def rgb_to_lab(rgb_triple: np.ndarray) -> np.ndarray:
@@ -282,7 +300,7 @@ def rgb_to_lab(rgb_triple: np.ndarray) -> np.ndarray:
     :return: the LAB format.
     """
 
-    return skimage.color.rgb2lab([[[rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255]]])[0][0]
+    return color.rgb2lab([[[rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255]]])[0][0]
 
 
 def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
@@ -291,8 +309,11 @@ def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
     :param lab_color: The LAB color triple.
     :return: The RGB color.
     """
-
-    return skimage.color.lab2rgb([lab_color[0], lab_color[1], lab_color[2]]) * 255
+    rgb_color = color.lab2rgb([lab_color[0], lab_color[1], lab_color[2]]) * 255
+    # when doing rgb_to_lab and then lab_to_rgb the numbers
+    # get slightly altered (e.g. 255->254.9), this fixes it
+    rgb_color = np.array([int(round(c)) for c in rgb_color])
+    return rgb_color
 
 
 def reshape_image(small_image: np.ndarray) -> np.ndarray:
