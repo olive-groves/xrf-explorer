@@ -15,7 +15,7 @@ type Element = {
 };
 
 // Chart type checkboxes
-const barChecked = ref(false);
+const barChecked = ref(true);
 const lineChecked = ref(false);
 
 // SVG container
@@ -102,9 +102,6 @@ function maskData(selection: ElementSelection[]) {
  * @param data Element data array that we want to display on the chart.
  */
 function setupChart(data: Element[]) {
-  // Clear all previous instances of the chart
-  clearChart();
-
   // Declare chart dimensions and margins
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -164,27 +161,10 @@ function clearChart() {
 }
 
 /**
- * Clear only the bar chart's bars.
- */
-function clearBarChart() {
-  svg.selectAll("rect").remove();
-}
-
-/**
- * Clear only the line chart's lines.
- */
-function clearLineChart() {
-  svg.selectAll("path").remove();
-}
-
-/**
  * Add the line chart to the SVG container with updated data.
  * @param data Element data array that we want to display on the chart.
  */
 function updateLineChart(data: Element[]) {
-  // Clear the previous line chart first
-  clearLineChart();
-
   // Add a line generator
   const line = d3
     .line<Element>()
@@ -215,9 +195,6 @@ function updateLineChart(data: Element[]) {
  * @param data Element data array that we want to display on the chart.
  */
 function updateBarChart(data: Element[]) {
-  // Clear the previous bar chart first
-  clearBarChart();
-
   // Add data
   svg
     .selectAll("svg")
@@ -250,25 +227,26 @@ function updateCharts() {
   // Mask the data with the selected elements
   maskData(elementSelection.value);
 
-  // Clear all old stuff
-  clearBarChart();
-  clearLineChart();
-
   // If we are displaying all elements, set that to be the data
   if (displayAll.value) {
     selectedData = dataAverages;
   }
 
+  // Clear all previous instances of the chart
+  clearChart();
+
   // Set up the chart
   setupChart(selectedData);
 
   // Add the bar chart
-  if (barChecked.value)
+  if (barChecked.value) {
     updateBarChart(selectedData);
+  }
 
   // Add the line chart
-  if (lineChecked.value)
+  if (lineChecked.value) {
     updateLineChart(selectedData);
+  }
 }
 
 /**
@@ -296,12 +274,13 @@ watch(
   },
   { deep: true },
 );
+setupChart(dataAverages);
 </script>
 
 <template>
   <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
-    <!-- CHART TYPE CHECKBOXES -->
     <div class="mx-2 space-y-1">
+      <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Select which type of chart to show:</p>
       <div class="mt-1 flex items-center">
         <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="updateCharts" />
@@ -311,11 +290,12 @@ watch(
         <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="updateCharts" />
         <label class="ml-1" for="selectionCheck">Line chart</label>
       </div>
-    </div>
-    <!-- DISPLAY ALL CHECKBOX -->
-    <div class="mt-1 flex items-center">
-      <Checkbox id="displayAll" v-model:checked="displayAll" @update:checked="updateCharts" />
-      <label class="ml-1" for="displayGrey">Display all elements</label>
+      <!-- OPTIONS CHECKBOXES -->
+      <p class="font-bold">Options:</p>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="displayAll" v-model:checked="displayAll" @update:checked="updateCharts" />
+        <label class="ml-1" for="displayGrey">Display all elements</label>
+      </div>
     </div>
     <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
