@@ -19,6 +19,7 @@ const config = inject<FrontendConfig>("config")!;
 const colors = ref<string[]>([]);
 const colorsElements = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
+const selectedChannel = ref<number>();
 const elements = ref<string[]>([]);
 
 const selection = computed(() => appState.selection.colorSegmentation);
@@ -41,8 +42,10 @@ watch(colorsElements, () => {
 watch(selectedElement, (newValue) => {
   if (newValue === "complete") {
     colors.value = colorsElements.value["complete"];
+    selectedChannel.value = -1;
   } else if (newValue) {
     colors.value = colorsElements.value[newValue] || [];
+    selectedChannel.value = -1;
   } 
 });
 
@@ -201,9 +204,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
       return;
     }
   }
-  console.log(index);
-  console.log(colorIndex);
-  console.log(color);
+  selectedChannel.value = colorIndex;
 
   // Update selection
   selection.value[index].prevChannel = selection.value[index].channel;
@@ -226,6 +227,11 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   margin: 5px; /* Adds space between the shapes */
   display: inline-block; /* Allows shapes to line up horizontally */
 }
+
+.color-shape.selected {
+  border: 2px solid #FFFFFF;
+}
+
 </style>
 
 <template>
@@ -253,6 +259,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         :key="color" 
         class="color-shape" 
         :style="{'background-color': color}"
+        :class="{'selected': selectedChannel === colorIndex}"
         @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
     </div>
