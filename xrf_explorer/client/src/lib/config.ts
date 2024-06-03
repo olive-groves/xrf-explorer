@@ -17,6 +17,10 @@ export type FrontendConfig = {
    */
   uploadConfig: UploadConfig;
   /**
+   * Configuration related to the selection tool.
+   */
+  selectionToolConfig: SelectionToolConfig;
+  /**
    * The default theme of the client.
    */
   defaultTheme: BasicColorMode;
@@ -60,6 +64,21 @@ export type ImageViewerConfig = {
   defaultLensSize: number;
 };
 
+export type SelectionToolConfig = {
+  /**
+   * Button that will add the current location point to the current selection.
+   */
+  addPointButton: number;
+  /**
+   * Button that will cancel the current selection.
+   */
+  cancelButton: number;
+  /**
+   * Button that will consolidate the current selection (not applicable to rectangle selection).
+   */
+  confirmButton: number;
+}
+
 /**
  * The default configuration for the client.
  */ export const DefaultConfig: FrontendConfig = {
@@ -75,6 +94,11 @@ export type ImageViewerConfig = {
   uploadConfig: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
+  selectionToolConfig: {
+    addPointButton: 0,    // left mouse button
+    cancelButton: 1,      // wheel mouse button
+    confirmButton: 2,     // right mouse button
+  }
 };
 
 /**

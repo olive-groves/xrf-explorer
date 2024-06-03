@@ -4,6 +4,7 @@ import {onMounted, ref} from "vue";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { SelectionTool, SelectionOption } from "@/components/functional/selection/selection_tool.ts";
 
 import * as d3 from "d3";
 
@@ -33,33 +34,26 @@ const imageSourceUrl = ref();
 
 // Selection
 const drImage = ref(null);
-const selectedPoints: { x: number; y: number }[] = [];
+const selectionTool = new SelectionTool();
 const mrIncredible: string = "src/windows/mr-incredible.png";
 
-// canvas to draw on
-const canvas = ref<HTMLCanvasElement>(<HTMLCanvasElement>document.getElementById("canvas"));
-const context = ref<CanvasRenderingContext2D | null>(canvas.value?.getContext("2d"));
-
-function setup() {
+function drawSelection() {
   const svg = d3.select(drImage.value)
-      .append("svg")
       .attr("width", 640)
       .attr("height", 640);
 
-  // const mr_incredible = svg
-  //     .append("img")
-  //     .attr("xlink:href", "file:///C:/Users/20210682/Documents/sep/xrf-explorer/xrf_explorer/client/src/windows/mr-incredible.png")
-  //     // .attr("xlink:href", "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.reddit.com%2Fr%2FMemeTemplatesOfficial%2Fcomments%2Frt9bc8%2Fmr_incredible_becomes_ascended%2F&psig=AOvVaw2tzjoDgI25vxwQ-M_sHdAk&ust=1717242705408000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCJiRmt3pt4YDFQAAAAAdAAAAABAE")
-  //     .attr("width", 640)
-  //     .attr("height", 640);
+  svg.selectAll("*").remove();
 
-  svg.append("rect")
-      .attr("x", 100)
-      .attr("y", 100)
-      .attr("width", 200)
-      .attr("height", 200)
-      .attr("fill", "red")
-      .attr("opacity", 1);
+  if (selectionTool.selectionType == SelectionOption.Rectangle) {
+    console.log("Drawing rectangle from: ", selectionTool.getOrigin().x, selectionTool.getOrigin().y, " to: ", selectionTool.getOrigin().x + selectionTool.getWidth(), selectionTool.getOrigin().y + selectionTool.getHeight());
+    svg.append("rect")
+        .attr("x", selectionTool.getOrigin().x)
+        .attr("y", selectionTool.getOrigin().y)
+        .attr("width", selectionTool.getWidth())
+        .attr("height", selectionTool.getHeight())
+        .attr("fill", "lightblue")
+        .attr("opacity", 0.5);
+  }
 }
 
 /**
@@ -137,23 +131,28 @@ async function updateEmbedding() {
 }
 
 function onMouseDown(event: MouseEvent) {
-  selectedPoints.push({x: event.clientX, y: event.clientY});
-  visualizeSelectedPoints();
+
+  if (event.button == config.selectionToolConfig.cancelButton)
+    selectionTool.cancelSelection();
+
+  else if (event.button == config.selectionToolConfig.addPointButton)
+    selectionTool.addPointToSelection({x: event.offsetX, y: event.offsetY});
+
+  visualizeSelection();
 }
 
-function visualizeSelectedPoints() {
-  for (const point of selectedPoints) {
-    console.log("visualizing point at: ", point.x, point.y, context);
-    if (context) {
-      context.value?.fillRect(point.x, point.y, 10, 10);
-      console.log("placed point at: ", point.x, point.y);
-    }
-  }
+function visualizeSelection() {
+  if (selectionTool.finishedSelection)
+    drawSelection();
+}
+
+function onMouseMove(event: MouseEvent) {
+  console.log(event.offsetX, event.offsetY);
 }
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" opened @window-mounted="setup">
+  <Window title="Dimensionality reduction" opened @window-mounted="visualizeSelection">
     <!-- OVERLAY SECTION -->
     <div class="p-2">
       <p class="font-bold">Overlay:</p>
@@ -210,7 +209,7 @@ function visualizeSelectedPoints() {
 <!--        <span v-if="status == Status.ERROR">{{ currentError }}</span>-->
 <!--        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />-->
 <!--      </div>-->
-      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="svg-container">
+      <div class="mt-1 flex aspect-square items-center justify-center text-center" style="cursor: crosshair; position: relative" @mousemove="onMouseMove" @mousedown="onMouseDown" id="svg-container">
 <!--        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>-->
 <!--        <span v-if="status == Status.LOADING">Loading...</span>-->
 <!--        <span v-if="status == Status.GENERATING">Generating...</span>-->
