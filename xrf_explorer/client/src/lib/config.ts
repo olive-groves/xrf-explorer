@@ -1,3 +1,5 @@
+import { BasicColorMode } from "@vueuse/core";
+
 /**
  * Type declaration for the client configuration.
  */
@@ -89,6 +91,7 @@ export const DefaultConfig: FrontendConfig = {
     defaultScrollSpeed: 1.0,
     defaultLensSize: 100.0,
   },
+  defaultTheme: "dark",
   upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
