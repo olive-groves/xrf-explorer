@@ -168,10 +168,6 @@ function visualizeSelection() {
   if (selectionTool.finishedSelection)
     drawSelection();
 }
-
-function onMouseMove(event: MouseEvent) {
-  console.log(event.offsetX, event.offsetY);
-}
 </script>
 
 <template>
@@ -222,7 +218,7 @@ function onMouseMove(event: MouseEvent) {
       </div>
       <!-- GENERATION OF THE IMAGE -->
       <p class="mt-4 font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center">
+      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" @mousedown="onMouseDown">
 <!--        <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>-->
 <!--        <span v-if="status == Status.LOADING">Loading</span>-->
 <!--        <span v-if="status == Status.GENERATING">Generating</span>-->
