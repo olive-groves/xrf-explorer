@@ -1,7 +1,7 @@
 import { reactive } from "vue";
 import { saveAs } from "file-saver";
-import domToImage from "dom-to-image-more";
-import { snakeCase } from "change-case";
+import { toBlob } from "html-to-image";
+import { sentenceCase, snakeCase } from "change-case";
 import * as THREE from "three";
 import { scene } from "@/components/image-viewer/scene";
 import { layers } from "@/components/image-viewer/state";
@@ -22,20 +22,25 @@ export const exportableElements = reactive<{
  * @param element - The element to convert to a png.
  */
 export function exportElement(name: string, element: HTMLElement) {
-  const scale = 4;
+  const baseSize = 1024;
+  const scale = baseSize / Math.min(element.clientWidth, element.clientHeight);
 
-  domToImage
-    .toBlob(element, {
-      style: {
-        border: "none",
-        backgroundColor: "hsl(var(--background))",
-      },
-      width: element.clientWidth * scale,
-      height: element.clientHeight * scale,
-    })
-    .then((blob) => {
+  toBlob(element, {
+    style: {
+      border: "none",
+      backgroundColor: "hsl(var(--background))",
+    },
+    canvasWidth: element.clientWidth * scale,
+    canvasHeight: element.clientHeight * scale,
+    width: element.clientWidth,
+    height: element.clientHeight,
+  }).then((blob) => {
+    if (blob != null) {
       saveBlob(`${datasource.value}_${name}`, blob);
-    });
+    } else {
+      toast.warning(sentenceCase(`Failed to export ${name}`));
+    }
+  });
 }
 
 /**
