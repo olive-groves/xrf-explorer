@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, inject, ref, computed, watch } from "vue";
+import { ComputedRef, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
@@ -18,7 +18,7 @@ type Element = {
 let dataAverages: Element[] = [];
 
 // Visibility for all elements
-const selectedElements: Ref<ElementSelection[]> = computed(() => appState.selection.elements);
+const selectedElements: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
 // Actual displayed data, i.e. elements which are selected
 let displayedData: Element[] = [];
