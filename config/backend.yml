@@ -16,4 +16,4 @@ color-segmentation:
   elemental-k-means-parameters:
     k: 5
     nr-attempts: 10
-    elem-threshold: 50.0
+    elem-threshold: 40.0 # range [0,255]

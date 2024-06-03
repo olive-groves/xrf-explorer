@@ -57,7 +57,8 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
 
       if (layer.mesh == undefined && channel.selected) {
         // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
-        loadLayer(layer);
+        // Important that interpolated = false for the CS layers
+        loadLayer(layer, false);
       } else if (layer.mesh != undefined && !channel.selected) {
         // If the layer has a mesh/is loaded, dispose of it from the image viewer if it is no longer selected.
         disposeLayer(layer);
