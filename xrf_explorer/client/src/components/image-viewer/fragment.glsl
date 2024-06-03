@@ -115,18 +115,8 @@ void main() {
     // of current pixel in tImage/bitmask
     // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
     // if cluster i of element j is selected
-    float clusterIndex = texture(tImage, vUv).g;
-    if (clusterIndex == 1.0) {
-      fragColor = vec4(0, 255.0, 0, 1.0);
-    } else if (clusterIndex == 2.0) {
-      fragColor = vec4(0, 0, 255.00, 1.0);
-    } else if (clusterIndex == 3.0) {
-      fragColor = vec4(255.0, 0, 255.0, 1.0);
-    } else if (clusterIndex == 4.0) {
-      fragColor = vec4(255.0, 0, 0, 1.0);
-    } else {
-      fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
-    }
+    float clusterIndex = texture(tImage, vUv).g * 8.0;
+    fragColor = texture(tAuxiliary, vec2(float(iAuxiliary), clusterIndex));
   }
 
   // Apply contrast
