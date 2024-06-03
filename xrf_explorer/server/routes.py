@@ -364,7 +364,6 @@ def get_color_clusters(data_source: str):
     full_path_json: str = join(dir_path_json, data_source, f'image_{k}_{nr_attempts}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
-        print("using cached data")
         with open(full_path_json, 'r') as json_file:
             color_data: ndarray = json.load(json_file)
         return jsonify(color_data)
@@ -411,12 +410,14 @@ def get_color_cluster_bitmask(data_source: str):
     # Get path to image
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
     full_path: str = join(path_to_save, data_source, f'imageClusters_{k}_{nr_attempts}.png')
+    # If image doesn't exist, compute clusters
     if not exists(full_path):
         get_color_clusters(data_source)
+        print(full_path)
         # return f'Bitmasks for element {element} not generated', 500
 
-    response = send_file(abspath(full_path), mimetype='image/png')
-    return response
+    return send_file(abspath(full_path), mimetype='image/png')
+
 
 @app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
 def get_element_color_cluster(data_source: str):
@@ -442,7 +443,6 @@ def get_element_color_cluster(data_source: str):
     full_path_json: str = join(dir_path_json, data_source, f'elemental_{k}_{elem_threshold}_{nr_attempts}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
-        print("using cached data")
         with open(full_path_json, 'r') as json_file:
             color_data: list[list[str]] = json.load(json_file)
         return jsonify(color_data)
@@ -507,5 +507,4 @@ def get_element_color_cluster_bitmask(data_source: str):
         get_element_color_cluster(data_source)
         # return f'Bitmasks for element {element} not generated', 500
 
-    response = send_file(abspath(full_path), mimetype='image/png')
-    return response
+    return send_file(abspath(full_path), mimetype='image/png')

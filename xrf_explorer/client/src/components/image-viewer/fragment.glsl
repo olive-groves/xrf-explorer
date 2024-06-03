@@ -116,7 +116,7 @@ void main() {
     // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
     // if cluster i of element j is selected
     float clusterIndex = texture(tImage, vUv).g * 8.0;
-    fragColor = texture(tAuxiliary, vec2(float(iAuxiliary), clusterIndex));
+    fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
   }
 
   // Apply contrast
