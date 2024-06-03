@@ -1,0 +1,42 @@
+{
+    "baseImage": {
+        "imageLocation": "196_1989_RGB.tif",
+        "name": "RGB",
+        "recipeLocation": ""
+    },
+    "contextualImages": [],
+    "elementalChannels": [
+        {
+            "channel": 0,
+            "enabled": true,
+            "name": "A"
+        },
+        {
+            "channel": 1,
+            "enabled": true,
+            "name": "B"
+        },
+        {
+            "channel": 2,
+            "enabled": true,
+            "name": "C"
+        }
+    ],
+    "elementalCubes": [
+        {
+            "dataLocation": "test_cube.dms",
+            "fileType": "dms",
+            "name": "Datacube",
+            "recipeLocation": ""
+        }
+    ],
+    "name": "test_data_source",
+    "spectralCubes": [
+        {
+            "name": "Datacube",
+            "rawLocation": "",
+            "recipeLocation": "",
+            "rplLocation": ""
+        }
+    ]
+}

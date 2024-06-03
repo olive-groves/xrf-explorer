@@ -1,19 +1,30 @@
 import logging 
 
-from os.path import isfile, abspath
+from os import remove
+from os.path import join
 from pathlib import Path
 
 import numpy as np
-import imageio.v3 as imageio
+from cv2 import imread, imwrite
 
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.contextual_images import get_contextual_image_path
+from xrf_explorer.server.image_register import register_image_to_data_cube
+from xrf_explorer.server.file_system import get_elemental_data_cube, get_elemental_cube_path
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def valid_element(element: int, data_cube: np.ndarray) -> bool:
+    """Verifies whether the given element is valid for the given data cube.
+    
+    :param element: The element to verify.
+    :param data_cube: The data cube to verify the element for.
+    :return: True if the element is valid, otherwise False.
+    """
+
     # verify valid element
-    total_number_of_elements: int = data_cube.shape[2]
+    total_number_of_elements: int = data_cube.shape[0]
 
     if element < 0 or element >= total_number_of_elements:
         LOG.error(f"Invalid element: {element}")
@@ -22,49 +33,51 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
     return True
 
 
-def get_elemental_data_cube(config_path: str = "config/backend.yml") -> np.ndarray | None:
+def get_registered_image(data_source: str, image_name: str, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Get image registered to given data source.
+    
+    :param data_source: Name of the data source to get the registered image for.
+    :param image_name: Name of the image to get the registered image for.
+    :param config_path: Path to the backend config file
+    :return: Pixels of the registered image if successful, otherwise empty array.
+    """
+
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty
-        LOG.error("Failed to compute DR embedding")
-        return None
-    
-    # path to elemental data cube
-    data_cube_path: Path = Path(backend_config['uploads-folder'], 'test_cube.npy')
+        return np.empty(0)
 
-    # check if data cube exists
-    if not isfile(data_cube_path):
-        LOG.error(f"Data cube not found: {data_cube_path}")
-        return None
-    
-    # load data cube
-    elemental_data_cube: np.ndarray = np.load(data_cube_path)
-    LOG.info(f"Loaded data cube from: {data_cube_path}")
-
-    return elemental_data_cube
-
-
-def get_registered_painting_image(type: str, config_path: str = "config/backend.yml") -> np.ndarray:
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
-        LOG.error("Failed to compute DR embedding")
+    # Get the path to the image
+    image_path: str | None = get_contextual_image_path(data_source, image_name, config_path=config_path)
+    if image_path is None:
         return np.empty(0)
     
-    # path to the painting image
-    path_to_image: Path = Path(backend_config['uploads-folder'], 'test overlays', f'{type}.png')
+    # Get the path to the elemental data cube
+    cube_path: str = get_elemental_cube_path(data_source, config_path=config_path)
+    if not cube_path:
+        return np.empty(0)
+    
+    # Register the image to the data cube
+    temp_path: str = join(backend_config['temp-folder'], "registered_" + Path(image_path).name)
+    registered_image: bool = register_image_to_data_cube(cube_path, image_path, temp_path)
+    if not registered_image:
+        return np.empty(0)
 
     # load pixels of image
-    pixels_of_image: np.ndarray = imageio.imread(path_to_image)
+    pixels_of_image: np.ndarray = imread(temp_path)
+
+    # delete temp file
+    remove(temp_path)
 
     return pixels_of_image
 
 
-def get_image_of_indices_to_embedding(config_path: str = "config/backend.yml"):
+def get_image_of_indices_to_embedding(data_source: str, config_path: str = "config/backend.yml"):
     """Creates the image for lasso selection that decodes to which points in the embedding
     the pixels of the elemental data cube are mapped. Uses the current embedding and indices
     to create the image.
 
+    :param data_source: Name of the data source.
     :param config_path: Path to the backend config file
     :return: True if the image was created successfully, otherwise False.
     """
@@ -75,7 +88,8 @@ def get_image_of_indices_to_embedding(config_path: str = "config/backend.yml"):
         return False
 
     # Load the elemental data cube
-    elemental_cube: np.ndarray | None = get_elemental_data_cube(config_path=config_path)
+    path_to_cube = get_elemental_cube_path(data_source, config_path=config_path)
+    elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
     if elemental_cube is None:
         return False
 
@@ -84,8 +98,8 @@ def get_image_of_indices_to_embedding(config_path: str = "config/backend.yml"):
 
     # Load the file embedding.npy
     try:
-        indices: np.ndarray = np.load(Path(abspath(dr_folder), 'indices.npy'))
-        embedding: np.ndarray = np.load(Path(abspath(dr_folder), 'embedded_data.npy'))
+        indices: np.ndarray = np.load(join(dr_folder, 'indices.npy'))
+        embedding: np.ndarray = np.load(join(dr_folder, 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return False
@@ -107,6 +121,6 @@ def get_image_of_indices_to_embedding(config_path: str = "config/backend.yml"):
     newimage[indices[:, 0], indices[:, 1], 2] = 255
 
     # Create and save the image
-    imageio.imwrite(Path(abspath(dr_folder), 'image_index_to_embedding.npy'), newimage)
+    imwrite(join(dr_folder, 'image_index_to_embedding.npy'), newimage)
 
     return True
