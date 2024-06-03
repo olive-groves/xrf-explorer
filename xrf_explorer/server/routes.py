@@ -18,9 +18,8 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.file_system.file_access import *
-from xrf_explorer.server.dim_reduction.embedding import generate_embedding
-from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
 from xrf_explorer.server.image_register.register_image import load_points, load_points_dict
+from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
     get_image, combine_bitmasks, get_clusters_using_k_means,
@@ -198,49 +197,38 @@ def list_element_names(data_source: str):
         return "Error occurred while listing element names", 500
 
 
-@app.route("/api/get_dr_embedding")
-def get_dr_embedding():
+@app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
+def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
     
-    :request args: 
-        **element** - element name \n 
-        **threshold** - element threshold from which a pixel is selected
+    :param data_source: data source to generate the embedding from
+    :param element: element to generate the embedding for
+    :param threshold: threshold from which a pixel is selected
+    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled.
     """
-    # check if element number is provided
-    if "element" not in request.args:
-        LOG.error("Missing element number")
-        abort(400)
-    elif "threshold" not in request.args:
-        LOG.error("Missing threshold value")
-        abort(400)
 
-    # Get element and threshold
-    element: int = int(request.args["element"])
-    threshold: int = int(request.args["threshold"])
+    # Get path to elemental cube
+    path: str = get_elemental_cube_path(data_source)
 
     # Try to generate the embedding
-    if not generate_embedding(element, threshold, request.args):
-        abort(400)
+    result = generate_embedding(path, element, threshold, request.args)
+    if result == "success" or result == "downsampled":
+        return result
 
-    return "Generated embedding successfully"
+    abort(400)
 
 
-@app.route("/api/get_dr_overlay")
-def get_dr_overlay():
+@app.route("/api/<data_source>/dr/overlay/<overlay_type>")
+def get_dr_overlay(data_source: str, overlay_type: str):
     """Generate the dimensionality reduction overlay with a given type.
     
-    :request form attributes: **type** - the overlay type
+    :param data_source: data source to get the overlay from
+    :param overlay_type: the overlay type. Images are prefixed with contextual_ and elements by elemental_
     :return: overlay image file
     """
-    # Check whether the overlay type is provided
-    if "type" not in request.args:
-        LOG.error("Missing overlay type")
-        abort(400)
-
-    overlay_type: str = request.args["type"]
 
     # Try to get the embedding image
-    image_path: str = create_embedding_image(overlay_type)
+    image_path: str = create_embedding_image(data_source, overlay_type)
     if not image_path:
         LOG.error("Failed to create DR embedding image")
         abort(400)
