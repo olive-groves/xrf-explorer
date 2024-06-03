@@ -85,10 +85,14 @@ void main() {
   if (distance <= uRadius) {
     if ((iShowLayer & IN_LENS) != 0) {
       fragColor = texture(tImage, vUv);
+    } else {
+      return;
     }
   } else {
     if ((iShowLayer & OUTSIDE_LENS) != 0) {
       fragColor = texture(tImage, vUv);
+    } else {
+      return;
     }
   }
 
