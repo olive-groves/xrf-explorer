@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Layer, LayerUniform } from "./types";
+import { Layer, LayerGroup, LayerUniform } from "./types";
 
 export const scene: {
   /**
@@ -12,57 +12,75 @@ export const scene: {
 
 import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
+import { toast } from "vue-sonner";
+import { h, markRaw } from "vue";
 
 /**
- * Creates a layer and adds the given image to it.
+ * Creates a layer in the image viewer and adds the given image to it.
  * @param layer - The layer that should get loaded.
+ * @param interpolated - Whether the sampler should interpolate between pixels.
  */
-export function loadLayer(layer: Layer) {
-  new THREE.TextureLoader().loadAsync(layer.image).then((texture) => {
-    texture.colorSpace = THREE.NoColorSpace;
+export function loadLayer(layer: Layer, interpolated: boolean = true) {
+  new THREE.TextureLoader().loadAsync(layer.image).then(
+    (texture) => {
+      texture.colorSpace = THREE.NoColorSpace;
 
-    // Create a square
-    const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(1, 0);
-    shape.lineTo(1, 1);
-    shape.lineTo(0, 1);
+      // Disable interpolation if required
+      if (!interpolated) {
+        texture.magFilter = THREE.NearestFilter;
+        texture.minFilter = THREE.NearestFilter;
+        texture.generateMipmaps = false;
+      }
 
-    const geometry = new THREE.ShapeGeometry(shape);
+      // Create a square
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(1, 0);
+      shape.lineTo(1, 1);
+      shape.lineTo(0, 1);
 
-    // Scale the square to the same dimensions as the texture.
-    // By scaling through this method, the UV coordinates of the shape are preserved.
-    const mat = new THREE.Matrix4();
-    mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-    geometry.applyMatrix4(mat);
+      const geometry = new THREE.ShapeGeometry(shape);
 
-    // Add the texture to the uniform to allow it to be used in the shaders
-    layer.uniform.tImage = {
-      type: "t",
-      value: texture,
-    };
+      // Scale the square to the same dimensions as the texture.
+      // By scaling through this method, the UV coordinates of the shape are preserved.
+      const mat = new THREE.Matrix4();
+      mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+      geometry.applyMatrix4(mat);
 
-    // Create a material to render the texture on to the created shape.
-    // The vertex shader handles the movement of the texture for registering and the viewport.
-    // The fragment shader handles sampling colors from the texture.
-    const material = new THREE.RawShaderMaterial({
-      vertexShader: vertex,
-      fragmentShader: fragment,
-      uniforms: layer.uniform,
-      side: THREE.DoubleSide,
-      transparent: true,
-      blending: THREE.NormalBlending,
-    });
+      // Add the texture to the uniform to allow it to be used in the shaders
+      layer.uniform.tImage = {
+        type: "t",
+        value: texture,
+      };
 
-    const mesh = new THREE.Mesh(geometry, material);
+      // Create a material to render the texture on to the created shape.
+      // The vertex shader handles the movement of the texture for registering and the viewport.
+      // The fragment shader handles sampling colors from the texture.
+      const material = new THREE.RawShaderMaterial({
+        vertexShader: vertex,
+        fragmentShader: fragment,
+        uniforms: layer.uniform,
+        side: THREE.DoubleSide,
+        transparent: true,
+        blending: THREE.NormalBlending,
+      });
 
-    // Set the correct initial render order.
-    mesh.renderOrder = -layer.uniform.iIndex.value;
+      const mesh = new THREE.Mesh(geometry, material);
 
-    layer.mesh = mesh;
+      // Set the correct initial render order.
+      mesh.renderOrder = -layer.uniform.iIndex.value;
 
-    scene.scene.add(mesh);
-  });
+      layer.mesh = mesh;
+
+      scene.scene.add(mesh);
+    },
+    (reason) => {
+      console.warn(`Failed to load layer ${layer.id}`, reason);
+      toast.warning("Failed to load layer", {
+        description: markRaw(h("div", ["Request to ", h("code", layer.image), " failed"])),
+      });
+    },
+  );
 }
 
 /**
@@ -88,4 +106,46 @@ export function disposeLayer(layer: Layer) {
 
     layer.mesh = undefined;
   }
+}
+
+/**
+ * Creates a data texture of specified size and format. Every pixel contains 4 bytes of data.
+ * @param data - The data array.
+ * @param width - The width of the data texture.
+ * @param height - The height of the data texture.
+ * @returns The datatexture.
+ */
+export function createDataTexture(data: ArrayBufferView, width: number, height: number): THREE.DataTexture {
+  const texture = new THREE.DataTexture(
+    data,
+    width,
+    height,
+    THREE.RGBAFormat,
+    THREE.UnsignedByteType,
+    THREE.UVMapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.ClampToEdgeWrapping,
+    THREE.NearestFilter,
+    THREE.NearestFilter,
+    1,
+    THREE.NoColorSpace,
+  );
+  texture.needsUpdate = true;
+  texture.generateMipmaps = false;
+  return texture;
+}
+
+/**
+ * Update the data texture for every layer in the layergroup.
+ * @param group - The group to update.
+ */
+export function updateDataTexture(group: LayerGroup) {
+  group.layers.forEach((layer) => {
+    if (layer.mesh != undefined) {
+      (layer.mesh!.material as THREE.Material).needsUpdate = true;
+    }
+    if (layer.uniform.tAuxiliary != undefined) {
+      layer.uniform.tAuxiliary!.value.needsUpdate = true;
+    }
+  });
 }

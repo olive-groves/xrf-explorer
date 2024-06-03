@@ -1,9 +1,46 @@
 <script setup lang="ts">
-import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard } from ".";
-import { appState } from "@/lib/app_state";
-import { computed } from "vue";
+import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard, WorkspaceChannelsCard } from ".";
+import { appState } from "@/lib/appState";
+import { FrontendConfig } from "@/lib/config";
+import { computed, inject, watch } from "vue";
+import { toast } from "vue-sonner";
+
+const config = inject<FrontendConfig>("config")!;
 
 const workspace = computed(() => appState.workspace);
+
+/**
+ * Update workspace on the backend whenever it gets changed.
+ */
+watch(
+  workspace,
+  (newWorkspace, oldWorkspace) => {
+    // Make sure to not update the backend on initial load/final unload
+    if (newWorkspace != undefined && oldWorkspace != undefined) {
+      // Make sure to not update the backend when switching between data sources.
+      if (newWorkspace.name == oldWorkspace.name) {
+        console.info("Saving changes to workspace", newWorkspace.name);
+        fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
+          method: "POST",
+          body: JSON.stringify(newWorkspace),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }).then(
+          () =>
+            toast.success("Updated workspace", {
+              description: "The updates are persistent between sessions",
+            }),
+          () =>
+            toast.warning("Failed to update workspace", {
+              description: "The updates made to the workspace will not persist between sessions",
+            }),
+        );
+      }
+    }
+  },
+  { deep: true },
+);
 </script>
 
 <template>
@@ -32,6 +69,7 @@ const workspace = computed(() => appState.workspace);
             :key="index"
             v-model="workspace.spectralCubes[index]"
           />
+          <WorkspaceChannelsCard v-model="workspace.elementalChannels" />
         </div>
       </div>
     </div>

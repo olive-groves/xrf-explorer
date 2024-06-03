@@ -1,6 +1,5 @@
 import { ref } from "vue";
-import { Layer, LayerGroup, LayerVisibility } from "./types";
-import { ContextualImage } from "@/lib/workspace";
+import { Layer, LayerGroup, LayerType, LayerVisibility } from "./types";
 import * as THREE from "three";
 import { loadLayer } from "./scene";
 
@@ -22,23 +21,27 @@ export const layerGroups = ref<{
  * Create a layer from an image resource.
  * Handles registering and loading in the image viewer.
  * @param id - The ID to associate with the layer.
- * @param image - The image to load in the layer.
+ * @param imageLocation - The image to load in the layer.
+ * @param load - Whether the layer should be loaded into the image viewer.
  * @returns The layer that was created by calling the function.
  */
-export function createLayer(id: string, image: ContextualImage): Layer {
-  console.info("Creating layer", id, image);
+export function createLayer(id: string, imageLocation: string, load: boolean = true): Layer {
+  console.debug("Creating layer", id, imageLocation);
 
   const layer: Layer = {
     id: id,
-    image: image.imageLocation,
+    image: imageLocation,
     uniform: {
       iIndex: { value: 0 },
+      iLayerType: { value: LayerType.Image },
       iViewport: { value: new THREE.Vector4() },
       mRegister: { value: new THREE.Matrix3() },
-      iShowLayer: { value: 0 },
+      iShowLayer: { value: LayerVisibility.Invisible },
       uOpacity: { value: 1 },
       uContrast: { value: 1 },
       uSaturation: { value: 1 },
+      uGamma: { value: 1 },
+      uBrightness: { value: 0 },
       uMouse: { value: new THREE.Vector2() },
       uRadius: { value: 0 },
     },
@@ -46,7 +49,7 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 
   layers.value.push(layer);
 
-  loadLayer(layer);
+  if (load) loadLayer(layer);
 
   return layer;
 }
@@ -54,12 +57,13 @@ export function createLayer(id: string, image: ContextualImage): Layer {
 /**
  * Helper function that completely updates the layers in a layer group.
  * @param group - The layer group that should be updated.
- * @param property - The property to update (e.g., "opacity", "contrast", "saturation").
  */
-export function updateLayerGroupLayers(group: LayerGroup, property: string) {
+export function updateLayerGroupLayers(group: LayerGroup) {
   setLayerGroupIndex(group);
   setLayerGroupVisibility(group);
-  setLayerGroupProperty(group, property);
+  setLayerGroupProperty(group, "opacityProperty");
+  setLayerGroupProperty(group, "contrastProperty");
+  setLayerGroupProperty(group, "saturationProperty");
 }
 
 /**
@@ -101,6 +105,12 @@ export function setLayerGroupProperty(group: LayerGroup, property: string) {
         break;
       case "saturationProperty":
         layer.uniform.uSaturation.value = group.saturation[0];
+        break;
+      case "gammaProperty":
+        layer.uniform.uGamma.value = group.gamma[0];
+        break;
+      case "brightnessProperty":
+        layer.uniform.uBrightness.value = group.brightness[0];
         break;
       // Needed for initial property setting, can be ignored further.
       case "initialProperty":

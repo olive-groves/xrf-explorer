@@ -5,6 +5,8 @@ import { WindowPortalTarget } from ".";
 import { ChevronRight } from "lucide-vue-next";
 import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
+import { BaseContextMenu } from "@/components/menus";
+import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
 
 const props = defineProps<{
   /**
@@ -42,7 +44,7 @@ watch(
     newWindows.forEach((id, index) => {
       if (state.value[id].height == 0) {
         // Perform setup
-        console.debug("setting up");
+        console.debug("Setting up window", id);
         if (availableHeight < headerSize) {
           shrinkAnyTab(headerSize - availableHeight);
         }
@@ -58,9 +60,14 @@ watch(
     oldWindows.forEach((id) => {
       if (!newWindows.includes(id)) {
         // Clean up window properly
-        console.debug("cleaning up", newWindows, oldWindows);
+        console.debug("Cleaning up window", id);
         if (id in state.value) {
-          shrinkTab(id, state.value[id].height);
+          removeTarget(id);
+          const height = state.value[id].height;
+          availableHeight += height;
+          console.debug("Available height increased by ", height);
+          growAnyTab(height);
+          state.value[id].height = 0;
         }
       }
     });
@@ -79,13 +86,14 @@ let availableHeight = 1;
 const growthTargets: string[] = [];
 const shrinkTargets: string[] = [];
 
-const headerSize = remToPx(1.75) + 1;
+const headerSize = remToPx(2) + 1;
 
 const container = ref<HTMLElement | null>(null);
 const containerSize = useElementSize(container);
 watch(containerSize.height, onResize);
 
-const disableAnimation = ref(false);
+let lastDisabled = Date.now();
+const disableAnimation = ref(true);
 
 const mouseState: {
   handle: string;
@@ -100,11 +108,18 @@ const mouseState: {
  * @param id The id of the window that should be minimized or maximized.
  */
 function toggleTabSize(id: string) {
+  lastDisabled = Date.now();
+  disableAnimation.value = false;
+
   if (state.value[id].minimized) {
     maximize(id);
   } else {
     minimize(id);
   }
+
+  setTimeout(() => {
+    if (Date.now() - lastDisabled >= 100) disableAnimation.value = true;
+  }, 100);
 }
 
 /**
@@ -114,22 +129,18 @@ function toggleTabSize(id: string) {
  * @param oldHeight The height of the side panel before resizing.
  */
 function onResize(height: number, oldHeight: number) {
-  console.debug("onResize", height, oldHeight);
   const growth = height - oldHeight;
 
   totalHeight += growth;
-  console.debug("Updating availableHeight", growth);
   availableHeight += growth;
+  console.debug("Available height increased by ", growth);
 
-  disableAnimation.value = true;
   if (growth > 0) {
     growAnyTab(growth);
   } else {
     shrinkAnyTab(-growth);
   }
-  disableAnimation.value = false;
 
-  console.debug("Indicating mount");
   mounted.value = true;
 }
 
@@ -139,7 +150,6 @@ function onResize(height: number, oldHeight: number) {
  * @param height The new size of the content.
  */
 function onContentResize(id: string, height: number) {
-  console.debug("content", id, height);
   const tab = state.value[id];
   const oldHeight = tab.maxContentHeight;
   const growth = height - oldHeight;
@@ -159,7 +169,7 @@ function onContentResize(id: string, height: number) {
  * @param id The id of the window to maximize.
  */
 function maximize(id: string) {
-  console.debug("maximize", id);
+  console.debug("Maximizing window", id);
   const tab = state.value[id];
 
   const openWindows = windows.value.filter((id) => !state.value[id].minimized);
@@ -175,7 +185,6 @@ function maximize(id: string) {
 
   const reduction = Math.min(available, Math.max(0, desiredGrowth - availableHeight));
 
-  console.debug(id, desiredGrowth, availableHeight, available, reduction);
   if (available > 0) {
     for (const i in largeWindows) {
       const [tabId, exceededHeight] = largeWindows[i];
@@ -194,7 +203,7 @@ function maximize(id: string) {
  * @param id The id of the window to shrink.
  */
 function minimize(id: string) {
-  console.debug("minimize", id);
+  console.debug("Minimizing window", id);
   const tab = state.value[id];
   tab.minimized = true;
 
@@ -221,8 +230,8 @@ function growTab(id: string, px: number): number {
   const actualGrowth = Math.min(px, canGrow);
 
   tab.height += actualGrowth;
-  console.debug("Updating availableHeight", actualGrowth);
   availableHeight -= actualGrowth;
+  console.debug("Available height shrunk by ", actualGrowth);
 
   removeTarget(id);
   console.debug(`Adding ${id} as target after growth`);
@@ -245,8 +254,8 @@ function shrinkTab(id: string, px: number): number {
   const actualShrink = Math.min(px, canShrink);
 
   tab.height -= actualShrink;
-  console.debug("Updating availableHeight", actualShrink);
   availableHeight += actualShrink;
+  console.debug("Available height increased by ", actualShrink);
 
   removeTarget(id);
   if (tab.height <= headerSize && !tab.minimized) {
@@ -310,7 +319,6 @@ function removeTarget(id: string) {
   if (shrinkTargets.includes(id)) {
     shrinkTargets.splice(shrinkTargets.indexOf(id), 1);
   }
-  console.debug(growthTargets, shrinkTargets);
 }
 
 /**
@@ -328,7 +336,6 @@ function startDragging(handle: string) {
  */
 function stopDragging() {
   mouseState.dragging = false;
-  disableAnimation.value = false;
 }
 
 /**
@@ -339,7 +346,6 @@ function handleDragMovement(event: MouseEvent) {
   if (mouseState.dragging) {
     const growth = event.movementY;
     if (growth > 0) {
-      console.debug(growth, availableHeight);
       if (growth > availableHeight) {
         shrinkAnyTab(growth - availableHeight, state.value[mouseState.handle].index);
       }
@@ -375,36 +381,66 @@ function handleDragMovement(event: MouseEvent) {
             'transition-none': disableAnimation,
           }"
         >
-          <div
-            @click="toggleTabSize(id)"
-            class="left-0 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
-          >
-            <ChevronRight
-              class="size-5 min-w-5 duration-100"
-              :class="{
-                'rotate-90': !state[id].minimized,
-              }"
-            />
-            <div class="font-bold">
-              {{ state[id].title }}
+          <BaseContextMenu>
+            <div
+              @click="toggleTabSize(id)"
+              class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1.5"
+            >
+              <ChevronRight
+                class="size-5 min-w-5 duration-100"
+                :class="{
+                  'rotate-90': !state[id].minimized,
+                }"
+              />
+              <div class="font-bold">
+                {{ state[id].title }}
+              </div>
             </div>
-          </div>
-          <div
-            class="-mt-px overflow-hidden"
-            :style="{
-              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
-            }"
-          >
-            <WindowPortalTarget
-              ref="contentRefs"
-              :window-id="id"
-              @content-height="(entry) => onContentResize(id, entry)"
-              :area-height="state[id].height - headerSize"
-            />
-          </div>
+            <div
+              class="z-0 -mt-px overflow-hidden border-t border-border duration-100"
+              :style="{
+                height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize + 1}px`}`,
+              }"
+              :class="{
+                'transition-all': !disableAnimation,
+                'transition-none': disableAnimation,
+              }"
+            >
+              <WindowPortalTarget
+                ref="contentRefs"
+                :window-id="id"
+                @content-height="(entry) => onContentResize(id, entry)"
+                :disallow-shrink="!disableAnimation"
+                :area-height="state[id].height - headerSize"
+              />
+            </div>
+            <template #menu>
+              <ContextMenuRadioGroup :model-value="windowState[id].opened ? windowState[id].location : 'closed'">
+                <ContextMenuRadioItem value="closed" @click="windowState[id].opened = false">
+                  Closed
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="left" @click="windowState[id].location = 'left'">
+                  Left sidepanel
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="right" @click="windowState[id].location = 'right'">
+                  Right sidepanel
+                </ContextMenuRadioItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem @click="() => toggleTabSize(id)">
+                  {{ state[id].minimized ? "Maximize" : "Minimize" }} window
+                </ContextMenuItem>
+              </ContextMenuRadioGroup>
+            </template>
+          </BaseContextMenu>
         </div>
-        <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
-          <div class="mt-[calc(0.25rem-1px)] h-px bg-border" />
+        <div class="relative z-10 -mt-px border-b">
+          <div
+            class="absolute left-0 -mt-2 flex h-4 w-full cursor-ns-resize"
+            @mousedown="startDragging(id)"
+            v-if="!state[id].minimized"
+          >
+            <div class="my-2 h-0 w-full border-t" />
+          </div>
         </div>
       </template>
     </div>

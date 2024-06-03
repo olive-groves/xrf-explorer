@@ -1,0 +1,17 @@
+{
+  "name": "painting",
+  "baseImage": {
+    "name": "TEST",
+    "imageLocation": "test.png"
+  },
+  "contextualImages": [
+    {
+      "name": "INVALID",
+      "imageLocation": "invalid.png"
+    },
+    {
+      "name": "TEST2",
+      "imageLocation": "test.png"
+    }
+  ]
+}

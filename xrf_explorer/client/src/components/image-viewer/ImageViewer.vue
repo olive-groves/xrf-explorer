@@ -41,7 +41,7 @@ const height = canvasSize.height;
 onMounted(setup);
 
 /**
- * Sets up the a very basic scene in THREE for rendering.
+ * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
   camera = new THREE.OrthographicCamera();
@@ -146,10 +146,9 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <Toolbar v-model:state="toolState" />
   <div
     ref="glcontainer"
-    class="size-full"
+    class="relative size-full"
     :style="{
       cursor: cursor,
     }"
@@ -162,5 +161,6 @@ const cursor = computed(() => {
       @mousemove="onMouseMove"
       @wheel="onWheel"
     />
+    <Toolbar v-model:state="toolState" />
   </div>
 </template>

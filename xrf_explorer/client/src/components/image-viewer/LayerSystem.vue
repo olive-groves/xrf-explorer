@@ -1,38 +1,48 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Eye, EyeOff } from "lucide-vue-next";
-import { ref, watch } from "vue";
+import { Eye, EyeOff, SlidersHorizontal } from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
+import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
+import { LayerGroup, LayerVisibility } from "./types";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { LabeledSlider } from "@/components/ui/slider";
 
 // Makes sure workspace.ts gets loaded
 import "./workspace";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
-import { LayerGroup, LayerVisibility } from "./types";
 
 const groups = ref<LayerGroup[]>([]);
 
-// Used for generalizing the code. 
+// Used for generalizing the code.
 interface Property {
   name: string;
+  min: number;
   max: number;
+  default: number;
   propertyName: string;
   nameRef: keyof LayerGroup;
 }
 
+// Adjustable properties of each layer group.
+// Main properties are always directly visible in the Layer System,
+// all other properties are placed in a separate popover.
+const mainProperties = ["Opacity"];
 const properties: Property[] = [
-  { name: "Opacity", max: 1, propertyName: "opacityProperty", nameRef: "opacity" },
-  { name: "Contrast", max: 5, propertyName: "contrastProperty", nameRef: "contrast" },
-  { name: "Saturation", max: 5, propertyName: "saturationProperty", nameRef: "saturation" },
+  { name: "Opacity", min: 0, max: 1, default: 1, propertyName: "opacityProperty", nameRef: "opacity" },
+  { name: "Contrast", min: 0, max: 5, default: 1, propertyName: "contrastProperty", nameRef: "contrast" },
+  { name: "Saturation", min: 0, max: 5, default: 1, propertyName: "saturationProperty", nameRef: "saturation" },
+  { name: "Gamma", min: 0, max: 5, default: 1, propertyName: "gammaProperty", nameRef: "gamma" },
+  { name: "Brightness", min: -1, max: 1, default: 0, propertyName: "brightnessProperty", nameRef: "brightness" },
 ];
+
+const groupNames = computed(() => Object.keys(layerGroups.value));
 
 /**
  * Loads the layer groups into the LayerSystem.
  */
 watch(
-  layerGroups,
+  groupNames,
   (newGroups) => {
-    groups.value = Object.keys(newGroups)
-      .map((key) => newGroups[key])
-      .sort((a, b) => a.index - b.index);
+    groups.value = newGroups.map((name) => layerGroups.value[name]).sort((a, b) => a.index - b.index);
   },
   { immediate: true },
 );
@@ -82,40 +92,61 @@ function checkedOutsideLens(group: LayerGroup) {
             {{ group.description }}
           </div>
         </div>
-        <!-- VISIBILITY TOGGLE -->
-        <Button
-          @click="
-            group.visible = !group.visible;
-            setLayerGroupVisibility(group);
-          "
-          variant="ghost"
-          class="size-8 p-2"
-          title="Toggle visibility"
-        >
-          <Eye v-if="group.visible" />
-          <EyeOff v-else />
-        </Button>
+        <div>
+          <!-- SLIDERS POPOVER -->
+          <Popover v-if="group.visible">
+            <PopoverTrigger>
+              <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
+                <SlidersHorizontal />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <!-- SLIDERS FOR ALL NON-MAIN PROPERTIES -->
+              <LabeledSlider
+                v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
+                :key="property.name"
+                :label="property.name"
+                v-model="group[property.nameRef]"
+                :min="property.min"
+                :max="property.max"
+                :default="[property.default]"
+                @update="() => setLayerGroupProperty(group, property.propertyName)"
+              />
+            </PopoverContent>
+          </Popover>
+          <!-- VISIBILITY TOGGLE -->
+          <Button
+            @click="
+              group.visible = !group.visible;
+              setLayerGroupVisibility(group);
+            "
+            variant="ghost"
+            class="size-8 p-2"
+            title="Toggle visibility"
+          >
+            <Eye v-if="group.visible" />
+            <EyeOff v-else />
+          </Button>
+        </div>
       </div>
-      <!-- SLIDERS FOR OPACITY, CONTRAST, AND SATURATION -->
       <div v-if="group.visible" class="space-y-2">
+        <!-- VISIBILITY CHECKBOX -->
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
           <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
           <div class="whitespace-nowrap">Only visible inside of lens</div>
         </div>
-        <div class="space-y-2" v-for="property in properties" :key="property.name">
-          <div class="flex items-center justify-between">
-            <div>{{ property.name }}</div>
-            <div>{{ group[property.nameRef].toString() }}</div>
-          </div>
-          <Slider
-            v-model="group[property.nameRef]"
-            :min="0"
-            :step="0.01"
-            :max="property.max"
-            class="pb-2"
-            @update:model-value="() => setLayerGroupProperty(group, property.propertyName)"
-          />
-        </div>
+
+        <!-- SLIDERS FOR ALL MAIN PROPERTIES -->
+        <LabeledSlider
+          v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
+          :key="property.name"
+          :label="property.name"
+          v-model="group[property.nameRef]"
+          :min="property.min"
+          :max="property.max"
+          :default="[property.default]"
+          @update="() => setLayerGroupProperty(group, property.propertyName)"
+        />
       </div>
     </Card>
   </VueDraggableNext>
