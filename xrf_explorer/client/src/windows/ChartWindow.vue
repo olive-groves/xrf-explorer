@@ -221,8 +221,6 @@ function updateBarChart(data: Element[]) {
 
 /**
  * Update the charts being displayed.
- * 
- * @param selection The current selection of elements.
  */
 async function updateCharts() {
   // Mask the data with the selected elements
