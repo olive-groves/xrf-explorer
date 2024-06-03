@@ -59,6 +59,7 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
       const material = new THREE.RawShaderMaterial({
         vertexShader: vertex,
         fragmentShader: fragment,
+        glslVersion: "300 es",
         uniforms: layer.uniform,
         side: THREE.DoubleSide,
         transparent: true,
