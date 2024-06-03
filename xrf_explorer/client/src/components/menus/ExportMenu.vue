@@ -14,7 +14,14 @@ import { sentenceCase, snakeCase } from "change-case";
         <MenubarItem
           v-for="name in Object.keys(exportableElements)"
           :key="name"
-          @click="() => exportElement(snakeCase(name), exportableElements[name])"
+          :disabled="exportableElements[name] == null"
+          @click="
+            () => {
+              if (exportableElements[name] != null) {
+                exportElement(snakeCase(name), exportableElements[name]!);
+              }
+            }
+          "
         >
           {{ sentenceCase(name) }}
         </MenubarItem>
