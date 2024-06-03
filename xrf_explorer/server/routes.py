@@ -359,6 +359,16 @@ def get_color_clusters(data_source: str):
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
+    # path to json for caching
+    dir_path_json: str = BACKEND_CONFIG['color-segmentation']['folder']
+    full_path_json: str = join(dir_path_json, data_source, f'image_{k}_{nr_attempts}.json')
+    # If json already exists, return that directly
+    if exists(full_path_json):
+        print("using cached data")
+        with open(full_path_json, 'r') as json_file:
+            color_data: ndarray = json.load(json_file)
+        return jsonify(color_data)
+
     colors: ndarray
     bitmasks: ndarray
     colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
@@ -375,9 +385,14 @@ def get_color_clusters(data_source: str):
         return 'Error occurred while saving bitmask as png', 500
 
     colors = convert_to_hex(colors)
-    response = json.dumps(colors)
 
-    return (response)
+    # cache data
+    if not exists(dir_path_json):
+        mkdir(dir_path_json)
+    with open(full_path_json, 'w') as json_file:
+        json.dump(colors, json_file)
+
+    return json.dumps(colors)
 
 @app.route('/api/<data_source>/get_color_cluster_bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
@@ -420,12 +435,22 @@ def get_element_color_cluster(data_source: str):
     k: int = int(k_means_parameters['k'])
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
 
+    # path to json for caching
+    dir_path_json: str = BACKEND_CONFIG['color-segmentation']['folder']
+    full_path_json: str = join(dir_path_json, data_source, f'elemental_{k}_{elem_threshold}_{nr_attempts}.json')
+    # If json already exists, return that directly
+    if exists(full_path_json):
+        print("using cached data")
+        with open(full_path_json, 'r') as json_file:
+            color_data: list[list[str]] = json.load(json_file)
+        return jsonify(color_data)
+
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
                                                              image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
 
-    color_data: list[list[str]] = []
+    color_data: list[ndarray] = []
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
         colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
@@ -440,9 +465,13 @@ def get_element_color_cluster(data_source: str):
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
 
-    response = json.dumps(color_data)
+    # cache data
+    if not exists(dir_path_json):
+        mkdir(dir_path_json)
+    with open(full_path_json, 'w') as json_file:
+        json.dump(color_data, json_file)
 
-    return response
+    return json.dumps(color_data)
 
 @app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
