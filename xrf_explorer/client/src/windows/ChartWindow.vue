@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, ref, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
@@ -8,6 +8,11 @@ import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
+
+/**
+ * Sets up export of chart.
+ */
+watch(chart, (value) => (exportableElements["Elements"] = value));
 
 type Element = {
   name: string;
@@ -127,9 +132,6 @@ function setup() {
     )
     .selectAll("text")
     .style("font-size", "18px");
-
-  // Setup chart for export
-  exportableElements["Elemental chart"] = chart.value!;
 }
 
 /**

@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
-
 import * as d3 from "d3";
 import { datasource } from "@/lib/appState";
+import { exportableElements } from "@/lib/export";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+
+/**
+ * Sets up export of chart.
+ */
+watch(spectraChart, (value) => (exportableElements["Spectral"] = value));
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
