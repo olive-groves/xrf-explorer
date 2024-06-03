@@ -1,7 +1,7 @@
 {
   "name": "image to cube selection",
-  "baseImage": { "name": "baseTest", "location": "image.png" },
-  "contenxtualImages": [],
+  "baseImage": { "name": "baseTest", "imageLocation": "image.png" },
+  "contextualImages": [],
   "spectralCubes": [],
   "elementalCubes": [{ "dmsLocation": "cube_test.dms" }]
 }

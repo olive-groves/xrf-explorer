@@ -89,7 +89,7 @@ def get_selected_data_cube(
     workspace_json = json.loads(file.read())
     file.close()
 
-    base_img_name = workspace_json["baseImage"]["location"]
+    base_img_name = workspace_json["baseImage"]["imageLocation"]
     # NOTE we assume a single, full dms cube here. Refactor when stiching multiple dms
     # files gets implemented
     cube_name = workspace_json["elementalCubes"][0]["dmsLocation"]
