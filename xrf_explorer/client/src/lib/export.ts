@@ -6,12 +6,14 @@ import * as THREE from "three";
 import { scene } from "@/components/image-viewer/scene";
 import { layers } from "@/components/image-viewer/state";
 import { toast } from "vue-sonner";
+import { getTargetSize } from "@/components/image-viewer/api";
+import { datasource } from "./appState";
 
 /**
  * Contains the list of exportable elements that should be shown in the export menu.
  */
 export const exportableElements = reactive<{
-  [key: string]: HTMLElement;
+  [key: string]: HTMLElement | undefined;
 }>({});
 
 /**
@@ -20,40 +22,46 @@ export const exportableElements = reactive<{
  * @param element - The element to convert to a png.
  */
 export function exportElement(name: string, element: HTMLElement) {
+  const scale = 4;
+
   domToImage
     .toBlob(element, {
-      width: element.clientWidth,
-      height: element.clientHeight,
+      style: {
+        border: "none",
+        backgroundColor: "hsl(var(--background))",
+      },
+      width: element.clientWidth * scale,
+      height: element.clientHeight * scale,
     })
     .then((blob) => {
-      saveBlob(name, blob);
+      saveBlob(`${datasource.value}_${name}`, blob);
     });
 }
 
 /**
  * Export the scene.
  */
-export function exportScene() {
-  toast.info("Starting painting export", {
-    description: "This may take up to a minute",
-  });
+export async function exportScene() {
+  toast.info("Exporting painting");
 
   const camera = new THREE.OrthographicCamera();
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
   });
 
-  renderer.setSize(5017, 5928);
+  const size = await getTargetSize();
+
+  renderer.setSize(size.width, size.height);
 
   layers.value.forEach((layer) => {
-    layer.uniform.iViewport.value.set(0, 0, 1, 5928 / 5017);
+    layer.uniform.iViewport.value.set(0, 0, size.width, size.height);
   });
 
   renderer.render(scene.scene, camera);
 
   renderer.domElement.toBlob((blob) => {
     if (blob != null) {
-      saveBlob("image.png", blob);
+      saveBlob(datasource.value, blob);
     } else {
       toast.warning("Failed to export painting");
     }
