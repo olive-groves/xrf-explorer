@@ -1,12 +1,17 @@
-import { appState } from "@/lib/appState";
-import { computed, watch } from "vue";
+import { appState, datasource } from "@/lib/appState";
+import { computed, watch, inject } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
+import { useFetch } from "@vueuse/core";
 import { LayerType, Layer } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
+// import { FrontendConfig } from "@/lib/config";
 import { layerGroupDefaults } from "./workspace";
 
+// const config = inject<FrontendConfig>("config")!;
+// TODO: use config.api.endpoint here instead of hardcoding
+const API_ENDPOINT: string = "http://localhost:8001/api";
 const selection = computed(() => appState.selection.colorSegmentation);
 
 const num_elements = 26;
@@ -70,11 +75,31 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
  */
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
+
   // For simplicity, we put the image-wide bitmask first
-  filenames[0] = `imageClusters.png`;
+  const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_color_cluster_bitmask`);
+  reqUrl.searchParams.set("element", (0).toString());
+  const {response, data} = await useFetch(reqUrl.toString()).get().blob();
+
+  if (response.value?.ok && data.value != null) {
+    filenames[0] = URL.createObjectURL(data.value).toString();
+    console.log(filenames[0]);
+  } else {
+    throw new Error("Failed to fetch colors");
+  }
 
   for (let i = 1; i <= num_elements; i++) {
-    filenames[i] = `elementCluster_${i-1}.png`;
+
+    const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_element_color_cluster_bitmask`);
+    reqUrl.searchParams.set("element", (i-1).toString());
+    const {response, data} = await useFetch(reqUrl.toString()).get().blob();
+
+    if (response.value?.ok && data.value != null) {
+      filenames[i] = URL.createObjectURL(data.value).toString();
+      console.log(filenames[i]);
+    } else {
+      throw new Error("Failed to fetch colors");
+    }
   }
 
   return filenames;
