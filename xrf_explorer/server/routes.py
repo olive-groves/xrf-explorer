@@ -1,9 +1,9 @@
-import logging
-import json
+from io import StringIO, BytesIO
 
+from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
-from os.path import exists, join, abspath, basename
+from os.path import exists, join, abspath
 from os import mkdir
 from shutil import rmtree
 from markupsafe import escape
@@ -11,7 +11,8 @@ from numpy import ndarray
 from typing import List
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
+                                                               get_contextual_image)
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
@@ -266,6 +267,47 @@ def get_dr_overlay():
 
     return send_file(abspath(image_path), mimetype='image/png')
 
+
+@app.route("/api/<data_source>/image/<name>")
+def contextual_image(data_source: str, name: str):
+    path: str = get_contextual_image_path(data_source, name)
+    if not path:
+        return f"Image {name} not found in source {data_source}", 404
+
+    LOG.info("Opening contextual image")
+
+    image: Image = get_contextual_image(path)
+    if not image:
+        return f"Failed to open image {name} from source {data_source}", 500
+
+    LOG.info("Converting contextual image")
+
+    image_io = BytesIO()
+    image.save(image_io, "png")
+    image_io.seek(0)
+
+    LOG.info("Serving converted contextual image")
+
+    # Ensure that the converted images are cached by the client
+    response = send_file(image_io, mimetype='image/png')
+    response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return response
+
+
+@app.route("/api/<data_source>/image/<name>/size")
+def contextual_image_size(data_source: str, name: str):
+    path: str = get_contextual_image_path(data_source, name)
+    if not path:
+        return f"Image {name} not found in source {data_source}", 404
+
+    size = get_contextual_image_size(path)
+    if not size:
+        return f"Failed to get size of image {name} from source {data_source}", 500
+
+    return {
+        "width": size[0],
+        "height": size[1]
+    }
     
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
@@ -291,6 +333,7 @@ def get_average_data(data_source):
 
     return response
 
+
 @app.route('/api/get_element_spectrum', methods=['GET'])
 def get_element_sectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
@@ -310,8 +353,9 @@ def get_element_sectra():
     bin_size = int(request.args.get('binSize'))
     
     response: list = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
+
     response = json.dumps(response)
-        
+
     return response
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])

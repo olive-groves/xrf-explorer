@@ -52,3 +52,10 @@ export function hexToRgb(hex: string): [number, number, number] {
   // return {r, g, b}
   return [r, g, b];
 }
+
+/**
+ * Resets the window.
+ */
+export function resetWindow() {
+  window.location.reload();
+}

@@ -5,8 +5,10 @@ import { appState } from "@/lib/appState";
 import { snakeCase } from "change-case";
 import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
+import { config } from "@/main";
 import { createElementalLayers } from "./elementalHelper";
 import { createColorClusterLayers } from "./colorClusterHelper";
+import { registerLayer } from "./registering";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -46,7 +48,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
  * @param image - The image to use as the base image.
  */
 function createBaseLayer(image: ContextualImage) {
-  const layer = createLayer(`base_${snakeCase(image.name)}`, image);
+  const layer = createLayer(`base_${snakeCase(image.name)}`, getContextualImageUrl(image));
 
   layerGroups.value.base = {
     name: image.name,
@@ -66,7 +68,8 @@ function createBaseLayer(image: ContextualImage) {
  */
 function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;
-  const layer = createLayer(id, image);
+  const layer = createLayer(id, getContextualImageUrl(image));
+  registerLayer(layer, getContextualImageRecipeUrl(image));
 
   const layerGroup: LayerGroup = {
     name: image.name,
@@ -81,8 +84,31 @@ function createContextualLayer(image: ContextualImage) {
   updateLayerGroupLayers(layerGroup);
 }
 
+/**
+ * Gets the url for a specified contextual image.
+ * @param image - The contextual image.
+ * @returns The url to the image represented by the contextual image.
+ */
+function getContextualImageUrl(image: ContextualImage): string {
+  // We directly access config from main.ts.
+  // This is required as this is not done from a component and should be avoided where possible.
+  return `${config.api.endpoint}/${appState.workspace!.name}/image/${image.name}`;
+}
+
+/**
+ * Gets the url for the recipe of a specified contextual image.
+ * @param image - The contextual image.
+ * @returns The url to the image represented by the contextual image.
+ */
+function getContextualImageRecipeUrl(image: ContextualImage): string {
+  return image.recipeLocation;
+}
+
+/**
+ * Default values for some LayerGroup fields.
+ */
 export const layerGroupDefaults = {
-  visibility: LayerVisibility.InsideLens,
+  visibility: LayerVisibility.Visible,
   opacity: [1.0],
   contrast: [1.0],
   saturation: [1.0],

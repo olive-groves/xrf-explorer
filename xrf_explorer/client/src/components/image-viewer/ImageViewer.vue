@@ -146,10 +146,9 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <Toolbar v-model:state="toolState" />
   <div
     ref="glcontainer"
-    class="size-full"
+    class="relative size-full"
     :style="{
       cursor: cursor,
     }"
@@ -162,5 +161,6 @@ const cursor = computed(() => {
       @mousemove="onMouseMove"
       @wheel="onWheel"
     />
+    <Toolbar v-model:state="toolState" />
   </div>
 </template>

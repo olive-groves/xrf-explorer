@@ -5,6 +5,8 @@ import { WindowPortalTarget } from ".";
 import { ChevronRight } from "lucide-vue-next";
 import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
+import { BaseContextMenu } from "@/components/menus";
+import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
 
 const props = defineProps<{
   /**
@@ -60,7 +62,12 @@ watch(
         // Clean up window properly
         console.debug("Cleaning up window", id);
         if (id in state.value) {
-          shrinkTab(id, state.value[id].height);
+          removeTarget(id);
+          const height = state.value[id].height;
+          availableHeight += height;
+          console.debug("Available height increased by ", height);
+          growAnyTab(height);
+          state.value[id].height = 0;
         }
       }
     });
@@ -79,13 +86,14 @@ let availableHeight = 1;
 const growthTargets: string[] = [];
 const shrinkTargets: string[] = [];
 
-const headerSize = remToPx(1.75) + 1;
+const headerSize = remToPx(2) + 1;
 
 const container = ref<HTMLElement | null>(null);
 const containerSize = useElementSize(container);
 watch(containerSize.height, onResize);
 
-const disableAnimation = ref(false);
+let lastDisabled = Date.now();
+const disableAnimation = ref(true);
 
 const mouseState: {
   handle: string;
@@ -100,11 +108,18 @@ const mouseState: {
  * @param id The id of the window that should be minimized or maximized.
  */
 function toggleTabSize(id: string) {
+  lastDisabled = Date.now();
+  disableAnimation.value = false;
+
   if (state.value[id].minimized) {
     maximize(id);
   } else {
     minimize(id);
   }
+
+  setTimeout(() => {
+    if (Date.now() - lastDisabled >= 100) disableAnimation.value = true;
+  }, 100);
 }
 
 /**
@@ -118,14 +133,13 @@ function onResize(height: number, oldHeight: number) {
 
   totalHeight += growth;
   availableHeight += growth;
+  console.debug("Available height increased by ", growth);
 
-  disableAnimation.value = true;
   if (growth > 0) {
     growAnyTab(growth);
   } else {
     shrinkAnyTab(-growth);
   }
-  disableAnimation.value = false;
 
   mounted.value = true;
 }
@@ -217,6 +231,7 @@ function growTab(id: string, px: number): number {
 
   tab.height += actualGrowth;
   availableHeight -= actualGrowth;
+  console.debug("Available height shrunk by ", actualGrowth);
 
   removeTarget(id);
   console.debug(`Adding ${id} as target after growth`);
@@ -240,6 +255,7 @@ function shrinkTab(id: string, px: number): number {
 
   tab.height -= actualShrink;
   availableHeight += actualShrink;
+  console.debug("Available height increased by ", actualShrink);
 
   removeTarget(id);
   if (tab.height <= headerSize && !tab.minimized) {
@@ -320,7 +336,6 @@ function startDragging(handle: string) {
  */
 function stopDragging() {
   mouseState.dragging = false;
-  disableAnimation.value = false;
 }
 
 /**
@@ -366,36 +381,66 @@ function handleDragMovement(event: MouseEvent) {
             'transition-none': disableAnimation,
           }"
         >
-          <div
-            @click="toggleTabSize(id)"
-            class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1"
-          >
-            <ChevronRight
-              class="size-5 min-w-5 duration-100"
-              :class="{
-                'rotate-90': !state[id].minimized,
-              }"
-            />
-            <div class="font-bold">
-              {{ state[id].title }}
+          <BaseContextMenu>
+            <div
+              @click="toggleTabSize(id)"
+              class="left-0 z-10 flex w-full cursor-pointer justify-start space-x-1 whitespace-nowrap border-b p-1.5"
+            >
+              <ChevronRight
+                class="size-5 min-w-5 duration-100"
+                :class="{
+                  'rotate-90': !state[id].minimized,
+                }"
+              />
+              <div class="font-bold">
+                {{ state[id].title }}
+              </div>
             </div>
-          </div>
-          <div
-            class="z-0 -mt-px overflow-hidden border-t border-border"
-            :style="{
-              height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize}px`}`,
-            }"
-          >
-            <WindowPortalTarget
-              ref="contentRefs"
-              :window-id="id"
-              @content-height="(entry) => onContentResize(id, entry)"
-              :area-height="state[id].height - headerSize"
-            />
-          </div>
+            <div
+              class="z-0 -mt-px overflow-hidden border-t border-border duration-100"
+              :style="{
+                height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize + 1}px`}`,
+              }"
+              :class="{
+                'transition-all': !disableAnimation,
+                'transition-none': disableAnimation,
+              }"
+            >
+              <WindowPortalTarget
+                ref="contentRefs"
+                :window-id="id"
+                @content-height="(entry) => onContentResize(id, entry)"
+                :disallow-shrink="!disableAnimation"
+                :area-height="state[id].height - headerSize"
+              />
+            </div>
+            <template #menu>
+              <ContextMenuRadioGroup :model-value="windowState[id].opened ? windowState[id].location : 'closed'">
+                <ContextMenuRadioItem value="closed" @click="windowState[id].opened = false">
+                  Closed
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="left" @click="windowState[id].location = 'left'">
+                  Left sidepanel
+                </ContextMenuRadioItem>
+                <ContextMenuRadioItem value="right" @click="windowState[id].location = 'right'">
+                  Right sidepanel
+                </ContextMenuRadioItem>
+                <ContextMenuSeparator />
+                <ContextMenuItem @click="() => toggleTabSize(id)">
+                  {{ state[id].minimized ? "Maximize" : "Minimize" }} window
+                </ContextMenuItem>
+              </ContextMenuRadioGroup>
+            </template>
+          </BaseContextMenu>
         </div>
-        <div v-if="!state[id].minimized" @mousedown="startDragging(id)" class="z-10 -my-1 h-2 w-full cursor-ns-resize">
-          <div class="mt-[calc(0.25rem-1px)] h-px bg-border" />
+        <div class="relative z-10 -mt-px border-b">
+          <div
+            class="absolute left-0 -mt-2 flex h-4 w-full cursor-ns-resize"
+            @mousedown="startDragging(id)"
+            v-if="!state[id].minimized"
+          >
+            <div class="my-2 h-0 w-full border-t" />
+          </div>
         </div>
       </template>
     </div>

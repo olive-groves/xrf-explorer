@@ -1,7 +1,11 @@
-import { ContextualImage } from "@/lib/workspace";
 import { Layer } from "./types";
 import * as THREE from "three";
 import * as math from "mathjs";
+import { deepClone } from "@/lib/utils";
+
+const recipePromises: {
+  [key: string]: Promise<RegisteringRecipe>;
+} = {};
 
 const recipes: {
   [key: string]: RegisteringRecipe;
@@ -10,18 +14,27 @@ const recipes: {
 /**
  * Sets the mRegister uniform on a layer in accordance with the specified recipe.
  * @param layer - The layer for which the perspective transform should be set.
- * @param image - The image resource that will be used to request the correct recipe.
+ * @param recipeLocation - The url to the registering recipe.
  */
-export async function registerLayer(layer: Layer, image: ContextualImage) {
-  if (image.recipeLocation == "") return;
+export async function registerLayer(layer: Layer, recipeLocation: string) {
+  if (recipeLocation == "") return;
 
   // Make sure that the recipe is known to the client.
-  if (!(image.recipeLocation in recipes)) {
-    const recipe = (await (await fetch(image.recipeLocation.replace(".csv", ".json"))).json()) as RegisteringRecipe;
-    recipes[image.recipeLocation] = recipe;
+  if (!(recipeLocation in recipes)) {
+    // Start fetching the recipe if it has not been started already.
+    if (!(recipeLocation in recipePromises)) {
+      recipePromises[recipeLocation] = fetch(recipeLocation.replace(".csv", ".json")).then((response) =>
+        response.json(),
+      );
+    }
+
+    // Await the fetch completing.
+    const recipe = (await recipePromises[recipeLocation]) as RegisteringRecipe;
+
+    recipes[recipeLocation] = recipe;
   }
 
-  const recipe = recipes[image.recipeLocation];
+  const recipe = recipes[recipeLocation];
   setPerspectiveTransform(layer.uniform.mRegister.value, recipe);
 }
 
@@ -31,7 +44,7 @@ export async function registerLayer(layer: Layer, image: ContextualImage) {
  * @param recipe - The recipe to use to calculate the transform.
  */
 function setPerspectiveTransform(matrix: THREE.Matrix3, recipe: RegisteringRecipe) {
-  const points = recipe.points;
+  const points = deepClone(recipe.points);
   const target = recipe.targetSize;
   const moving = recipe.movingSize;
 

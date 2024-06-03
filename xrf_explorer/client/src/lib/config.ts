@@ -1,5 +1,3 @@
-import { BasicColorMode } from "@vueuse/core";
-
 /**
  * Type declaration for the client configuration.
  */
@@ -16,10 +14,6 @@ export type FrontendConfig = {
    * Configuration related to uploading.
    */
   upload: UploadConfig;
-  /**
-   * The default theme of the client.
-   */
-  defaultTheme: BasicColorMode;
 };
 
 /**
@@ -62,16 +56,16 @@ export type ImageViewerConfig = {
 
 /**
  * The default configuration for the client.
- */ export const DefaultConfig: FrontendConfig = {
+ */
+export const DefaultConfig: FrontendConfig = {
   api: {
-    endpoint: "http://localhost:8001/api",
+    endpoint: "/api",
   },
   imageViewer: {
     defaultMovementSpeed: 1.0,
     defaultScrollSpeed: 1.0,
     defaultLensSize: 100.0,
   },
-  defaultTheme: "dark",
   upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },

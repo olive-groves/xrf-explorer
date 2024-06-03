@@ -48,6 +48,7 @@ If you would like to test communication with a remote server, we recommend insta
 #### Generating Documentation
 
 Generating the code documentation is very simple and only requires a couple of steps:
+
 - Navigate to the project's root folder
 - From the terminal run `sphinx-apidoc(.exe) -f -o ./documentation/sphinx/source/ .` to generate the ReST files. _The .exe extension may be omitted in some environments._
 - Build the documentation in HTML format with `./documentation/sphinx/make html` (run `./documentation/sphinx/make` to see all available formats)
@@ -90,3 +91,77 @@ To enforce consistency in the client code, `prettier` and `eslint` have been con
 - `npm run style:check` Checks if the client code conforms to the prettier and eslint rules.
 - `npm run style:fix` is able to fix some of the errors reported by `style:check`.
 - Setting up the [prettier](https://prettier.io/) formatter to automatically format on save can immediately remove large amounts of errors.
+
+### Workspace structure
+
+All data used by XRF-Explorer is located in the `uploads-folder` as defined by the configuration file (`backend/config.yml` by default). In this directory every subdirectory is a separate workspace (a set of data files for a single painting).
+
+- `uploads-folder\<painting>\` - The directory containing data for the painting `<painting>`.
+- `uploads-folder\<painting>\workspace.json` - A file containing descriptive information describing all information present for the painting. Must be present for XRF-Explorer to be able to load the painting.
+- `uploads-folder\<painting>\<filename>` - Any other file containing data related to `<painting>`. For all functionality to work there should be at least a base image file, `.csv` files containing the registering information for all data except the base image file, a `.dms` or `.csv` file containing an elemental datacube and a `.raw` and `.rpl` file containing raw spectral data. The names of all these files must be specified in `workspace.json` for XRF-Explorer to recognize them.
+
+#### `workspace.json` format
+
+The `workspace.json` file follows the following format:
+
+```json
+{
+  // Must be exactly equal to the name of the directory
+  "name": "<painting>",
+  // The base image that everything will be registered to
+  "baseImage": {
+    "name": "<name>",
+    // The filename of the base image file
+    "imageLocation": "<filename>",
+    // The filename of the registering recipe for the image
+    // The base image should not be registered
+    "recipeLocation": ""
+  },
+  // Array of additional contextual images
+  // Every contextual image follows the same format as baseImage
+  "contextualImages": [],
+  // Array of spectral data cubes
+  // Only a single cube per workspace is currently supported
+  "spectralCubes": [
+    {
+      // Name must be unique
+      "name": "<name>",
+      // The filename of the raw file
+      "rawLocation": "<filename>",
+      // The filename of the rpl file
+      "rplLocation": "<filename>",
+      // The filename of the registering recipe for the data cube
+      "recipeLocation": "<filename>"
+    }
+  ],
+  // Array of elemental data cubes
+  // Only a single cube per workspace is currently supported
+  // Every elemental datacube must have the same channels
+  "elementalCubes": [
+    {
+      // Name must be unique
+      "name": "<name>",
+      // Must be 'csv' or 'dms'
+      "fileType": "<filetype>",
+      // Filename of the data cube
+      "dataLocation": "<filename>",
+      // The filename of the registering recipe for the data cube
+      "recipeLocation": "<filename>"
+    }
+  ],
+  // Array of elemental channels
+  "elementalChannels": [
+    {
+      // Name of the elemental channel
+      "name": "<name>",
+      // The index of the channel in the elemental cubes
+      "channel": 0,
+      // Whether or not the channel is enabled
+      // Disabled channels will not be visible in the client
+      "enabled": false,
+    }
+  ]
+}
+```
+
+Take into account that filenames must include the extension type (i.e. `spectral.raw` instead of just `spectral`).
