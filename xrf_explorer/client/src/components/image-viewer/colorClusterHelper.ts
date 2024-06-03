@@ -8,6 +8,7 @@ import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 // import { FrontendConfig } from "@/lib/config";
 import { layerGroupDefaults } from "./workspace";
+import { registerLayer } from "./registering";
 
 // const config = inject<FrontendConfig>("config")!;
 // We should use config.api.endpoint here instead of hardcoding
@@ -124,6 +125,7 @@ export async function createColorClusterLayers() {
      filenames[0],
      false,
   );
+  registerLayer(layer, "/recipe_cube.csv");
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
@@ -136,6 +138,7 @@ export async function createColorClusterLayers() {
       filenames[i],
       false,
     );
+    registerLayer(layer, "/recipe_cube.csv");
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
     // iAuxiliary passes corresponding element index [1, num_elements]
     layer.uniform.iAuxiliary = { value: i };
