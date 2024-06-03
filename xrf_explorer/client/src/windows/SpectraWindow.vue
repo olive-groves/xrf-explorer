@@ -5,10 +5,10 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { datasource } from "@/lib/appState";
 
-const spectraChart = ref(null);
+const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
-let svg: d3.Selection<null, unknown, null, undefined>;
+let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
@@ -42,7 +42,7 @@ function setup() {
 
   // append the svg object to the body of the page
   svg = d3
-    .select(spectraChart.value)
+    .select(spectraChart.value!)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
