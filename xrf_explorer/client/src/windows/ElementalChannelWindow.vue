@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
 import { appState, elements } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LabeledSlider } from "@/components/ui/slider";
 
 /**
  * Watches the elemental channels defined in the workspace.
@@ -31,11 +29,20 @@ watch(
   { immediate: true },
 );
 
+/**
+ * Gets the name of a channel from the workspace.
+ * @param index - The channel to get the name of.
+ * @returns The name of the channel.
+ */
+function getChannelName(index: number): string {
+  return elements.value.find((channel) => channel.channel == index)?.name ?? "";
+}
+
 const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
-  <Window title="Elemental channels" opened>
+  <Window title="Elemental channels" location="left">
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"
@@ -46,21 +53,22 @@ const selection = computed(() => appState.selection.elements);
         }"
       >
         <div class="flex justify-between">
-          <div>
-            <div>
-              {{ channel.channel }}
-            </div>
-            <div class="whitespace-nowrap text-muted-foreground" />
-          </div>
+          <div class="mt-1.5" v-text="getChannelName(channel.channel)" />
           <div class="flex">
             <Label
               v-if="channel.selected"
+              title="Select color"
               :for="`color_${channel.channel}`"
-              class="mt-2 size-4 rounded-md border border-border"
-              :style="{
-                'background-color': channel.color,
-              }"
-            />
+              class="size-8 rounded-md p-2 hover:bg-accent"
+            >
+              <div
+                :for="`color_${channel.channel}`"
+                class="size-4 rounded-md border border-border"
+                :style="{
+                  'background-color': channel.color,
+                }"
+              />
+            </Label>
             <Input
               class="hidden"
               :id="`color_${channel.channel}`"
@@ -79,15 +87,14 @@ const selection = computed(() => appState.selection.elements);
             </Button>
           </div>
         </div>
-        <div v-if="channel.selected" class="space-y-2">
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <div>Thresholds</div>
-              <div>{{ channel.thresholds[0] }} – {{ channel.thresholds[1] }}</div>
-            </div>
-            <Slider v-model="channel.thresholds" :min="0" :step="0.01" :max="1" class="pb-2" />
-          </div>
-        </div>
+        <LabeledSlider
+          v-if="channel.selected"
+          label="Intensity thresholds"
+          :min="0"
+          :max="1"
+          :default="[0, 1]"
+          v-model="channel.thresholds"
+        />
       </Card>
     </div>
   </Window>
