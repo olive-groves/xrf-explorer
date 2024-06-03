@@ -159,6 +159,21 @@ def upload_file_chunk():
     return "Ok"
 
 
+@app.route("/api/dimensionality_reduction/selection", methods=["POST"])
+def dimensionality_reduction_selection_update():
+    message: dict | None = request.get_json()
+
+    if message is None:
+        return "Error occurred while extracting dimensionality reduction selection data", 400
+
+    # extract information from json
+    selection_method: str = message.get("selection_type")
+    # points: list[dict[str: float]] = list(map(dict[str: float], message.get("points")))   # convert string to dict
+    points = message.get("points")
+    LOG.info(type(points))
+    LOG.info(selection_method, points)
+
+
 @app.route("/api/<data_source>/element_averages")
 def list_element_averages(data_source: str):
     """List the average amount per element accross the whole painting.

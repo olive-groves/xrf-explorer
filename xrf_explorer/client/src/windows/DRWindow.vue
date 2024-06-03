@@ -155,6 +155,32 @@ function onMouseDown(event: MouseEvent) {
 
   // update the SVG overlay
   drawSelection();
+
+  // relay information to the backend
+  if (selectionTool.finishedSelection)
+    uploadSelection()
+}
+
+async function uploadSelection() {
+  const response: Response = await fetch(config.api.endpoint + "/dimensionality_reduction/selection",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        mode: 'no-cors',
+        body: JSON.stringify({
+          selection_type: selectionTool.selectionType.valueOf(),
+          points: selectionTool.selectedPoints,
+        }),
+      },
+  )
+  if (!response.ok) {
+    toast.warning("Could not connect to server.");
+    console.error("Failed to upload DR selection: ", response);
+  }
+  console.log(JSON.stringify({
+          selection_type: selectionTool.selectionType.valueOf(),
+          points: selectionTool.selectedPoints,
+        }))
 }
 
 /**
