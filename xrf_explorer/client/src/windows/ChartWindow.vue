@@ -109,7 +109,8 @@ function setupChart(data: Element[]) {
   const max: number = d3.max(data, (d) => d.average) as number;
 
   // Select SVG container
-  svg
+  svg = d3
+    .select(chart.value)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -183,7 +184,7 @@ function updateLineChart(data: Element[]) {
   // Add the colored line
   svg
     .append("path")
-    .datum(dataAverages)
+    .datum(data)
     .attr("fill", "none")
     .attr("stroke", "currentColor")
     .attr("stroke-width", 2)
@@ -223,7 +224,7 @@ function updateBarChart(data: Element[]) {
  * 
  * @param selection The current selection of elements.
  */
-function updateCharts() {
+async function updateCharts() {
   // Mask the data with the selected elements
   maskData(elementSelection.value);
 
