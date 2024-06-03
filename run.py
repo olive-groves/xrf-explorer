@@ -1,9 +1,6 @@
 import logging
 import argparse
 
-from flask_cors import CORS
-CORS(app)
-
 LOG: logging.Logger = logging.getLogger(__name__)
 
 parser: argparse.ArgumentParser = argparse.ArgumentParser(prog="python run.py", description="XRF-Explorer")
