@@ -1,4 +1,6 @@
 import {Point2D} from "@/components/image-viewer/types";
+import {FrontendConfig} from "@/lib/config.ts";
+import * as d3 from "d3";
 
 /**
  * Type containing information relevant to the selection tool.
@@ -150,6 +152,42 @@ export class SelectionTool {
             coordinates.push(`${point.x},${point.y}`);
 
         return coordinates.join(" ");
+    }
+
+    /**
+     * Draw the shape of the selection on a given SVG element. Note that everything on this SVG will be overwritten.
+     * @param svg - SVG HTML element on which to draw the selection.
+     * @param dimensions - x and y coordinates of the top-left corner of the SVG element and its width and height.
+     * @param config - Frontend config containing constants for the aesthetics of the selection.
+     */
+    draw(svg: d3.Selection<null, unknown, null, undefined>,
+         dimensions: { x: number, y: number, width: number, height: number },
+         config: FrontendConfig) {
+
+        // Remove old selection
+        svg.selectAll("*").remove();
+
+        svg.attr("x", dimensions.x)
+            .attr("y", dimensions.y)
+            .attr("width", dimensions.width)
+            .attr("height", dimensions.height);
+
+        if (this.selectionType == SelectionOption.Rectangle) {
+            svg.append("rect")
+                .attr("x", this.getOrigin().x)
+                .attr("y", this.getOrigin().y)
+                .attr("width", this.getWidth())
+                .attr("height", this.getHeight())
+                .attr("fill", config.selectionToolConfig.fill_color)
+                .attr("stroke", config.selectionToolConfig.stroke_color)
+                .attr("opacity", config.selectionToolConfig.opacity);
+        } else if (this.selectionType == SelectionOption.Lasso) {
+            svg.append("polygon")
+                .attr("points", this.getPointsAsString())
+                .attr("fill", config.selectionToolConfig.fill_color)
+                .attr("stroke", config.selectionToolConfig.stroke_color)
+                .attr("opacity", config.selectionToolConfig.opacity);
+        }
     }
 
 }

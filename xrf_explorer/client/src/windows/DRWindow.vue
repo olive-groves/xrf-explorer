@@ -7,7 +7,6 @@ import {ContextualImage} from "@/lib/workspace";
 import {LabeledSlider} from "@/components/ui/slider";
 import {toast} from "vue-sonner";
 import {SelectionOption, SelectionTool} from "@/components/functional/selection/selection_tool.ts";
-
 import * as d3 from "d3";
 
 // Constants
@@ -142,6 +141,7 @@ function onMouseDown(event: MouseEvent) {
 
     const svg: HTMLElement | null = document.getElementById("svgOverlay");
     if (svg != null) {
+      // compute the position of the click relative to the SVG based on the client coordinates
       const clickedPos = {
         x: event.clientX - svg.getBoundingClientRect().left,
         y: event.clientY - svg.getBoundingClientRect().top
@@ -153,42 +153,37 @@ function onMouseDown(event: MouseEvent) {
   else if (event.button == config.selectionToolConfig.confirmButton)
     selectionTool.confirmSelection();
 
+  // update the SVG overlay
   drawSelection();
 }
 
+/**
+ * Draw the shape of the selection on the SVG overlay
+ */
 function drawSelection() {
 
-  // Remove old selection
-  const svg = d3.select(svgOverlay.value);
-  svg.selectAll("*").remove();
-
-  // Get the image so we can extract the dimensions
-  const image = document.getElementById("image");
-  if (image == null) return;
-
-  svg.attr("x", image.getBoundingClientRect().left)
-      .attr("y", image.getBoundingClientRect().top)
-      .attr("width", image.getBoundingClientRect().width)
-      .attr("height", image.getBoundingClientRect().height);
-
-  if (selectionTool.selectionType == SelectionOption.Rectangle) {
-    svg.append("rect")
-        .attr("x", selectionTool.getOrigin().x)
-        .attr("y", selectionTool.getOrigin().y)
-        .attr("width", selectionTool.getWidth())
-        .attr("height", selectionTool.getHeight())
-        .attr("fill", config.selectionToolConfig.fill_color)
-        .attr("stroke", config.selectionToolConfig.stroke_color)
-        .attr("opacity", config.selectionToolConfig.opacity);
+  // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
+  const imageDimensions: { x: number, y: number, width: number, height: number } = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0
   }
 
-  else if (selectionTool.selectionType == SelectionOption.Lasso) {
-    svg.append("polygon")
-        .attr("points", selectionTool.getPointsAsString())
-        .attr("fill", config.selectionToolConfig.fill_color)
-        .attr("stroke", config.selectionToolConfig.stroke_color)
-        .attr("opacity", config.selectionToolConfig.opacity);
+  const image: HTMLElement | null = document.getElementById("image");
+
+  if (image == null)
+    console.log("Could not find image element.");
+  else {
+    // update dimensions with image element values to fit the SVG to the image
+    const rect = image.getBoundingClientRect();
+    imageDimensions.x = rect.left;
+    imageDimensions.y = rect.top;
+    imageDimensions.width = rect.width;
+    imageDimensions.height = rect.height;
   }
+
+  selectionTool.draw(d3.select(svgOverlay.value), imageDimensions, config);
 }
 </script>
 
