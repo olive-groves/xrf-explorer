@@ -13,7 +13,7 @@ let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
 /**
  * Sets up export of chart.
  */
-watch(spectraChart, (value) => (exportableElements["Spectral"] = value));
+watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;

@@ -10,7 +10,7 @@ import { exportableElements } from "@/lib/export";
 
 // Setup output for export
 const output = ref<HTMLElement>();
-watch(output, (value) => (exportableElements["DR Overlay"] = value));
+watch(output, (value) => (exportableElements["Embedding"] = value), { immediate: true });
 
 // Constants
 const config = inject<FrontendConfig>("config")!;

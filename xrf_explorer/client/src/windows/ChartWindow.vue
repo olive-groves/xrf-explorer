@@ -12,7 +12,7 @@ const config = inject<FrontendConfig>("config")!;
 /**
  * Sets up export of chart.
  */
-watch(chart, (value) => (exportableElements["Elements"] = value));
+watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
 
 type Element = {
   name: string;
