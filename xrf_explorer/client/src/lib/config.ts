@@ -80,7 +80,11 @@ export type SelectionToolConfig = {
   /**
    * Color in which the selected area should be displayed.
    */
-  color: string,
+  fill_color: string,
+  /**
+   * Color of the outline of the selected area.
+   */
+  stroke_color: string,
   /**
    * Set the opacity of the selection overlay.
    */
@@ -107,7 +111,8 @@ export const DefaultConfig: FrontendConfig = {
     addPointButton: 0,    // left mouse button
     cancelButton: 1,      // wheel mouse button
     confirmButton: 2,     // right mouse button
-    color: "lighblue",
+    fill_color: "lightblue",
+    stroke_color: "black",
     opacity: 0.5,
   }
 };

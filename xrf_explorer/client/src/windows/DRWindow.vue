@@ -150,7 +150,6 @@ function onMouseDown(event: MouseEvent) {
       };
       selectionTool.addPointToSelection(clickedPos);
     }
-    console.log(selectionTool.finishedSelection);
   }
 
   drawSelection();
@@ -177,7 +176,8 @@ function drawSelection() {
         .attr("y", selectionTool.getOrigin().y)
         .attr("width", selectionTool.getWidth())
         .attr("height", selectionTool.getHeight())
-        .attr("fill", config.selectionToolConfig.color)
+        .attr("fill", config.selectionToolConfig.fill_color)
+        .attr("stroke", config.selectionToolConfig.stroke_color)
         .attr("opacity", config.selectionToolConfig.opacity);
   }
 }
