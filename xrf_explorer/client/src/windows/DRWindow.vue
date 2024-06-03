@@ -57,35 +57,6 @@ const svgOverlay = ref(null);
 const selectionTool = new SelectionTool();
 const mrIncredible: string = "src/windows/mr-incredible.png";
 
-function drawSelection() {
-
-  // Remove old selection
-  const svg = d3.select(svgOverlay.value);
-  svg.selectAll("*").remove();
-
-  // Get the image so we can extract the dimensions
-  const image = document.getElementById("image");
-  if (image == null) return;
-
-  console.log("dimensions: ", image.getBoundingClientRect().width, image.getBoundingClientRect().height);
-
-  svg.attr("x", image.getBoundingClientRect().left)
-      .attr("y", image.getBoundingClientRect().top)
-      .attr("width", image.getBoundingClientRect().width)
-      .attr("height", image.getBoundingClientRect().height);
-
-  if (selectionTool.selectionType == SelectionOption.Rectangle) {
-    console.log("Drawing rectangle from: ", selectionTool.getOrigin().x, selectionTool.getOrigin().y, " to: ", selectionTool.getOrigin().x + selectionTool.getWidth(), selectionTool.getOrigin().y + selectionTool.getHeight());
-    svg.append("rect")
-        .attr("x", selectionTool.getOrigin().x)
-        .attr("y", selectionTool.getOrigin().y)
-        .attr("width", selectionTool.getWidth())
-        .attr("height", selectionTool.getHeight())
-        .attr("fill", config.selectionToolConfig.color)
-        .attr("opacity", config.selectionToolConfig.opacity);
-  }
-}
-
 /**
  * Fetch the dimensionality reduction image
  * Sets status to corresponding value
@@ -179,19 +150,41 @@ function onMouseDown(event: MouseEvent) {
       };
       selectionTool.addPointToSelection(clickedPos);
     }
+    console.log(selectionTool.finishedSelection);
   }
 
-  visualizeSelection();
+  drawSelection();
 }
 
-function visualizeSelection() {
-  if (selectionTool.finishedSelection)
-    drawSelection();
+function drawSelection() {
+
+  // Remove old selection
+  const svg = d3.select(svgOverlay.value);
+  svg.selectAll("*").remove();
+
+  // Get the image so we can extract the dimensions
+  const image = document.getElementById("image");
+  if (image == null) return;
+
+  svg.attr("x", image.getBoundingClientRect().left)
+      .attr("y", image.getBoundingClientRect().top)
+      .attr("width", image.getBoundingClientRect().width)
+      .attr("height", image.getBoundingClientRect().height);
+
+  if (selectionTool.selectionType == SelectionOption.Rectangle) {
+    svg.append("rect")
+        .attr("x", selectionTool.getOrigin().x)
+        .attr("y", selectionTool.getOrigin().y)
+        .attr("width", selectionTool.getWidth())
+        .attr("height", selectionTool.getHeight())
+        .attr("fill", config.selectionToolConfig.color)
+        .attr("opacity", config.selectionToolConfig.opacity);
+  }
 }
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" location="left" @window-mounted="visualizeSelection">
+  <Window title="Dimensionality reduction" location="left" @window-mounted="drawSelection">
     <!-- OVERLAY SECTION -->
     <div class="p-2">
       <p class="font-bold">Overlay:</p>
