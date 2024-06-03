@@ -395,7 +395,8 @@ def get_color_cluster_bitmask(data_source: str):
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
     full_path: str = join(path_to_save, data_source, f'imageClusters.png')
     if not exists(full_path):
-        return f'Bitmasks for element {element} not generated', 500
+        get_color_clusters(data_source)
+        # return f'Bitmasks for element {element} not generated', 500
 
     response = send_file(abspath(full_path), mimetype='image/png')
     return response
@@ -466,7 +467,8 @@ def get_element_color_cluster_bitmask(data_source: str):
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
     full_path: str = join(path_to_save, data_source, f'elementCluster_{element}.png')
     if not exists(full_path):
-        return f'Bitmasks for element {element} not generated', 500
+        get_element_color_cluster(data_source)
+        # return f'Bitmasks for element {element} not generated', 500
 
     response = send_file(abspath(full_path), mimetype='image/png')
     return response

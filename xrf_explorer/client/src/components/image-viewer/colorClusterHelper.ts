@@ -43,7 +43,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
       data[start + 2] = color[2];
       data[start + 3] = 255;
     } else {
-      data[start + 3] = 255;
+      data[start + 3] = 0;
     }
   });
 
@@ -154,7 +154,7 @@ export async function createColorClusterLayers() {
     description: "",
     layers: layers,
     index: -2,
-    visible: false,
+    visible: true,
     ...layerGroupDefaults,
   };
 

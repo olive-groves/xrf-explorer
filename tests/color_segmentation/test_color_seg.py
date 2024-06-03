@@ -104,6 +104,8 @@ class TestColorSegmentation:
         bitmasks: list[np.ndarray] = [bitmask1, bitmask2, bitmask3]
         expected_entries: np.ndarray = np.array([[2, 3, 1], [1, 0, 2]], dtype=np.uint8)
         expected_result: np.ndarray = np.zeros((2, 3, 3), dtype=np.uint8)
+        expected_result[:, :, 0] = expected_entries
+        expected_result[:, :, 1] = expected_entries
         expected_result[:, :, 2] = expected_entries
 
         # Execute

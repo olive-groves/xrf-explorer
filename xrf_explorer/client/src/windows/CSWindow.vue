@@ -40,6 +40,9 @@ watch(colorsElements, () => {
 
 // Watch for changes in selectedElement and update colors accordingly
 watch(selectedElement, (newValue) => {
+  selection.value.forEach(channel => {
+    channel.selected = false;
+  });
   if (newValue === "complete") {
     colors.value = colorsElements.value["complete"];
     selectedChannel.value = -1;
