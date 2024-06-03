@@ -120,11 +120,7 @@ export async function createColorClusterLayers() {
 
   const layers: Layer[] = [];
   // Whole-image color clusters
-  const layer = createLayer(
-    `colorSegmenationImage`,
-     filenames[0],
-     false,
-  );
+  const layer = createLayer(`colorSegmenationImage`, filenames[0], false);
   registerLayer(layer, "/recipe_cube.csv");
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
@@ -133,11 +129,7 @@ export async function createColorClusterLayers() {
 
   // Element-wise color clusters
   for (let i = 1; i <= num_elements; i++) {
-    const layer = createLayer(
-      `colorSegmenationElem_${i}`,
-      filenames[i],
-      false,
-    );
+    const layer = createLayer(`colorSegmenationElem_${i}`, filenames[i], false);
     registerLayer(layer, "/recipe_cube.csv");
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
     // iAuxiliary passes corresponding element index [1, num_elements]
