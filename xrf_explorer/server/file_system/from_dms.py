@@ -41,7 +41,7 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
     
     with open(path, 'rb') as f:
         # Calculate total offset 
-        total_offset: int = header_size + width * height * channels * 4 + 1
+        total_offset: int = header_size + width * height * channels * 4
 
         # Go to elemental names
         f.seek(total_offset)
