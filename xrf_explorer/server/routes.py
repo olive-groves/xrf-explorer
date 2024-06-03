@@ -379,7 +379,7 @@ def get_color_clusters(data_source: str):
     combined_bitmask: ndarray = combine_bitmasks(bitmasks)
 
     # Save bitmask
-    full_path: str = join(path_to_save, data_source, 'imageClusters.png')
+    full_path: str = join(path_to_save, data_source, f'imageClusters_{k}_{nr_attempts}.png')
     image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
     if (not image_saved):
         return 'Error occurred while saving bitmask as png', 500
@@ -403,12 +403,14 @@ def get_color_cluster_bitmask(data_source: str):
     :return bitmask png file for the whole image
     """
 
-    # Get element and threshold
-    element: int = int(request.args["element"])
+    # Get parameters
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
+    k: int = int(k_means_parameters['k'])
 
     # Get path to image
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
-    full_path: str = join(path_to_save, data_source, f'imageClusters.png')
+    full_path: str = join(path_to_save, data_source, f'imageClusters_{k}_{nr_attempts}.png')
     if not exists(full_path):
         get_color_clusters(data_source)
         # return f'Bitmasks for element {element} not generated', 500
@@ -460,7 +462,7 @@ def get_element_color_cluster(data_source: str):
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
-        full_path: str = join(path_to_save, data_source, f'elementCluster_{i}.png')
+        full_path: str = join(path_to_save, data_source, f'elementCluster_{i}_{k}_{elem_threshold}_{nr_attempts}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if (not image_saved):
             return f'Error occurred while saving bitmask for element {i} as png', 500
@@ -492,9 +494,15 @@ def get_element_color_cluster_bitmask(data_source: str):
     # Get element and threshold
     element: int = int(request.args["element"])
 
-    # Save bitmask
+    # Get parameters
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters['elem-threshold'])
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
+    k: int = int(k_means_parameters['k'])
+
+    # Path to bitmask
     path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
-    full_path: str = join(path_to_save, data_source, f'elementCluster_{element}.png')
+    full_path: str = join(path_to_save, data_source, f'elementCluster_{element}_{k}_{elem_threshold}_{nr_attempts}.png')
     if not exists(full_path):
         get_element_color_cluster(data_source)
         # return f'Bitmasks for element {element} not generated', 500
