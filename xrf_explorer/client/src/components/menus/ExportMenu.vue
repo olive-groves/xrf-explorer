@@ -9,15 +9,17 @@ import { sentenceCase, snakeCase } from "change-case";
   <MenubarMenu>
     <MenubarTrigger> Export </MenubarTrigger>
     <MenubarContent>
-      <MenubarItem disabled v-if="!datasource">Nothing to export</MenubarItem>
-      <MenubarItem v-if="datasource" @click="() => exportScene()"> Painting </MenubarItem>
-      <MenubarItem
-        v-for="name in Object.keys(exportableElements)"
-        :key="name"
-        @click="() => exportElement(snakeCase(name), exportableElements[name])"
-      >
-        {{ sentenceCase(name) }}
-      </MenubarItem>
+      <template v-if="datasource">
+        <MenubarItem v-if="datasource" @click="() => exportScene()"> Painting </MenubarItem>
+        <MenubarItem
+          v-for="name in Object.keys(exportableElements)"
+          :key="name"
+          @click="() => exportElement(snakeCase(name), exportableElements[name])"
+        >
+          {{ sentenceCase(name) }}
+        </MenubarItem>
+      </template>
+      <MenubarItem disabled v-else>Nothing to export</MenubarItem>
     </MenubarContent>
   </MenubarMenu>
 </template>
