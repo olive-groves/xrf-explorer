@@ -86,11 +86,10 @@ function render() {
  */
 async function resetViewport() {
   const size = await getTargetSize();
-  const aspect = size.height / size.width;
   const fill = 0.9;
-  viewport.center.x = 0.5;
-  viewport.center.y = aspect / 2.0;
-  viewport.zoom = Math.max(Math.log(1 / width.value / fill), Math.log(aspect / height.value / fill));
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
 const dragging = ref(false);

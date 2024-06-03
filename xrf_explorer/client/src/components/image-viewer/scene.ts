@@ -48,7 +48,7 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
       // Scale the square to the same dimensions as the texture.
       // By scaling through this method, the UV coordinates of the shape are preserved.
       const mat = new THREE.Matrix4();
-      mat.set(1, 0, 0, 0, 0, size.height / size.width, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+      mat.set(size.width, 0, 0, 0, 0, size.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
       geometry.applyMatrix4(mat);
 
       // Add the texture to the uniform to allow it to be used in the shaders
