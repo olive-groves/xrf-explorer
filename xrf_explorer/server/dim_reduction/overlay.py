@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
-from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image
+from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image, get_path_to_dr_folder
 
 matplotlib.use('Agg')
 
@@ -28,11 +28,10 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
 
     LOG.info("Creating embedding image...")
 
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
+    # Get the path to the DR folder
+    dr_folder: str = get_path_to_dr_folder(data_source, config_path)
+    if not dr_folder:
         return ""
-    dr_folder: str = join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name'])
 
     # Load the file embedding.npy
     try:

@@ -1,7 +1,7 @@
 import logging 
 
-from os import remove
-from os.path import join
+from os import remove, makedirs
+from os.path import isdir, join
 from pathlib import Path
 
 import numpy as np
@@ -72,6 +72,40 @@ def get_registered_image(data_source: str, image_name: str, config_path: str = "
     return pixels_of_image
 
 
+def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.yml") -> str:
+    """Get the path to the dimensionality reduction folder for a given datasource.
+    
+    :param data_source: The name of the datasource
+    :param config_path: The path to the backend config file
+    :return: The path to the dimensionality reduction folder for the given datasource. If the folder does not exist, return an empty string.
+    """
+
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+
+    # Path to the data source folder
+    path_to_data_source: str = join(backend_config['uploads-folder'], data_source)
+
+    # Check if the datasource exists
+    if not isdir(path_to_data_source):
+        LOG.error(f"Datasource {data_source} not found.")
+        return ""
+    
+    # Path to the dimensionality reduction folder
+    path_to_dr_folder: str = join(path_to_data_source, backend_config['dim-reduction']['folder-name'])
+
+    # Check if the dimensionality reduction folder exists
+    if not isdir(path_to_data_source):
+        makedirs(path_to_data_source)
+        LOG.info(f"Created directory {path_to_data_source}.")
+
+    LOG.info(f"Dimensionality reduction folder {data_source} found.")
+    return path_to_dr_folder
+
+
 def get_image_of_indices_to_embedding(data_source: str, config_path: str = "config/backend.yml"):
     """Creates the image for lasso selection that decodes to which points in the embedding
     the pixels of the elemental data cube are mapped. Uses the current embedding and indices
@@ -81,10 +115,9 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     :param config_path: Path to the backend config file
     :return: True if the image was created successfully, otherwise False.
     """
-
-    # load backend config
-    backend_config: dict = load_yml(config_path)
-    if not backend_config:  # config is empty
+    # Get the path to the dimensionality reduction folder
+    dr_folder: str = get_path_to_dr_folder(data_source, config_path)
+    if not dr_folder:
         return False
 
     # Load the elemental data cube
@@ -92,9 +125,6 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
     if elemental_cube is None:
         return False
-
-    # Load data indices and embedded data
-    dr_folder: str = backend_config['dim-reduction']['folder']
 
     # Load the file embedding.npy
     try:
@@ -122,5 +152,7 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
 
     # Create and save the image
     imwrite(join(dr_folder, 'image_index_to_embedding.npy'), newimage)
+
+    LOG.info(f"Created DR image index to embedding.")
 
     return True
