@@ -18,6 +18,8 @@ export type Size = {
   height: number;
 };
 
+const sizeCache: { [key: string]: Size } = {};
+
 /**
  * Gets the size of the base/target image.
  * @returns The size of the base/target image in pixels.
@@ -32,7 +34,11 @@ export async function getTargetSize(): Promise<Size> {
  * @returns The size of the specified image in pixels.
  */
 export async function getImageSize(name: string): Promise<Size> {
-  return (await (await fetch(`${config.api.endpoint}/${datasource.value}/image/${name}/size`)).json()) as Size;
+  const url = `${config.api.endpoint}/${datasource.value}/image/${name}/size`;
+  if (!(url in sizeCache)) {
+    sizeCache[url] = (await (await fetch(url)).json()) as Size;
+  }
+  return sizeCache[url];
 }
 
 /**
@@ -40,7 +46,11 @@ export async function getImageSize(name: string): Promise<Size> {
  * @returns The size of the data cubes.
  */
 export async function getDataSize(): Promise<Size> {
-  return (await (await fetch(`${config.api.endpoint}/${datasource.value}/data/size`)).json()) as Size;
+  const url = `${config.api.endpoint}/${datasource.value}/data/size`;
+  if (!(url in sizeCache)) {
+    sizeCache[url] = (await (await fetch(url)).json()) as Size;
+  }
+  return sizeCache[url];
 }
 
 /**
