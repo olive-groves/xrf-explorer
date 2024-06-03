@@ -18,7 +18,7 @@ const contextualImages = computed(() => {
   const baseImage = appState.workspace?.baseImage;
   const contextualImages = appState.workspace?.contextualImages ?? [];
 
-  // Add the base image to the list of contextual images
+  // Add the base image and the contextual images to the list of all images
   if (baseImage != undefined) {
     allImages.push(baseImage);
   }
@@ -29,7 +29,7 @@ const contextualImages = computed(() => {
   return allImages;
 });
 
-// Status dimensionaility reduction
+// Status dimensionality reduction
 enum Status {
   LOADING,
   GENERATING,
@@ -109,8 +109,11 @@ async function updateEmbedding() {
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
-    if (data.value == 'downsampled') {
-      toast.warning("The number of data points has been downsampled.");
+    if (data.value == "downsampled") {
+      toast.warning("Downsampled data points", {
+        description:
+          "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+      });
     }
 
     // Load the new embedding

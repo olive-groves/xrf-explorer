@@ -61,7 +61,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
 
         # Create the overlay
         overlay = create_image_overlay(registered_image, indices)
-    else:
+    elif overlay_type.startswith("elemental_"):
         # Show element overlay
         # Get the element
         element: int = int(overlay_type.removeprefix("elemental_"))
@@ -77,6 +77,9 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
 
         # Create the overlay
         embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
+    else:
+        LOG.error(f"Invalid overlay type: {overlay_type}")
+        return ""
 
     LOG.info("Created overlay successfully")
 

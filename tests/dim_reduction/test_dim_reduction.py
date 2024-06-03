@@ -62,14 +62,14 @@ class TestDimReduction:
 
     def test_invalid_element_creating_image(self, caplog):
         # setup
-        overlay_type2: str = 'elemental_1000000'
+        overlay_type: str = 'elemental_1000000'
 
         # execute
-        result2: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type2,
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type,
                                               config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # verify
-        assert not result2
+        assert not result
 
         # verify log messages
         assert 'Invalid element: 1000000' in caplog.text
@@ -78,10 +78,10 @@ class TestDimReduction:
         # setup
         element: int = 2
         threshold: int = 100
-        umap_args: dict[str, str] = {"n-neighbors": '0', "min-dist": '0', "n-components": '0', "metric": "invalid"}
+        umap_args: dict[str, str] = {'n-neighbors': '0', 'min-dist': '0', 'n-components': '0', 'metric': 'invalid'}
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args,
                                          config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
@@ -110,11 +110,11 @@ class TestDimReduction:
         # setup
         element: int = 2
         threshold: int = 0
-        umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
+        umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
         path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'from_dim_reduction', 'embedded_data.npy')
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args,
                                          config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify
@@ -129,10 +129,10 @@ class TestDimReduction:
         # setup
         element: int = 2
         threshold: int = 1000
-        umap_args: dict[str, str] = {"n-neighbors": '2', "metric": "euclidean"}
+        umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, umap_parameters=umap_args,
+        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args,
                                          config_path=self.CUSTOM_CONFIG_PATH)
 
         # verify

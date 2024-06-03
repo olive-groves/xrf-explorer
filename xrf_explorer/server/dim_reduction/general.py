@@ -16,6 +16,13 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def valid_element(element: int, data_cube: np.ndarray) -> bool:
+    """Verifies whether the given element is valid for the given data cube.
+    
+    :param element: The element to verify.
+    :param data_cube: The data cube to verify the element for.
+    :return: True if the element is valid, otherwise False.
+    """
+
     # verify valid element
     total_number_of_elements: int = data_cube.shape[0]
 
@@ -27,6 +34,14 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
 
 
 def get_registered_image(data_source: str, image_name: str, config_path: str = "config/backend.yml") -> np.ndarray:
+    """Get image registered to given data source.
+    
+    :param data_source: Name of the data source to get the registered image for.
+    :param image_name: Name of the image to get the registered image for.
+    :param config_path: Path to the backend config file
+    :return: Pixels of the registered image if successful, otherwise empty array.
+    """
+
     # load backend config
     backend_config: dict = load_yml(config_path)
     if not backend_config:  # config is empty

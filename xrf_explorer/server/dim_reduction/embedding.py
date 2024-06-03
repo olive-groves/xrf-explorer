@@ -59,18 +59,20 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
 
     # check if the number of indices is higher than the configured limit
     # if so, the indices are randomly downsampled
-    down_sampled: boolean = False
+    down_sampled: bool = False
     if indices.shape[0] > max_indices:
         LOG.info("Number of data points for dimensionality reduction is higher than the configured limit. "
                  "Points will be randomly downsampled, (%i -> %i)", indices.shape[0], max_indices)
-        indices = indices[np.random.choice(indices.shape[0], size=max_indices)]
+        
+        # Use default rng to ensure random selection every time
+        indices = indices[np.random.default_rng().choice(indices.shape[0], size=max_indices)]
         down_sampled = True
 
     # return the filtered indices
     return indices, down_sampled
 
 
-def generate_embedding(path: str, element: int, threshold: int, umap_parameters: dict[str, str] = {},
+def generate_embedding(path: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {},
                        config_path: str = "config/backend.yml") -> str:
     """Generate the embedding (lower dimensional representation of the data) of the
     elemental data cube using the dimensionality reduction method "UMAP". The embedding 
@@ -94,10 +96,10 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
         return "error"
 
     # get default dim reduction config
-    combined_umap_parameters: dict[str, str] = backend_config['dim-reduction']['umap-parameters']
+    umap_parameters: dict[str, str] = backend_config['dim-reduction']['umap-parameters']
 
     # update the default parameters with the given parameters
-    combined_umap_parameters.update(umap_parameters)
+    umap_parameters.update(new_umap_parameters)
 
     # get data cube
     data_cube: np.ndarray = get_elemental_data_cube(path)
@@ -121,10 +123,10 @@ def generate_embedding(path: str, element: int, threshold: int, umap_parameters:
 
     embedded_data: np.ndarray | None = apply_umap(
         filtered_data,
-        int(combined_umap_parameters['n-neighbors']),
-        float(combined_umap_parameters['min-dist']),
-        int(combined_umap_parameters['n-components']),
-        combined_umap_parameters['metric']
+        int(umap_parameters['n-neighbors']),
+        float(umap_parameters['min-dist']),
+        int(umap_parameters['n-components']),
+        umap_parameters['metric']
     )
 
     if embedded_data is None:
