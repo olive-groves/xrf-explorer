@@ -22,7 +22,7 @@ export const exportableElements = reactive<{
  * @param element - The element to convert to a png.
  */
 export function exportElement(name: string, element: HTMLElement) {
-  const baseSize = 1024;
+  const baseSize = 1200;
   const scale = baseSize / Math.min(element.clientWidth, element.clientHeight);
 
   toBlob(element, {
