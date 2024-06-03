@@ -18,10 +18,13 @@ type Element = {
 let dataAverages: Element[] = [];
 
 // Visibility for all elements
-const selectedElements: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
+const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
 // Actual displayed data, i.e. elements which are selected
 let displayedData: Element[] = [];
+
+// Colors of the data being displayed (encoded as string like "#RRGGBB")
+let displayedSelection: ElementSelection[] = [];
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -75,8 +78,10 @@ async function fetchAverages(url: string) {
  * @param selection The selection of elements.
  */
 function maskData(selection: ElementSelection[]) {
+  displayedSelection = selection.filter((element) => element.selected);
+
   displayedData = dataAverages.filter((_, index) =>
-    selection.some((elementVis) => elementVis.channel == index && elementVis.selected),
+    displayedSelection.some((elementVis) => elementVis.channel == index),
   );
 }
 
@@ -163,7 +168,7 @@ function updateChart(data: Element[]) {
     .attr("y", (d) => y(d.average))
     .attr("width", x.bandwidth())
     .attr("height", (d) => y(0) - y(d.average))
-    .attr("fill", "steelblue");
+    .attr("fill", (_, i) => displayedSelection[i].color);
 }
 
 /**
@@ -176,7 +181,7 @@ async function showChart() {
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) {
       // If everything went right, mask the data and display the chart
-      maskData(selectedElements.value);
+      maskData(elementSelection.value);
       updateChart(displayedData);
     }
   } catch (e) {
@@ -185,7 +190,7 @@ async function showChart() {
 }
 
 watch(
-  selectedElements,
+  elementSelection,
   (selection) => {
     maskData(selection);
     updateChart(displayedData);
