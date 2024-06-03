@@ -1,5 +1,7 @@
 temp-folder: "xrf_explorer/server/temp"
 uploads-folder: "xrf_explorer/server/data"
+bind-address: 127.0.0.1
+port: 8001
 upload-buffer-size: 16384
 dim-reduction:
   folder: "xrf_explorer/server/temp/dim_reduction"
@@ -8,3 +10,14 @@ dim-reduction:
     min-dist: 0
     n-components: 2
     metric: "cosine"
+color-segmentation:
+  folder: "xrf_explorer/server/temp/color_segmentation"
+  k-means-parameters:
+    k: 20
+    nr-attempts: 10
+    image-width: 500
+    image-height: 500
+  elemental-k-means-parameters:
+    k: 2
+    nr-attempts: 10
+    elem-threshold: 0.1

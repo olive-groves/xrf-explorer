@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ReusableDialog, DialogFooter, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,7 @@ import { WorkspaceConfig } from "@/lib/workspace";
 
 const config = inject<FrontendConfig>("config")!;
 const API_ENDPOINT: string = config.api.endpoint;
-const CHUNK_SIZE: number = config.uploadConfig.uploadChunkSizeInBytes;
+const CHUNK_SIZE: number = config.upload.uploadChunkSizeInBytes;
 
 const uploadedChunks = ref(0);
 const totalChunks = ref(1);
@@ -189,6 +188,7 @@ function generateWorkspaceJSON() {
     contextualImages: [],
     spectralCubes: [],
     elementalCubes: [],
+    elementalChannels: [],
   };
 
   if (getFile(uvImageInputRef) !== undefined) {

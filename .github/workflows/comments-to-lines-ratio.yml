@@ -1,0 +1,20 @@
+name: "Lines of comments to code ratio"
+on: [push]
+
+jobs:
+  cloc:
+    runs-on: self-hosted
+    steps:
+      - name: Check-out repo.
+        uses: actions/checkout@v4
+
+      - name: Count Lines of Code (cloc)
+        uses: djdefi/cloc-action@6
+        with:
+          options: --out=commentsReport.md --by-percent=cm --by-file-by-lang --exclude-dir=node_modules --exclude-lang=JSON,make,Markdown,Text,reStructuredText,BAT,YAML
+
+      - name: Upload CLOC output as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commentsReport 
+          path: ./commentsReport.md

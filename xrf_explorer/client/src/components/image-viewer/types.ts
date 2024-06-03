@@ -31,6 +31,18 @@ export type LayerUniform = {
    */
   iIndex: { value: number };
   /**
+   * The type of the layer, determines how the shader uses auxiliary data to render the layer.
+   */
+  iLayerType: { value: LayerType };
+  /**
+   * Contains a single number of auxiliary data.
+   */
+  iAuxiliary?: { value: number };
+  /**
+   * Contains a data texture of auxiliary data.
+   */
+  tAuxiliary?: { value: THREE.Texture; type: "t" };
+  /**
    * The current size and location of the viewport.
    */
   iViewport: { value: THREE.Vector4 };
@@ -50,6 +62,22 @@ export type LayerUniform = {
    * The opacity that the layer should be drawn at.
    */
   uOpacity: { value: number };
+  /**
+   * The contrast that the layer should be drawn at.
+   */
+  uContrast: { value: number };
+  /**
+   * The saturation that the layer should be drawn at.
+   */
+  uSaturation: { value: number };
+  /**
+   * The gamma that the layer should be drawn at.
+   */
+  uGamma: { value: number };
+  /**
+   * The brightness that the layer should be drawn at.
+   */
+  uBrightness: { value: number };
   /**
    * The location of the mouse in WebGL coordinates.
    */
@@ -85,16 +113,12 @@ export type ToolState = {
 /**
  * The different tools in the image viewer.
  */
-export type Tool = "grab" | "lens" | "lasso";
+export type Tool = "grab" | "lens" | "rectangle" | "lasso";
 
 /**
  * Type describing a group of layers as used in the LayerSystem.
  */
 export type LayerGroup = {
-  /**
-   * The type of this layer group.
-   */
-  type: "base" | "contextual" | "elemental" | "colorSegmentation" | "dimensionalityReduction";
   /**
    * The name of this group of layers.
    */
@@ -123,6 +147,22 @@ export type LayerGroup = {
    * Opacity of the layers in this group.
    */
   opacity: number[];
+  /**
+   * Contrast of the layers in this group.
+   */
+  contrast: number[];
+  /**
+   * Saturation of the layers in this group.
+   */
+  saturation: number[];
+  /**
+   * Gamma of the layers in this group.
+   */
+  gamma: number[];
+  /**
+   * Brightness of the layers in this group.
+   */
+  brightness: number[];
 };
 
 /**
@@ -133,6 +173,16 @@ export enum LayerVisibility {
   Visible = 1,
   InsideLens = 2,
   OutsideLens = 3,
+}
+
+/**
+ * Indicates the type of a layer.
+ */
+export enum LayerType {
+  Image = 0,
+  Elemental = 1,
+  ColorSegmentation = 2,
+  DimensionalityReduction = 3,
 }
 
 /**

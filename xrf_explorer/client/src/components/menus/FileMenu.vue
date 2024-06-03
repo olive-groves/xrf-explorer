@@ -1,20 +1,60 @@
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, h, inject, markRaw } from "vue";
 import { useFetch } from "@vueuse/core";
+import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarItem } from "@/components/ui/menubar";
 import { DialogMenuItem } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
+import { appState } from "@/lib/appState";
+import { titleCase } from "title-case";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
-const { data } = useFetch(`${config.api.endpoint}/available_data_sources`).get().json();
-const files = computed(() => {
-  return data.value as Array<string>;
+const request = useFetch(`${config.api.endpoint}/datasources`);
+const sources = computed(() => {
+  return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });
+
+/**
+ * Loads a workspace from the backend.
+ * @param source - The source to load.
+ */
+function loadWorkspace(source: string) {
+  fetch(`${config.api.endpoint}/${source}/workspace`).then(
+    async (value) => {
+      value.json().then(
+        (workspace) => {
+          toast.info(`Loading workspace ${titleCase(source)}`, {
+            description: "This should take less than a minute",
+          });
+          console.info(`Loading workspace ${source}`);
+          appState.workspace = workspace;
+        },
+        () =>
+          toast.error(`Failed to load workspace ${titleCase(source)}`, {
+            description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
+          }),
+      );
+    },
+    () =>
+      toast.error(`Failed to load workspace ${titleCase(source)}`, {
+        description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
+      }),
+  );
+}
 </script>
 
 <template>
-  <DialogMenuItem v-for="file in files" :key="file" :id="`open_file_${file}`">
-    {{ file }}
-  </DialogMenuItem>
+  <MenubarMenu>
+    <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
+    <MenubarContent>
+      <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
+      <MenubarSeparator />
+      <MenubarItem disabled v-if="sources.length <= 0">No data sources available</MenubarItem>
+      <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
+        {{ titleCase(source) }}
+      </MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
 </template>

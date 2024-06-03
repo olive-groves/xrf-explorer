@@ -1,0 +1,242 @@
+import numpy as np
+from os.path import exists, dirname
+import logging
+import csv
+from cv2 import (
+    imread,
+    imwrite,
+    IMREAD_UNCHANGED,
+    warpPerspective,
+    getPerspectiveTransform,
+    INTER_AREA,
+    resize,
+)
+
+from numpy._typing import NDArray
+from cv2.typing import MatLike
+from xrf_explorer.server.file_system.from_dms import (
+    get_elemental_datacube_dimensions_from_dms,
+)
+
+LOG: logging.Logger = logging.getLogger(__name__)
+
+
+def load_image_toregister(path_image_toregister: str) -> MatLike | None:
+    """Loads an image from the specified path. Preserves the alpha channel of .png files.
+    
+    :param path_image_toregister: Path of the image to be loaded for registering.
+    :return: A MatLike representation of the image. If the image cannot be read, it returns None
+    """
+
+    if path_image_toregister.endswith(".png"):  # Preserve the alpha channel if a PNG.
+        image_toregister = imread(path_image_toregister, IMREAD_UNCHANGED)
+        if (
+            image_toregister.ndim == 2
+        ):  # ...but if the PNG is monochannel, redo the imread and let cv2 determine how.
+            image_toregister = imread(path_image_toregister)
+    else:
+        image_toregister = imread(path_image_toregister)
+
+    if image_toregister is None:
+        LOG.error("Image could not be loaded.")
+
+    return image_toregister
+
+
+def resize_image_fit_aspect_ratio(
+    image_resize: MatLike, image_reference_height: int, image_reference_width: int
+) -> MatLike:
+    """Resizes an image to the aspect ratio calculated by the reference image width
+    and height (image_reference_width, image_reference_height).
+
+    :param image_resize: A MatLike representation of the image to be resized.
+    :param image_reference_height: The height of the reference image (in number of pixels).
+    :param image_reference_width: The width of the reference image (in number of pixels).
+    :return: A MatLike representation of the resized image.
+    """
+
+    image_register_height, image_register_width = image_resize.shape[:2]
+
+    aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
+    aspect_toregister = image_register_width / image_register_height  # w/h (e.g., 16:9)
+
+    image_toregister_resize_width = None
+    image_toregister_resize_height = None
+
+    if aspect_toregister > aspect_reference:
+        # If the toregister is wider than the reference, resize toregister to match widths
+        image_toregister_resize_width = image_reference_width
+        image_toregister_resize_height = int(image_reference_width / aspect_toregister)
+    else:
+        # If the toregister is narrower or equi-aspect to the reference, resize toregister to match heights
+        image_toregister_resize_height = image_reference_height
+        image_toregister_resize_width = int(
+            image_toregister_resize_height * aspect_toregister
+        )
+
+    return resize(
+        image_resize,
+        (image_toregister_resize_width, image_toregister_resize_height),
+        interpolation=INTER_AREA,
+    )
+
+
+def pad_image_to_match_size(
+    image_to_pad: MatLike, image_reference_height: int, image_reference_width: int
+) -> MatLike:
+    """Pads the image to match the size of the reference image (given by image_reference_width
+    and image_reference_height).
+
+    :param image_to_pad: A MatLike representation of the image to be padded.
+    :param image_referece_width: The width of the reference image.
+    :return: A MatLike representation of the resized image.
+    """
+
+    image_register_height, image_register_width = image_to_pad.shape[:2]
+
+    # NOTE: either add_rows or add_cols must be 0, since the resizing matches either the height or the width of the image to be image_registered
+    add_rows = image_reference_height - image_register_height
+    add_cols = image_reference_width - image_register_width
+
+    if image_to_pad.ndim == 2:
+        return np.pad(image_to_pad, ((0, add_rows), (0, add_cols)), "constant")
+    else:
+        return np.pad(
+            image_to_pad,
+            ((0, add_rows), (0, add_cols), (0, 0)),
+            "constant",
+        )
+
+
+def apply_prespective_transformation(
+    image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
+) -> MatLike:
+    """Applies a perspective transformation on an image based on source and destination points.
+    :param image_to_transform: A MatLike representation of the image to be transoformed.
+    :param points_src: A MatLike representation of the source points.
+    :param points_dst: A MatLike representation of the destination points.
+    """
+
+    image_height, image_width = image_to_transform.shape[:2]
+
+    transform = getPerspectiveTransform(points_src, points_dest)
+
+    return warpPerspective(image_to_transform, transform, (image_width, image_height))
+
+
+def load_points(
+    path_points_csv_file: str,
+) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
+    """Loads the control points for the transformation from a CSV file, as generated by the
+    butterfly_registrator
+
+    :param path_points_csv_file: Path of the csv file.
+    :return: A tuple containing a numpy array with the source points at index 0 and a
+    numpy array with the destination points at index 1.
+    """
+
+    points_source: list[list[np.float32]] = []
+    points_destination: list[list[np.float32]] = []
+
+    with open(path_points_csv_file, "r", newline="") as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter="|")
+        points_list = list(csv_reader)[-4:]
+
+        for row in points_list:
+            row = [np.float32(el) for el in row]
+            points_source.append(row[2:])
+            points_destination.append(row[:2])
+
+    return np.array(points_source), np.array(points_destination)
+
+
+def register_image_to_image(
+    path_image_reference: str,
+    path_image_register: str,
+    path_csv_points: str,
+    path_result_registered_image: str,
+) -> bool:
+    """
+    Registers an image to align with a reference image by resizing, padding, and applying
+    perspective transformation. It uses control points from a CSV, generated by the butterfly_registrator,
+    to apply the prespective transformation.
+
+    :param path_image_reference: The path of the reference image.
+    :path path_image_register: The path of the image to be registered.
+    :path path_csv_points: The path of the .csv file.
+    :param path_result_registered_image: The path where the registered image will be uploaded to.
+    :return: True if the registered image has been written to the specified path successfully and false otherwise.
+    """
+
+    image_reference = imread(path_image_reference)
+    image_register = load_image_toregister(path_image_register)
+
+    if image_reference is None:
+        LOG.error("Reference image could not be loaded")
+        return False
+
+    if image_register is None:
+        LOG.error("Image for registering could not be loaded")
+        return False
+
+    if not exists(path_csv_points):
+        LOG.error(f"Control points file could not be found at {path_csv_points}")
+        return False
+
+    path_result_dirname = dirname(path_result_registered_image)
+    if not exists(path_result_dirname):
+        LOG.error(
+            f"Registered image could not be saved at {path_result_dirname} because directory does not exist."
+        )
+        return False
+
+    image_reference_height, image_reference_width = image_reference.shape[:2]
+
+    image_register_resize = resize_image_fit_aspect_ratio(
+        image_register, image_reference_height, image_reference_width
+    )
+
+    image_register_pad = pad_image_to_match_size(
+        image_register_resize, image_reference_height, image_reference_width
+    )
+    points_source, points_destination = load_points(path_csv_points)
+    image_registered = apply_prespective_transformation(
+        image_register_pad, points_source, points_destination
+    )
+
+    return imwrite(path_result_registered_image, image_registered)
+
+
+def register_image_to_data_cube(
+    path_data_cube: str, path_image_register: str, path_result_registered_image: str
+) -> bool:
+    """
+    Registers an image (given by the path path_image_register) to align with the dimensions of the data cube (given by the path path_data_cube).
+
+    :param path_data_cube: The path of the data cube.
+    :param path_image_register: The path of the image to be registered.
+    :param path_result_registered_image: The path where the registered image will be saved.
+    :return: True if the registered image has been written to the specified path successfully and false otherwise.
+    """
+
+    path_result_dirname = dirname(path_result_registered_image)
+    if not exists(path_result_dirname):
+        LOG.error(
+            f"Registered image could not be saved at {path_result_registered_image} because directory does not exist."
+        )
+        return False
+
+    if not exists(path_data_cube):
+        LOG.error(f"Data cube not found at {path_data_cube}")
+        return False
+
+    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
+    image_register = imread(path_image_register)
+
+    if image_register is None:
+        LOG.error(f"Image for registering not found at {path_image_register}")
+        return False
+
+    image_resized = resize(image_register, (cube_w, cube_h))
+
+    return imwrite(path_result_registered_image, image_resized)

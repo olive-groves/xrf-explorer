@@ -1,16 +1,22 @@
+from logging import INFO
+
 import sys
 
+from os import remove
 from os.path import join
 from pathlib import Path
 
-from numpy import ndarray, empty, array_equal
-from pytest import raises
-from werkzeug.datastructures.file_storage import FileStorage
+from numpy import ndarray, empty, array_equal, array, float32
+
+from xrf_explorer.server.file_system.config_handler import load_yml
 
 sys.path.append('.')
 
-from xrf_explorer.server.file_system.element_data import \
-    get_element_names, get_element_averages, get_elemental_datacube, get_elemental_datacube_dimensions
+from xrf_explorer.server.file_system import (
+    get_elemental_data_cube, get_elemental_map, 
+    get_element_names, get_element_averages,
+    to_dms    
+)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -18,84 +24,109 @@ RESOURCES_PATH: Path = Path('tests', 'resources')
 class TestElementalData:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
 
-    def get_filestorage_object(self, path: str) -> FileStorage:
-        with open(path, 'rb') as f:
-            file_storage: FileStorage = FileStorage(f)
-        return file_storage
+    DATA_CUBE_DMS: str = 'test.dms'
+    DATA_CUBE_CSV: str = 'test.csv'
+    NAME_CUBE_FROM_CSV: str = 'cube_from_csv'
+    NON_EXISTING_CUBE: str = 'non-existing.dms'
 
-    def test_config_not_found_names(self, caplog):
+    ELEMENTS: list[str] = ["Secret", "Element"]
+    RAW_ELEMENTAL_CUBE: ndarray = array([
+        [[-1, -2, -3], [-4, -5, -6], [-7, -8, -9]], 
+        [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        ], dtype=float32)
+
+    def do_test_get_element_names(self, source, caplog):
+        caplog.set_level(INFO)
+
         # setup
-        expected_output: str = "Failed to access config"
+        expected_output: str = f"Elements loaded. Total elements: {len(self.ELEMENTS)}"
+        
+        # load custom config
+        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        path: str = join(Path(custom_config["uploads-folder"]), source)
 
         # execute
-        result: list[str] = get_element_names("imaginary-config-file.yml")
+        result: list[str] = get_element_names(path)
         
         # verify
-        assert len(result) == 0
+        assert len(result) == 2
+        assert result == self.ELEMENTS
+        assert expected_output in caplog.text
+    
+    def do_test_get_elemental_cube(self, source, caplog):
+        caplog.set_level(INFO)
+
+        # setup
+        expected_output: str = f"Elemental data cube loaded. Shape: {self.RAW_ELEMENTAL_CUBE.shape}"
+        
+        # load custom config
+        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        path: str = join(Path(custom_config["uploads-folder"]), source)
+
+        # execute
+        result: ndarray = get_elemental_data_cube(path)
+        
+        # verify
+        assert array_equal(result, self.RAW_ELEMENTAL_CUBE)
         assert expected_output in caplog.text
 
-    def test_config_not_found_raw(self, caplog):
+    def do_test_get_elemental_map(self, source, caplog):
+        caplog.set_level(INFO)
+
         # setup
-        expected_output: str = "Failed to access config"
+        elemental_map: ndarray = self.RAW_ELEMENTAL_CUBE[0]
+        expected_output: str = f"Elemental map loaded. Shape: {elemental_map.shape}"
+        
+        # load custom config
+        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        path: str = join(Path(custom_config["uploads-folder"]), source)
 
         # execute
-        result: ndarray = get_elemental_datacube("imaginary-config-file.yml")
+        result: ndarray = get_elemental_map(0, path)
         
         # verify
-        assert array_equal(result, empty(0))
+        assert array_equal(result, elemental_map)
         assert expected_output in caplog.text
 
-    def test_config_not_found_averages(self, caplog):
-        # setup
-        expected_output: str = "Failed to access config"
+    def test_get_element_names(self, caplog):
+        self.do_test_get_element_names(self.DATA_CUBE_DMS, caplog)
+        self.do_test_get_element_names(self.DATA_CUBE_CSV, caplog)
+    
+    def test_get_elemental_cube(self, caplog):
+        self.do_test_get_elemental_cube(self.DATA_CUBE_DMS, caplog)
+        self.do_test_get_elemental_cube(self.DATA_CUBE_CSV, caplog)
 
+    def test_get_elemental_map(self, caplog):
+        self.do_test_get_elemental_map(self.DATA_CUBE_DMS, caplog)
+        self.do_test_get_elemental_map(self.DATA_CUBE_CSV, caplog)
+
+    def test_get_element_averages(self, caplog):
+        caplog.set_level(INFO)
+
+        # setup
+        expected_output: str = "Calculated the average composition of the elements."
+        
+        # load custom config
+        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        path: str = join(Path(custom_config["uploads-folder"]), self.DATA_CUBE_DMS)
+        
         # execute
-        result: list[dict[str, str | float]] = get_element_averages("imaginary-config-file.yml")
+        result: list[dict[str, str | float]] = get_element_averages(path)
         
         # verify
-        assert len(result) == 0
+        assert len(result) == 2
+        assert result[0]['name'] == self.ELEMENTS[0]
+        assert result[1]['name'] == self.ELEMENTS[1]
         assert expected_output in caplog.text
 
-    def test_file_not_found_names(self, caplog):
-        # setup
-        expected_output: str = "Could not read elemental data file"
-
+    def test_csv_to_dms(self, caplog):
         # execute
-        result: list[str] = get_element_names(self.CUSTOM_CONFIG_PATH)
-        
-        # verify
-        assert len(result) == 0
-        assert expected_output in caplog.text
+        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS, self.CUSTOM_CONFIG_PATH)
 
-    def test_file_not_found_raw(self, caplog):
-        # setup
-        expected_output: str = "Could not read elemental data file"
-        
-        # execute
-        result: ndarray = get_elemental_datacube(self.CUSTOM_CONFIG_PATH)
-        
         # verify
-        assert array_equal(result, empty(0))
-        assert expected_output in caplog.text
+        assert result
+        self.do_test_get_element_names(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
+        self.do_test_get_elemental_cube(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
 
-    def test_file_not_found_averages(self, caplog):
-        # setup
-        expected_output: str = "Couldn't parse elemental image cube or list of names"
-        
-        # execute
-        result: list[dict[str, str | float]] = get_element_averages(self.CUSTOM_CONFIG_PATH)
-        
-        # verify
-        assert len(result) == 0
-        assert expected_output in caplog.text
-
-    def test_file_not_found_dimensions(self):
-        # setup
-        expected_output: str = "failed to decode header using \'ascii\' encoding"
-        
-        # execute
-        with raises(UnicodeError) as e:
-            get_elemental_datacube_dimensions("imaginary-file.dms")
-        
-        # verify
-        assert expected_output in str(e.value)
+        # cleanup
+        remove(join(RESOURCES_PATH, "file_system", "test_elemental_data", self.NAME_CUBE_FROM_CSV + '.dms'))

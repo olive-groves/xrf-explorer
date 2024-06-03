@@ -1,7 +1,0 @@
-dependencies:
-  - python=3.7
-  - pip
-  - flask
-  - waitress
-  - pip:
-      - -r requirements.txt
