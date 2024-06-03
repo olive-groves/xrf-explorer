@@ -2,7 +2,7 @@ uploads-folder: "tests/resources/dim_reduction"
 temp-folder: "tests/resources/dim_reduction"
 generated-folder: "tests/resources/dim_reduction"
 dim-reduction:
-  folder-name: "no_embedding"
+  folder-name: "embedding_present"
   max-samples: 100
   umap-parameters:
     n-neighbors: 10
