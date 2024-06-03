@@ -1,4 +1,5 @@
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_rgb_path
 from cv2 import imread
 import numpy as np
 from os.path import join, exists
@@ -85,17 +86,22 @@ def get_selected_data_cube(
         LOG.error(f"Data source directory {data_source_dir} does not exist.")
         return None
 
-    file = open(join(data_source_dir, "workspace.json"))
-    workspace_json = json.loads(file.read())
-    file.close()
+    # file = open(join(data_source_dir, "workspace.json"))
+    # workspace_json = json.loads(file.read())
+    # file.close()
 
-    base_img_name = workspace_json["baseImage"]["imageLocation"]
-    # NOTE we assume a single, full dms cube here. Refactor when stiching multiple dms
-    # files gets implemented
-    cube_name = workspace_json["elementalCubes"][0]["dmsLocation"]
+    # base_img_name = workspace_json["baseImage"]["imageLocation"]
+    # # NOTE we assume a single, full dms cube here. Refactor when stiching multiple dms
+    # # files gets implemented
+    # cube_name = workspace_json["elementalCubes"][0]["dmsLocation"]
 
-    base_img_dir = join(data_source_dir, base_img_name)
-    cube_dir = join(data_source_dir, cube_name)
+    # base_img_dir = join(data_source_dir, base_img_name)
+    # cube_dir = join(data_source_dir, cube_name)
+
+    cube_dir = get_elemental_cube_path(data_source_dir)
+    base_img_dir = get_rgb_path(data_source_dir)
+
+
 
     data_cube = get_elemental_data_cube(cube_dir)
 

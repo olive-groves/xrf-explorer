@@ -165,7 +165,7 @@ def get_rgb_name(data_source: str, config_path: str = "config/backend.yml") -> s
 
     return rgb_name
 
-def get_elemental_cube_path(data_source: str, config_path: str = "config/backend.yml") -> str:
+def get_rgb_path(data_source: str, config_path: str = "config/backend.yml") -> str:
     """Get the path to rgb image of a data source.
 
     :param data_source: Name of the data source.
