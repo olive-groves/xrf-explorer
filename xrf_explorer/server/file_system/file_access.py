@@ -139,3 +139,50 @@ def parse_rpl(path: str) -> dict:
         LOG.error("Error while parsing rpl file: file empty")
                
     return map
+
+def get_rgb_name(data_source: str, config_path: str = "config/backend.yml") -> str:
+    """Get the name of the rgb image of a given datasource
+
+    :param datasource: Name of the datasource.
+    :param config_path: Path to the backend config file.
+    :return: Name of the rgb image.
+    """
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+
+    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
+    try:
+        with open(data_source_dir, 'r') as workspace:
+            data_json: str = workspace.read()
+            data = json.loads(data_json)
+            rgb_name: str = data["baseImage"]["imageLocation"]
+    except OSError as err:
+        LOG.error("Error while getting elemental cube name: {%s}", err)
+        return 400
+
+    return rgb_name
+
+def get_elemental_cube_path(data_source: str, config_path: str = "config/backend.yml") -> str:
+    """Get the path to rgb image of a data source.
+
+    :param data_source: Name of the data source.
+    :param config_path: Path to the backend config file.
+    :return: Path to the rgb image.
+    """
+    # load backend config
+    backend_config: dict = load_yml(config_path)
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+
+    filename: str = get_rgb_name(data_source, config_path)
+    path: str = join(Path(backend_config["uploads-folder"]), data_source, filename)
+
+    #raise error is the path does not exist
+    if not isfile(path):
+        raise OSError("Provided datasource does not have an elemental cube file")
+
+    return path
