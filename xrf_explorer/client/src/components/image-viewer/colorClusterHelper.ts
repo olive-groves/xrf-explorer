@@ -1,5 +1,5 @@
 import { appState, datasource } from "@/lib/appState";
-import { computed, watch, inject } from "vue";
+import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { useFetch } from "@vueuse/core";
 import { LayerType, Layer } from "./types";
@@ -10,13 +10,13 @@ import { hexToRgb } from "@/lib/utils";
 import { layerGroupDefaults } from "./workspace";
 
 // const config = inject<FrontendConfig>("config")!;
-// TODO: use config.api.endpoint here instead of hardcoding
+// We should use config.api.endpoint here instead of hardcoding
 const API_ENDPOINT: string = "http://localhost:8001/api";
 const selection = computed(() => appState.selection.colorSegmentation);
 
 let num_elements = 26;
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
-const width = 256; 
+const width = 256;
 // Arbitrary amount, needs to be greater than maximum number of clusters.
 const height = 32;
 // One data entry for each of the elements + one for the whole picture
@@ -72,6 +72,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
 
 /**
  * Gets the names of the image files for each element.
+ * @returns List of filenames for each element.
  */
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
@@ -87,7 +88,7 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
   // For simplicity, we put the image-wide bitmask first
   const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_color_cluster_bitmask`);
   reqUrl.searchParams.set("element", (0).toString());
-  const {response, data} = await useFetch(reqUrl.toString()).get().blob();
+  const { response, data } = await useFetch(reqUrl.toString()).get().blob();
 
   if (response.value?.ok && data.value != null) {
     filenames[0] = URL.createObjectURL(data.value).toString();
@@ -97,8 +98,8 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 
   for (let i = 1; i <= num_elements; i++) {
     const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_element_color_cluster_bitmask`);
-    reqUrl.searchParams.set("element", (i-1).toString());
-    const {response, data} = await useFetch(reqUrl.toString()).get().blob();
+    reqUrl.searchParams.set("element", (i - 1).toString());
+    const { response, data } = await useFetch(reqUrl.toString()).get().blob();
 
     if (response.value?.ok && data.value != null) {
       filenames[i] = URL.createObjectURL(data.value).toString();
@@ -112,7 +113,6 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 
 /**
  * Creates color segmentation layers (for whole image and element-wise layers).
- * @param workspace
  */
 export async function createColorClusterLayers() {
   const filenames = await getFilenames();
@@ -122,32 +122,33 @@ export async function createColorClusterLayers() {
   const layer = createLayer(
     `colorSegmenationImage`,
     {
-        name: `colorSegmenationImage`,
-        imageLocation: filenames[0],
-        recipeLocation: "recipe_cube.csv",
+      name: `colorSegmenationImage`,
+      imageLocation: filenames[0],
+      recipeLocation: "recipe_cube.csv",
     },
     false,
   );
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-  layers.push(layer)
+  layers.push(layer);
+
   // Element-wise color clusters
   for (let i = 1; i <= num_elements; i++) {
-      const layer = createLayer(
-        `colorSegmenationElem_${i}`,
-        {
-            name: `colorSegmenationElem_${i}`,
-            imageLocation: filenames[i],
-            recipeLocation: "recipe_cube.csv",
-        },
-        false,
-      );
-      layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-      // iAuxiliary passes corresponding element index [1, num_elements]
-      layer.uniform.iAuxiliary = { value: i };
-      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-      layers.push(layer);
+    const layer = createLayer(
+      `colorSegmenationElem_${i}`,
+      {
+        name: `colorSegmenationElem_${i}`,
+        imageLocation: filenames[i],
+        recipeLocation: "recipe_cube.csv",
+      },
+      false,
+    );
+    layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+    // iAuxiliary passes corresponding element index [1, num_elements]
+    layer.uniform.iAuxiliary = { value: i };
+    layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+    layers.push(layer);
   }
 
   layerGroups.value.colorClusters = {

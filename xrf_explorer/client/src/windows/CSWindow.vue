@@ -2,7 +2,7 @@
 import { ref, inject, computed, watch } from "vue";
 import { appState, datasource } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
-import { ColorSegmentationSelection } from "@/lib/selection"
+import { ColorSegmentationSelection } from "@/lib/selection";
 import { FrontendConfig } from "@/lib/config";
 import {
   Select,
@@ -24,7 +24,7 @@ const elements = ref<string[]>([]);
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-watch(datasource,  () => {
+watch(datasource, () => {
   setup();
 });
 
@@ -40,7 +40,7 @@ watch(colorsElements, () => {
 
 // Watch for changes in selectedElement and update colors accordingly
 watch(selectedElement, (newValue) => {
-  selection.value.forEach(channel => {
+  selection.value.forEach((channel) => {
     channel.selected = false;
   });
   if (newValue === "complete") {
@@ -49,7 +49,7 @@ watch(selectedElement, (newValue) => {
   } else if (newValue) {
     colors.value = colorsElements.value[newValue] || [];
     selectedChannel.value = -1;
-  } 
+  }
 });
 
 /**
@@ -57,7 +57,7 @@ watch(selectedElement, (newValue) => {
  * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
- async function fetchColors(url: string) {
+async function fetchColors(url: string) {
   try {
     const response = await fetch(`${url}/${datasource.value}/get_color_cluster`);
     if (!response.ok) throw new Error("Failed to fetch colors");
@@ -74,13 +74,12 @@ watch(selectedElement, (newValue) => {
   }
 }
 
-
 /**
  * Fetch the hexadecimal colors data per element.
  * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
- async function fetchElementColors(url: string) {
+async function fetchElementColors(url: string) {
   try {
     const response = await fetch(`${url}/${datasource.value}/get_element_color_cluster`);
     if (!response.ok) throw new Error("Failed to fetch element colors");
@@ -104,7 +103,7 @@ watch(selectedElement, (newValue) => {
  * @param url URL to the server API endpoint which provides the elements names.
  * @returns True if the names were fetched successfully, false otherwise.
  */
- async function fetchElements(url: string) {
+async function fetchElements(url: string) {
   // Make API call
   const response: Response = await fetch(`${url}/${appState.workspace?.name}/element_names`, {
     method: "GET",
@@ -145,8 +144,6 @@ watch(selectedElement, (newValue) => {
   return fetchSuccessful;
 }
 
-
-
 /**
  * Show the colors and element names, and initialize CS selection.
  */
@@ -161,11 +158,11 @@ async function setup() {
   // Initialize CS selection
   for (let i = 0; i <= elements.value.length; i++) {
     const sel: ColorSegmentationSelection = {
-      element: i, 
-      channel: 1, 
-      selected: false, 
+      element: i,
+      channel: 1,
+      selected: false,
       prevChannel: 1,
-      color: "#FFFFFF",
+      color: "#ffffff",
     };
     selection.value.push(sel);
   }
@@ -192,7 +189,7 @@ async function setup() {
  */
 function setSelection(selectedElement: string, color: string, colorIndex: number) {
   // Deselect all channels
-  selection.value.forEach(channel => {
+  selection.value.forEach((channel) => {
     channel.selected = false;
   });
 
@@ -201,7 +198,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   if (selectedElement == "complete") {
     index = 0;
   } else {
-    index = elements.value.findIndex(element => element === selectedElement) + 1;
+    index = elements.value.findIndex((element) => element === selectedElement) + 1;
     if (index == 0) {
       console.error("Error fetching selected element");
       return;
@@ -215,56 +212,36 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   selection.value[index].color = color;
   selection.value[index].selected = true;
 }
-
 </script>
-
-
-<style scoped>
-/**
- * Shape of clusters in color palette
- */
-.color-shape {
-  width: 70px; 
-  height: 100px; /* Adjust height*/
-  border-radius: 10%; /* Makes rounded edges */
-  margin: 5px; /* Adds space between the shapes */
-  display: inline-block; /* Allows shapes to line up horizontally */
-}
-
-.color-shape.selected {
-  border: 2px solid #FFFFFF;
-}
-
-</style>
 
 <template>
   <Window title="Color Segmentation Window" opened location="right">
     <!-- SELECTION MENU -->
     <div class="mt-1 flex items-center">
       <Select v-model="selectedElement">
-        <SelectTrigger class="ml-1 mb-2 w-40">
+        <SelectTrigger class="mb-2 ml-1 w-40">
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Elements</SelectLabel>
             <SelectItem value="complete"> Complete painting </SelectItem>
-            <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }}  </SelectItem>
+            <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }} </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
     </div>
 
-    <!-- COLOR PALETTE --> 
-    <div v-if="selectedElement" class="color-palette">
-      <div 
-        v-for="(color, colorIndex) in colors" 
-        :key="color" 
-        class="color-shape" 
-        :style="{'background-color': color}"
-        :class="{'selected': selectedChannel === colorIndex}"
+    <!-- COLOR PALETTE -->
+    <div v-if="selectedElement" class="flex flex-wrap">
+      <div
+        v-for="(color, colorIndex) in colors"
+        :key="color"
+        :style="{ 'background-color': color }"
+        class="m-1 inline-block h-24 w-16 rounded-md"
+        :class="{ 'border-2 border-white': selectedChannel === colorIndex }"
         @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
     </div>
-    </Window>
-  </template>
+  </Window>
+</template>
