@@ -201,6 +201,22 @@ def list_element_names(data_source: str):
         return "Error occurred while listing element names", 500
 
 
+@app.route("/api/<data_source>/get_number_of_elements")
+def get_number_of_elements(data_source: str):
+    """Gives the total number of elements.
+    
+    :param data_source: data_source to get the element names from
+    :return: json with number of elements.
+    """
+    try:
+        path: str = get_elemental_cube_path(data_source)
+        length: int = len(get_short_element_names(path))
+        return str(length)
+    except Exception as e:
+        LOG.error(f"Failed to get the number of elements: {str(e)}")
+        return "Error occurred while getting number of elements", 500
+
+
 @app.route("/api/get_dr_embedding")
 def get_dr_embedding():
     """Generate the dimensionality reduction embedding of an element, given a threshold.
@@ -345,7 +361,7 @@ def get_color_clusters(data_source: str):
 
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(image, 100, 100, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(image, width, height, nr_attempts, k)
 
     # Merge similar clusters
     colors, _ = merge_similar_colors(colors, bitmasks)
@@ -406,7 +422,7 @@ def get_element_color_cluster(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, 100, 100, nr_attempts, k)
+                                                             image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
 
     color_data: list[list[str]] = []
     for i in range(len(colors_per_elem)):

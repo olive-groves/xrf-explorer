@@ -14,7 +14,7 @@ import { layerGroupDefaults } from "./workspace";
 const API_ENDPOINT: string = "http://localhost:8001/api";
 const selection = computed(() => appState.selection.colorSegmentation);
 
-const num_elements = 26;
+let num_elements = 26;
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
 const width = 256; 
 // Arbitrary amount, needs to be greater than maximum number of clusters.
@@ -75,6 +75,14 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
 
+  // Get number of elements
+  const response1 = await fetch(`${API_ENDPOINT}/${datasource.value}/get_number_of_elements`);
+  if (!response1.ok) {
+    throw new Error(`HTTP error! status: ${response1.status}`);
+  }
+  const responseText = await response1.text();
+  num_elements = parseInt(responseText);
+
   // For simplicity, we put the image-wide bitmask first
   const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_color_cluster_bitmask`);
   reqUrl.searchParams.set("element", (0).toString());
@@ -82,20 +90,17 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 
   if (response.value?.ok && data.value != null) {
     filenames[0] = URL.createObjectURL(data.value).toString();
-    console.log(filenames[0]);
   } else {
     throw new Error("Failed to fetch colors");
   }
 
   for (let i = 1; i <= num_elements; i++) {
-
     const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_element_color_cluster_bitmask`);
     reqUrl.searchParams.set("element", (i-1).toString());
     const {response, data} = await useFetch(reqUrl.toString()).get().blob();
 
     if (response.value?.ok && data.value != null) {
       filenames[i] = URL.createObjectURL(data.value).toString();
-      console.log(filenames[i]);
     } else {
       throw new Error("Failed to fetch colors");
     }
