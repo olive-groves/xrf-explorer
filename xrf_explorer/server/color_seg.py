@@ -113,12 +113,11 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
                                          elem_threshold: float = 0.1,
                                          image_width: int = -1,
                                          image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10, k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image: the image to apply the k-means on
     :param data_cube_path: the path to the data cube
-    :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param image_width: the width to resize the image before applying k-means, if -1, the data cube's
                         dimensions are used instead
@@ -173,7 +172,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
             bitmasks.append(np.empty(0))
             continue
 
-        # k cannot be bigger than number of elements
+        # k cannot be bigger than number of pixels w/element present 
         k = min(k, masked_image.size)
         labels: np.ndarray
         center: np.ndarray
@@ -181,7 +180,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
-        subset_indices: np.ndarray = np.array(np.nonzero(bitmask))
+        subset_indices: tuple[bool, ...] = np.nonzero(bitmask)
 
         # For each cluster
         for i in range(k):
@@ -198,7 +197,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
         colors.append(center)
         bitmasks.append(cluster_bitmasks)
 
-    return np.array(colors), np.array(bitmasks)
+    return colors, bitmasks
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
