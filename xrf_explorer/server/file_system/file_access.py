@@ -76,7 +76,7 @@ def get_elemental_cube_recipe_path(data_source: str, config_path: str = "config/
         LOG.error("Config is empty")
         return None
 
-    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source)
+    data_source_dir = join(backend_config["uploads-folder"], data_source)
     workspace_path = join(data_source_dir, "workspace.json")
     try:
         with open(workspace_path, 'r') as workspace:

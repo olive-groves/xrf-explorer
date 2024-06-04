@@ -2,7 +2,6 @@ from io import StringIO, BytesIO
 
 from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
-from numpy._typing import NDArray
 from werkzeug.utils import secure_filename
 from os.path import exists, abspath
 from os import mkdir
@@ -12,7 +11,7 @@ from numpy import ndarray
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
-                                                               get_contextual_image, get_contextual_image_image,
+                                                               get_contextual_image_image,
                                                                get_contextual_image_recipe_path)
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
@@ -238,6 +237,13 @@ def get_dr_overlay(data_source: str, overlay_type: str):
 
 @app.route("/api/<data_source>/image/<name>")
 def contextual_image(data_source: str, name: str):
+    """Get a contextual image.
+
+    :param data_source: data source to get the image from
+    :param name: the name of the image in workspace.json
+    :return: the contextual image converted to png
+    """
+
     path: str = get_contextual_image_path(data_source, name)
     if not path:
         return f"Image {name} not found in source {data_source}", 404
@@ -264,6 +270,13 @@ def contextual_image(data_source: str, name: str):
 
 @app.route("/api/<data_source>/image/<name>/size")
 def contextual_image_size(data_source: str, name: str):
+    """Get the size of a contextual image.
+
+    :param data_source: data source to get the image from
+    :param name: the name of the image in workspace.json
+    :return: the size of the contextual image
+    """
+
     path: str | None = get_contextual_image_path(data_source, name)
     if not path:
         return f"Image {name} not found in source {data_source}", 404
@@ -280,6 +293,13 @@ def contextual_image_size(data_source: str, name: str):
 
 @app.route("/api/<data_source>/image/<name>/recipe")
 def contextual_image_recipe(data_source: str, name: str):
+    """Get the registering recipe of a contextual image.
+
+    :param data_source: data source to get the image recipe from
+    :param name: the name of the image in workspace.json
+    :return: the registering recipe of the contextual image
+    """
+
     path: str | None = get_contextual_image_recipe_path(data_source, name)
     if not path:
         return f"Could not find recipe for image {name} in source {data_source}", 404
@@ -294,6 +314,12 @@ def contextual_image_recipe(data_source: str, name: str):
 
 @app.route("/api/<data_source>/data/size")
 def data_cube_size(data_source: str):
+    """Get the size of the data cubes.
+    
+    :param data_source: data source to get the size from
+    :return: the size of the data cubes
+    """
+
     # As XRF-Explorer only supports a single data cube, we take the size of the first spectral cube
     _, path = get_raw_rpl_paths(data_source)
 
@@ -309,6 +335,12 @@ def data_cube_size(data_source: str):
 
 @app.route("/api/<data_source>/data/recipe")
 def data_cube_recipe(data_source: str):
+    """Get the registering recipe for the data cubes.
+
+    :param data_source: data source to get the recipe from
+    :return: the registering recipe of the data cubes
+    """
+
     # As XRF-Explorer only supports a single data cube, we take the recipe of the first elemental cube
     path: str | None = get_elemental_cube_recipe_path(data_source)
     if not path:
