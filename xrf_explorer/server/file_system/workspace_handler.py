@@ -3,21 +3,20 @@ import logging
 from os.path import isfile, isdir, join
 from json import dump
 
-from .config_handler import load_yml
+from .config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_path_to_workspace(datasource: str, config_path: str = "config/backend.yml") -> str:
+def get_path_to_workspace(datasource: str) -> str:
     """Get the path to the workspace.json file for a given datasource.
     
     :param datasource: The name of the datasource
-    :param config_path: The path to the backend config file
     :return: The path to the workspace.json file for the given datasource. If the workspace does not exist, return an empty string.
     """
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ""
@@ -34,17 +33,16 @@ def get_path_to_workspace(datasource: str, config_path: str = "config/backend.ym
     return path_to_workspace
 
 
-def update_workspace(datasource: str, new_workspace: any, config_path: str = "config/backend.yml") -> bool:
+def update_workspace(datasource: str, new_workspace: any) -> bool:
     """Update the workspace.json file for a given datasource.
     
     :param datasource: The name of the datasource
     :param new_workspace: The data to write to the workspace
-    :param config_path: The path to the backend config file
     :return: True if the workspace was updated successfully, False otherwise.
     """
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return False

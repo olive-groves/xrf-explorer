@@ -25,15 +25,26 @@ from xrf_explorer.server.color_seg import (
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
-CONFIG_PATH: str = 'config/backend.yml'
-BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
 TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
 
 
 @app.route("/api")
 def api():
-    return "Welcome to the XRF-Explorer API"
+    """Returns a list of all api endpoints.
+
+    :return: list of api endpoints
+    """
+
+    routes: list[str] = []
+
+    for rule in app.url_map.iter_rules():
+        if rule.rule.startswith("/api"):
+            routes.append(rule.rule)
+
+    routes.sort()
+
+    return routes
 
 
 @app.route("/api/datasources")
@@ -103,7 +114,7 @@ def create_data_source_dir():
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_name_secure)
+    data_source_dir = join(get_config()["uploads-folder"], data_source_name_secure)
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -125,7 +136,7 @@ def delete_data_source():
     
     :request form attributes: **dir** - the directory name
     """
-    delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+    delete_dir = join(get_config()["uploads-folder"], request.form["dir"])
 
     if exists(delete_dir):
         rmtree(delete_dir)
@@ -144,7 +155,7 @@ def upload_file_chunk():
         **startByte** - the start byte from which bytes are uploaded \n 
         **chunkBytes** - the chunk  of bytes to upload
     """
-    file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+    file_dir = join(get_config()["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
 
@@ -353,16 +364,16 @@ def get_color_clusters():
     :return json containing the ordered list of colors
     '''
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    path_to_image: str = join(get_config()['uploads-folder'], TEMP_RGB_IMAGE)
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = get_config()['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
     nr_attemps: int = int(k_means_parameters['nr_attemps'])
     k: int = int(k_means_parameters['k'])
-    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+    path_to_save: str = get_config()['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
@@ -389,17 +400,20 @@ def get_element_color_cluster_bitmask(data_source: str):
     :param data_source: data_source to get the element averages from
     :return json containing the combined bitmasks of the color clusters for each element.
     '''
+    # get config
+    config = get_config()
+
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], TEMP_RGB_IMAGE)
+    path_to_image: str = join(config['uploads-folder'], TEMP_RGB_IMAGE)
     image: ndarray = get_image(path_to_image)
     data_cube_path: str = get_elemental_cube_path(data_source)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem_threshold'])
     nr_attemps: int = int(k_means_parameters['nr_attemps'])
     k: int = int(k_means_parameters['k'])
-    path_to_save: str = BACKEND_CONFIG['color-segmentation']['folder']
+    path_to_save: str = config['color-segmentation']['folder']
 
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
