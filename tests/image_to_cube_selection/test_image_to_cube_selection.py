@@ -5,30 +5,35 @@ import sys
 from os.path import join
 from pathlib import Path
 
-sys.path.append('.')
+sys.path.append(".")
 
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.image_to_cube_selection import get_selected_data_cube
+from xrf_explorer.server.image_to_cube_selection import (
+    get_selected_data_cube,
+    get_cube_coordinates,
+)
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join("tests", "resources")
+
 
 class TestImageToCubeSelection:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
-    PATH_DATA_SOURCE_DIR = "tests/resources/image_to_cube_selection"
+    CUSTOM_CONFIG_PATH: str = join(
+        RESOURCES_PATH, "configs", "image_to_cube_selection.yml"
+    )
 
     def test_get_selected_data_cube_dir_not_found(self, caplog):
         # setup
         first: tuple[int, int] = (0, 0)
         second: tuple[int, int] = (1, 1)
 
-        # load custom config
-        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
-        path: str = join(Path(custom_config["uploads-folder"]), "made/up/path")
-        expected_output: str = f"Data source directory {path} does not exist." 
+        data_source_folder_name: str = "made_up_name"
+        expected_output: str = (
+            f"Data source directory {data_source_folder_name} does not exist."
+        )
 
         # execute
         result: np.ndarray | None = get_selected_data_cube(
-            path, first, second
+            data_source_folder_name, first, second, self.CUSTOM_CONFIG_PATH
         )
 
         # verify
@@ -39,27 +44,36 @@ class TestImageToCubeSelection:
         # setup
         first: tuple[int, int] = (0, 0)
         second: tuple[int, int] = (1, 1)
-        path: str = join(RESOURCES_PATH, 'image_to_cube_selection')
+        data_source_dir_name: str = "Data_source"
 
         # result
         result: np.ndarray | None = get_selected_data_cube(
-            path, first, second
+            data_source_dir_name, first, second, self.CUSTOM_CONFIG_PATH
         )
 
         # verify
         assert result is not None
 
-    def test_get_selected_data_cube_dir_small(self):
-        # setup
-        first: tuple[int, int] = (0, 0)
-        second: tuple[int, int] = (3, 5)
-        path: str = join(RESOURCES_PATH, 'image_to_cube_selection')
-        expected_result: np.ndarray = (<lo que esperas>)
+    def test_get_cube_coordinates(self):
+        rgb_point_1 = (2, 6)
+        rgb_point_2 = (4, 10)
 
-        # result
-        result: np.ndarray | None = get_selected_data_cube(
-            path, first, second
+        data_cube_point_1 = (1, 3)
+        data_cube_point_2 = (2, 5)
+
+        base_image_height = 10
+        base_image_width = 10
+        cube_image_height = 5
+        cube_image_width = 5
+
+        data_cube_output_1, data_cube_output_2 = get_cube_coordinates(
+            rgb_point_1,
+            rgb_point_2,
+            base_image_width,
+            base_image_height,
+            cube_image_width,
+            cube_image_height,
         )
 
-        # verify
-        assert result == expected_result
+        assert data_cube_output_1 == data_cube_point_1
+        assert data_cube_output_2 == data_cube_point_2
