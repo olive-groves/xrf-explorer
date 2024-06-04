@@ -7,8 +7,10 @@ import numpy as np
 from umap import UMAP
 
 from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_ndarray_to_grayscale
-from xrf_explorer.server.dim_reduction.general import valid_element
+from xrf_explorer.server.file_system import (
+    get_elemental_data_cube, get_elemental_cube_path, normalize_ndarray_to_grayscale
+)
+from xrf_explorer.server.dim_reduction.general import valid_element, get_path_to_dr_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -72,7 +74,7 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     return indices, down_sampled
 
 
-def generate_embedding(path: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {},
+def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {},
                        config_path: str = "config/backend.yml") -> str:
     """Generate the embedding (lower dimensional representation of the data) of the
     elemental data cube using the dimensionality reduction method "UMAP". The embedding 
@@ -81,7 +83,7 @@ def generate_embedding(path: str, element: int, threshold: int, new_umap_paramet
     occur in the indices list is the same order as the positions of the mapped pixels in 
     the embedding.
 
-    :param path: The path to the elemental data cube.
+    :param data_source: The name of the data source to generate the embedding for.
     :param element: The element to generate the embedding for.
     :param threshold: The threshold to filter the data cube by.
     :param umap_parameters: The parameters passed on to the UMAP algorithm.
@@ -102,7 +104,8 @@ def generate_embedding(path: str, element: int, threshold: int, new_umap_paramet
     umap_parameters.update(new_umap_parameters)
 
     # get data cube
-    data_cube: np.ndarray = get_elemental_data_cube(path)
+    path_to_cube: str = get_elemental_cube_path(data_source, config_path)
+    data_cube: np.ndarray = get_elemental_data_cube(path_to_cube)
     if len(data_cube) == 0:
         return "error"
 
@@ -134,8 +137,7 @@ def generate_embedding(path: str, element: int, threshold: int, new_umap_paramet
         return "error"
 
     # get path to folder to store the embedding and the indices
-    generated_folder: str = backend_config['generated-folder']
-    dr_folder: str = join(generated_folder, backend_config['dim-reduction']['folder-name'])
+    dr_folder: str = get_path_to_dr_folder(data_source, config_path)
 
     # Check if the folder exists, otherwise create it
     if not isdir(dr_folder):

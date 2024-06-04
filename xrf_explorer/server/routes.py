@@ -16,7 +16,12 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.file_system.file_access import *
-from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
+from xrf_explorer.server.dim_reduction import (
+    generate_embedding, 
+    create_embedding_image, 
+    get_path_to_dr_folder,
+    get_image_of_indices_to_embedding
+)
 from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
     get_image, combine_bitmasks, get_clusters_using_k_means,
@@ -220,10 +225,10 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     """
 
     # Get path to elemental cube
-    path: str = get_elemental_cube_path(data_source)
+    # path: str = get_elemental_cube_path(data_source)
 
     # Try to generate the embedding
-    result = generate_embedding(path, element, threshold, request.args)
+    result = generate_embedding(data_source, element, threshold, request.args)
     if result == "success" or result == "downsampled":
         return result
 
@@ -246,6 +251,43 @@ def get_dr_overlay(data_source: str, overlay_type: str):
         abort(400)
 
     return send_file(abspath(image_path), mimetype='image/png')
+
+
+@app.route("/api/<data_source>/dr/embedding/mapping")
+def get_dr_embedding_mapping(data_source: str):
+    """Creates the image for lasso selection that decodes to which points in the embedding
+    the pixels of the elemental data cube are mapped. Uses the current embedding and indices
+    for the given data source to create the image.
+    
+    :param data_source: data source to get the overlay from
+    :return: image that decodes to which points in the embedding the pixels of the elemental data cube are mapped
+    """
+
+    # Try to get the image
+    image_path: str = get_image_of_indices_to_embedding(data_source)
+    if not image_path:
+        LOG.error("Failed to create DR indices to embedding image")
+        abort(400)
+
+    return send_file(abspath(image_path), mimetype='image/png')
+
+
+@app.route("/api/<data_source>/dr/dimensions")
+def get_dr_embedding_plot_dimensions(data_source: str):
+    """Gets the dimensions of the embedding image. Both the xlims and ylims of the plot and the min and max values of the embedding.
+    
+    :param data_source: data source to get the overlay from
+    :return: json with the xlims and ylims of the plot and the min and max values of the embedding
+    """
+
+    # Try to get the embedding image
+    path: str = abspath(join(get_path_to_dr_folder(data_source), 'dimensions.json'))
+                     
+    if not isfile(path):
+        LOG.error("Failed to find json file with embedding plot dimensions")
+        abort(404)
+
+    return send_file(path, mimetype='application/json')
 
 
 @app.route("/api/<data_source>/image/<name>")
