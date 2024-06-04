@@ -51,7 +51,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool = new SelectionTool(SelectionOption.Lasso);
+const selectionTool = new SelectionTool(SelectionOption.Rectangle);
 const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
@@ -158,33 +158,48 @@ function onMouseDown(event: MouseEvent) {
 
   // relay information to the backend
   if (selectionTool.finishedSelection)
-    uploadSelection()
+    updateEmbeddingDimensions()
 }
 
-function updateEmbeddingDimensions() {
+async function updateEmbeddingDimensions() {
+  let embeddingDimensions: {
+    xEmbedding: number[], xPlot: number[],
+    yEmbedding: number[], yPlot: number[]
+  } | null = null;
 
-}
+  fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
+      async (response) => {
+        response.json().then(
+            (dimensions) => {
+              // cast onto typed variable
+              embeddingDimensions = dimensions;
+              if (embeddingDimensions == null) {
+                toast.warning("An error occurred while parsing the Dimensionality Reduction selection.");
+                return;
+              }
 
-async function uploadSelection() {
-  const response: Response = await fetch(config.api.endpoint + "/dimensionality_reduction/selection",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: 'no-cors',
-        body: JSON.stringify({
-          selection_type: selectionTool.selectionType.valueOf(),
-          points: selectionTool.selectedPoints,
-        }),
+              // compute cropping
+              const xDelta: number = embeddingDimensions.xEmbedding[0] - embeddingDimensions.xPlot[0];
+              const xMax: number = embeddingDimensions.xPlot[1] - embeddingDimensions.xEmbedding[1];
+              const yDelta: number = embeddingDimensions.yEmbedding[0] - embeddingDimensions.yPlot[0];
+              const yMax: number = embeddingDimensions.yPlot[1] - embeddingDimensions.yPlot[1];
+
+              // adapt the coordinates of the selected points to the cropped embedding
+              for (const point of selectionTool.selectedPoints) {
+                point.x -= xDelta;                    // crop left side
+                point.y -= yDelta;                    // crop top side
+                if (point.x > xMax) point.x = xMax;   // crop right side
+                if (point.y > yMax) point.y = yMax;   // crop bottom side
+              }
+
+              console.info("received dimensions:  ", dimensions);
+              console.info("embedding dimensions: ", embeddingDimensions);
+            },
+            () => console.warn("Failed to get the DR embedding dimensions."),
+        );
       },
-  )
-  if (!response.ok) {
-    toast.warning("Could not connect to server.");
-    console.error("Failed to upload DR selection: ", response);
-  }
-  console.log(JSON.stringify({
-          selection_type: selectionTool.selectionType.valueOf(),
-          points: selectionTool.selectedPoints,
-        }))
+      () => console.warn("Failed to get the DR embedding dimensions."),
+  );
 }
 
 /**
