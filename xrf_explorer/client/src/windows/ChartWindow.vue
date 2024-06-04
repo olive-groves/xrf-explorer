@@ -4,7 +4,8 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { ElementSelection } from "@/lib/selection";
-import { appState, datasource } from "@/lib/appState";
+import { ElementalChannel } from "@/lib/workspace";
+import { appState, datasource, elements } from "@/lib/appState";
 
 const chart = ref(null);
 const config = inject<FrontendConfig>("config")!;
@@ -23,20 +24,23 @@ let svg = d3.select(chart.value);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
 
-// Elemental data averages
+// Elemental data averages for all elements
 let dataAverages: Element[] = [];
 
-// Visibility for all elements
+// Elements which are enabled for this workspace
+let workspaceElements: Element[] = [];
+
+// Whole element selection
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
-// Visibility of only selected elements
+// Element selection of only selected elements
 let displayedSelection: ElementSelection[] = [];
 
-// Actual displayed data, i.e. elements which are selected
+// Actual displayed data, i.e. elements which are selected and enabled
 let selectedData: Element[] = [];
 
 // Whether we should display the averages of elements outside the selection in grey
-const displayAll = ref(false);
+const displayAll = ref(true);
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -83,6 +87,16 @@ async function fetchAverages(url: string) {
   }
 
   return fetchSuccessful;
+}
+
+/**
+ * Update the workspace elements to be only the elements enabled for that workspace.
+ */
+function updateWorkspaceElements() {
+  const elementalChannels: ElementalChannel[] = elements.value;
+  workspaceElements = dataAverages.filter((_, i) =>
+    elementalChannels.some((channel) => i == channel.channel && channel.enabled),
+  );
 }
 
 /**
@@ -228,7 +242,7 @@ async function updateCharts() {
 
   // If we are displaying all elements, set that to be the data
   if (displayAll.value) {
-    selectedData = dataAverages;
+    selectedData = workspaceElements;
   }
 
   // Clear all previous instances of the chart
@@ -257,7 +271,10 @@ async function setupWindow() {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) {
-      // Checks if the data was fetched properly
+      // After having fetched the data, update the workspace elements
+      updateWorkspaceElements();
+
+      // Update the charts with the fetched data
       updateCharts();
     }
   } catch (e) {
@@ -273,7 +290,6 @@ watch(
   },
   { deep: true },
 );
-setupChart(dataAverages);
 </script>
 
 <template>

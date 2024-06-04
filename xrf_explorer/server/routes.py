@@ -336,6 +336,7 @@ def get_element_spectra():
 
     return response
 
+
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
 def get_selection_spectra(data_source):
     """Get the average spectrum of the selected pixels.
