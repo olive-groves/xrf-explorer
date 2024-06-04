@@ -52,16 +52,13 @@ export class SelectionTool {
     addPointToSelection(newPoint: Point2D) {
 
         // restart selection if the current selection is complete
-        if (this.finishedSelection) {
+        if (this.finishedSelection)
             this.cancelSelection();
-            console.log("Started new selection")
-        }
 
         // we're adding a new point so regardless of the state the user is definitely actively editing the selection.
         this.activeSelection = true;
         // add the new point to the selection
         this.selectedPoints.push(newPoint);
-        console.log("Added new point to selection at: ", newPoint.x, newPoint.y)
 
         switch (this.selectionType) {
             case SelectionOption.Lasso: {
@@ -75,13 +72,10 @@ export class SelectionTool {
             }
 
             default: {
-                console.log("Unrecognized selection type: " + this.selectionType);
+                console.warn("Unrecognized selection type: " + this.selectionType);
                 break;
             }
         }
-
-        if (this.finishedSelection)
-            console.log("Finished selection");
 
     }
 

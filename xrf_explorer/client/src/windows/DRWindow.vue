@@ -156,9 +156,21 @@ function onMouseDown(event: MouseEvent) {
   // update the SVG overlay
   drawSelection();
 
-  // relay information to the backend
-  if (selectionTool.finishedSelection)
-    updateEmbeddingDimensions()
+  // relay information to the image viewer
+  if (selectionTool.finishedSelection) {
+    console.info("Confirmed selection with " + selectionTool.selectedPoints.length + " points.");
+    communicateSelectionWithImageViewer();
+  }
+}
+
+async function communicateSelectionWithImageViewer() {
+  // update the selection points' coordinates to the embedding's coordinates;
+  if (selectionTool.selectedPoints.length != 0) await updateEmbeddingDimensions();
+  // communicate the relevant information to the image viewer using the app's state
+  appState.selection.drSelection = {
+    selectionType: selectionTool.selectionType,
+    points: selectionTool.selectedPoints,
+  };
 }
 
 async function updateEmbeddingDimensions() {
@@ -174,31 +186,39 @@ async function updateEmbeddingDimensions() {
               // cast onto typed variable
               embeddingDimensions = dimensions;
               if (embeddingDimensions == null) {
-                toast.warning("An error occurred while parsing the Dimensionality Reduction selection.");
+                toast.error("An error occurred while parsing the Dimensionality Reduction selection.");
                 return;
               }
 
               // compute cropping
-              const xDelta: number = embeddingDimensions.xEmbedding[0] - embeddingDimensions.xPlot[0];
-              const xMax: number = embeddingDimensions.xPlot[1] - embeddingDimensions.xEmbedding[1];
-              const yDelta: number = embeddingDimensions.yEmbedding[0] - embeddingDimensions.yPlot[0];
-              const yMax: number = embeddingDimensions.yPlot[1] - embeddingDimensions.yPlot[1];
+              const xDelta: number = dimensions.xembedrange[0] - dimensions.xplotrange[0];
+              const xMin: number = dimensions.xembedrange[0];
+              const xMax: number = dimensions.xplotrange[1] - dimensions.xembedrange[1];
+              const yMin: number = dimensions.yembedrange[0];
+              const yDelta: number = dimensions.yembedrange[0] - dimensions.yplotrange[0];
+              const yMax: number = dimensions.yplotrange[1] - dimensions.yembedrange[1];
 
               // adapt the coordinates of the selected points to the cropped embedding
               for (const point of selectionTool.selectedPoints) {
-                point.x -= xDelta;                    // crop left side
-                point.y -= yDelta;                    // crop top side
-                if (point.x > xMax) point.x = xMax;   // crop right side
-                if (point.y > yMax) point.y = yMax;   // crop bottom side
-              }
+                // crop left side
+                if (point.x < xMin) point.x = xMin;
+                else point.x -= xDelta;
 
-              console.info("received dimensions:  ", dimensions);
-              console.info("embedding dimensions: ", embeddingDimensions);
+                // crop right side
+                if (point.x > xMax) point.x = xMax;
+
+                // crop top side
+                if (point.y < yMin) point.y = yMin;
+                else point.y -= yDelta;
+
+                // crop bottom side
+                if (point.y > yMax) point.y = yMax;
+              }
             },
-            () => console.warn("Failed to get the DR embedding dimensions."),
+            () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
         );
       },
-      () => console.warn("Failed to get the DR embedding dimensions."),
+      () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
   );
 }
 
@@ -218,7 +238,7 @@ function drawSelection() {
   const image: HTMLElement | null = document.getElementById("image");
 
   if (image == null)
-    console.log("Could not find image element.");
+    console.error("Tried to draw selection but could not find image element in DR window.");
   else {
     // update dimensions with image element values to fit the SVG to the image
     const rect = image.getBoundingClientRect();

@@ -1,3 +1,6 @@
+import { Point2D } from "@/components/image-viewer/types.ts";
+import {SelectionOption} from "@/components/functional/selection/selection_tool.ts";
+
 /**
  * Type describing the current selection.
  * This is intended to be used to describe all the simultaneous selections.
@@ -13,6 +16,10 @@ export type Selection = {
    * Will be an empty array if no rectangle selection is active.
    */
   rectangles: RectangleSelection[];
+  /**
+   * Information regarding the selection made in the dimensionality reduction window.
+   */
+  drSelection: SelectionToolInfo;
   /**
    * The selection of elements made.
    */
@@ -63,6 +70,20 @@ export type RectangleSelection = {
    * The y coordinate of the second corner.
    */
   y2: number;
+};
+
+/**
+ * Describes a lasso selection using a list of points. Will be an empty list if no selection is made.
+ */
+export type SelectionToolInfo = {
+  /**
+   * The type of selection being used (Rectangle, Lasso, etc.)
+   */
+  selectionType: SelectionOption;
+  /**
+   * The list of points that make up the selection.
+   */
+  points: Point2D[];
 };
 
 /**
