@@ -6,6 +6,7 @@ import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
+import { Point2D } from "@/components/image-viewer/types";
 import { SelectionOption, SelectionTool } from "@/components/functional/selection/selection_tool.ts";
 import * as d3 from "d3";
 
@@ -51,7 +52,14 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool = new SelectionTool(SelectionOption.Rectangle);
+const selectionTool: SelectionTool = new SelectionTool(SelectionOption.Rectangle);
+let imageToEmbeddingCropping: {
+  xEmbedRange: number[], yEmbedRange: number[],
+  xPlotRange: number[], yPlotRange: number[]
+} = {
+  xEmbedRange: [], yEmbedRange: [],
+  xPlotRange: [], yPlotRange: [],
+}
 const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
@@ -124,12 +132,35 @@ async function updateEmbedding() {
 
     // Load the new embedding
     await fetchDRImage();
+
+    // Load the new values representing the difference between the image and the embedding
+    await updateImageToEmbeddingCropping();
     return;
   }
 
   // Set status to error
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
+}
+
+/**
+ * Get the new values representing the difference in dimensions between the image and the embedding.
+ */
+async function updateImageToEmbeddingCropping() {
+  fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
+      async (response) => {
+        response.json().then(
+            (dimensions) => {
+              imageToEmbeddingCropping.xEmbedRange = dimensions.xembedrange;
+              imageToEmbeddingCropping.yEmbedRange = dimensions.yembedrange;
+              imageToEmbeddingCropping.xPlotRange = dimensions.xplotrange;
+              imageToEmbeddingCropping.yPlotRange = dimensions.yplotrange;
+            },
+            () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
+        );
+      },
+      () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
+  );
 }
 
 function onMouseDown(event: MouseEvent) {
@@ -167,12 +198,13 @@ function onMouseDown(event: MouseEvent) {
  * Send the relevant information about the selection to the image viewer.
  */
 async function communicateSelectionWithImageViewer() {
+  let selectionPointsInEmbedding: Point2D[] = [];
   // update the selection points' coordinates to the embedding's coordinates;
-  if (selectionTool.selectedPoints.length != 0) await updateSelectionToEmbeddingDimensions();
+  if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
   // communicate the relevant information to the image viewer using the app's state
   appState.selection.drSelection = {
     selectionType: selectionTool.selectionType,
-    points: selectionTool.selectedPoints,
+    points: selectionPointsInEmbedding,
   };
 }
 
@@ -180,53 +212,34 @@ async function communicateSelectionWithImageViewer() {
  * The image element on which the embedding is plotted has larger dimensions than the embedding itself, here we update
  * the coordinates of the selection to fit the embedding's dimensions instead of the image's.
  */
-async function updateSelectionToEmbeddingDimensions() {
-  let embeddingDimensions: {
-    xEmbedding: number[], xPlot: number[],
-    yEmbedding: number[], yPlot: number[]
-  } | null = null;
+function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
+  // compute cropping
+  const xDelta: number = imageToEmbeddingCropping.xEmbedRange[0] - imageToEmbeddingCropping.xPlotRange[0];
+  const xMin: number = imageToEmbeddingCropping.xEmbedRange[0];
+  const xMax: number = imageToEmbeddingCropping.xPlotRange[1] - imageToEmbeddingCropping.xEmbedRange[1];
+  const yMin: number = imageToEmbeddingCropping.yEmbedRange[0];
+  const yDelta: number = imageToEmbeddingCropping.yEmbedRange[0] - imageToEmbeddingCropping.yPlotRange[0];
+  const yMax: number = imageToEmbeddingCropping.yPlotRange[1] - imageToEmbeddingCropping.yEmbedRange[1];
 
-  fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
-      async (response) => {
-        response.json().then(
-            (dimensions) => {
-              // cast onto typed variable
-              embeddingDimensions = dimensions;
-              if (embeddingDimensions == null) {
-                toast.error("An error occurred while parsing the Dimensionality Reduction selection.");
-                return;
-              }
+  // adapt the coordinates of the selected points to the cropped embedding
+  for (const point of selectionTool.selectedPoints) {
+    const newPoint: Point2D = { x: point.x, y: point.y };
+    // crop left side
+    if (newPoint.x < xMin) newPoint.x = xMin;
+    else newPoint.x -= xDelta;
 
-              // compute cropping
-              const xDelta: number = dimensions.xembedrange[0] - dimensions.xplotrange[0];
-              const xMin: number = dimensions.xembedrange[0];
-              const xMax: number = dimensions.xplotrange[1] - dimensions.xembedrange[1];
-              const yMin: number = dimensions.yembedrange[0];
-              const yDelta: number = dimensions.yembedrange[0] - dimensions.yplotrange[0];
-              const yMax: number = dimensions.yplotrange[1] - dimensions.yembedrange[1];
+    // crop right side
+    if (newPoint.x > xMax) newPoint.x = xMax;
 
-              // adapt the coordinates of the selected points to the cropped embedding
-              for (const point of selectionTool.selectedPoints) {
-                // crop left side
-                if (point.x < xMin) point.x = xMin;
-                else point.x -= xDelta;
+    // crop top side
+    if (newPoint.y < yMin) newPoint.y = yMin;
+    else newPoint.y -= yDelta;
 
-                // crop right side
-                if (point.x > xMax) point.x = xMax;
+    // crop bottom side
+    if (newPoint.y > yMax) newPoint.y = yMax;
 
-                // crop top side
-                if (point.y < yMin) point.y = yMin;
-                else point.y -= yDelta;
-
-                // crop bottom side
-                if (point.y > yMax) point.y = yMax;
-              }
-            },
-            () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
-        );
-      },
-      () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
-  );
+    writeList.push(newPoint);
+  }
 }
 
 /**
