@@ -40,7 +40,7 @@ let displayedSelection: ElementSelection[] = [];
 let selectedData: Element[] = [];
 
 // Whether we should display the averages of elements outside the selection in grey
-const displayAll = ref(true);
+const displayGrey = ref(true);
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -220,7 +220,7 @@ function updateBarChart(data: Element[]) {
     .attr("width", x.bandwidth())
     .attr("height", (d) => y(0) - y(d.average))
     .attr("fill", (_, i) => {
-      if (displayAll.value) {
+      if (displayGrey.value) {
         // If it is selected, display it in its own color, otherwise gray
         if (elementSelection.value[i].selected) {
           return elementSelection.value[i].color;
@@ -241,7 +241,7 @@ async function updateCharts() {
   maskData(elementSelection.value);
 
   // If we are displaying all elements, set that to be the data
-  if (displayAll.value) {
+  if (displayGrey.value) {
     selectedData = workspaceElements;
   }
 
@@ -296,20 +296,20 @@ watch(
   <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
-      <p class="font-bold">Select which type of chart to show:</p>
+      <p class="font-bold">Charts</p>
       <div class="mt-1 flex items-center">
         <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="updateCharts" />
-        <label class="ml-1" for="globalCheck">Bar chart</label>
+        <Label class="ml-1" for="barCheck">Bar chart</Label>
       </div>
       <div class="mt-1 flex items-center">
         <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="updateCharts" />
-        <label class="ml-1" for="selectionCheck">Line chart</label>
+        <Label class="ml-1" for="lineCheck">Line chart</Label>
       </div>
       <!-- OPTIONS CHECKBOXES -->
-      <p class="font-bold">Options:</p>
+      <p class="font-bold">Options</p>
       <div class="mt-1 flex items-center">
-        <Checkbox id="displayAll" v-model:checked="displayAll" @update:checked="updateCharts" />
-        <label class="ml-1" for="displayGrey">Display all elements</label>
+        <Checkbox id="displayGrey" v-model:checked="displayGrey" @update:checked="updateCharts" />
+        <Label class="ml-1" for="displayGrey">Display all elements</Label>
       </div>
     </div>
     <!-- CHART DISPLAY -->
