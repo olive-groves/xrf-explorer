@@ -81,18 +81,17 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
   if (response.value?.ok && data.value != null) {
     filenames[0] = URL.createObjectURL(data.value).toString();
   } else {
-    throw new Error("Failed to fetch colors");
+    throw new Error("Failed to fetch image CS bitmask.");
   }
 
   // Bitmasks for element-wise color segments
   for (const element in elements.value) {
-    console.log(element);
-    const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/element/${element+1}/bitmask`).get().blob();
+    const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/element/${element}/bitmask`).get().blob();
 
     if (response.value?.ok && data.value != null) {
       filenames[Number(element) + 1] = URL.createObjectURL(data.value).toString();
     } else {
-      throw new Error("Failed to fetch colors");
+      throw new Error("Failed to fetch elemental CS bitmasks.");
     }
   }
 
@@ -116,11 +115,11 @@ export async function createColorClusterLayers() {
 
   // Element-wise color clusters
   for (let element in elements.value) {
-    const layer = createLayer(`cs_element_${element}`, filenames[Number(element)], false);
+    const layer = createLayer(`cs_element_${element}`, filenames[Number(element) + 1], false);
     registerLayer(layer, "/recipe_cube.csv");
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
     // iAuxiliary passes corresponding element index [1, num_elements]
-    layer.uniform.iAuxiliary = { value: Number(element) };
+    layer.uniform.iAuxiliary = { value: Number(element) + 1 };
     layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
     layers.push(layer);
   }

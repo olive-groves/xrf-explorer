@@ -199,22 +199,6 @@ def list_element_names(data_source: str):
         return "Error occurred while listing element names", 500
 
 
-@app.route("/api/<data_source>/get_number_of_elements")
-def get_number_of_elements(data_source: str):
-    """Gives the total number of elements.
-    
-    :param data_source: data_source to get the element names from
-    :return: json with number of elements.
-    """
-    try:
-        path: str = get_elemental_cube_path(data_source)
-        length: int = len(get_short_element_names(path))
-        return str(length)
-    except Exception as e:
-        LOG.error(f"Failed to get the number of elements: {str(e)}")
-        return "Error occurred while getting number of elements", 500
-
-
 @app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
@@ -520,11 +504,6 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
 
     :return bitmask png file for the given element
     """
-    # check if element number is provided
-    if "element" not in request.args:
-        LOG.error("Missing element number")
-        abort(400)
-
     # Get parameters
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem-threshold'])
