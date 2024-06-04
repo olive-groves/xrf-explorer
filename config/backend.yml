@@ -13,11 +13,11 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 color-segmentation:
-  folder: "xrf_explorer/server/temp/color_segmentation"
+  folder: "generated/color_segmentation"
   k-means-parameters:
     k: 10
     nr-attempts: 10
   elemental-k-means-parameters:
     k: 5
     nr-attempts: 10
-    elem-threshold: 40.0 # range [0,255]
+    elem-threshold: 40 # range [0,255]

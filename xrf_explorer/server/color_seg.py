@@ -131,7 +131,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
     """
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
     # Normalize the elemental data cube
-    data_cube = normalize_elemental_cube_per_layer(data_cube)
+    data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
     # Generally we just register the image to the data cube
     if image_width == -1 or image_height == -1:

@@ -1,4 +1,4 @@
-import { appState, datasource } from "@/lib/appState";
+import { appState, datasource, elements } from "@/lib/appState";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { useFetch } from "@vueuse/core";
@@ -6,20 +6,12 @@ import { LayerType, Layer } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
-// import { FrontendConfig } from "@/lib/config";
 import { layerGroupDefaults } from "./workspace";
 import { registerLayer } from "./registering";
-
-// const config = inject<FrontendConfig>("config")!;
-// We should use config.api.endpoint here instead of hardcoding,
-// but config is undefined when this part of the code runs.
-// const API_ENDPOINT: string = config.api.endpoint;
-const API_ENDPOINT: string = "http://127.0.0.1:8001/api";
+import { config } from "@/main";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-// Arbitrary amount, gets calculated later on either way.
-let num_elements = 26;
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
 const width = 256;
 // Arbitrary amount, needs to be greater than maximum number of clusters.
@@ -83,18 +75,8 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
 async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
 
-  // Get number of elements
-  const response1 = await fetch(`${API_ENDPOINT}/${datasource.value}/get_number_of_elements`);
-  if (!response1.ok) {
-    throw new Error(`HTTP error! status: ${response1.status}`);
-  }
-  const responseText = await response1.text();
-  num_elements = parseInt(responseText);
-
   // For simplicity, we put the image-wide bitmask first
-  const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_color_cluster_bitmask`);
-  reqUrl.searchParams.set("element", (0).toString());
-  const { response, data } = await useFetch(reqUrl.toString()).get().blob();
+  const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/image/bitmask`).get().blob();
 
   if (response.value?.ok && data.value != null) {
     filenames[0] = URL.createObjectURL(data.value).toString();
@@ -103,13 +85,12 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
   }
 
   // Bitmasks for element-wise color segments
-  for (let i = 1; i <= num_elements; i++) {
-    const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_element_color_cluster_bitmask`);
-    reqUrl.searchParams.set("element", (i - 1).toString());
-    const { response, data } = await useFetch(reqUrl.toString()).get().blob();
+  for (const element in elements.value) {
+    console.log(element);
+    const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/element/${element+1}/bitmask`).get().blob();
 
     if (response.value?.ok && data.value != null) {
-      filenames[i] = URL.createObjectURL(data.value).toString();
+      filenames[Number(element) + 1] = URL.createObjectURL(data.value).toString();
     } else {
       throw new Error("Failed to fetch colors");
     }
@@ -126,7 +107,7 @@ export async function createColorClusterLayers() {
 
   const layers: Layer[] = [];
   // Whole-image color clusters
-  const layer = createLayer(`colorSegmenationImage`, filenames[0], false);
+  const layer = createLayer(`cs_image`, filenames[0], false);
   registerLayer(layer, "/recipe_cube.csv");
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
@@ -134,12 +115,12 @@ export async function createColorClusterLayers() {
   layers.push(layer);
 
   // Element-wise color clusters
-  for (let i = 1; i <= num_elements; i++) {
-    const layer = createLayer(`colorSegmenationElem_${i}`, filenames[i], false);
+  for (let element in elements.value) {
+    const layer = createLayer(`cs_element_${element}`, filenames[Number(element)], false);
     registerLayer(layer, "/recipe_cube.csv");
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
     // iAuxiliary passes corresponding element index [1, num_elements]
-    layer.uniform.iAuxiliary = { value: i };
+    layer.uniform.iAuxiliary = { value: Number(element) };
     layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
     layers.push(layer);
   }

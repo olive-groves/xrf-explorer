@@ -7,9 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -59,13 +57,12 @@ watch(selectedElement, (newValue) => {
  */
 async function fetchColors(url: string) {
   try {
-    const response = await fetch(`${url}/${datasource.value}/get_color_cluster`);
+    const response = await fetch(`${url}/${datasource.value}/cs/image/clusters`);
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
     //assign the full color palette if the selection is made for the complete painting
     colorsElements.value["complete"] = data;
-    //selection.value[0].numClusters = data.length;
     console.info("Successfully fetched colors", colorsElements.value["complete"]);
     return true;
   } catch (e) {
@@ -81,14 +78,13 @@ async function fetchColors(url: string) {
  */
 async function fetchElementColors(url: string) {
   try {
-    const response = await fetch(`${url}/${datasource.value}/get_element_color_cluster`);
+    const response = await fetch(`${url}/${datasource.value}/cs/element/clusters`);
     if (!response.ok) throw new Error("Failed to fetch element colors");
 
     const data = await response.json();
     //for each element assign the corresponding palette at that index
     elements.value.forEach((element, index) => {
       colorsElements.value[element] = data[index];
-      //selection.value[index].numClusters = data[index].length;
     });
     console.info("Successfully fetched element colors", colorsElements.value);
     return true;
@@ -215,7 +211,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
 </script>
 
 <template>
-  <Window title="Color Segmentation Window" opened location="right">
+  <Window title="Color segmentaton" location="right">
     <!-- SELECTION MENU -->
     <div class="mt-1 flex items-center">
       <Select v-model="selectedElement">
@@ -223,11 +219,8 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Elements</SelectLabel>
             <SelectItem value="complete"> Complete painting </SelectItem>
             <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }} </SelectItem>
-          </SelectGroup>
         </SelectContent>
       </Select>
     </div>
@@ -239,7 +232,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         :key="color"
         :style="{ 'background-color': color }"
         class="m-1 inline-block h-24 w-16 rounded-md"
-        :class="{ 'border-2 border-white': selectedChannel === colorIndex }"
+        :class="{ 'border-2 border-border': selectedChannel === colorIndex }"
         @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
     </div>
