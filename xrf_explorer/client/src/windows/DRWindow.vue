@@ -163,9 +163,12 @@ function onMouseDown(event: MouseEvent) {
   }
 }
 
+/**
+ * Send the relevant information about the selection to the image viewer.
+ */
 async function communicateSelectionWithImageViewer() {
   // update the selection points' coordinates to the embedding's coordinates;
-  if (selectionTool.selectedPoints.length != 0) await updateEmbeddingDimensions();
+  if (selectionTool.selectedPoints.length != 0) await updateSelectionToEmbeddingDimensions();
   // communicate the relevant information to the image viewer using the app's state
   appState.selection.drSelection = {
     selectionType: selectionTool.selectionType,
@@ -173,7 +176,11 @@ async function communicateSelectionWithImageViewer() {
   };
 }
 
-async function updateEmbeddingDimensions() {
+/**
+ * The image element on which the embedding is plotted has larger dimensions than the embedding itself, here we update
+ * the coordinates of the selection to fit the embedding's dimensions instead of the image's.
+ */
+async function updateSelectionToEmbeddingDimensions() {
   let embeddingDimensions: {
     xEmbedding: number[], xPlot: number[],
     yEmbedding: number[], yPlot: number[]
