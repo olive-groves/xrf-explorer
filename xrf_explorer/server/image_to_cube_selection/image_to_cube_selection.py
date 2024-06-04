@@ -5,9 +5,7 @@ from xrf_explorer.server.file_system.file_access import (
 )
 from cv2 import imread
 import numpy as np
-from os.path import join, exists
 import logging
-import json
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -71,7 +69,7 @@ def get_cube_coordinates(
 
 
 def get_selected_data_cube(
-    data_source_name: str,
+    data_source_folder_name: str,
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
     config_path="config/backend.yml",
@@ -80,18 +78,23 @@ def get_selected_data_cube(
     Extracts and returns a region of a data cube, based on the rectangular selection coordinates on the base image.
 
     :param data_source_name: The data source folder name.
-    which can be derived using werkzeug.utils.secure_filename(data_source_name).
     :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
     :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
     :return: A numpy array containing the selected cube data or None if data source directory is not found.
     """
-    cube_dir: str | None = get_elemental_cube_path(data_source_name, config_path)
+    cube_dir: str | None = get_elemental_cube_path(data_source_folder_name, config_path)
 
     if cube_dir is None:
-        LOG.error(f"Data source directory {data_source_name} does not exist.")
+        LOG.error(f"Data source directory {data_source_folder_name} does not exist.")
         return None
 
-    base_img_dir = get_rgb_path(data_source_name, config_path)
+    base_img_dir = get_rgb_path(data_source_folder_name, config_path)
+
+    if base_img_dir is None:
+        LOG.error(
+            f"Error occured while retrieving the path fo the base image of {data_source_folder_name}"
+        )
+        return None
 
     data_cube = get_elemental_data_cube(cube_dir)
 
