@@ -87,15 +87,22 @@ def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.y
         return ""
 
     # Path to the data source folder
-    path_to_data_source: str = join(backend_config['uploads-folder'], data_source)
+    path_to_data_source: str = join(
+        backend_config['uploads-folder'], data_source
+    )
 
     # Check if the datasource exists
     if not isdir(path_to_data_source):
         LOG.error(f"Datasource {data_source} not found.")
         return ""
     
+    path_to_generated_folder: str = join(path_to_data_source, backend_config['generated-folder-name'])
+    if not isdir(path_to_generated_folder):
+        makedirs(path_to_generated_folder)
+        LOG.info(f"Created directory {path_to_generated_folder}.")
+
     # Path to the dimensionality reduction folder
-    path_to_dr_folder: str = join(path_to_data_source, backend_config['dim-reduction']['folder-name'])
+    path_to_dr_folder: str = join(path_to_generated_folder, backend_config['dim-reduction']['folder-name'])
 
     # Check if the dimensionality reduction folder exists
     if not isdir(path_to_data_source):
@@ -106,7 +113,7 @@ def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.y
     return path_to_dr_folder
 
 
-def get_image_of_indices_to_embedding(data_source: str, config_path: str = "config/backend.yml"):
+def get_image_of_indices_to_embedding(data_source: str, config_path: str = "config/backend.yml") -> str:
     """Creates the image for lasso selection that decodes to which points in the embedding
     the pixels of the elemental data cube are mapped. Uses the current embedding and indices
     to create the image.
@@ -118,13 +125,13 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     # Get the path to the dimensionality reduction folder
     dr_folder: str = get_path_to_dr_folder(data_source, config_path)
     if not dr_folder:
-        return False
+        return ""
 
     # Load the elemental data cube
     path_to_cube = get_elemental_cube_path(data_source, config_path=config_path)
     elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
     if elemental_cube is None:
-        return False
+        return ""
 
     # Load the file embedding.npy
     try:
@@ -132,7 +139,7 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
         embedding: np.ndarray = np.load(join(dr_folder, 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
-        return False
+        return ""
 
     # Get min and max values
     xmin, ymin = np.min(embedding, axis=0)
@@ -143,7 +150,7 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     embedding[:, 1] = np.interp(embedding[:, 1], (ymin, ymax), (0, +255))
 
     # Initialize new image
-    newimage = np.zeros((elemental_cube.shape[0], elemental_cube.shape[1], 3), dtype=np.uint8)
+    newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
     
     # Fill pixels
     newimage[indices[:, 0], indices[:, 1], 0] = embedding[:, 0]
@@ -151,8 +158,9 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     newimage[indices[:, 0], indices[:, 1], 2] = 255
 
     # Create and save the image
-    imwrite(join(dr_folder, 'image_index_to_embedding.npy'), newimage)
+    path_image: str = join(dr_folder, 'image_index_to_embedding.png')
+    imwrite(path_image, newimage)
 
     LOG.info(f"Created DR image index to embedding.")
 
-    return True
+    return path_image

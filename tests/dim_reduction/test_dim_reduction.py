@@ -112,7 +112,9 @@ class TestDimReduction:
         element: int = 2
         threshold: int = 0
         umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
-        path_generated = join(RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'from_dim_reduction')
+        path_generated = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
+        )
         path_embedding: str = join(path_generated, 'embedded_data.npy')
         path_indices: str = join(path_generated, 'indices.npy')
 
@@ -151,7 +153,9 @@ class TestDimReduction:
 
         # setup
         overlay_type: str = 'elemental_1'
-        path_generated_folder: str = join(RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'embedding_present')
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
+        )
         path_embedding_image: str = join(path_generated_folder, 'embedding.png')
         path_dimensions: str = join(path_generated_folder, 'dimensions.json')
 

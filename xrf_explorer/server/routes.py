@@ -210,10 +210,10 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     """
 
     # Get path to elemental cube
-    path: str = get_elemental_cube_path(data_source)
+    # path: str = get_elemental_cube_path(data_source)
 
     # Try to generate the embedding
-    result = generate_embedding(path, element, threshold, request.args)
+    result = generate_embedding(data_source, element, threshold, request.args)
     if result == "success" or result == "downsampled":
         return result
 
@@ -257,7 +257,7 @@ def get_dr_embedding_mapping(data_source: str):
     return send_file(abspath(image_path), mimetype='image/png')
 
 
-@app.route("/api/<data_source>/dr/overlay/dimensions")
+@app.route("/api/<data_source>/dr/dimensions")
 def get_dr_embedding_plot_dimensions(data_source: str):
     """Gets the dimensions of the embedding image. Both the xlims and ylims of the plot and the min and max values of the embedding.
     
@@ -266,7 +266,7 @@ def get_dr_embedding_plot_dimensions(data_source: str):
     """
 
     # Try to get the embedding image
-    path: str = abspath(get_path_to_dr_folder(data_source))
+    path: str = abspath(join(get_path_to_dr_folder(data_source), 'dimensions.json'))
                      
     if not isfile(path):
         LOG.error("Failed to find json file with embedding plot dimensions")
