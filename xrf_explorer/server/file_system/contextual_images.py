@@ -30,7 +30,7 @@ contextual image.
         LOG.error("Config file is empty.")
         return None
 
-    data_source_dir = join(backend_config["uploads-folder"], data_source)
+    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
     workspace_path = join(data_source_dir, "workspace.json")
     try:
         with open(workspace_path, 'r') as workspace:
