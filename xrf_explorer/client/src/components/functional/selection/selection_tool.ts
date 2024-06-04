@@ -129,7 +129,7 @@ export class SelectionTool {
      * @returns The width of the selection for Rectangle selection, 0 otherwise.
      */
     getWidth() {
-        return (this.selectionType == SelectionOption.Rectangle) ?
+        return (this.selectionType == SelectionOption.Rectangle && this.selectedPoints.length == 2) ?
             Math.abs(this.selectedPoints[0].x - this.selectedPoints[1].x) : 0;
     }
 
@@ -138,7 +138,7 @@ export class SelectionTool {
      * @returns The height of the selection for Rectangle selection, 0 otherwise.
      */
     getHeight() {
-        return (this.selectionType == SelectionOption.Rectangle) ?
+        return (this.selectionType == SelectionOption.Rectangle && this.selectedPoints.length == 2) ?
             Math.abs(this.selectedPoints[0].y - this.selectedPoints[1].y) : 0;
     }
 
