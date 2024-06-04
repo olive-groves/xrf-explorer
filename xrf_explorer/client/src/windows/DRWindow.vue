@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {computed, inject, ref} from "vue";
-import {appState, datasource, elements} from "@/lib/appState";
-import {useFetch} from "@vueuse/core";
-import {FrontendConfig} from "@/lib/config";
-import {ContextualImage} from "@/lib/workspace";
-import {LabeledSlider} from "@/components/ui/slider";
-import {toast} from "vue-sonner";
-import {SelectionOption, SelectionTool} from "@/components/functional/selection/selection_tool.ts";
+import { computed, inject, ref } from "vue";
+import { appState, datasource, elements } from "@/lib/appState";
+import { useFetch } from "@vueuse/core";
+import { FrontendConfig } from "@/lib/config";
+import { ContextualImage } from "@/lib/workspace";
+import { LabeledSlider } from "@/components/ui/slider";
+import { toast } from "vue-sonner";
+import { SelectionOption, SelectionTool } from "@/components/functional/selection/selection_tool.ts";
 import * as d3 from "d3";
 
 // Constants
@@ -73,7 +73,7 @@ async function fetchDRImage() {
   const apiURL = `${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`;
 
   // Fetch the image
-  const {response, data} = await useFetch(apiURL).get().blob();
+  const { response, data } = await useFetch(apiURL).get().blob();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
@@ -111,7 +111,7 @@ async function updateEmbedding() {
   const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
 
   // Create the embedding
-  const {response, data} = await useFetch(apiURL).get().text();
+  const { response, data } = await useFetch(apiURL).get().text();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
@@ -159,6 +159,10 @@ function onMouseDown(event: MouseEvent) {
   // relay information to the backend
   if (selectionTool.finishedSelection)
     uploadSelection()
+}
+
+function updateEmbeddingDimensions() {
+
 }
 
 async function uploadSelection() {
