@@ -20,7 +20,7 @@ def set_config(path: str) -> bool:
             APP_CONFIG = yaml.safe_load(config_file)
             return True
     except (FileNotFoundError, yaml.YAMLError):
-        LOG.exception("Failed to read config from %s", path)
+        LOG.exception("Failed to access config at %s", path)
         APP_CONFIG = None
         return False
 
