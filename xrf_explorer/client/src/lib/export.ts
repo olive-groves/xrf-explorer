@@ -49,21 +49,25 @@ export function exportElement(name: string, element: HTMLElement) {
 export async function exportScene() {
   toast.info("Exporting painting");
 
+  // Create a renderer for the scene
   const camera = new THREE.OrthographicCamera();
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
   });
 
+  // Set the renderer dimensions equal to the dimensions of the painting
   const size = await getTargetSize();
-
   renderer.setSize(size.width, size.height);
 
+  // Set the viewport of each element such that the painting exactly fills the screen
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(0, 0, size.width, size.height);
   });
 
+  // Render the painting using the created renderer
   renderer.render(scene.scene, camera);
 
+  // Convert the rendered painting and save it to the client
   renderer.domElement.toBlob((blob) => {
     if (blob != null) {
       saveBlob(datasource.value, blob);
@@ -71,6 +75,9 @@ export async function exportScene() {
       toast.warning("Failed to export painting");
     }
   });
+
+  // Destroy the renderer
+  renderer.dispose();
 }
 
 /**
