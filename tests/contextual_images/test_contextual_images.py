@@ -10,8 +10,8 @@ from PIL.Image import Image
 
 sys.path.append('.')
 
-from xrf_explorer.server.file_system.contextual_images import get_contextual_image, get_contextual_image_path, \
-    get_contextual_image_size, get_contextual_image_image, get_contextual_image_recipe_path
+from xrf_explorer.server.file_system.contextual_images import get_contextual_image_path, get_contextual_image_size, \
+    get_contextual_image_image, get_contextual_image_recipe_path
 
 
 class TestContextualImages:

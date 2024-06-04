@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { datasource } from "@/lib/appState";
+import { ref, computed, watch } from "vue";
+import { appState, datasource, elements } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
+import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
 
 // Setup output for export
@@ -14,10 +16,25 @@ watch(output, (value) => (exportableElements["Embedding"] = value), { immediate:
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
-const URL_IMAGE = `${config.api.endpoint}/get_dr_overlay`;
-const URL_EMBEDDING = `${config.api.endpoint}/get_dr_embedding`;
+const contextualImages = computed(() => {
+  const allImages: ContextualImage[] = [];
 
-// Status dimensionaility reduction
+  // Get all contextual images
+  const baseImage = appState.workspace?.baseImage;
+  const contextualImages = appState.workspace?.contextualImages ?? [];
+
+  // Add the base image and the contextual images to the list of all images
+  if (baseImage != undefined) {
+    allImages.push(baseImage);
+  }
+  if (contextualImages != undefined) {
+    allImages.push(...contextualImages);
+  }
+
+  return allImages;
+});
+
+// Status dimensionality reduction
 enum Status {
   LOADING,
   GENERATING,
@@ -52,12 +69,10 @@ async function fetchDRImage() {
   status.value = Status.LOADING;
 
   // Set the overlay type
-  const url = new URL(URL_IMAGE);
-  url.searchParams.set("type", selectedOverlay.value.toString());
-  url.searchParams.set("dataSource", datasource.value);
+  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`;
 
   // Fetch the image
-  const { response, data } = await useFetch(url.toString()).get().blob();
+  const { response, data } = await useFetch(apiURL).get().blob();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
@@ -92,16 +107,20 @@ async function updateEmbedding() {
   status.value = Status.GENERATING;
 
   // Create URL for embedding
-  const _url = new URL(URL_EMBEDDING);
-  _url.searchParams.set("element", selectedElement.value.toString());
-  _url.searchParams.set("threshold", threshold.value.toString());
-  _url.searchParams.set("dataSource", datasource.value);
+  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
 
   // Create the embedding
-  const { response, data } = await useFetch(_url.toString()).get().blob();
+  const { response, data } = await useFetch(apiURL).get().text();
 
   // Check if fetching the image was successful
   if (response.value?.ok && data.value != null) {
+    if (data.value == "downsampled") {
+      toast.warning("Downsampled data points", {
+        description:
+          "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+      });
+    }
+
     // Load the new embedding
     await fetchDRImage();
     return;
@@ -125,13 +144,16 @@ async function updateEmbedding() {
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Overlays</SelectLabel>
-              <SelectItem value="rgb"> RGB </SelectItem>
-              <SelectItem value="uv"> UV </SelectItem>
-              <SelectItem value="xray"> XRay </SelectItem>
-              <SelectItem value="0"> Element 0 </SelectItem>
-              <SelectItem value="1"> Element 1 </SelectItem>
-              <SelectItem value="9"> Element 9 </SelectItem>
+              <SelectLabel>Contextual images:</SelectLabel>
+              <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
+                {{ image.name }}
+              </SelectItem>
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>Elements:</SelectLabel>
+              <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
+                {{ element.name }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -148,9 +170,9 @@ async function updateEmbedding() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem value="0"> Element 0 </SelectItem>
-              <SelectItem value="1"> Element 1 </SelectItem>
-              <SelectItem value="9"> Element 9 </SelectItem>
+              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
+                {{ element.name }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
