@@ -24,22 +24,7 @@ async function onSelectionUpdate(newSelection: SelectionToolInfo) {
 
     updateBitmask(newSelection);
     await getMiddleImage();
-
-    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function() {
-        for (let x: number = 0; x < this.width; x++)
-            for (let y: number = 0; y < this.height; y++) {
-                const pixelIndex: number = (this.width * y + x) << 2;
-
-                const red: number = this.data[pixelIndex];
-                const green: number = this.data[pixelIndex + 1];
-                const blue: number = this.data[pixelIndex + 2];
-                const alpha: number = this.data[pixelIndex + 3];
-
-                // only pixels where blue = 255 are in the embedding
-                if (blue != 255)
-                    continue;
-            }
-    })
+    const middleImageToEmbedding: { imagePoint: Point2D, embeddingPoint: Point2D }[] = mapImageToEmbedding();
 
 }
 
@@ -118,4 +103,31 @@ async function getMiddleImage() {
     // store the middle image path
     middleImagePath.value = URL.createObjectURL(data.value).toString();
     console.info("Loaded middle image for DR selection.");
+}
+
+/**
+ * For each pixel in the middle image, map it to the corresponding pixel in the embedding if it exists in the embedding.
+ * We use `pngjs` to get the middle image's pixels' RGB values: https://www.npmjs.com/package/pngjs
+ */
+function mapImageToEmbedding() {
+    const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
+    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function() {
+        for (let x: number = 0; x < this.width; x++)
+            for (let y: number = 0; y < this.height; y++) {
+                const pixelIndex: number = (this.width * y + x) << 2;
+
+                const red: number = this.data[pixelIndex];
+                const green: number = this.data[pixelIndex + 1];
+                const blue: number = this.data[pixelIndex + 2];
+
+                // only pixels where blue = 255 are in the embedding
+                if (blue == 255)
+                    map.push({
+                        imagePoint: { x: x, y: y },
+                        embeddingPoint: { x: red, y: green }    // imageRed = embeddingX, imageGreen = embeddingY
+                    });
+            }
+    });
+
+    return map;
 }
