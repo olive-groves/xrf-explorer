@@ -14,6 +14,7 @@ dim-reduction:
     metric: "cosine"
 color-segmentation:
   folder: "generated/color_segmentation"
+  registered-image: "registered_rgb.tif"
   k-means-parameters:
     k: 10
     nr-attempts: 10

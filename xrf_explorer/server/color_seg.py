@@ -6,6 +6,7 @@ from os import path, makedirs
 from skimage import color
 
 from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_elemental_cube_per_layer
+from xrf_explorer.server.image_register import register_image_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -62,13 +63,13 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     return clusters, bitmasks
 
 
-def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_height: int = 100,
-                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
+def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
+                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray] | None:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
-    :param image: the image to apply the k-means on
-    :param image_width: the width to resize the image before applying k-means
-    :param image_height: the height to resize the image before applying k-means
+    :param image_path: the path to the image to apply k-means on
+    :param data_cube_path: the path to the data cube to register the image to it
+    :param reg_image_path: the path to save the registered image to
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 10.
     :param k: number of clusters required at end. Defaults to 30.
@@ -78,9 +79,13 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     # set seed so results are consistent
     cv2.setRNGSeed(0)
 
-    # reshape image
-    # TODO: This should register the image to the datacube using the recipe
-    image: np.ndarray = cv2.resize(image, (image_width, image_height))
+    # Get registered image
+    registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
+    if not registered_image:
+        LOG.error("Image could not be registered to data cube")
+        return None
+
+    image: np.ndarray = get_image(reg_image_path)
     reshaped_image: np.ndarray = reshape_image(image)
     # Transform image to LAB format
     reshaped_image = image_to_lab(reshaped_image)
@@ -103,28 +108,23 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
         bitmasks.append(mask)
 
     # Transform back to rgb
-    colors = np.array([lab_to_rgb(c) for c in colors])
+    colors = [lab_to_rgb(c) for c in colors]
     LOG.info("Initial color clusters extracted successfully.")
 
     return np.array(colors), np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
-                                         elem_threshold: float = 0.1,
-                                         image_width: int = -1,
-                                         image_height: int = -1,
-                                         nr_of_attempts: int = 10, k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
+def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
+                                         elem_threshold: float = 0.1, nr_of_attempts: int = 10, 
+                                         k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]] | None:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
-    :param image: the image to apply the k-means on
-    :param data_cube_path: the path to the data cube
+    :param image_path: the path to the image to apply k-means on
+    :param data_cube_path: the path to the data cube to register the image to it
+    :param reg_image_path: the path to save the registered image to
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param image_width: the width to resize the image before applying k-means, if -1, the data cube's
-                        dimensions are used instead
-    :param image_height: the height to resize the image before applying k-means, if -1, the data cube's
-                        dimensions are used instead
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
-                        Defaults to 10.
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. 
+                           Defaults to 10.
     :param k: number of clusters required at end. Defaults to 2.
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
@@ -133,17 +133,12 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
-    # Generally we just register the image to the data cube
-    if image_width == -1 or image_height == -1:
-        dim = (data_cube.shape[2], data_cube.shape[1])
-        # Rescale image to match data cube
-        # TODO: This should register the image to the datacube using the recipe
-        image = cv2.resize(image, dim)
-    # Otherwise, we set the image and data cube to the given dimension
-    else:
-        image = cv2.resize(image, (image_width, image_height))
-        target_dim = (image.shape[1], image.shape[0])
-        data_cube = np.array([cv2.resize(img, target_dim) for img in data_cube])
+    # Get registered image
+    registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
+    if not registered_image:
+        LOG.error("Image could not be registered to data cube")
+        return None
+    image: np.ndarray = get_image(reg_image_path)
 
     # Transform image to lab
     image = image_to_lab(image)
