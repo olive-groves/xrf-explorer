@@ -151,9 +151,9 @@ class TestDimReduction:
 
         # setup
         overlay_type: str = 'elemental_1'
-        path_generated_file: str = join(
-            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'embedding_present', 'embedding.png'
-            )
+        path_generated_folder: str = join(RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'embedding_present')
+        path_embedding_image: str = join(path_generated_folder, 'embedding.png')
+        path_dimensions: str = join(path_generated_folder, 'dimensions.json')
 
         # execute
         result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type,
@@ -161,8 +161,10 @@ class TestDimReduction:
 
         # verify
         assert result
-        assert isfile(path_generated_file)
+        assert isfile(path_embedding_image)
+        assert isfile(path_dimensions)
         assert 'Created embedding image successfully' in caplog.text
 
         # cleanup
-        remove(path_generated_file)
+        remove(path_embedding_image)
+        remove(path_dimensions)

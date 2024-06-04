@@ -73,11 +73,11 @@ def get_registered_image(data_source: str, image_name: str, config_path: str = "
 
 
 def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.yml") -> str:
-    """Get the path to the dimensionality reduction folder for a given datasource.
+    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exists the folder is created.
     
     :param data_source: The name of the datasource
     :param config_path: The path to the backend config file
-    :return: The path to the dimensionality reduction folder for the given datasource. If the folder does not exist, return an empty string.
+    :return: The path to the dimensionality reduction folder for the given datasource.
     """
 
     # load backend config
