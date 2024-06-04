@@ -6,7 +6,7 @@ from os import remove
 from os.path import join
 from pathlib import Path
 
-from numpy import ndarray, empty, array_equal, array, float32
+from numpy import ndarray, array_equal, array, float32
 
 from xrf_explorer.server.file_system.config_handler import set_config, get_config
 

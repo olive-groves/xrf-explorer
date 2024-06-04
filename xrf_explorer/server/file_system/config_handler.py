@@ -5,10 +5,15 @@ import yaml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-APP_CONFIG: dict = None
+APP_CONFIG: dict | None = None
 
 
 def set_config(path: str) -> bool:
+    """Sets the global configuration for the backend.
+    :param path: The path to the configuration file.
+    :return: True if the configuration file was successfully loaded.
+    """
+
     global APP_CONFIG
 
     # use absolute path for extra explicitness
@@ -25,5 +30,9 @@ def set_config(path: str) -> bool:
         return False
 
 
-def get_config() -> dict:
+def get_config() -> dict | None:
+    """Gets the set configuration for the backend.
+    :return: A dictionary containing the configuration for the backend.
+    """
+
     return APP_CONFIG
