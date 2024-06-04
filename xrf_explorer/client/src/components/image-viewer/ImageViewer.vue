@@ -138,8 +138,8 @@ function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
 
   // Clamp zoom to a reasonable range
-  if (viewport.zoom >= 4 || viewport.zoom <= -4) {
-    viewport.zoom = Math.min(4, Math.max(-4, viewport.zoom));
+  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
+    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
       // Prevent the toast from being shown multiple times
