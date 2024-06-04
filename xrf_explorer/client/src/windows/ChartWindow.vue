@@ -117,9 +117,9 @@ function maskData(selection: ElementSelection[]) {
  */
 function setupChart(data: Element[]) {
   // Declare chart dimensions and margins
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
-    width = 860 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+  const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
+  const width: number = 860 - margin.left - margin.right;
+  const height: number = 400 - margin.top - margin.bottom;
   const max: number = d3.max(data, (d) => d.average) as number;
 
   // Select SVG container
