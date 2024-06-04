@@ -124,8 +124,11 @@ class TestElementalData:
         assert expected_output in caplog.text
 
     def test_csv_to_dms(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # execute
-        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS, self.CUSTOM_CONFIG_PATH)
+        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
 
         # verify
         assert result

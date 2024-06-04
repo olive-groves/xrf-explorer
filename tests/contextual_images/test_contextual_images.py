@@ -8,6 +8,8 @@ import numpy as np
 from PIL import ImageChops
 from PIL.Image import Image
 
+from xrf_explorer.server.file_system.config_handler import set_config
+
 sys.path.append('.')
 
 from xrf_explorer.server.file_system.contextual_images import get_contextual_image, get_contextual_image_path, \
@@ -24,8 +26,11 @@ class TestContextualImages:
     def test_get_contextual_image_path_base(self, caplog):
         caplog.set_level(logging.INFO)
 
+        # Setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # Execute
-        result: str | None = get_contextual_image_path("painting", "TEST", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "TEST")
 
         # Verify
         assert result == abspath(self.TEST_IMAGE_PATH)
@@ -34,8 +39,11 @@ class TestContextualImages:
     def test_get_contextual_image_path_contextual(self, caplog):
         caplog.set_level(logging.INFO)
 
+        # Setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # Execute
-        result: str | None = get_contextual_image_path("painting", "TEST2", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "TEST2")
 
         # Verify
         assert result == abspath(self.TEST_IMAGE_PATH)
@@ -44,8 +52,11 @@ class TestContextualImages:
     def test_get_contextual_image_path_nonexistent(self, caplog):
         caplog.set_level(logging.INFO)
 
+        # Setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # Execute
-        result: str | None = get_contextual_image_path("painting", "FAKE", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_path("painting", "FAKE")
 
         # Verify
         assert result is None
@@ -55,6 +66,7 @@ class TestContextualImages:
     def test_get_contextual_image(self):
         # Setup
         correct = PIL.Image.open(self.TEST_IMAGE_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # Execute
         result: Image | None = get_contextual_image(self.TEST_IMAGE_PATH)
