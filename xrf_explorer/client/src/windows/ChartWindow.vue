@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { inject, ref, watch } from "vue";
+import { ComputedRef, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { datasource } from "@/lib/appState";
+import { ElementSelection } from "@/lib/selection";
+import { ElementalChannel } from "@/lib/workspace";
+import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
@@ -20,7 +22,7 @@ type Element = {
 };
 
 // Chart type checkboxes
-const barChecked = ref(false);
+const barChecked = ref(true);
 const lineChecked = ref(false);
 
 // SVG container
@@ -28,8 +30,23 @@ let svg = d3.select(chart.value!);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
 
-// Elemental data averages
-let dataAverages: Element[];
+// Elemental data averages for all elements
+let dataAverages: Element[] = [];
+
+// Elements which are enabled for this workspace
+let workspaceElements: Element[] = [];
+
+// Whole element selection
+const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
+
+// Element selection of only selected elements
+let displayedSelection: ElementSelection[] = [];
+
+// Actual displayed data, i.e. elements which are selected and enabled
+let selectedData: Element[] = [];
+
+// Whether we should display the averages of elements outside the selection in grey
+const displayGrey = ref(true);
 
 /**
  * Fetch the average elemental data for each of the elements, and store it
@@ -79,14 +96,37 @@ async function fetchAverages(url: string) {
 }
 
 /**
- * Set up the chart's SVG container and axes.
+ * Update the workspace elements to be only the elements enabled for that workspace.
  */
-function setup() {
+function updateWorkspaceElements() {
+  const elementalChannels: ElementalChannel[] = elements.value;
+  workspaceElements = dataAverages.filter((_, i) =>
+    elementalChannels.some((channel) => i == channel.channel && channel.enabled),
+  );
+}
+
+/**
+ * Mask out the element data of the elements which are selected to not be visible.
+ * @param selection The selection of elements.
+ */
+function maskData(selection: ElementSelection[]) {
+  displayedSelection = selection.filter((element) => element.selected);
+
+  selectedData = dataAverages.filter((_, index) =>
+    displayedSelection.some((elementVis) => elementVis.channel == index),
+  );
+}
+
+/**
+ * Set up the chart's SVG container, add axes.
+ * @param data Element data array that we want to display on the chart.
+ */
+function setupChart(data: Element[]) {
   // Declare chart dimensions and margins
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
-    width = 860 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-  const max = d3.max(dataAverages, (d) => d.average) as number;
+  const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
+  const width: number = 860 - margin.left - margin.right;
+  const height: number = 400 - margin.top - margin.bottom;
+  const max: number = d3.max(data, (d) => d.average) as number;
 
   // Select SVG container
   svg = d3
@@ -99,7 +139,7 @@ function setup() {
   // Declare the horizontal position scale
   x = d3
     .scaleBand()
-    .domain(dataAverages.map((d) => d.name))
+    .domain(data.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
@@ -135,28 +175,36 @@ function setup() {
 }
 
 /**
- * Add the line chart to the SVG container.
+ * Clear the whole chart (including axes).
  */
-function setupLineChart() {
+function clearChart() {
+  svg.selectAll("*").remove();
+}
+
+/**
+ * Add the line chart to the SVG container with updated data.
+ * @param data Element data array that we want to display on the chart.
+ */
+function updateLineChart(data: Element[]) {
   // Add a line generator
   const line = d3
     .line<Element>()
     .x((d) => x(d.name)! + x.bandwidth() / 2)
     .y((d) => y(d.average));
 
-  // Adds opposite colored line behind the colored line for better visibility
+  // Add opposite colored line behind the colored line for better visibility
   svg
     .append("path")
-    .datum(dataAverages)
+    .datum(data)
     .attr("fill", "none")
     .attr("stroke", "hsl(var(--background))")
     .attr("stroke-width", 4)
     .attr("d", line);
 
-  // Adds the colored line
+  // Add the colored line
   svg
     .append("path")
-    .datum(dataAverages)
+    .datum(data)
     .attr("fill", "none")
     .attr("stroke", "currentColor")
     .attr("stroke-width", 2)
@@ -164,75 +212,110 @@ function setupLineChart() {
 }
 
 /**
- * Add the bar chart to the SVG container.
+ * Add the bar chart to the SVG container with updated data.
+ * @param data Element data array that we want to display on the chart.
  */
-function setupBarChart() {
+function updateBarChart(data: Element[]) {
   // Add data
   svg
     .selectAll("svg")
-    .data(dataAverages)
+    .data(data)
     .join("rect")
     .attr("x", (d) => x(d.name) as number)
     .attr("y", (d) => y(d.average))
     .attr("width", x.bandwidth())
     .attr("height", (d) => y(0) - y(d.average))
-    .attr("fill", "currentColor");
+    .attr("fill", (_, i) => {
+      if (displayGrey.value) {
+        // If it is selected, display it in its own color, otherwise gray
+        if (elementSelection.value[i].selected) {
+          return elementSelection.value[i].color;
+        } else {
+          return "hsl(var(--border))";
+        }
+      } else {
+        return displayedSelection[i].color;
+      }
+    });
 }
 
 /**
- * Show the bar and/or line chart. This function includes the fetching of the elemental data
+ * Update the charts being displayed.
+ */
+async function updateCharts() {
+  // Mask the data with the selected elements
+  maskData(elementSelection.value);
+
+  // If we are displaying all elements, set that to be the data
+  if (displayGrey.value) {
+    selectedData = workspaceElements;
+  }
+
+  // Clear all previous instances of the chart
+  clearChart();
+
+  // Set up the chart
+  setupChart(selectedData);
+
+  // Add the bar chart
+  if (barChecked.value) {
+    updateBarChart(selectedData);
+  }
+
+  // Add the line chart
+  if (lineChecked.value) {
+    updateLineChart(selectedData);
+  }
+}
+
+/**
+ * Set up the window when it is mounted. This function includes the fetching of the elemental data
  * which is displayed in the chart.
  */
-async function showChart() {
+async function setupWindow() {
   try {
     // Whether the elemental data was fetched properly
     const fetched: boolean = await fetchAverages(config.api.endpoint);
     if (fetched) {
-      // Checks if the data was fetched properly
-      if (barChecked.value) setupBarChart(); // Display the bar chart
-      if (!barChecked.value) {
-        svg.selectAll("rect").remove(); // Remove existing bar chart
-      }
-      if (lineChecked.value) setupLineChart(); // Display the line chart
-      if (!lineChecked.value) {
-        svg.selectAll("path").remove(); // Remove existing line chart
-      }
+      // After having fetched the data, update the workspace elements
+      updateWorkspaceElements();
+
+      // Update the charts with the fetched data
+      updateCharts();
     }
   } catch (e) {
     console.error("Error fetching average data", e);
   }
 }
 
-/**
- * Set up the chart when the window is mounted. This function includes the fetching of the elemental data
- * which is displayed in the chart.
- */
-async function setupChart() {
-  try {
-    // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint);
-    if (fetched) {
-      // Checks if the data was fetched properly
-      setup(); // Display the chart
-    }
-  } catch (e) {
-    console.error("Error fetching average data", e);
-  }
-}
+watch(
+  elementSelection,
+  (selection) => {
+    maskData(selection);
+    updateCharts();
+  },
+  { deep: true },
+);
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="setupChart" location="right">
-    <!-- CHART TYPE CHECKBOXES -->
+  <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
     <div class="mx-2 space-y-1">
-      <p class="font-bold">Select which type of chart to show:</p>
+      <!-- CHART TYPE CHECKBOXES -->
+      <p class="font-bold">Charts</p>
       <div class="mt-1 flex items-center">
-        <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="showChart" />
-        <label class="ml-1" for="globalCheck">Bar chart</label>
+        <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="updateCharts" />
+        <Label class="ml-1" for="barCheck">Bar chart</Label>
       </div>
       <div class="mt-1 flex items-center">
-        <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="showChart" />
-        <label class="ml-1" for="selectionCheck">Line chart</label>
+        <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="updateCharts" />
+        <Label class="ml-1" for="lineCheck">Line chart</Label>
+      </div>
+      <!-- OPTIONS CHECKBOXES -->
+      <p class="font-bold">Options</p>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="displayGrey" v-model:checked="displayGrey" @update:checked="updateCharts" />
+        <Label class="ml-1" for="displayGrey">Display all elements</Label>
       </div>
     </div>
     <!-- CHART DISPLAY -->

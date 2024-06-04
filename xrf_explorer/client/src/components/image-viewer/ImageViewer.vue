@@ -11,6 +11,7 @@ import { datasource } from "@/lib/appState";
 import { getTargetSize } from "./api";
 import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -40,6 +41,9 @@ let renderer: THREE.WebGLRenderer;
 const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
 const height = canvasSize.height;
+
+// Flag to prevent the zoom limit toast from being shown multiple times
+let zoomLimitReached = false;
 
 /**
  * Set up the renderer after mounting the canvas.
@@ -144,10 +148,23 @@ function onMouseMove(event: MouseEvent) {
 /**
  * Event handler for the onWheel event on the glcanvas.
  * Modifies the viewport to allow zooming in and out on the painting.
+ * The zoom gets clamped to a reasonable range.
  * @param event The wheel event containing the amount that was scrolled.
  */
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
+
+  // Clamp zoom to a reasonable range
+  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
+    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
+    if (!zoomLimitReached) {
+      toast.info("Zoom limit reached");
+      // Prevent the toast from being shown multiple times
+      zoomLimitReached = true;
+    }
+  } else {
+    zoomLimitReached = false;
+  }
 }
 
 /**
