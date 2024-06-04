@@ -15,8 +15,10 @@ import { registerLayer } from "./registering";
 // but config is undefined when this part of the code runs.
 // const API_ENDPOINT: string = config.api.endpoint;
 const API_ENDPOINT: string = "http://127.0.0.1:8001/api";
+
 const selection = computed(() => appState.selection.colorSegmentation);
 
+// Arbitrary amount, gets calculated later on either way.
 let num_elements = 26;
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
 const width = 256;
@@ -34,6 +36,7 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  */
 function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   newSelection.forEach((channel) => {
+    // De-select previous channel
     const prevStart = (channel.prevChannel * width + channel.element) * 4;
     data[prevStart + 3] = 0;
 
@@ -99,6 +102,7 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
     throw new Error("Failed to fetch colors");
   }
 
+  // Bitmasks for element-wise color segments
   for (let i = 1; i <= num_elements; i++) {
     const reqUrl = new URL(`${API_ENDPOINT}/${datasource.value}/get_element_color_cluster_bitmask`);
     reqUrl.searchParams.set("element", (i - 1).toString());
