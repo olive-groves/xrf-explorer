@@ -8,8 +8,9 @@ from pathlib import Path
 
 sys.path.append('.')
 
-from xrf_explorer.server.dim_reduction.embedding import generate_embedding
-from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
+from xrf_explorer.server.dim_reduction import (
+    generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
+)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -172,3 +173,24 @@ class TestDimReduction:
         # cleanup
         remove(path_embedding_image)
         remove(path_dimensions)
+    
+    def test_valid_create_embedding_image(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # setup
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
+        )
+        path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
+
+        # execute
+        result: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE,
+                                             config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+
+        # verify
+        assert result
+        assert isfile(path_image)
+        assert 'Created DR image index to embedding.' in caplog.text
+
+        # cleanup
+        remove(path_image)
