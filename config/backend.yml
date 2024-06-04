@@ -13,7 +13,7 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 color-segmentation:
-  folder: "generated/color_segmentation"
+  folder-name: "generated_cs"
   registered-image: "registered_rgb.tif"
   k-means-parameters:
     k: 10

@@ -64,7 +64,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
-                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray] | None:
+                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param image_path: the path to the image to apply k-means on
@@ -83,7 +83,7 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
     registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
     if not registered_image:
         LOG.error("Image could not be registered to data cube")
-        return None
+        return np.ndarray([])
 
     image: np.ndarray = get_image(reg_image_path)
     reshaped_image: np.ndarray = reshape_image(image)
@@ -116,7 +116,7 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
 
 def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
                                          elem_threshold: float = 0.1, nr_of_attempts: int = 10, 
-                                         k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]] | None:
+                                         k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param image_path: the path to the image to apply k-means on
@@ -137,7 +137,8 @@ def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, r
     registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
     if not registered_image:
         LOG.error("Image could not be registered to data cube")
-        return None
+        return np.ndarray([])
+
     image: np.ndarray = get_image(reg_image_path)
 
     # Transform image to lab
