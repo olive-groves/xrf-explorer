@@ -5,7 +5,7 @@ import yaml
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-APP_CONFIG: dict = {}
+APP_CONFIG: dict = None
 
 
 def set_config(path: str) -> bool:
@@ -25,4 +25,7 @@ def set_config(path: str) -> bool:
 
 
 def get_config() -> dict:
+    if APP_CONFIG is None:
+        set_config("config/backend.yml")
+    
     return APP_CONFIG
