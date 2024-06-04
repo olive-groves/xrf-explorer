@@ -2,7 +2,6 @@ import logging
 
 import cv2
 import numpy as np
-import skimage
 from os import path, makedirs
 from skimage import color
 
@@ -26,7 +25,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     LOG.info("Merging similar clusters.")
     # Transform colors to LAB format
     # (in LAB format, euclidean distance represent
-    # similariy in color better)
+    # similarity in color better)
     clusters = [rgb_to_lab(c) for c in clusters]
 
     i: int = 0
@@ -58,7 +57,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     LOG.info("Similar clusters merged successfully.")
 
     # Transform back to RGB
-    clusters = [lab_to_rgb(c).tolist() for c in clusters]
+    clusters = np.array([lab_to_rgb(c).tolist() for c in clusters])
 
     return clusters, bitmasks
 
@@ -97,14 +96,14 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     _, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
     # Create bitmasks for each cluster
-    bitmasks: list[list[bool]] = []
+    bitmasks: list[np.ndarray] = []
     for i in range(k):
-        mask: np.ndarray = (labels == i)
+        mask: np.ndarray = np.array(labels == i)
         mask = mask.reshape(image.shape[:2])
         bitmasks.append(mask)
 
     # Transform back to rgb
-    colors = [lab_to_rgb(c) for c in colors]
+    colors = np.array([lab_to_rgb(c) for c in colors])
     LOG.info("Initial color clusters extracted successfully.")
 
     return np.array(colors), np.array(bitmasks)
@@ -164,7 +163,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
     for elem_index in range(data_cube.shape[0]):
         # Get bitmask of pixels with high element concentration
         # and get respective pixels in the image
-        bitmask: np.ndarray = (data_cube[elem_index] >= elem_threshold).astype(bool)
+        bitmask: np.ndarray = np.array(data_cube[elem_index] >= elem_threshold)
         masked_image: np.ndarray = image[bitmask]
         masked_image = reshape_image(masked_image)
 
@@ -182,12 +181,12 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
-        subset_indices: np.ndarray = np.nonzero(bitmask)
+        subset_indices: np.ndarray = np.array(np.nonzero(bitmask))
 
         # For each cluster
         for i in range(k):
             # Indices for cluster "i"
-            cluster_indices: np.ndarray = (labels == i)
+            cluster_indices: np.ndarray = np.array(labels == i)
             # Initialize empty mask
             cluster_mask: np.ndarray = np.zeros(image.shape[:2], dtype=bool)
             # Set values to true
@@ -195,11 +194,11 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
             cluster_bitmasks.append(cluster_mask)
 
         # Transform back to rgb
-        center = [lab_to_rgb(c) for c in center]
+        center = np.array([lab_to_rgb(c) for c in center])
         colors.append(center)
         bitmasks.append(cluster_bitmasks)
 
-    return colors, bitmasks
+    return np.array(colors), np.array(bitmasks)
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
@@ -235,7 +234,7 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
 def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
     """ Saves the given bitmask as a png with the given name in the given path.
 
-    :param bitmasks: the bitmask to be saved as png.
+    :param bitmask: the bitmask to be saved as png.
     :param full_path: the path (including image name) to save the file to.
 
     :return: true if the file was successfully saved, false otherwise.
@@ -250,7 +249,6 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
         success = cv2.imwrite(full_path, bitmask)
         if not success:
             raise IOError(f"Failed to save image to {full_path}")
-            return False
 
         LOG.info(f"Image successfully saved to {full_path}")
         return True

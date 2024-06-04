@@ -11,8 +11,10 @@ import { layerGroupDefaults } from "./workspace";
 import { registerLayer } from "./registering";
 
 // const config = inject<FrontendConfig>("config")!;
-// We should use config.api.endpoint here instead of hardcoding
-const API_ENDPOINT: string = "http://localhost:8001/api";
+// We should use config.api.endpoint here instead of hardcoding,
+// but config is undefined when this part of the code runs.
+// const API_ENDPOINT: string = config.api.endpoint;
+const API_ENDPOINT: string = "http://127.0.0.1:8001/api";
 const selection = computed(() => appState.selection.colorSegmentation);
 
 let num_elements = 26;
