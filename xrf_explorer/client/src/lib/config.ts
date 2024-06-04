@@ -52,6 +52,10 @@ export type ImageViewerConfig = {
    * The default size of the lens in the image viewer.
    */
   defaultLensSize: number;
+  /**
+   * The maximum(/minimum) zoom level in the image viewer.
+   */
+  zoomLimit: number;
 };
 
 /**
@@ -65,6 +69,7 @@ export const DefaultConfig: FrontendConfig = {
     defaultMovementSpeed: 1.0,
     defaultScrollSpeed: 1.0,
     defaultLensSize: 100.0,
+    zoomLimit: 4.0,
   },
   upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
