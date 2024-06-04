@@ -12,7 +12,7 @@ from xrf_explorer.server.file_system.config_handler import load_yml
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_contextual_image(data_source: str, name: str, config_path: str = "config/backend.yml") -> dict | None:
+def get_contextual_image_data(data_source: str, name: str, config_path: str = "config/backend.yml") -> dict | None:
     """
     Returns a contextual image from workspace.json. Returns None if the image or data_source does not exist.
     :param config_path: The path to the config file.
@@ -61,7 +61,7 @@ contextual image.
     """
 
     # Get the contextual image
-    image: dict = get_contextual_image(data_source, name, config_path)
+    image: dict = get_contextual_image_data(data_source, name, config_path)
     if not image:
         return None
 
@@ -87,7 +87,7 @@ contextual image.
     """
 
     # Get the contextual image
-    image: dict = get_contextual_image(data_source, name, config_path)
+    image: dict = get_contextual_image_data(data_source, name, config_path)
     if not image:
         return None
 
@@ -105,7 +105,7 @@ contextual image.
     return abspath(join(Path(backend_config["uploads-folder"]), data_source, location))
 
 
-def get_contextual_image_image(image_path: str) -> Image | None:
+def get_contextual_image(image_path: str) -> Image | None:
     """Open and returns an image at a specified path.
 
     :param image_path: The path to the image file.
@@ -129,7 +129,7 @@ def get_contextual_image_size(image_path: str) -> tuple[int, int] | None:
     :return: The dimensions of the image.
     """
 
-    image: Image = get_contextual_image_image(image_path)
+    image: Image = get_contextual_image(image_path)
     if not image:
         return None
 

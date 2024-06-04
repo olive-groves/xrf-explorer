@@ -11,7 +11,7 @@ from PIL.Image import Image
 sys.path.append('.')
 
 from xrf_explorer.server.file_system.contextual_images import get_contextual_image_path, get_contextual_image_size, \
-    get_contextual_image_image, get_contextual_image_recipe_path
+    get_contextual_image, get_contextual_image_recipe_path
 
 
 class TestContextualImages:
@@ -90,7 +90,7 @@ class TestContextualImages:
         correct = PIL.Image.open(self.TEST_IMAGE_PATH)
 
         # Execute
-        result: Image | None = get_contextual_image_image(self.TEST_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.TEST_IMAGE_PATH)
 
         # Verify
         # Compare the images.
@@ -101,7 +101,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result: Image | None = get_contextual_image_image(self.INVALID_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.INVALID_IMAGE_PATH)
 
         # Verify
         assert result is None
@@ -111,7 +111,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result: Image | None = get_contextual_image_image(self.NONEXISTENT_IMAGE_PATH)
+        result: Image | None = get_contextual_image(self.NONEXISTENT_IMAGE_PATH)
 
         # Verify
         assert result is None

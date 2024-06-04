@@ -11,7 +11,7 @@ from numpy import ndarray
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
-                                                               get_contextual_image_image,
+                                                               get_contextual_image,
                                                                get_contextual_image_recipe_path)
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
@@ -250,7 +250,7 @@ def contextual_image(data_source: str, name: str):
 
     LOG.info("Opening contextual image")
 
-    image: Image = get_contextual_image_image(path)
+    image: Image = get_contextual_image(path)
     if not image:
         return f"Failed to open image {name} from source {data_source}", 500
 
