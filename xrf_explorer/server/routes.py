@@ -4,6 +4,7 @@ from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
+import json
 from os import mkdir
 from shutil import rmtree
 from markupsafe import escape
@@ -15,7 +16,7 @@ from xrf_explorer.server.file_system.contextual_images import (get_contextual_im
                                                                get_contextual_image)
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube, get_elemental_cube_path
 from xrf_explorer.server.file_system.file_access import *
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.spectra import *
@@ -33,9 +34,6 @@ CONFIG_PATH: str = 'config/backend.yml'
 BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
 TEMP_RGB_IMAGE: str = 'rgb.tif'
-
-colors_per_elem: ndarray
-bitmasks_per_elem: ndarray
 
 
 @app.route("/api")
@@ -70,11 +68,11 @@ def get_workspace(data_source: str):
 
         # Write content to the workspace
         result: bool = update_workspace(data_source, data)
-        
+
         # Check if the write was successful
         if not result:
             abort(400)
-        
+
         return f"Data written to workspace {escape(data_source)} successfully"
     else:
         # Read content from the workspace
@@ -83,7 +81,7 @@ def get_workspace(data_source: str):
         # Check if the workspace exists
         if not path:
             abort(404)
-        
+
         # Send the json file
         return send_file(abspath(path), mimetype='application/json')
 
@@ -173,9 +171,9 @@ def list_element_averages(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: json list of pairs with the element name and corresponding average value
     """
-    
+
     path: str = get_elemental_cube_path(data_source)
-    
+
     composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
         return json.dumps(composition)
@@ -296,7 +294,8 @@ def contextual_image_size(data_source: str, name: str):
         "width": size[0],
         "height": size[1]
     }
-    
+
+
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
@@ -339,12 +338,13 @@ def get_element_sectra():
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
     bin_size = int(request.args.get('binSize'))
-    
+
     response: list = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
 
     response = json.dumps(response)
 
     return response
+
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
 def get_selection_sectra(data_source):
@@ -364,19 +364,20 @@ def get_selection_sectra(data_source):
     bin_size = int(request.args.get('binSize'))
     datacube: list = get_raw_data(data_source)
     result: list = get_average_selection(datacube, pixels, low, high, bin_size)
-    
+
     response = json.dumps(result)
     print("send response")
     return response
 
+
 @app.route('/api/<data_source>/get_color_cluster', methods=['GET'])
 def get_color_clusters(data_source: str):
-    '''Gets the colors corresponding to the image-wide color clusters, and saves the 
+    """Gets the colors corresponding to the image-wide color clusters, and saves the
     corresponding bitmasks.
 
     :param data_source: data_source to get the element averages from
     :return json containing the ordered list of colors
-    '''
+    """
     # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
     image = get_image(path_to_image)
@@ -412,7 +413,7 @@ def get_color_clusters(data_source: str):
     # Save bitmask
     full_path: str = join(path_to_save, data_source, f'imageClusters_{k}_{nr_attempts}.png')
     image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
-    if (not image_saved):
+    if not image_saved:
         return 'Error occurred while saving bitmask as png', 500
 
     colors = convert_to_hex(colors)
@@ -424,6 +425,7 @@ def get_color_clusters(data_source: str):
         json.dump(colors, json_file)
 
     return json.dumps(colors)
+
 
 @app.route('/api/<data_source>/get_color_cluster_bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
@@ -453,11 +455,11 @@ def get_color_cluster_bitmask(data_source: str):
 
 @app.route('/api/<data_source>/get_element_color_cluster', methods=['GET'])
 def get_element_color_cluster(data_source: str):
-    '''Gets the colors corresponding to the color clusters of each element.
+    """Gets the colors corresponding to the color clusters of each element.
 
     :param data_source: data_source to get the element averages from
     :return json containing the color clusters for each element.
-    '''
+    """
     # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
     image: ndarray = get_image(path_to_image)
@@ -482,7 +484,7 @@ def get_element_color_cluster(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                                                             image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
+        image, data_cube_path, elem_threshold, -1, -1, nr_attempts, k)
 
     color_data: list[ndarray] = []
     for i in range(len(colors_per_elem)):
@@ -496,7 +498,7 @@ def get_element_color_cluster(data_source: str):
         # Save bitmask
         full_path: str = join(path_to_save, data_source, f'elementCluster_{i}_{k}_{elem_threshold}_{nr_attempts}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
-        if (not image_saved):
+        if not image_saved:
             return f'Error occurred while saving bitmask for element {i} as png', 500
 
     # cache data
@@ -506,6 +508,7 @@ def get_element_color_cluster(data_source: str):
         json.dump(color_data, json_file)
 
     return json.dumps(color_data)
+
 
 @app.route('/api/<data_source>/get_element_color_cluster_bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str):
