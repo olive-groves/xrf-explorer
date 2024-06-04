@@ -33,7 +33,20 @@ TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
 
 @app.route("/api")
 def api():
-    return "Welcome to the XRF-Explorer API"
+    """Returns a list of all api endpoints.
+
+    :return: list of api endpoints
+    """
+
+    routes: list[str] = []
+
+    for rule in app.url_map.iter_rules():
+        if rule.rule.startswith("/api"):
+            routes.append(rule.rule)
+
+    routes.sort()
+
+    return routes
 
 
 @app.route("/api/datasources")
