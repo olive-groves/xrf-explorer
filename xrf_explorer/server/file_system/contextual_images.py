@@ -31,11 +31,11 @@ contextual image.
         return None
 
     data_source_dir: str = join(backend_config["uploads-folder"], data_source)
-    workspace_path = join(data_source_dir, "workspace.json")
+    workspace_path: str = join(data_source_dir, "workspace.json")
     try:
         with open(workspace_path, 'r') as workspace:
             data_json: str = workspace.read()
-            data = json.loads(data_json)
+            data: dict = json.loads(data_json)
             if data["baseImage"]["name"] == name:
                 return data["baseImage"]
             else:
