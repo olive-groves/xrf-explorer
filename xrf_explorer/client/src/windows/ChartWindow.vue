@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, ref, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { datasource } from "@/lib/appState";
+import { exportableElements } from "@/lib/export";
 
-const chart = ref(null);
+const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
+
+/**
+ * Sets up export of chart.
+ */
+watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
 
 type Element = {
   name: string;
@@ -18,7 +24,7 @@ const barChecked = ref(false);
 const lineChecked = ref(false);
 
 // SVG container
-let svg = d3.select(chart.value);
+let svg = d3.select(chart.value!);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
 
@@ -84,7 +90,7 @@ function setup() {
 
   // Select SVG container
   svg = d3
-    .select(chart.value)
+    .select(chart.value!)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
