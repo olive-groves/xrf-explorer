@@ -80,6 +80,7 @@ def get_clusters_using_k_means(image: np.ndarray, image_width: int = 100, image_
     cv2.setRNGSeed(0)
 
     # reshape image
+    # TODO: This should register the image to the datacube using the recipe
     image: np.ndarray = cv2.resize(image, (image_width, image_height))
     reshaped_image: np.ndarray = reshape_image(image)
     # Transform image to LAB format
@@ -138,6 +139,7 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path: str,
     if image_width == -1 or image_height == -1:
         dim = (data_cube.shape[2], data_cube.shape[1])
         # Rescale image to match data cube
+        # TODO: This should register the image to the datacube using the recipe
         image = cv2.resize(image, dim)
     # Otherwise, we set the image and data cube to the given dimension
     else:
