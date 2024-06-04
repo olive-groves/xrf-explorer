@@ -247,7 +247,8 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
         # Save the array as a png file
         success = cv2.imwrite(full_path, bitmask)
         if not success:
-            raise IOError(f"Failed to save image to {full_path}")
+            LOG.error(f"Failed to save image to {full_path}")
+            return False
 
         LOG.info(f"Image successfully saved to {full_path}")
         return True
