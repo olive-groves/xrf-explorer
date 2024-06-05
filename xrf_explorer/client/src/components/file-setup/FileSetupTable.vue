@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileSetupTableRow } from ".";
+import { FileSetupTableRow, FileUploadDialog } from ".";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { useFetch } from "@vueuse/core";
 import { computed, ref } from "vue";
@@ -159,8 +159,8 @@ function removeElement(type: string, name: string) {
       </SelectContent>
     </Select>
     <div class="flex w-full justify-between">
-      <Button @click="addElementToWorkspace()">Add</Button>
-      <Button>Upload files</Button>
+      <Button @click="addElementToWorkspace()" variant="outline">Add element</Button>
+      <FileUploadDialog @files-uploaded="fileFetch.execute()" />
     </div>
   </div>
 </template>
