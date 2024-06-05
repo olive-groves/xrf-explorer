@@ -1,7 +1,8 @@
 import logging
 
 from os import listdir
-from os.path import isdir, join
+import os.path
+from os.path import isdir, isfile, join
 from pathlib import Path
 
 from .config_handler import load_yml
@@ -27,8 +28,8 @@ def get_data_sources_names(config_path: str = "config/backend.yml") -> list[str]
     path = Path(backend_config['uploads-folder'])
 
     # Return list of all data source names in the folder
-    # The data source names are the names of the folders in the data folder
-    folders: list[str] = [filename for filename in listdir(path) if isdir(join(path, filename))]
+    # The data source names are the names of the folders in the data folder that contain a workspace.json
+    folders: list[str] = [filename for filename in listdir(path) if isdir(join(path, filename)) and isfile(join(path, filename, "workspace.json"))]
 
     LOG.info(f"Successful. Data sources in folder: {folders}")
     return folders
