@@ -24,8 +24,13 @@ function save() {
 <template>
   <DialogScrollContent class="max-w-fit">
     <div class="w-[48rem] space-y-4">
+      <!-- Header -->
       <DialogTitle class="font-bold">Set up workspace data</DialogTitle>
+
+      <!-- Content -->
       <FileSetupTable v-model="model" />
+
+      <!-- Footer -->
       <div class="flex justify-between">
         <div class="flex items-end space-x-1.5">
           <TriangleAlert v-if="!modelValid[0]" class="size-5 text-primary" />
