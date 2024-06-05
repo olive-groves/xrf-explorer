@@ -3,7 +3,6 @@ precision highp int;
 
 uniform float iIndex;
 uniform vec4 iViewport; // x, y, w, h
-uniform mat3 mRegister;
 
 in vec3 position;
 in vec2 uv;
@@ -12,10 +11,6 @@ out vec2 vUv;
 
 void main() {
   vUv = uv;
-
-  // Register vertices
-  vec3 position = mRegister * vec3(position.xy, 1.0);
-  position = position / position.z;
 
   // Transform to viewport
   gl_Position = vec4(

@@ -1,9 +1,12 @@
 from io import StringIO, BytesIO
+import json
+import logging
 
 from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
+import numpy as np
 from werkzeug.utils import secure_filename
-from os.path import exists, join, abspath
+from os.path import exists, abspath, join
 from os import mkdir
 import json
 from shutil import rmtree
@@ -12,15 +15,18 @@ from numpy import ndarray
 from typing import List
 
 from xrf_explorer import app
+from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
-                                                               get_contextual_image)
+                                                               get_contextual_image,
+                                                               get_contextual_image_recipe_path)
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube, get_elemental_cube_path
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
-from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
@@ -29,6 +35,7 @@ from xrf_explorer.server.color_seg import (
 from xrf_explorer.server.file_system.from_dms import (
     get_elemental_datacube_dimensions_from_dms,
 )
+from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
 CONFIG_PATH: str = 'config/backend.yml'
@@ -39,7 +46,20 @@ TEMP_RGB_IMAGE: str = 'rgb.tif'
 
 @app.route("/api")
 def api():
-    return "Welcome to the XRF-Explorer API"
+    """Returns a list of all api endpoints.
+
+    :return: list of api endpoints
+    """
+
+    routes: list[str] = []
+
+    for rule in app.url_map.iter_rules():
+        if rule.rule.startswith("/api"):
+            routes.append(rule.rule)
+
+    routes.sort()
+
+    return routes
 
 
 @app.route("/api/datasources")
@@ -167,10 +187,11 @@ def upload_file_chunk():
 
 @app.route("/api/<data_source>/element_averages")
 def list_element_averages(data_source: str):
-    """List the average amount per element accross the whole painting.
+    """Get the names and averages of the elements present in the painting.
     
     :param data_source: data_source to get the element averages from
-    :return: json list of pairs with the element name and corresponding average value
+    :return: JSON list of objects indicating average abundance for every element. Each object
+    is of the form {name: element name, average: element abundance}
     """
 
     path: str = get_elemental_cube_path(data_source)
@@ -185,10 +206,10 @@ def list_element_averages(data_source: str):
 
 @app.route("/api/<data_source>/element_names")
 def list_element_names(data_source: str):
-    """List the name of elements present in the painting.
+    """Get the short names of the elements stored in the elemental data cube.
     
-    :param data_source: data_source to get the element names from
-    :return: json list of elements
+    :param data_source: data source to get the element names from
+    :return: JSON list of the short names of the elements.
     """
     path: str = get_elemental_cube_path(data_source)
 
@@ -241,6 +262,13 @@ def get_dr_overlay(data_source: str, overlay_type: str):
 
 @app.route("/api/<data_source>/image/<name>")
 def contextual_image(data_source: str, name: str):
+    """Get a contextual image.
+
+    :param data_source: data source to get the image from
+    :param name: the name of the image in workspace.json
+    :return: the contextual image converted to png
+    """
+
     path: str = get_contextual_image_path(data_source, name)
     if not path:
         return f"Image {name} not found in source {data_source}", 404
@@ -267,7 +295,14 @@ def contextual_image(data_source: str, name: str):
 
 @app.route("/api/<data_source>/image/<name>/size")
 def contextual_image_size(data_source: str, name: str):
-    path: str = get_contextual_image_path(data_source, name)
+    """Get the size of a contextual image.
+
+    :param data_source: data source to get the image from
+    :param name: the name of the image in workspace.json
+    :return: the size of the contextual image
+    """
+
+    path: str | None = get_contextual_image_path(data_source, name)
     if not path:
         return f"Image {name} not found in source {data_source}", 404
 
@@ -281,6 +316,72 @@ def contextual_image_size(data_source: str, name: str):
     }
 
 
+<<<<<<< HEAD
+=======
+@app.route("/api/<data_source>/image/<name>/recipe")
+def contextual_image_recipe(data_source: str, name: str):
+    """Get the registering recipe of a contextual image.
+
+    :param data_source: data source to get the image recipe from
+    :param name: the name of the image in workspace.json
+    :return: the registering recipe of the contextual image
+    """
+
+    path: str | None = get_contextual_image_recipe_path(data_source, name)
+    if not path:
+        return f"Could not find recipe for image {name} in source {data_source}", 404
+
+    # Get the recipe points
+    points: dict = load_points_dict(path)
+    if not points:
+        return f"Could not find registering points at {path}", 404
+
+    return points, 200
+
+
+@app.route("/api/<data_source>/data/size")
+def data_cube_size(data_source: str):
+    """Get the size of the data cubes.
+    
+    :param data_source: data source to get the size from
+    :return: the size of the data cubes
+    """
+
+    # As XRF-Explorer only supports a single data cube, we take the size of the first spectral cube
+    _, path = get_raw_rpl_paths(data_source)
+
+    # Parse the .rpl file
+    rpl_data = parse_rpl(path)
+
+    # Return the width and height
+    return {
+        "width": rpl_data["width"],
+        "height": rpl_data["height"]
+    }, 200
+
+
+@app.route("/api/<data_source>/data/recipe")
+def data_cube_recipe(data_source: str):
+    """Get the registering recipe for the data cubes.
+
+    :param data_source: data source to get the recipe from
+    :return: the registering recipe of the data cubes
+    """
+
+    # As XRF-Explorer only supports a single data cube, we take the recipe of the first elemental cube
+    path: str | None = get_elemental_cube_recipe_path(data_source)
+    if not path:
+        return f"Could not find recipe for data cubes in source {data_source}", 404
+
+    # Get the recipe points
+    points: dict = load_points_dict(path)
+    if not points:
+        return f"Could not find registering points at {path}", 404
+
+    return points, 200
+
+
+>>>>>>> development
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
@@ -307,7 +408,7 @@ def get_average_data(data_source):
 
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
-def get_element_sectra():
+def get_element_spectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
     :request args: 
@@ -332,7 +433,7 @@ def get_element_sectra():
 
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
-def get_selection_sectra(data_source):
+def get_selection_spectra(data_source):
     """Get the average spectrum of the selected pixels.
 
     :request args: 
@@ -342,7 +443,7 @@ def get_selection_sectra(data_source):
         **pixels** - the array of corrdinates of selected pixels in the raw data coordinate system
     :return: json list of tuples containing the channel number and the average intensity of this channel
     """
-    #selection to be retrieived from seletion tool 
+    # selection to be retrieived from seletion tool
     pixels: list[tuple[int, int]] = []
     low = int(request.args.get('low'))
     high = int(request.args.get('high'))
@@ -352,7 +453,6 @@ def get_selection_sectra(data_source):
 
     response = json.dumps(result)
     return response
-
 
 @app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
