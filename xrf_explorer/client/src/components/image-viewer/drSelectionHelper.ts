@@ -1,21 +1,26 @@
-import {computed, inject, ref, watch} from "vue";
-import {appState, datasource} from "@/lib/appState";
-import {SelectionToolInfo} from "@/lib/selection";
-import {Point2D} from "@/components/image-viewer/types";
-import {SelectionOption} from "@/components/functional/selection/selection_tool.ts";
-import {FrontendConfig} from "@/lib/config.ts";
-import {useFetch} from "@vueuse/core";
-import {toast} from "vue-sonner";
+import { computed, inject, ref, watch } from "vue";
+import { appState, datasource } from "@/lib/appState";
+import { SelectionToolInfo } from "@/lib/selection";
+import { Point2D } from "@/components/image-viewer/types";
+import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
+import { FrontendConfig } from "@/lib/config.ts";
+import { hexToRgb } from "@/lib/utils";
+import { useFetch } from "@vueuse/core";
+import { toast } from "vue-sonner";
 import { PNG } from "pngjs";
 import { createReadStream } from "fs";
+import { layerGroups } from "@/components/image-viewer/state.ts";
+import { disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
 
 const selection = computed(() => appState.selection.drSelection);
 
-const config = inject<FrontendConfig>("config")!;
-const embeddingWidth = 2000;        // TODO: not sure how to get the width of the embedding
-const embeddingHeight = 8000;       // TODO: not sure how to get the height of the base image
+const config: FrontendConfig = inject<FrontendConfig>("config")!;
+const embeddingWidth: number = 2000;        // TODO: not sure how to get the width of the embedding
+const embeddingHeight: number = 8000;       // TODO: not sure how to get the height of the base image
+let imageWidth: number = -1;
+let imageHeight: number = -1;
 // each index represents a pixel and the value represents whether the pixel is selected
-const bitmask = new Array<boolean>(embeddingWidth * embeddingHeight);
+const bitmask: boolean[] = new Array<boolean>(embeddingWidth * embeddingHeight);
 const middleImagePath = ref();
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
@@ -25,27 +30,32 @@ async function onSelectionUpdate(newSelection: SelectionToolInfo) {
     updateBitmask(newSelection);
     await getMiddleImage();
     const middleImageToEmbedding: { imagePoint: Point2D, embeddingPoint: Point2D }[] = mapImageToEmbedding();
+    const selectedPointsInImage: Point2D[] = [];
+    for (const mapping of middleImageToEmbedding)
+
+        if (bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
+            selectedPointsInImage.push(mapping.imagePoint)
+    updateLayer(selectedPointsInImage);
 
 }
 
 function updateBitmask(newSelection: SelectionToolInfo) {
     for (let i = 0; i < bitmask.length; i++) {
         // compute coordinates of point `i`
-        const x = i % embeddingWidth;
-        const y = Math.floor(i / embeddingWidth);
+        const point: Point2D = indexToCoordinates(i, embeddingWidth);
 
         switch (newSelection.selectionType) {
             case SelectionOption.Rectangle: {
                 // bitmask[i] = true iff the pixel is inside the rectangle
                 bitmask[i] =
-                    newSelection.points[0].x <= x && x < newSelection.points[1].x &&
-                    newSelection.points[0].y <= y && y < newSelection.points[1].y;
+                    newSelection.points[0].x <= point.x && point.x < newSelection.points[1].x &&
+                    newSelection.points[0].y <= point.y && point.y < newSelection.points[1].y;
                 break;
             }
 
             case SelectionOption.Lasso: {
                 // bitmask[i] = true iff the pixel is inside the polygon
-                bitmask[i] = isInPolygon({x, y}, newSelection.points);
+                bitmask[i] = isInPolygon(point, newSelection.points);
                 break;
             }
 
@@ -112,9 +122,13 @@ async function getMiddleImage() {
 function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
     createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function() {
-        for (let x: number = 0; x < this.width; x++)
-            for (let y: number = 0; y < this.height; y++) {
-                const pixelIndex: number = (this.width * y + x) << 2;
+        // update image dimensions
+        imageWidth = this.width;
+        imageHeight = this.height;
+
+        for (let x: number = 0; x < imageWidth; x++)
+            for (let y: number = 0; y < imageHeight; y++) {
+                const pixelIndex: number = (coordinatesToIndex(x, y, imageWidth)) << 2;
 
                 const red: number = this.data[pixelIndex];
                 const green: number = this.data[pixelIndex + 1];
@@ -130,4 +144,50 @@ function mapImageToEmbedding() {
     });
 
     return map;
+}
+
+
+function updateLayer(selection: Point2D[]) {
+    const layerData: Uint8Array = new Uint8Array(imageWidth * imageHeight * 4);    // buffer with color data
+    const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
+
+    for (let i = 0; i < layerData.length; i++) {
+        const pixelInSelection: boolean = selection.includes(indexToCoordinates(i, imageWidth));
+
+        // if the pixel is in the selection, color it, otherwise make it transparent
+        layerData[i] = pixelInSelection ? selectionColor[0] : 0;
+        layerData[i + 1] = pixelInSelection ? selectionColor[1] : 0;
+        layerData[i + 2] = pixelInSelection ? selectionColor[2] : 0;
+        layerData[i + 3] = pixelInSelection ? Math.round(255 * config.selectionToolConfig.opacity) : 0;
+    }
+
+    if (layerGroups.value.selection != undefined) {
+        const layer = layerGroups.value.selection.layers.filter(layer => layer.image == "drSelection")[0];
+
+        if (layer.mesh == undefined && selection.length > 0)        // layer was disposed of, load it again
+            loadLayer(layer);
+        else if (layer.mesh != undefined && selection.length == 0)  // layer was loaded, dispose of it
+            disposeLayer(layer);
+
+        updateDataTexture(layerGroups.value.selection);
+    }
+}
+
+/**
+ * Convert an index from a flattened matrix into a Point2D object.
+ * @param index - Index in the array of the point to be obtained.
+ * @param imageWidth - Width of the image on which the array is based.
+ */
+function indexToCoordinates(index: number, imageWidth: number) {
+    return { x: index % imageWidth, y: Math.floor(index / imageWidth) };
+}
+
+/**
+ * Convert a Point2D object into an index of a flattened matrix.
+ * @param x - X component of the point to be converted.
+ * @param y - Y component of the point to be converted.
+ * @param imageWidth - Width of the image on which the array is based.
+ */
+function coordinatesToIndex(x: number, y: number, imageWidth: number) {
+    return y * imageWidth + x;
 }
