@@ -48,7 +48,7 @@ watch(selectedElement, (newValue) => {
 enum Status {
   LOADING,
   ERROR,
-  SUCCESS
+  SUCCESS,
 }
 const status = ref(Status.LOADING);
 
@@ -104,7 +104,7 @@ async function setup() {
   selectedChannel.value = Array(colors.length).fill(false);
 
   for (let i = 1; i <= elements.value.length; i++) {
-    const colors = colorsElements.value[elements.value[i-1].name];
+    const colors = colorsElements.value[elements.value[i - 1].name];
     const sel: ColorSegmentationSelection = {
       element: i,
       selected: false,
@@ -134,7 +134,15 @@ function setSelection(selectedElement: string, colorIndex: number) {
   selection.value[index].enabled[colorIndex] = !selection.value[index].enabled[colorIndex];
 }
 
-function getElementIndex(elementName: string) {
+/**
+ * Returns the index of the given element.
+ * @param elementName Name of element to get index of.
+ * @returns Index of the element.
+ */
+function getElementIndex(elementName: string | undefined) {
+  if (elementName == undefined) {
+    return 0;
+  }
   // Get index of new channel
   let index: number;
   if (elementName == "complete") {
@@ -148,7 +156,6 @@ function getElementIndex(elementName: string) {
   }
   return index;
 }
-
 </script>
 
 <template>
@@ -168,7 +175,7 @@ function getElementIndex(elementName: string) {
       </Select>
     </div>
 
-    <div class="mt-1 mb-2 flex flex-col items-center justify-center space-y-2">
+    <div class="mb-2 mt-1 flex flex-col items-center justify-center space-y-2">
       <!-- LOADING/ERROR MESSAGES -->
       <span v-if="status == Status.LOADING">Loading...</span>
       <div v-if="status == Status.LOADING" class="size-6">
@@ -182,11 +189,10 @@ function getElementIndex(elementName: string) {
           :key="color"
           :style="{ 'background-color': color }"
           class="m-1 inline-block size-12 rounded-md"
-          :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true}"
+          :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true }"
           @click="setSelection(selectedElement, colorIndex)"
         ></div>
       </div>
     </div>
-
   </Window>
 </template>

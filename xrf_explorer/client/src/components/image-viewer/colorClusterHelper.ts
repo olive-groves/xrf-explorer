@@ -31,7 +31,7 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   newSelection.forEach((channel) => {
     channel.enabled.forEach((_, index) => {
       // Get index for cluster channel.channel of element channel.element
-      const start = ((index+1) * width + channel.element) * 4;
+      const start = ((index + 1) * width + channel.element) * 4;
 
       if (channel.enabled[index]) {
         const color = hexToRgb(channel.colors[index]);
