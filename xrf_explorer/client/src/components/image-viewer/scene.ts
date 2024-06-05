@@ -14,6 +14,7 @@ import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
 import { toast } from "vue-sonner";
 import { h, markRaw } from "vue";
+import { getTargetSize } from "./api";
 
 /**
  * Creates a layer in the image viewer and adds the given image to it.
@@ -22,7 +23,7 @@ import { h, markRaw } from "vue";
  */
 export function loadLayer(layer: Layer, interpolated: boolean = true) {
   new THREE.TextureLoader().loadAsync(layer.image).then(
-    (texture) => {
+    async (texture) => {
       texture.colorSpace = THREE.NoColorSpace;
 
       // Disable interpolation if required
@@ -41,10 +42,13 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
 
       const geometry = new THREE.ShapeGeometry(shape);
 
+      // Get the size of the target image
+      const size = await getTargetSize();
+
       // Scale the square to the same dimensions as the texture.
       // By scaling through this method, the UV coordinates of the shape are preserved.
       const mat = new THREE.Matrix4();
-      mat.set(texture.image.width, 0, 0, 0, 0, texture.image.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+      mat.set(size.width, 0, 0, 0, 0, size.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
       geometry.applyMatrix4(mat);
 
       // Add the texture to the uniform to allow it to be used in the shaders

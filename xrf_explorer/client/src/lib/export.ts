@@ -1,13 +1,19 @@
 import { reactive } from "vue";
 import { saveAs } from "file-saver";
-import domToImage from "dom-to-image-more";
-import { snakeCase } from "change-case";
+import { toBlob } from "html-to-image";
+import { sentenceCase, snakeCase } from "change-case";
+import * as THREE from "three";
+import { scene } from "@/components/image-viewer/scene";
+import { layers } from "@/components/image-viewer/state";
+import { toast } from "vue-sonner";
+import { getTargetSize } from "@/components/image-viewer/api";
+import { datasource } from "./appState";
 
 /**
  * Contains the list of exportable elements that should be shown in the export menu.
  */
 export const exportableElements = reactive<{
-  [key: string]: HTMLElement;
+  [key: string]: HTMLElement | undefined;
 }>({});
 
 /**
@@ -15,20 +21,63 @@ export const exportableElements = reactive<{
  * @param name - The name to give the downloaded png file.
  * @param element - The element to convert to a png.
  */
-export function exportToImage(name: string, element: HTMLElement) {
-  // The minimum dimension of the export image
-  const baseSize = 512;
+export function exportElement(name: string, element: HTMLElement) {
+  const baseSize = 1200;
+  const scale = baseSize / Math.min(element.clientWidth, element.clientHeight);
 
-  const scale = Math.max(1.0, baseSize / element.clientWidth, baseSize / element.clientHeight);
+  toBlob(element, {
+    style: {
+      border: "none",
+      backgroundColor: "hsl(var(--background))",
+    },
+    canvasWidth: element.clientWidth * scale,
+    canvasHeight: element.clientHeight * scale,
+    width: element.clientWidth,
+    height: element.clientHeight,
+  }).then((blob) => {
+    if (blob != null) {
+      saveBlob(`${datasource.value}_${name}`, blob);
+    } else {
+      toast.warning(sentenceCase(`Failed to export ${name}`));
+    }
+  });
+}
 
-  domToImage
-    .toBlob(element, {
-      width: element.clientWidth * scale,
-      height: element.clientHeight * scale,
-    })
-    .then((blob) => {
-      saveBlob(name, blob);
-    });
+/**
+ * Export the scene.
+ */
+export async function exportScene() {
+  toast.info("Exporting painting");
+
+  // Create a renderer for the scene
+  const camera = new THREE.OrthographicCamera();
+  const renderer = new THREE.WebGLRenderer({
+    alpha: true,
+  });
+
+  // Set the renderer dimensions equal to the dimensions of the painting
+  const size = await getTargetSize();
+  renderer.setSize(size.width, size.height);
+
+  // Set the viewport of each element such that the painting exactly fills the screen
+  layers.value.forEach((layer) => {
+    layer.uniform.iViewport.value.set(0, 0, size.width, size.height);
+  });
+
+  // Render the painting using the created renderer
+  renderer.render(scene.scene, camera);
+
+  // Convert the rendered painting and save it to the client
+  renderer.domElement.toBlob((blob) => {
+    if (blob != null) {
+      saveBlob(datasource.value, blob);
+    } else {
+      toast.warning("Failed to export painting");
+    }
+  });
+
+  // Destroy the renderer
+  renderer.dispose();
 }
 
 /**
@@ -37,5 +86,5 @@ export function exportToImage(name: string, element: HTMLElement) {
  * @param blob - The blob to save to the image file.
  */
 export function saveBlob(name: string, blob: Blob) {
-  saveAs(blob, `${snakeCase(name)}.png`);
+  saveAs(blob, `${snakeCase(name)}.jpeg`);
 }

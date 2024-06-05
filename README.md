@@ -104,7 +104,7 @@ All data used by XRF-Explorer is located in the `uploads-folder` as defined by t
 
 The `workspace.json` file follows the following format:
 
-```json
+```json5
 {
   // Must be exactly equal to the name of the directory
   "name": "<painting>",

@@ -13,6 +13,7 @@ const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
 
 uniform int iLayerType;
 uniform sampler2D tImage;
+uniform mat3 mRegister;
 uniform int iAuxiliary;
 uniform sampler2D tAuxiliary;
 uniform vec2 uMouse; 
@@ -79,20 +80,28 @@ vec3 rgbFromHsl(vec3 hsl) {
 }
 
 void main() {
+  // Register the uv coordinate using the provided matrix
+  vec3 uv = mRegister * vec3(vUv, 1.0);
+  uv.xy = uv.xy / uv.z;
+  // Return with transparency if the calculated uv coordinate falls outside of the texture
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) {
+    return;
+  }
+
   if (iShowLayer == TRANSPARENT) 
   {
     gl_FragColor = transparent;
   }
   else if (iShowLayer == WHOLE) 
   {
-    gl_FragColor = texture2D(tImage, vUv);
+    gl_FragColor = texture2D(tImage, uv.xy);
   }
   else if (iShowLayer == IN_LENS) 
   {
     // Eucledian distance from pixel to mouse position
     float distance = distance(gl_FragCoord.xy, uMouse);
     if (distance <= uRadius) {
-      gl_FragColor = texture2D(tImage, vUv);
+      gl_FragColor = texture2D(tImage, uv.xy);
     } else {
       gl_FragColor = transparent;
     }
@@ -104,7 +113,7 @@ void main() {
     if (distance <= uRadius) {
       gl_FragColor = transparent;
     } else {
-      gl_FragColor = texture2D(tImage, vUv);
+      gl_FragColor = texture2D(tImage, uv.xy);
     }
   }
   else 

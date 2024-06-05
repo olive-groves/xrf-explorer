@@ -2,16 +2,19 @@
   "name": "painting",
   "baseImage": {
     "name": "TEST",
-    "imageLocation": "test.png"
+    "imageLocation": "test.png",
+    "recipeLocation": ""
   },
   "contextualImages": [
     {
       "name": "INVALID",
-      "imageLocation": "invalid.png"
+      "imageLocation": "invalid.png",
+      "recipeLocation": "recipe.csv"
     },
     {
       "name": "TEST2",
-      "imageLocation": "test.png"
+      "imageLocation": "test.png",
+      "recipeLocation": "recipe.csv"
     }
   ]
 }
