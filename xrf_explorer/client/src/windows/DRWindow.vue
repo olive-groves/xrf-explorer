@@ -342,7 +342,7 @@ function drawSelection() {
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
             <LoaderPinwheel class="size-full animate-spin"/>
           </div>
-          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR"/>
+          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR"/>
           <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
                style="position: absolute"></svg>
 
