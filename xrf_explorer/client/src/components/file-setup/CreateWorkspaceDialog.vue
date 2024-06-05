@@ -94,30 +94,26 @@ function completeSetup() {
 <template>
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Create new data source </DialogTitle>
-    <div class="flex space-x-2">
+    <div class="grid grid-cols-[1fr,min-content] gap-2">
       <Input placeholder="Data source name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
       <Button :disabled="progress != Progress.Name" @click="createDatasource()" variant="outline">
         Initialize workspace
       </Button>
-    </div>
-    <div class="flex justify-between">
-      <div>
+      <div class="flex justify-between">
         <Dialog v-model:open="dialogOpen">
           <DialogTrigger :disabled="progress != Progress.Files">
             <Button :disabled="progress != Progress.Files" variant="outline">Initialize data</Button>
           </DialogTrigger>
           <FileSetupDialog v-model="workspace" @close="dialogOpen = false" />
         </Dialog>
-      </div>
-      <div class="flex space-x-2">
         <Button :disabled="progress != Progress.Files" variant="outline" @click="resetProgress">Cancel</Button>
-        <Button :disabled="progress != Progress.Files || !workspaceValid[0]" @click="completeSetup"
-          >Complete setup</Button
-        >
       </div>
-    </div>
-    <div v-if="!workspaceValid[0] && progress == Progress.Files" class="text-muted-foreground">
-      Data must be initialized correctly
+      <Button :disabled="progress != Progress.Files || !workspaceValid[0]" @click="completeSetup">
+        Complete setup
+      </Button>
+      <div v-if="!workspaceValid[0] && progress == Progress.Files" class="text-muted-foreground">
+        Data must be initialized correctly
+      </div>
     </div>
   </DialogContent>
 </template>
