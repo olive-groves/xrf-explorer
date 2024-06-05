@@ -205,6 +205,9 @@ async function communicateSelectionWithImageViewer() {
   appState.selection.drSelection = {
     selectionType: selectionTool.selectionType,
     points: selectionPointsInEmbedding,
+    embeddedImageDimensions: {
+      width: imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0],
+      height: imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0] },
   };
 }
 

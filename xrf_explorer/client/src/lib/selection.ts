@@ -84,6 +84,10 @@ export type SelectionToolInfo = {
    * The list of points that make up the selection.
    */
   points: Point2D[];
+  /**
+   * The width and height of the embedded image on which the selection is made.
+   */
+  embeddedImageDimensions: { width: number; height: number };
 };
 
 /**
