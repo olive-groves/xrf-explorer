@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
 import * as THREE from "three";
 import { scene } from "./scene";
+import { datasource } from "@/lib/appState";
+import { getTargetSize } from "./api";
+import { BaseContextMenu } from "../menus";
+import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
@@ -18,9 +22,11 @@ const viewport: {
   center: { x: number; y: number };
   zoom: number;
 } = {
-  center: { x: 4000, y: 3000 },
-  zoom: 2,
+  center: { x: 0, y: 0 },
+  zoom: 0,
 };
+
+watch(datasource, resetViewport);
 
 const toolState = ref<ToolState>({
   tool: "grab",
@@ -77,6 +83,17 @@ function render() {
   renderer.render(scene.scene, camera);
 
   requestAnimationFrame(render);
+}
+
+/**
+ * Resets the viewport to a home position such that the entire painting is visible.
+ */
+async function resetViewport() {
+  const size = await getTargetSize();
+  const fill = 0.9;
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
 const dragging = ref(false);
@@ -163,21 +180,27 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <div
-    ref="glcontainer"
-    class="relative size-full"
-    :style="{
-      cursor: cursor,
-    }"
-  >
-    <canvas
-      ref="glcanvas"
-      @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove"
-      @wheel="onWheel"
-    />
-    <Toolbar v-model:state="toolState" />
-  </div>
+  <BaseContextMenu>
+    <div
+      ref="glcontainer"
+      class="relative size-full"
+      :style="{
+        cursor: cursor,
+      }"
+    >
+      <canvas
+        ref="glcanvas"
+        @dblclick="resetViewport"
+        @mousedown="onMouseDown"
+        @mouseup="onMouseUp"
+        @mouseleave="onMouseLeave"
+        @mousemove="onMouseMove"
+        @wheel="onWheel"
+      />
+      <Toolbar v-model:state="toolState" />
+    </div>
+    <template #menu>
+      <ContextMenuItem @click="resetViewport"> Reset viewport </ContextMenuItem>
+    </template>
+  </BaseContextMenu>
 </template>
