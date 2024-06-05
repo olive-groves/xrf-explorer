@@ -1,46 +1,58 @@
 <script setup lang="ts">
-import { WorkspaceElementalCard, WorkspaceSpectralCard, WorkspaceImageCard, WorkspaceChannelsCard } from ".";
-import { appState } from "@/lib/appState";
+import { Dialog } from "@/components/ui/dialog";
+import { WorkspaceCard } from ".";
+import { Atom, AudioWaveform, Image, ImagePlus, Layers3 } from "lucide-vue-next";
+import { appState, datasource } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
-import { computed, inject, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
+import { ChannelSetupDialog, FileSetupDialog } from "@/components/file-setup";
+import { deepClone } from "@/lib/utils";
 
 const config = inject<FrontendConfig>("config")!;
 
 const workspace = computed(() => appState.workspace);
 
+const localWorkspace = ref(workspace.value == undefined ? undefined : deepClone(workspace.value));
+
 /**
- * Update workspace on the backend whenever it gets changed.
+ * Update local workspace when switching between workspaces.
  */
-watch(
-  workspace,
-  (newWorkspace, oldWorkspace) => {
-    // Make sure to not update the backend on initial load/final unload
-    if (newWorkspace != undefined && oldWorkspace != undefined) {
-      // Make sure to not update the backend when switching between data sources.
-      if (newWorkspace.name == oldWorkspace.name) {
-        console.info("Saving changes to workspace", newWorkspace.name);
-        fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
-          method: "POST",
-          body: JSON.stringify(newWorkspace),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then(
-          () =>
-            toast.success("Updated workspace", {
-              description: "The updates are persistent between sessions",
-            }),
-          () =>
-            toast.warning("Failed to update workspace", {
-              description: "The updates made to the workspace will not persist between sessions",
-            }),
-        );
-      }
-    }
-  },
-  { deep: true },
-);
+watch(datasource, () => {
+  localWorkspace.value = deepClone(workspace.value);
+});
+
+const fileDialog = ref(false);
+const channelsDialog = ref(false);
+
+/**
+ * Update the workspace persistently.
+ */
+function updateWorkspace() {
+  const newWorkspace = deepClone(localWorkspace.value!);
+  console.info("Saving changes to workspace", newWorkspace);
+  fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
+    method: "POST",
+    body: JSON.stringify(newWorkspace),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(
+    () => {
+      appState.workspace = newWorkspace;
+      fileDialog.value = false;
+      channelsDialog.value = false;
+      toast.success("Updated workspace", {
+        description: "The updates are persistent between sessions",
+      });
+    },
+    () => {
+      toast.warning("Failed to update workspace", {
+        description: "No changes have been made",
+      });
+    },
+  );
+}
 </script>
 
 <template>
@@ -53,26 +65,47 @@ watch(
       <div>
         <div class="text-muted-foreground">Data sources:</div>
         <div class="space-y-2">
-          <WorkspaceImageCard v-model="workspace.baseImage" base />
-          <WorkspaceImageCard
-            v-for="(_, index) in workspace.contextualImages"
-            :key="index"
-            v-model="workspace.contextualImages[index]"
-          />
-          <WorkspaceElementalCard
-            v-for="(_, index) in workspace.elementalCubes"
-            :key="index"
-            v-model="workspace.elementalCubes[index]"
-          />
-          <WorkspaceSpectralCard
-            v-for="(_, index) in workspace.spectralCubes"
-            :key="index"
-            v-model="workspace.spectralCubes[index]"
-          />
-          <WorkspaceChannelsCard v-model="workspace.elementalChannels" />
+          <WorkspaceCard :name="workspace.baseImage.name" description="Base image" @settings="fileDialog = true">
+            <template #icon><Image class="size-full" /></template>
+          </WorkspaceCard>
+          <WorkspaceCard
+            v-for="image in workspace.contextualImages"
+            :key="image.name"
+            :name="image.name"
+            description="Contextual image"
+            @settings="fileDialog = true"
+          >
+            <template #icon><ImagePlus class="size-full" /></template>
+          </WorkspaceCard>
+          <WorkspaceCard
+            v-for="cube in workspace.spectralCubes"
+            :key="cube.name"
+            :name="cube.name"
+            description="Spectral cube"
+            @settings="fileDialog = true"
+          >
+            <template #icon><AudioWaveform class="size-full" /></template>
+          </WorkspaceCard>
+          <WorkspaceCard
+            v-for="cube in workspace.elementalCubes"
+            :key="cube.name"
+            :name="cube.name"
+            description="Elemental cube"
+            @settings="fileDialog = true"
+          >
+            <template #icon><Atom class="size-full" /></template>
+          </WorkspaceCard>
+          <WorkspaceCard name="Elemental channels" description="Generated data" @settings="channelsDialog = true">
+            <template #icon><Layers3 class="size-full" /></template>
+          </WorkspaceCard>
         </div>
       </div>
+      <Dialog v-model:open="fileDialog">
+        <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+      </Dialog>
+      <Dialog v-model:open="channelsDialog">
+        <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+      </Dialog>
     </div>
-    <div v-else class="p-2">No workspace loaded, please use the file menu to load a workspace.</div>
   </Window>
 </template>
