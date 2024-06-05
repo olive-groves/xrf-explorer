@@ -316,8 +316,6 @@ def contextual_image_size(data_source: str, name: str):
     }
 
 
-<<<<<<< HEAD
-=======
 @app.route("/api/<data_source>/image/<name>/recipe")
 def contextual_image_recipe(data_source: str, name: str):
     """Get the registering recipe of a contextual image.
@@ -381,7 +379,6 @@ def data_cube_recipe(data_source: str):
     return points, 200
 
 
->>>>>>> development
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.

@@ -7,6 +7,7 @@ import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from ".
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { layerGroupDefaults } from "./workspace";
+import { getDataSize, getRecipe, getTargetSize } from "./api";
 import { registerLayer } from "./registering";
 import { config } from "@/main";
 
@@ -107,11 +108,14 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
  */
 export async function createColorClusterLayers() {
   const filenames = await getFilenames();
+  const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
+  recipe.movingSize = await getDataSize();
+  recipe.targetSize = await getTargetSize();
 
   const layers: Layer[] = [];
   // Whole-image color clusters
   const layer = createLayer(`cs_image`, filenames[0], false);
-  registerLayer(layer, "/recipe_cube.csv");
+  registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
@@ -120,7 +124,7 @@ export async function createColorClusterLayers() {
   // Element-wise color clusters
   for (const element in elements.value) {
     const layer = createLayer(`cs_element_${element}`, filenames[Number(element) + 1], false);
-    registerLayer(layer, "/recipe_cube.csv");
+    registerLayer(layer, recipe);
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
     // iAuxiliary passes corresponding element index [1, num_elements]
     layer.uniform.iAuxiliary = { value: Number(element) + 1 };
