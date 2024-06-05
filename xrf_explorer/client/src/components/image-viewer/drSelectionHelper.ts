@@ -6,7 +6,7 @@ import { toast } from "vue-sonner";
 import { useFetch } from "@vueuse/core";
 import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
-import { createLayer, layerGroups } from "@/components/image-viewer/state.ts";
+import {createLayer, layerGroups, updateLayerGroupLayers} from "@/components/image-viewer/state.ts";
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace.ts";
 import { appState, datasource } from "@/lib/appState";
@@ -200,6 +200,8 @@ export async function createSelectionLayers() {
     // set opacity to default values
     for (let i = 0; i < layerGroups.value.selection.layers.length; i++)
         layerGroups.value.selection.opacity[i] = config.selectionToolConfig.opacity;
+
+    updateLayerGroupLayers(layerGroups.value.selection);
 }
 
 /**
