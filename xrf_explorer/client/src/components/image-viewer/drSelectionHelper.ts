@@ -17,8 +17,8 @@ import { hexToRgb } from "@/lib/utils";
 const selection = computed(() => appState.selection.drSelection);
 
 const config: FrontendConfig = inject<FrontendConfig>("config")!;
-const embeddingWidth: number = 2000;        // TODO: not sure how to get the width of the embedding
-const embeddingHeight: number = 8000;       // TODO: not sure how to get the height of the base image
+let embeddingWidth: number = -1;        // TODO: not sure how to get the width of the embedding
+let embeddingHeight: number = -1;       // TODO: not sure how to get the height of the base image
 let imageWidth: number = -1;
 let imageHeight: number = -1;
 // each index represents a pixel and the value represents whether the pixel is selected
@@ -32,12 +32,21 @@ watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
 async function onSelectionUpdate(newSelection: SelectionToolInfo) {
 
+    // extract selection information
+    let { width, height } = newSelection.embeddedImageDimensions;
+    embeddingWidth = width;
+    embeddingHeight = height;
     updateBitmask(newSelection);
+
+    // map the selection to the image viewer
     await getMiddleImage();
     const middleImageToEmbedding: { imagePoint: Point2D, embeddingPoint: Point2D }[] = mapImageToEmbedding();
     const selectedPointsInImage: Point2D[] = middleImageToEmbedding
-        .filter((mapping) => bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
-        .map((mapping) => mapping.imagePoint);
+        .filter(mapping =>
+            bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
+        .map(mapping => mapping.imagePoint);
+
+    // update the layer to display the selection
     updateLayer(selectedPointsInImage);
 
 }
@@ -85,9 +94,9 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
     for (let i = 1; i <= polygon.length; i++) {
         polyPoint2 = polygon[i % polygon.length];   // last i = polygon.length, we need i = 0 in this case
 
-        if (point.y > Math.min(polyPoint1.y, polyPoint2.y))         // point.y is above the lowest point in the poly
-            if (point.y <= Math.max(polyPoint1.y, polyPoint2.y))    // point.y is below the highest point in the poly
-                if (point.x <= Math.max(polyPoint1.x, polyPoint2.x)) {
+        if ((point.y > Math.min(polyPoint1.y, polyPoint2.y)) &&     // point.y is above the lowest point in the poly
+             (point.y <= Math.max(polyPoint1.y, polyPoint2.y)) &&   // point.y is below the highest point in the poly
+                (point.x <= Math.max(polyPoint1.x, polyPoint2.x))) {
                     const x_intersection: number =
                         ((point.y - polyPoint1.y) * (polyPoint2.x - polyPoint1.x)) / (polyPoint2.y - polyPoint1.y) +
                         polyPoint1.x;
@@ -192,7 +201,7 @@ export async function createSelectionLayers() {
         name: "Selections",
         description: "Visualizes the current selections",
         layers: layers,
-        index: 5000,    // TODO: no sure which value to use here
+        index: 0,    // TODO: not sure which value to use here
         visible: true,
         ...layerGroupDefaults,
     }
