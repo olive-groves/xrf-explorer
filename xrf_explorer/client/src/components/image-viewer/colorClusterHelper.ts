@@ -29,21 +29,20 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  */
 function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   newSelection.forEach((channel) => {
-    // De-select previous channel
-    const prevStart = (channel.prevChannel * width + channel.element) * 4;
-    data[prevStart + 3] = 0;
+    channel.enabled.forEach((_, index) => {
+      // Get index for cluster channel.channel of element channel.element
+      const start = ((index+1) * width + channel.element) * 4;
 
-    // Get index for cluster channel.channel of element channel.element
-    const start = (channel.channel * width + channel.element) * 4;
-    if (channel.selected) {
-      const color = hexToRgb(channel.color);
-      data[start + 0] = color[0];
-      data[start + 1] = color[1];
-      data[start + 2] = color[2];
-      data[start + 3] = 255;
-    } else {
-      data[start + 3] = 0;
-    }
+      if (channel.enabled[index]) {
+        const color = hexToRgb(channel.colors[index]);
+        data[start + 0] = color[0];
+        data[start + 1] = color[1];
+        data[start + 2] = color[2];
+        data[start + 3] = 255;
+      } else {
+        data[start + 3] = 0;
+      }
+    });
   });
 
   // Create and dispose of layers in accordance with the selection.

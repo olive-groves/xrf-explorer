@@ -12,7 +12,7 @@ const config = inject<FrontendConfig>("config")!;
 const colors = ref<string[]>([]);
 const colorsElements = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
-const selectedChannel = ref<number>();
+const selectedChannel = ref<boolean[]>();
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
@@ -37,11 +37,10 @@ watch(selectedElement, (newValue) => {
   });
   if (newValue === "complete") {
     colors.value = colorsElements.value["complete"];
-    selectedChannel.value = -1;
   } else if (newValue) {
     colors.value = colorsElements.value[newValue] || [];
-    selectedChannel.value = -1;
   }
+  selection.value[getElementIndex(newValue)].selected = true;
 });
 
 /**
@@ -73,18 +72,6 @@ async function fetchColors(url: string) {
  * Show the colors and element names, and initialize CS selection.
  */
 async function setup() {
-  // Initialize CS selection
-  for (let i = 0; i <= elements.value.length; i++) {
-    const sel: ColorSegmentationSelection = {
-      element: i,
-      channel: 1,
-      selected: false,
-      prevChannel: 1,
-      color: "#ffffff",
-    };
-    selection.value.push(sel);
-  }
-
   try {
     // Whether the colors were fetched properly
     await fetchColors(config.api.endpoint);
@@ -92,39 +79,65 @@ async function setup() {
     toast.warning("Failed to retrieve painting colors");
     console.error("Error fetching colors data", e);
   }
+
+  // Initialize CS selection
+  const colors = colorsElements.value["complete"];
+  const sel: ColorSegmentationSelection = {
+    element: 0,
+    selected: false,
+    enabled: Array(colors.length).fill(false),
+    colors: colors,
+  };
+  selection.value.push(sel);
+
+  selectedChannel.value = Array(colors.length).fill(false);
+
+  for (let i = 1; i <= elements.value.length; i++) {
+    const colors = colorsElements.value[elements.value[i-1].name];
+    const sel: ColorSegmentationSelection = {
+      element: i,
+      selected: false,
+      enabled: Array(colors.length).fill(false),
+      colors: colors,
+    };
+    selection.value.push(sel);
+  }
 }
 
 /**
  * Sets the CS selection.
  * @param selectedElement The selected element.
- * @param color The selected color.
  * @param colorIndex The index of the selected color.
  */
-function setSelection(selectedElement: string, color: string, colorIndex: number) {
+function setSelection(selectedElement: string, colorIndex: number) {
   // Deselect all channels
   selection.value.forEach((channel) => {
     channel.selected = false;
   });
 
-  // Get index of new channel
-  let index: number;
-  if (selectedElement == "complete") {
-    index = 0;
-  } else {
-    index = elements.value.findIndex((element) => element.name === selectedElement) + 1;
-    if (index == 0) {
-      console.error("Error fetching selected element");
-      return;
-    }
-  }
-  selectedChannel.value = colorIndex;
+  // Get index of selected element
+  const index = getElementIndex(selectedElement);
 
   // Update selection
-  selection.value[index].prevChannel = selection.value[index].channel;
-  selection.value[index].channel = colorIndex + 1;
-  selection.value[index].color = color;
   selection.value[index].selected = true;
+  selection.value[index].enabled[colorIndex] = !selection.value[index].enabled[colorIndex];
 }
+
+function getElementIndex(elementName: string) {
+  // Get index of new channel
+  let index: number;
+  if (elementName == "complete") {
+    index = 0;
+  } else {
+    index = elements.value.findIndex((element) => element.name === elementName) + 1;
+    if (index == 0) {
+      console.error("Error fetching selected element");
+      return 0;
+    }
+  }
+  return index;
+}
+
 </script>
 
 <template>
@@ -151,8 +164,8 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         :key="color"
         :style="{ 'background-color': color }"
         class="m-1 inline-block size-12 rounded-md"
-        :class="{ 'border-2 border-border': selectedChannel === colorIndex }"
-        @click="setSelection(selectedElement, color, colorIndex)"
+        :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true}"
+        @click="setSelection(selectedElement, colorIndex)"
       ></div>
     </div>
   </Window>
