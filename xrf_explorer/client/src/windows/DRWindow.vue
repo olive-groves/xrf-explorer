@@ -61,7 +61,7 @@ let imageToEmbeddingCropping: {
   xEmbedRange: [], yEmbedRange: [],
   xPlotRange: [], yPlotRange: [],
 }
-const mrIncredible: string = "src/windows/mr-incredible.png";
+// const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
  * Fetch the dimensionality reduction image
@@ -208,7 +208,8 @@ async function communicateSelectionWithImageViewer() {
     points: selectionPointsInEmbedding,
     embeddedImageDimensions: {
       width: imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0],
-      height: imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0] },
+      height: imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0]
+    },
   };
 }
 
@@ -327,18 +328,19 @@ function drawSelection() {
       <div
           class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center pointer-events-auto"
           style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="imageContainer">
-                <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
-                <span v-if="status == Status.LOADING">Loading</span>
-                <span v-if="status == Status.GENERATING">Generating</span>
-                <span v-if="status == Status.ERROR">{{ currentError }}</span>
-                <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
-                  <LoaderPinwheel class="size-full animate-spin" />
-                </div>
-                <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
-                <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR" style="position: absolute"></svg>
+        <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
+        <span v-if="status == Status.LOADING">Loading</span>
+        <span v-if="status == Status.GENERATING">Generating</span>
+        <span v-if="status == Status.ERROR">{{ currentError }}</span>
+        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
+          <LoaderPinwheel class="size-full animate-spin"/>
+        </div>
+        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR"/>
+        <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
+             style="position: absolute"></svg>
 
-<!--        <img id="image" :src="mrIncredible" @error="status = Status.ERROR"/>-->
-<!--        <svg id="svgOverlay" ref="svgOverlay" style="position: absolute"></svg>-->
+        <!--        <img id="image" :src="mrIncredible" @error="status = Status.ERROR"/>-->
+        <!--        <svg id="svgOverlay" ref="svgOverlay" style="position: absolute"></svg>-->
       </div>
     </div>
   </Window>
