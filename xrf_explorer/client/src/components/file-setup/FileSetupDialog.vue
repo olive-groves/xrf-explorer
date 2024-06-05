@@ -35,7 +35,7 @@ function close() {
       <DialogTitle class="font-bold">Set up workspace data</DialogTitle>
       <FileSetupTable v-model="model" />
       <div class="flex justify-between">
-        <div class="flex items-end space-x-0.5">
+        <div class="flex items-end space-x-1.5">
           <TriangleAlert v-if="!modelValid[0]" class="size-5 text-primary" />
           <div class="text-muted-foreground" v-text="modelValid[1]" />
         </div>
