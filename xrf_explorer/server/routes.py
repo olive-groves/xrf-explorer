@@ -100,6 +100,9 @@ def create_data_source_dir():
 
     :return: json with directory name
     """
+    # Get config
+    config: dict = get_config()
+
     # Check the 'name' field was provided in the request
     if "name" not in request.form:
         error_msg = "Data source name must be provided."
@@ -114,7 +117,7 @@ def create_data_source_dir():
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(get_config()["uploads-folder"], data_source_name_secure)
+    data_source_dir = join(config["uploads-folder"], data_source_name_secure)
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -136,7 +139,10 @@ def delete_data_source():
     
     :request form attributes: **dir** - the directory name
     """
-    delete_dir = join(get_config()["uploads-folder"], request.form["dir"])
+    # get config
+    config: dict = get_config()
+
+    delete_dir = join(config["uploads-folder"], request.form["dir"])
 
     if exists(delete_dir):
         rmtree(delete_dir)
@@ -155,7 +161,10 @@ def upload_file_chunk():
         **startByte** - the start byte from which bytes are uploaded \n 
         **chunkBytes** - the chunk  of bytes to upload
     """
-    file_dir = join(get_config()["uploads-folder"], request.form["dir"])
+    # get config
+    config: dict = get_config()
+
+    file_dir = join(config["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
 
@@ -363,17 +372,20 @@ def get_color_clusters():
 
     :return json containing the ordered list of colors
     '''
+    # get config
+    config: dict = get_config()
+
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(get_config()['uploads-folder'], TEMP_RGB_IMAGE)
+    path_to_image: str = join(config['uploads-folder'], TEMP_RGB_IMAGE)
     image = get_image(path_to_image)
 
     # get default dim reduction config
-    k_means_parameters: dict[str, str] = get_config()['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
     width: int = k_means_parameters['image-width']
     height: int = k_means_parameters['image-height']
     nr_attemps: int = int(k_means_parameters['nr_attemps'])
     k: int = int(k_means_parameters['k'])
-    path_to_save: str = get_config()['color-segmentation']['folder']
+    path_to_save: str = config['color-segmentation']['folder']
 
     colors: ndarray
     bitmasks: ndarray
@@ -401,7 +413,7 @@ def get_element_color_cluster_bitmask(data_source: str):
     :return json containing the combined bitmasks of the color clusters for each element.
     '''
     # get config
-    config = get_config()
+    config: dict = get_config()
 
     # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = join(config['uploads-folder'], TEMP_RGB_IMAGE)

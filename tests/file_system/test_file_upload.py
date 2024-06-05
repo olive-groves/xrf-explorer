@@ -39,8 +39,9 @@ class TestUploadFileToServer:
     def test_no_file_names(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH_NO_SOURCES)
-        if not path.isdir(get_config()["uploads-folder"]):
-            mkdir(get_config()["uploads-folder"])
+        config: dict = get_config()
+        if not path.isdir(config["uploads-folder"]):
+            mkdir(config["uploads-folder"])
 
         # execute
         result: list[str] = get_data_sources_names()
