@@ -17,7 +17,8 @@ from xrf_explorer.server.file_system.contextual_images import (get_contextual_im
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube, get_elemental_cube_path
-from xrf_explorer.server.file_system.file_access import *
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
+from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.spectra import *
 from xrf_explorer.server.color_seg import (
@@ -361,8 +362,15 @@ def get_color_clusters(data_source: str):
     :param data_source: data_source to get the clusters from
     :return json containing the ordered list of colors
     """
+    rgb_image_name: str = get_base_image_name(data_source, CONFIG_PATH)
+    if rgb_image_name is None:
+        return 'Error occurred while getting rgb image name', 500
+
     # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
+    path_to_image: str = get_contextual_image_path(data_source, rgb_image_name, CONFIG_PATH)
+    if path_to_image is None:
+        return 'Error occurred while getting rgb image path', 500
+
     path_to_reg_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source,
                                   BACKEND_CONFIG['color-segmentation']['folder-name'],
                                   BACKEND_CONFIG['color-segmentation']['registered-image'])

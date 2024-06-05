@@ -6,4 +6,4 @@ from .elemental_cube import (
     get_element_averages, to_dms
 )
 from .workspace_handler import get_path_to_workspace, update_workspace
-from .file_access import get_elemental_cube_path
+from .file_access import get_elemental_cube_path, get_base_image_name
