@@ -1,12 +1,10 @@
-import { createReadStream } from "fs";
-import { PNG } from "pngjs";
 import { DataTexture } from "three";
 import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useFetch } from "@vueuse/core";
 import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
-import {createLayer, layerGroups, updateLayerGroupLayers} from "@/components/image-viewer/state.ts";
+import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/image-viewer/state.ts";
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace.ts";
 import { appState, datasource } from "@/lib/appState";
@@ -133,7 +131,9 @@ async function getMiddleImage() {
  */
 function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
-    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: PNG) {
+    const fs = require("fs");
+    const PNG = require("pngjs").PNG;
+    fs.createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: typeof PNG) {
         // update image dimensions
         imageWidth = this.width;
         imageHeight = this.height;
