@@ -110,7 +110,7 @@ function completeSetup() {
         </Dialog>
       </div>
       <div class="flex space-x-2">
-        <Button :disabled="progress != Progress.Files" variant="destructive" @click="resetProgress">Cancel</Button>
+        <Button :disabled="progress != Progress.Files" variant="outline" @click="resetProgress">Cancel</Button>
         <Button :disabled="progress != Progress.Files || !workspaceValid[0]" @click="completeSetup"
           >Complete setup</Button
         >
