@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, inject, computed, watch } from "vue";
-import { appState, datasource } from "@/lib/appState";
+import { appState, datasource, elements } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "vue-sonner";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
@@ -12,7 +13,6 @@ const colors = ref<string[]>([]);
 const colorsElements = ref<Record<string, string[]>>({});
 const selectedElement = ref<string>();
 const selectedChannel = ref<number>();
-const elements = ref<string[]>([]);
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
@@ -58,11 +58,12 @@ async function fetchColors(url: string) {
     //assign the full color palette if the selection is made for the complete painting
     colorsElements.value["complete"] = data[0];
     elements.value.forEach((element, index) => {
-      colorsElements.value[element] = data[index + 1];
+      colorsElements.value[element.name] = data[index + 1];
     });
     console.info("Successfully fetched colors", colorsElements.value["complete"]);
     return true;
   } catch (e) {
+    toast.warning("Failed to retrieve colors");
     console.error(e);
     return false;
   }
@@ -118,13 +119,6 @@ async function fetchElements(url: string) {
  * Show the colors and element names, and initialize CS selection.
  */
 async function setup() {
-  try {
-    // Whether the colors were fetched properly
-    await fetchElements(config.api.endpoint);
-  } catch (e) {
-    console.error("Error fetching names data", e);
-  }
-
   // Initialize CS selection
   for (let i = 0; i <= elements.value.length; i++) {
     const sel: ColorSegmentationSelection = {
@@ -141,6 +135,7 @@ async function setup() {
     // Whether the colors were fetched properly
     await fetchColors(config.api.endpoint);
   } catch (e) {
+    toast.warning("Failed to retrieve painting colors");
     console.error("Error fetching colors data", e);
   }
 }
@@ -162,7 +157,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
   if (selectedElement == "complete") {
     index = 0;
   } else {
-    index = elements.value.findIndex((element) => element === selectedElement) + 1;
+    index = elements.value.findIndex((element) => element.name === selectedElement) + 1;
     if (index == 0) {
       console.error("Error fetching selected element");
       return;
@@ -188,7 +183,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="complete"> Complete painting </SelectItem>
-          <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }} </SelectItem>
+          <SelectItem v-for="element in elements" :key="element.channel" :value="element.name"> {{ element.name }} </SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -199,7 +194,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         v-for="(color, colorIndex) in colors"
         :key="color"
         :style="{ 'background-color': color }"
-        class="m-1 inline-block h-24 w-16 rounded-md"
+        class="m-1 inline-block h-12 w-12 rounded-md"
         :class="{ 'border-2 border-border': selectedChannel === colorIndex }"
         @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
