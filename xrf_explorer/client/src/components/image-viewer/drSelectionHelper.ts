@@ -124,9 +124,9 @@ async function getMiddleImage() {
  */
 function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
-    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function () {
+    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: PNG) {
         // update image dimensions
-        imageWidth = this.width;    // TODO: how do i fix this?
+        imageWidth = this.width;
         imageHeight = this.height;
 
         for (let x: number = 0; x < imageWidth; x++)
