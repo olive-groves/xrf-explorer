@@ -19,7 +19,7 @@ from xrf_explorer.server.file_system.contextual_images import (get_contextual_im
                                                                get_contextual_image_recipe_path)
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
-from xrf_explorer.server.file_system.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
@@ -98,45 +98,48 @@ def get_workspace(data_source: str):
         return send_file(abspath(path), mimetype='application/json')
 
 
-@app.route("/api/create_ds_dir", methods=["POST"])
-def create_data_source_dir():
-    """Create a directory for a new data source.
-    
-    :request form attributes:  **name** - the data source name 
+@app.route("/api/<data_source>/files")
+def datasource_files(data_source: str):
+    """Return a list of all available files for a data source.
 
+    :return: json list of strings representing the file names
+    """
+    try:
+        return json.dumps(get_data_source_files(data_source))
+    except Exception as e:
+        LOG.error(f"Failed to serialize files: {str(e)}")
+        return "Error occurred while listing files", 500
+
+
+@app.route("/api/<data_source>/create", methods=["POST"])
+def create_data_source_dir(data_source: str):
+    """Create a directory for a new data source.
+
+    :param data_source: The name of the data source to create
     :return: json with directory name
     """
     # Get config
     config: dict = get_config()
 
-    # Check the 'name' field was provided in the request
-    if "name" not in request.form:
-        error_msg = "Data source name must be provided."
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    data_source_name = request.form["name"].strip()
-    data_source_name_secure = secure_filename(data_source_name)
-
-    if data_source_name == "":
+    if data_source == "":
         error_msg = "Data source name provided, but empty."
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(config["uploads-folder"], data_source_name_secure)
-
-    # If the directory exists, return 400
-    if exists(data_source_dir):
+    if data_source in get_data_sources_names():
         error_msg = "Data source name already exists."
         LOG.error(error_msg)
         return error_msg, 400
 
+    data_source_dir = join(config["uploads-folder"], data_source)
+
     # create data source dir
-    mkdir(data_source_dir)
+    if not exists(data_source_dir):
+        mkdir(data_source_dir)
 
     LOG.info(f"Data source directory created at {data_source_dir}")
 
-    return jsonify({"dataSourceDir": data_source_name_secure})
+    return jsonify({"dataSourceDir": data_source})
 
 
 @app.route("/api/delete_data_source", methods=["DELETE"])

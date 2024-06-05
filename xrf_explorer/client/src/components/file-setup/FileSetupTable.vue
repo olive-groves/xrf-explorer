@@ -5,14 +5,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FileSetupTableRow, FileUploadDialog } from ".";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { useFetch } from "@vueuse/core";
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { Image, ImagePlus, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
+import { FrontendConfig } from "@/lib/config";
+
+const config = inject<FrontendConfig>("config")!;
 
 const model = defineModel<WorkspaceConfig>({ required: true });
 
 const addElementType = ref("contextual_image");
 
-const fileFetch = useFetch<string>("/filenames.json");
+const fileUrl = computed(() => `${config.api.endpoint}/${model.value.name}/files`);
+const fileFetch = useFetch<string>(fileUrl);
 const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
 const imageFiles = computed(() => filterByExtension(files.value, ["tif", "tiff", "png", "jpg", "jpeg", "bmp"]));
 const recipeFiles = computed(() => filterByExtension(files.value, ["csv"]));

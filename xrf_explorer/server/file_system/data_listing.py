@@ -32,3 +32,28 @@ def get_data_sources_names() -> list[str]:
 
     LOG.info(f"Successful. Data sources in folder: {folders}")
     return folders
+
+
+def get_data_source_files(data_source: str) -> list[str]:
+    """Return a list of all the files stored in the folder belonging to a data source.
+Does not look at files in subdirectories.
+
+    :param data_source: name of the data source
+    :return: list of all files stored in the folder belonging to a data source
+    """
+
+    # load config
+    config: dict = get_config()
+    if not config:
+        LOG.error("Config is empty")
+        return []
+
+    # Path to folder where the files are stored
+    path = Path(join(config['uploads-folder'], data_source))
+
+    # Return list of all data source names in the folder
+    # The data source names are the names of the folders in the data folder that contain a workspace.json
+    files: list[str] = [filename for filename in listdir(path) if isfile(join(path, filename))]
+
+    LOG.info(f"Files for data source {data_source}: {files}")
+    return files
