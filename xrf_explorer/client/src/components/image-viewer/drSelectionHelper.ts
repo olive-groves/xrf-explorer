@@ -8,13 +8,13 @@ import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/i
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace.ts";
 import { appState, datasource } from "@/lib/appState";
-import { FrontendConfig } from "@/lib/config.ts";
 import { SelectionToolInfo } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
+import { config } from "@/main";
 
 const selection = computed(() => appState.selection.drSelection);
 
-const config: FrontendConfig = inject<FrontendConfig>("config")!;
+// const config: FrontendConfig = inject<FrontendConfig>("config")!;
 let embeddingWidth: number = -1;        // TODO: not sure how to get the width of the embedding
 let embeddingHeight: number = -1;       // TODO: not sure how to get the height of the base image
 let imageWidth: number = -1;
@@ -193,7 +193,7 @@ export async function createSelectionLayers() {
     // set up layers
     layers.forEach(layer => {
         layer.uniform.iLayerType.value = LayerType.Selection;
-        layer.uniform.tAuxiliary.value = { value: layerTexture, type: "t" };    // TODO: why do i get these errors?
+        layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };    // TODO: why do i get these errors?
     });
 
     // add layers to the groups of layers

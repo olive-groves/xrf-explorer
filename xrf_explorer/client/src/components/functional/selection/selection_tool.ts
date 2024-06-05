@@ -166,7 +166,7 @@ export class SelectionTool {
             .attr("width", dimensions.width)
             .attr("height", dimensions.height);
 
-        if (this.selectionType == SelectionOption.Rectangle) {
+        if (this.selectionType == SelectionOption.Rectangle && this.finishedSelection) {
             svg.append("rect")
                 .attr("x", this.getOrigin().x)
                 .attr("y", this.getOrigin().y)
@@ -175,7 +175,7 @@ export class SelectionTool {
                 .attr("fill", config.selectionToolConfig.fill_color)
                 .attr("stroke", config.selectionToolConfig.stroke_color)
                 .attr("opacity", config.selectionToolConfig.opacity);
-        } else if (this.selectionType == SelectionOption.Lasso) {
+        } else if (this.selectionType == SelectionOption.Lasso && this.finishedSelection) {
             svg.append("polygon")
                 .attr("points", this.getPointsAsString())
                 .attr("fill", config.selectionToolConfig.fill_color)
