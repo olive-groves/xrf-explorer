@@ -1,5 +1,5 @@
 import { DataTexture } from "three";
-import { computed, inject, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useFetch } from "@vueuse/core";
 import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
