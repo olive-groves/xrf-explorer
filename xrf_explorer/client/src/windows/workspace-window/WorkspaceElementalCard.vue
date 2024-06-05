@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ElementalCube, ElementalCubeFileType } from "@/lib/workspace";
+import { ElementalCube } from "@/lib/workspace";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Atom, Settings } from "lucide-vue-next";
 import { ref, watch } from "vue";
@@ -57,22 +56,6 @@ function updateModel() {
           <div class="space-y-1">
             <Label for="name">Name</Label>
             <Input id="name" v-model="localModel.name" />
-          </div>
-          <div class="space-y-1">
-            <div>Filetype</div>
-            <RadioGroup
-              :default-value="localModel.fileType"
-              @update:model-value="(value) => (localModel.fileType = value as ElementalCubeFileType)"
-            >
-              <div class="flex items-center space-x-2">
-                <RadioGroupItem id="csv" value="csv" />
-                <Label for="csv">.csv file</Label>
-              </div>
-              <div class="flex items-center space-x-2">
-                <RadioGroupItem id="dms" value="dms" />
-                <Label for="dms">.dms file</Label>
-              </div>
-            </RadioGroup>
           </div>
           <div class="space-y-1">
             <Label for="data">Datacube location</Label>
