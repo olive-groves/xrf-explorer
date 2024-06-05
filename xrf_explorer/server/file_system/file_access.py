@@ -38,7 +38,7 @@ def get_elemental_cube_name(data_source: str) -> str:
     return elemental_cube_name
 
 
-def get_elemental_cube_path(data_source: str, config_path: str = "config/backend.yml") -> str:
+def get_elemental_cube_path(data_source: str) -> str:
     """Get the path to the elemental data cube of a data source.
 
     :param data_source: Name of the data source.
@@ -60,11 +60,10 @@ def get_elemental_cube_path(data_source: str, config_path: str = "config/backend
     return path
 
 
-def get_elemental_cube_recipe_path(data_source: str, config_path: str = "config/backend.yml") -> str | None:
+def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     """Get the location of the elemental cube recipe file of a given datasource
 
     :param data_source: Name of the datasource.
-    :param config_path: Path to the backend config file.
     :return: Path string pointing to the recipe of the elemental cube.
     """
     # load backend config
@@ -87,7 +86,7 @@ def get_elemental_cube_recipe_path(data_source: str, config_path: str = "config/
     return abspath(join(data_source_dir, recipe_name))
 
 
-def get_raw_rpl_names(data_source: str, config_path: str = "config/backend.yml") -> tuple[str, str]:
+def get_raw_rpl_names(data_source: str) -> tuple[str, str]:
     """Get the name of the raw data file (.raw) and the .rpl file of a given datasource
     
     :param datasource: Name of the datasource.
@@ -113,7 +112,7 @@ def get_raw_rpl_names(data_source: str, config_path: str = "config/backend.yml")
     return raw_data_name, rpl_name
 
 
-def get_raw_rpl_paths(data_source: str, config_path: str = "config/backend.yml") -> tuple[str, str]:
+def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     """Get the paths to the raw data file (.raw) and the .rpl file of a given datasource
     
     :param datasource: Name of the datasource.
