@@ -69,7 +69,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result: str | None = get_contextual_image_recipe_path("painting", "TEST", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_recipe_path("painting", "TEST")
 
         # Verify
         assert result is None
@@ -79,7 +79,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result: str | None = get_contextual_image_recipe_path("painting", "TEST2", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_recipe_path("painting", "TEST2")
 
         # Verify
         assert result == abspath(self.TEST_RECIPE_PATH)
@@ -89,7 +89,7 @@ class TestContextualImages:
         caplog.set_level(logging.INFO)
 
         # Execute
-        result: str | None = get_contextual_image_recipe_path("painting", "FAKE", self.CUSTOM_CONFIG_PATH)
+        result: str | None = get_contextual_image_recipe_path("painting", "FAKE")
 
         # Verify
         assert result is None
