@@ -187,7 +187,7 @@ export async function createSelectionLayers() {
         layer.uniform.tAuxiliary.value = { value: layerTexture, type: "t" };    // TODO: why do i get these errors?
     });
 
-    // add layers to the layer groups
+    // add layers to the groups of layers
     layerGroups.value.selection = {
         name: "Selections",
         description: "Visualizes the current selections",
