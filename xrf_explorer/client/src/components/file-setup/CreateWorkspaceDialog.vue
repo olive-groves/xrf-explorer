@@ -96,13 +96,15 @@ function completeSetup() {
     <DialogTitle class="mb-2 font-bold"> Create new data source </DialogTitle>
     <div class="flex space-x-2">
       <Input placeholder="Data source name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
-      <Button :disabled="progress != Progress.Name" @click="createDatasource()">Initialize workspace</Button>
+      <Button :disabled="progress != Progress.Name" @click="createDatasource()" variant="outline">
+        Initialize workspace
+      </Button>
     </div>
     <div class="flex justify-between">
       <div>
         <Dialog v-model:open="dialogOpen">
           <DialogTrigger :disabled="progress != Progress.Files">
-            <Button :disabled="progress != Progress.Files">Initialize data</Button>
+            <Button :disabled="progress != Progress.Files" variant="outline">Initialize data</Button>
           </DialogTrigger>
           <FileSetupDialog v-model="workspace" @close="dialogOpen = false" />
         </Dialog>
