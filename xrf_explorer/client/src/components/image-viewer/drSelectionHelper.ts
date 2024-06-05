@@ -77,28 +77,28 @@ function updateBitmask(newSelection: SelectionToolInfo) {
  */
 function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
     let inside: boolean = false;
- 
+
     let polyPoint1: Point2D = polygon[0];
     let polyPoint2: Point2D;
 
     // iterate through all edges in the polygon, starting at the second and finishing at the first
     for (let i = 1; i <= polygon.length; i++) {
         polyPoint2 = polygon[i % polygon.length];   // last i = polygon.length, we need i = 0 in this case
- 
+
         if (point.y > Math.min(polyPoint1.y, polyPoint2.y))         // point.y is above the lowest point in the poly
             if (point.y <= Math.max(polyPoint1.y, polyPoint2.y))    // point.y is below the highest point in the poly
                 if (point.x <= Math.max(polyPoint1.x, polyPoint2.x)) {
                     const x_intersection: number =
                         ((point.y - polyPoint1.y) * (polyPoint2.x - polyPoint1.x)) / (polyPoint2.y - polyPoint1.y) +
                         polyPoint1.x;
- 
+
                     if (polyPoint1.x == polyPoint2.x || point.x <= x_intersection)
                         inside = !inside;
                 }
- 
+
         polyPoint1 = polyPoint2;    // advance polyPoint1 by 1 edge in the polygon list
     }
- 
+
     return inside;
 }
 
@@ -124,7 +124,7 @@ async function getMiddleImage() {
  */
 function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
-    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function() {
+    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function () {
         // update image dimensions
         imageWidth = this.width;    // TODO: how do i fix this?
         imageHeight = this.height;
