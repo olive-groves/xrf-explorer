@@ -57,36 +57,16 @@ watch(selectedElement, (newValue) => {
  */
 async function fetchColors(url: string) {
   try {
-    const response = await fetch(`${url}/${datasource.value}/cs/image/clusters`);
+    const response = await fetch(`${url}/${datasource.value}/cs/clusters`);
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
     //assign the full color palette if the selection is made for the complete painting
-    colorsElements.value["complete"] = data;
-    console.info("Successfully fetched colors", colorsElements.value["complete"]);
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-}
-
-/**
- * Fetch the hexadecimal colors data per element.
- * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
- * @returns True if the colors were fetched successfully, false otherwise.
- */
-async function fetchElementColors(url: string) {
-  try {
-    const response = await fetch(`${url}/${datasource.value}/cs/element/clusters`);
-    if (!response.ok) throw new Error("Failed to fetch element colors");
-
-    const data = await response.json();
-    //for each element assign the corresponding palette at that index
+    colorsElements.value["complete"] = data[0];
     elements.value.forEach((element, index) => {
-      colorsElements.value[element] = data[index];
+      colorsElements.value[element] = data[index + 1];
     });
-    console.info("Successfully fetched element colors", colorsElements.value);
+    console.info("Successfully fetched colors", colorsElements.value["complete"]);
     return true;
   } catch (e) {
     console.error(e);
@@ -168,12 +148,6 @@ async function setup() {
     await fetchColors(config.api.endpoint);
   } catch (e) {
     console.error("Error fetching colors data", e);
-  }
-  try {
-    // Whether the colors were fetched properly
-    await fetchElementColors(config.api.endpoint);
-  } catch (e) {
-    console.error("Error fetching element colors data", e);
   }
 }
 

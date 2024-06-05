@@ -354,7 +354,7 @@ def get_selection_sectra(data_source):
     return response
 
 
-@app.route('/api/<data_source>/cs/image/clusters', methods=['GET'])
+@app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
     """Gets the colors corresponding to the image-wide color clusters, and saves the
     corresponding bitmasks.
@@ -362,28 +362,36 @@ def get_color_clusters(data_source: str):
     :param data_source: data_source to get the clusters from
     :return json containing the ordered list of colors
     """
+    # Get rgb image name and path
     rgb_image_name: str = get_base_image_name(data_source, CONFIG_PATH)
     if rgb_image_name is None:
         return 'Error occurred while getting rgb image name', 500
-
-    # currently hardcoded, this should be whatever name+path we give the RGB image
     path_to_image: str = get_contextual_image_path(data_source, rgb_image_name, CONFIG_PATH)
     if path_to_image is None:
         return 'Error occurred while getting rgb image path', 500
 
-    path_to_reg_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source,
-                                  BACKEND_CONFIG['color-segmentation']['folder-name'],
-                                  BACKEND_CONFIG['color-segmentation']['registered-image'])
-    path_to_data_cube: str = get_elemental_cube_path(data_source)
+    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
+    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
+    reg_image_name: str = str(BACKEND_CONFIG['color-segmentation']['registered-image'])
 
-    # get default dim reduction config
+    # Paths
+    path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
+    path_to_data_cube: str = get_elemental_cube_path(data_source)
+    path_to_save: str = join(uploads_folder, data_source, cs_folder)
+
+    # get default dim reduction config for image clusters
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
-    path_to_save: str = join(BACKEND_CONFIG['uploads-folder'], data_source, BACKEND_CONFIG['color-segmentation']['folder-name'])
+
+    # get default dim reduction config for elemental clusters
+    k_means_parameters_eleme: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters_eleme['elem-threshold'])
+    nr_attempts_elem: int = int(k_means_parameters_eleme['nr-attempts'])
+    k_elem: int = int(k_means_parameters_eleme['k'])
 
     # path to json for caching
-    full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}.json')
+    full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
@@ -394,10 +402,13 @@ def get_color_clusters(data_source: str):
     if not exists(path_to_save):
         mkdir(path_to_save)
 
+    # List to store colors per element
+    color_data: list[ndarray] = []
+
+    # Compute colors and bitmasks
     colors: ndarray
     bitmasks: ndarray
     colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
-
     # Merge similar clusters
     colors, _ = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
@@ -409,79 +420,15 @@ def get_color_clusters(data_source: str):
     if not image_saved:
         return 'Error occurred while saving bitmask as png', 500
 
-    colors = convert_to_hex(colors)
+    # Store colors
+    color_data.append(convert_to_hex(colors))
 
-    # cache data
-    with open(full_path_json, 'w') as json_file:
-        json.dump(colors, json_file)
-
-    return json.dumps(colors)
-
-
-@app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
-def get_color_cluster_bitmask(data_source: str):
-    """
-    Returns the png bitmask for the color clusters over the whole painting.
-
-    :param data_source: data_source to get the bitmask from
-    :return bitmask png file for the whole image
-    """
-
-    # Get parameters
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
-    nr_attempts: int = int(k_means_parameters['nr-attempts'])
-    k: int = int(k_means_parameters['k'])
-
-    # Get path to image
-    path_to_save: str = join(BACKEND_CONFIG['uploads-folder'], data_source,
-                             BACKEND_CONFIG['color-segmentation']['folder-name'])
-    full_path: str = join(path_to_save, f'imageClusters_{k}_{nr_attempts}.png')
-    # If image doesn't exist, compute clusters
-    if not exists(full_path):
-        get_color_clusters(data_source)
-
-    return send_file(abspath(full_path), mimetype='image/png')
-
-
-@app.route('/api/<data_source>/cs/element/clusters', methods=['GET'])
-def get_element_color_cluster(data_source: str):
-    """Gets the colors corresponding to the color clusters of each element.
-
-    :param data_source: data_source to get the clusters from
-    :return json containing the color clusters for each element.
-    """
-    # currently hardcoded, this should be whatever name+path we give the RGB image
-    path_to_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source, TEMP_RGB_IMAGE)
-    path_to_reg_image: str = join(BACKEND_CONFIG['uploads-folder'], data_source,
-                                  BACKEND_CONFIG['color-segmentation']['folder-name'],
-                                  BACKEND_CONFIG['color-segmentation']['registered-image'])
-    path_to_data_cube: str = get_elemental_cube_path(data_source)
-
-    # get default dim reduction config
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters['elem-threshold'])
-    nr_attempts: int = int(k_means_parameters['nr-attempts'])
-    k: int = int(k_means_parameters['k'])
-    path_to_save: str = join(BACKEND_CONFIG['uploads-folder'], data_source, BACKEND_CONFIG['color-segmentation']['folder-name'])
-
-    # path to json for caching
-    full_path_json: str = join(path_to_save, f'elemental_{k}_{elem_threshold}_{nr_attempts}.json')
-    # If json already exists, return that directly
-    if exists(full_path_json):
-        with open(full_path_json, 'r') as json_file:
-            color_data: list[list[str]] = json.load(json_file)
-        return jsonify(color_data)
-
-    # Create directory if it doesn't exist
-    if not exists(path_to_save):
-        mkdir(path_to_save)
-
+    # Compute colors and bitmasks per element
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts, k)
+        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts_elem, k_elem)
 
-    color_data: list[ndarray] = []
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
         colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
@@ -491,7 +438,7 @@ def get_element_color_cluster(data_source: str):
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
-        full_path: str = join(path_to_save, f'elementCluster_{i}_{k}_{elem_threshold}_{nr_attempts}.png')
+        full_path: str = join(path_to_save, f'elementCluster_{i}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if not image_saved:
             return f'Error occurred while saving bitmask for element {i} as png', 500
@@ -503,6 +450,32 @@ def get_element_color_cluster(data_source: str):
     return json.dumps(color_data)
 
 
+@app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
+def get_color_cluster_bitmask(data_source: str):
+    """
+    Returns the png bitmask for the color clusters over the whole painting.
+
+    :param data_source: data_source to get the bitmask from
+    :return bitmask png file for the whole image
+    """
+    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
+    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
+
+    # Get parameters
+    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    nr_attempts: int = int(k_means_parameters['nr-attempts'])
+    k: int = int(k_means_parameters['k'])
+
+    # Get path to image
+    path_to_save: str = join(uploads_folder, data_source, cs_folder)
+    full_path: str = join(path_to_save, f'imageClusters_{k}_{nr_attempts}.png')
+    # If image doesn't exist, compute clusters
+    if not exists(full_path):
+        get_color_clusters(data_source)
+
+    return send_file(abspath(full_path), mimetype='image/png')
+
+
 @app.route('/api/<data_source>/cs/element/<int:element>/bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str, element: int):
     """
@@ -510,9 +483,11 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
 
     :param data_source: data_source to get the bitmask from
     :param element: index of the element to get the bitmask from
-
     :return bitmask png file for the given element
     """
+    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
+    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
+
     # Get parameters
     k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem-threshold'])
@@ -520,9 +495,9 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
     k: int = int(k_means_parameters['k'])
 
     # Path to bitmask
-    path_to_save: str = join(BACKEND_CONFIG['uploads-folder'], data_source, BACKEND_CONFIG['color-segmentation']['folder-name'])
-    full_path: str = join(path_to_save, f'elementCluster_{element}_{k}_{elem_threshold}_{nr_attempts}.png')
+    path_to_save: str = join(uploads_folder, data_source, cs_folder)
+    full_path: str = join(path_to_save, f'elementCluster_{element}_{elem_threshold}_{k}_{nr_attempts}.png')
     if not exists(full_path):
-        get_element_color_cluster(data_source)
+        get_color_clusters(data_source)
 
     return send_file(abspath(full_path), mimetype='image/png')
