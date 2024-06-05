@@ -3,6 +3,7 @@ import { ref, inject, computed, watch } from "vue";
 import { appState, datasource, elements } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { ColorSegmentationSelection } from "@/lib/selection";
+import { LoaderPinwheel } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "vue-sonner";
@@ -43,6 +44,14 @@ watch(selectedElement, (newValue) => {
   selection.value[getElementIndex(newValue)].selected = true;
 });
 
+// Status color segmentation
+enum Status {
+  LOADING,
+  ERROR,
+  SUCCESS
+}
+const status = ref(Status.LOADING);
+
 /**
  * Fetch the hexadecimal colors data.
  * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
@@ -76,9 +85,11 @@ async function setup() {
     // Whether the colors were fetched properly
     await fetchColors(config.api.endpoint);
   } catch (e) {
+    status.value = Status.ERROR;
     toast.warning("Failed to retrieve painting colors");
     console.error("Error fetching colors data", e);
   }
+  status.value = Status.SUCCESS;
 
   // Initialize CS selection
   const colors = colorsElements.value["complete"];
@@ -143,7 +154,7 @@ function getElementIndex(elementName: string) {
 <template>
   <Window title="Color segmentaton" location="right">
     <!-- SELECTION MENU -->
-    <div class="mt-1 flex items-center">
+    <div class="mt-1 flex items-center" v-if="status == Status.SUCCESS">
       <Select v-model="selectedElement">
         <SelectTrigger class="mb-2 ml-1 w-40">
           <SelectValue placeholder="Select an element" />
@@ -157,16 +168,25 @@ function getElementIndex(elementName: string) {
       </Select>
     </div>
 
-    <!-- COLOR PALETTE -->
-    <div v-if="selectedElement" class="flex flex-wrap">
-      <div
-        v-for="(color, colorIndex) in colors"
-        :key="color"
-        :style="{ 'background-color': color }"
-        class="m-1 inline-block size-12 rounded-md"
-        :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true}"
-        @click="setSelection(selectedElement, colorIndex)"
-      ></div>
+    <div class="mt-1 mb-2 flex flex-col items-center justify-center space-y-2">
+      <!-- LOADING/ERROR MESSAGES -->
+      <span v-if="status == Status.LOADING">Loading...</span>
+      <div v-if="status == Status.LOADING" class="size-6">
+        <LoaderPinwheel class="size-full animate-spin" />
+      </div>
+      <span v-if="status == Status.ERROR"> An error ocurred while loading the color clusters. </span>
+      <!-- COLOR PALETTE -->
+      <div v-if="selectedElement && status == Status.SUCCESS" class="flex flex-wrap">
+        <div
+          v-for="(color, colorIndex) in colors"
+          :key="color"
+          :style="{ 'background-color': color }"
+          class="m-1 inline-block size-12 rounded-md"
+          :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true}"
+          @click="setSelection(selectedElement, colorIndex)"
+        ></div>
+      </div>
     </div>
+
   </Window>
 </template>
