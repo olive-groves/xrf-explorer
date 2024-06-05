@@ -209,7 +209,7 @@ export async function createSelectionLayers() {
         name: "Selections",
         description: "Visualizes the current selections",
         layers: layers,
-        index: 0,    // TODO: not sure which value to use here
+        index: -2,
         visible: true,
         ...layerGroupDefaults,
     }
