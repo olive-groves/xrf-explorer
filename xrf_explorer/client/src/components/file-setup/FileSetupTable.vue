@@ -96,7 +96,7 @@ function removeElement(type: string, name: string) {
 </script>
 
 <template>
-  <div class="grid grid-cols-[min-content,max-content,1fr,2rem] place-items-center gap-2">
+  <div class="grid grid-cols-[min-content,min-content,1fr,2rem] place-items-center gap-2">
     <!-- Header -->
     <div />
     <div class="place-self-start">Name</div>
@@ -126,11 +126,11 @@ function removeElement(type: string, name: string) {
     <template v-for="(cube, index) in model.spectralCubes" :key="index">
       <AudioWaveform class="ml-2 size-6" title="Spectral datacube" />
       <Input placeholder="Name" v-model:model-value="cube.name" />
-      <FileSetupTableRow type="an image" :options="rawFiles" v-model="cube.rawLocation" />
+      <FileSetupTableRow type="a raw" :options="rawFiles" v-model="cube.rawLocation" />
       <Button variant="destructive" class="size-8 p-2" @click="removeElement('spectral_cube', cube.name)">
         <Trash2 />
       </Button>
-      <FileSetupTableRow type="an image" :options="rplFiles" v-model="cube.rplLocation" />
+      <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="cube.rplLocation" />
       <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
       <Separator class="col-span-full" />
     </template>
@@ -149,7 +149,7 @@ function removeElement(type: string, name: string) {
 
     <!-- Footer -->
     <Select v-model:model-value="addElementType">
-      <SelectTrigger class="col-span-2 w-full">
+      <SelectTrigger class="col-start-2 w-48">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
