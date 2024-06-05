@@ -1,18 +1,18 @@
-import {computed, inject, ref, watch} from "vue";
-import {appState, datasource} from "@/lib/appState";
-import {SelectionToolInfo} from "@/lib/selection";
-import {Layer, LayerType, Point2D} from "@/components/image-viewer/types";
-import {SelectionOption} from "@/components/functional/selection/selection_tool.ts";
-import {FrontendConfig} from "@/lib/config.ts";
-import {hexToRgb} from "@/lib/utils";
-import {useFetch} from "@vueuse/core";
-import {toast} from "vue-sonner";
-import {PNG} from "pngjs";
-import {createReadStream} from "fs";
-import {createLayer, layerGroups} from "@/components/image-viewer/state.ts";
-import {createDataTexture, disposeLayer, loadLayer, updateDataTexture} from "@/components/image-viewer/scene.ts";
-import {DataTexture} from "three";
-import {layerGroupDefaults} from "@/components/image-viewer/workspace.ts";
+import { createReadStream } from "fs";
+import { PNG } from "pngjs";
+import { DataTexture } from "three";
+import { computed, inject, ref, watch } from "vue";
+import { toast } from "vue-sonner";
+import { useFetch } from "@vueuse/core";
+import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
+import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
+import { createLayer, layerGroups } from "@/components/image-viewer/state.ts";
+import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
+import { layerGroupDefaults } from "@/components/image-viewer/workspace.ts";
+import { appState, datasource } from "@/lib/appState";
+import { FrontendConfig } from "@/lib/config.ts";
+import { SelectionToolInfo } from "@/lib/selection";
+import { hexToRgb } from "@/lib/utils";
 
 const selection = computed(() => appState.selection.drSelection);
 
