@@ -5,21 +5,20 @@ import os.path
 from os.path import isdir, isfile, join
 from pathlib import Path
 
-from .config_handler import load_yml
+from .config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_data_sources_names(config_path: str = "config/backend.yml") -> list[str]:
+def get_data_sources_names() -> list[str]:
     """Return a list of all available data sources stored in the data folder on 
     the remote server as specified in the project's configuration.
 
-    :param config_path: path to the backend config file
     :return: list of all data source names stored in the folder on the server
     """
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return []

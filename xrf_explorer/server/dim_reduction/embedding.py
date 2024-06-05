@@ -6,7 +6,7 @@ from os.path import isdir, join
 import numpy as np
 from umap import UMAP
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_ndarray_to_grayscale
 from xrf_explorer.server.dim_reduction.general import valid_element
 
@@ -72,8 +72,7 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     return indices, down_sampled
 
 
-def generate_embedding(path: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {},
-                       config_path: str = "config/backend.yml") -> str:
+def generate_embedding(path: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {}) -> str:
     """Generate the embedding (lower dimensional representation of the data) of the
     elemental data cube using the dimensionality reduction method "UMAP". The embedding 
     with the list of indices (which pixels from the elemental data cube are in the embedding) 
@@ -84,13 +83,12 @@ def generate_embedding(path: str, element: int, threshold: int, new_umap_paramet
     :param path: The path to the elemental data cube.
     :param element: The element to generate the embedding for.
     :param threshold: The threshold to filter the data cube by.
-    :param umap_parameters: The parameters passed on to the UMAP algorithm.
-    :param config_path: Path to the backend config file.
+    :param new_umap_parameters: The parameters passed on to the UMAP algorithm.
     :return: string code indicating the status of the embedding generation. "error" when error occured, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled.
     """
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Failed to compute DR embedding")
         return "error"
