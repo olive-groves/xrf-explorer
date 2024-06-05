@@ -38,7 +38,20 @@ TEMP_RGB_IMAGE: str = '196_1989_RGB.tif'
 
 @app.route("/api")
 def api():
-    return "Welcome to the XRF-Explorer API"
+    """Returns a list of all api endpoints.
+
+    :return: list of api endpoints
+    """
+
+    routes: list[str] = []
+
+    for rule in app.url_map.iter_rules():
+        if rule.rule.startswith("/api"):
+            routes.append(rule.rule)
+
+    routes.sort()
+
+    return routes
 
 
 @app.route("/api/datasources")
@@ -181,10 +194,11 @@ def dimensionality_reduction_selection_update():
 
 @app.route("/api/<data_source>/element_averages")
 def list_element_averages(data_source: str):
-    """List the average amount per element accross the whole painting.
+    """Get the names and averages of the elements present in the painting.
     
     :param data_source: data_source to get the element averages from
-    :return: json list of pairs with the element name and corresponding average value
+    :return: JSON list of objects indicating average abundance for every element. Each object
+    is of the form {name: element name, average: element abundance}
     """
     
     path: str = get_elemental_cube_path(data_source)
@@ -199,10 +213,10 @@ def list_element_averages(data_source: str):
 
 @app.route("/api/<data_source>/element_names")
 def list_element_names(data_source: str):
-    """List the name of elements present in the painting.
+    """Get the short names of the elements stored in the elemental data cube.
     
-    :param data_source: data_source to get the element names from
-    :return: json list of elements
+    :param data_source: data source to get the element names from
+    :return: JSON list of the short names of the elements.
     """
     path: str = get_elemental_cube_path(data_source)
 
@@ -357,7 +371,7 @@ def get_average_data(data_source):
 
 
 @app.route('/api/get_element_spectrum', methods=['GET'])
-def get_element_sectra():
+def get_element_spectra():
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
     :request args: 
@@ -380,8 +394,9 @@ def get_element_sectra():
 
     return response
 
+
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
-def get_selection_sectra(data_source):
+def get_selection_spectra(data_source):
     """Get the average spectrum of the selected pixels.
 
     :request args: 
