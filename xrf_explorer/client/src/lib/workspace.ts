@@ -78,10 +78,6 @@ export type ElementalCube = {
    */
   name: string;
   /**
-   * The filetype for the elemental data cube.
-   */
-  fileType: ElementalCubeFileType;
-  /**
    * The location of the raw data file, used by the backend.
    */
   dataLocation: string;
@@ -90,11 +86,6 @@ export type ElementalCube = {
    */
   recipeLocation: string;
 };
-
-/**
- * The different elemental cube formats that we can handle.
- */
-export type ElementalCubeFileType = "csv" | "dms";
 
 /**
  * Describes the configuration for each elemental channel.
