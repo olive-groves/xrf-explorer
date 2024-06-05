@@ -22,8 +22,8 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
-    "dom-to-image-more": "^3.3.0",
     "file-saver": "^2.0.5",
+    "html-to-image": "^1.11.11",
     "lucide-vue-next": "^0.378.0",
     "mathjs": "^12.4.2",
     "radix-vue": "^1.7.2",
@@ -40,7 +40,6 @@
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.1.0",
     "@types/d3": "^7.4.3",
-    "@types/dom-to-image-more": "npm:@types/dom-to-image@^2.6.7",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20.12.7",
     "@types/three": "^0.164.0",

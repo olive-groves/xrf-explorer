@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { appState, datasource, elements } from "@/lib/appState";
 import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
@@ -8,6 +8,11 @@ import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
+import { exportableElements } from "@/lib/export";
+
+// Setup output for export
+const output = ref<HTMLElement>();
+watch(output, (value) => (exportableElements["Embedding"] = value), { immediate: true });
 
 // Constants
 const config = inject<FrontendConfig>("config")!;
@@ -175,7 +180,7 @@ async function updateEmbedding() {
       </div>
       <!-- GENERATION OF THE IMAGE -->
       <p class="mt-4 font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center">
+      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
         <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
         <span v-if="status == Status.LOADING">Loading</span>
         <span v-if="status == Status.GENERATING">Generating</span>
