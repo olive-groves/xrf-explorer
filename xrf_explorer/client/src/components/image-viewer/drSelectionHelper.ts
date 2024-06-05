@@ -15,16 +15,16 @@ import { config } from "@/main";
 const selection = computed(() => appState.selection.drSelection);
 
 // const config: FrontendConfig = inject<FrontendConfig>("config")!;
-let embeddingWidth: number = -1;        // TODO: not sure how to get the width of the embedding
-let embeddingHeight: number = -1;       // TODO: not sure how to get the height of the base image
+let embeddingWidth: number = -1;
+let embeddingHeight: number = -1;
 let imageWidth: number = -1;
 let imageHeight: number = -1;
 // each index represents a pixel and the value represents whether the pixel is selected
-const bitmask: boolean[] = new Array<boolean>(embeddingWidth * embeddingHeight);
+const bitmask: boolean[] = new Array<boolean>(embeddingWidth * embeddingHeight);    // resize bitmask to 256x256
 const middleImagePath = ref();
 // buffer with color data for each pixel
-const layerData: Uint8Array = new Uint8Array(imageWidth * imageHeight * 4);
-const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);
+const layerData: Uint8Array = new Uint8Array(256 * 256 * 4);
+const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);    // layersData replace with bitmask
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
@@ -46,6 +46,7 @@ async function onSelectionUpdate(newSelection: SelectionToolInfo) {
 
     // update the layer to display the selection
     updateLayer(selectedPointsInImage);
+    console.info("Updated the image viewer to display the selection in the DR window.");
 
 }
 
@@ -111,11 +112,12 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
 
 async function getMiddleImage() {
     const url: string = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
-    const { response, data } = useFetch(url).get().blob();
+    const { response, data } = await useFetch(url).get().blob();
 
     // error handling
     if (!(response.value?.ok && data.value != null)) {
-        console.error("Failed to fetch middle image from: ", url);
+        console.error("Failed to fetch middle image from: ", url,
+            ". Received: \n", response.value?.ok, "\n", data.value);
         toast.error("An error occurred while parsing the Dimensionality Reduction selection.");
         return;
     }
@@ -162,14 +164,19 @@ function mapImageToEmbedding() {
 function updateLayer(selection: Point2D[]) {
     const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
 
-    for (let i = 0; i < layerData.length; i++) {
-        const pixelInSelection: boolean = selection.includes(indexToCoordinates(i, imageWidth));
+    for (let i = 0; i < bitmask.length; i++) {
+        // we scale down the bitmask to 256x256, works through shader magic that eludes me
+        const scaledIndex: number = i * 256 / bitmask.length;
+        // const pixelInSelection: boolean = selection.includes(indexToCoordinates(i, imageWidth));
+        const pixelInSelection: boolean = bitmask[i];
 
-        // if the pixel is in the selection, color it, otherwise make it transparent
-        layerData[i] = pixelInSelection ? selectionColor[0] : 0;
-        layerData[i + 1] = pixelInSelection ? selectionColor[1] : 0;
-        layerData[i + 2] = pixelInSelection ? selectionColor[2] : 0;
-        layerData[i + 3] = 255;   // opacity is set in the layer itself
+        // if the pixel has already been set a value, leave that value (means it was selected before)
+        // otherwise, if the pixel is in the selection, color it, otherwise make it transparent
+        for (let rgbValue = 0; rgbValue < 3; rgbValue++)    // rgbValue corresponds to red, green, blue
+            layerData[scaledIndex + rgbValue] = (layerData[scaledIndex + rgbValue] != 0) ?
+                layerData[scaledIndex + rgbValue] :
+                (pixelInSelection ? selectionColor[rgbValue] : 0);
+        layerData[scaledIndex + 3] = 255;                           // opacity is set in the layer itself
     }
 
     if (layerGroups.value.selection != undefined) {
@@ -182,6 +189,7 @@ function updateLayer(selection: Point2D[]) {
 
         updateDataTexture(layerGroups.value.selection);
     }
+    console.log("selection layer: ", layerGroups.value.selection);
 }
 
 export async function createSelectionLayers() {
@@ -193,7 +201,7 @@ export async function createSelectionLayers() {
     // set up layers
     layers.forEach(layer => {
         layer.uniform.iLayerType.value = LayerType.Selection;
-        layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };    // TODO: why do i get these errors?
+        layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
     });
 
     // add layers to the groups of layers
