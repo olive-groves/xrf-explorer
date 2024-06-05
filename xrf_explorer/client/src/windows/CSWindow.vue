@@ -4,13 +4,7 @@ import { appState, datasource } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { FrontendConfig } from "@/lib/config";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
@@ -193,8 +187,8 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
           <SelectValue placeholder="Select an element" />
         </SelectTrigger>
         <SelectContent>
-            <SelectItem value="complete"> Complete painting </SelectItem>
-            <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }} </SelectItem>
+          <SelectItem value="complete"> Complete painting </SelectItem>
+          <SelectItem v-for="element in elements" :key="element" :value="element"> {{ element }} </SelectItem>
         </SelectContent>
       </Select>
     </div>

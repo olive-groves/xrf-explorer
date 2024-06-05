@@ -86,7 +86,11 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
 
   // Bitmasks for element-wise color segments
   for (const element in elements.value) {
-    const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/element/${element}/bitmask`).get().blob();
+    const { response, data } = await useFetch(
+      `${config.api.endpoint}/${datasource.value}/cs/element/${element}/bitmask`,
+    )
+      .get()
+      .blob();
 
     if (response.value?.ok && data.value != null) {
       filenames[Number(element) + 1] = URL.createObjectURL(data.value).toString();
@@ -114,7 +118,7 @@ export async function createColorClusterLayers() {
   layers.push(layer);
 
   // Element-wise color clusters
-  for (let element in elements.value) {
+  for (const element in elements.value) {
     const layer = createLayer(`cs_element_${element}`, filenames[Number(element) + 1], false);
     registerLayer(layer, "/recipe_cube.csv");
     layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
