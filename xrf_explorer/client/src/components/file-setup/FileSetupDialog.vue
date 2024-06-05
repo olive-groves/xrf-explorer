@@ -9,7 +9,7 @@ import { TriangleAlert } from "lucide-vue-next";
 
 const model = defineModel<WorkspaceConfig>({ required: true });
 
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["save"]);
 
 const modelValid = computed(() => validateWorkspace(model.value));
 
@@ -18,14 +18,6 @@ const modelValid = computed(() => validateWorkspace(model.value));
  */
 function save() {
   emit("save");
-  close();
-}
-
-/**
- * Emit the close event, instructing the containing element to close the dialog.
- */
-function close() {
-  emit("close");
 }
 </script>
 
@@ -40,7 +32,6 @@ function close() {
           <div class="text-muted-foreground" v-text="modelValid[1]" />
         </div>
         <div class="space-x-2">
-          <Button variant="outline" @click="close">Close</Button>
           <Button :disabled="!modelValid[0]" @click="save">Save</Button>
         </div>
       </div>
