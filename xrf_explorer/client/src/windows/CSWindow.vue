@@ -70,52 +70,6 @@ async function fetchColors(url: string) {
 }
 
 /**
- * Fetch the names of the elements.
- * @param url URL to the server API endpoint which provides the elements names.
- * @returns True if the names were fetched successfully, false otherwise.
- */
-async function fetchElements(url: string) {
-  // Make API call
-  const response: Response = await fetch(`${url}/${appState.workspace?.name}/element_names`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  let fetchSuccessful: boolean = false;
-
-  // Check that fetching the names was successful
-  if (response.ok) {
-    // Save the names
-    fetchSuccessful = await response
-      .json()
-      .then((data) => {
-        elements.value = data;
-        console.info("Successfully fetched names", elements.value);
-        return true;
-      })
-      .catch((e) => {
-        console.error(e);
-        return false;
-      });
-  } else {
-    // Error response
-    fetchSuccessful = await response
-      .text()
-      .then((data) => {
-        console.info(data);
-        return false;
-      })
-      .catch((e) => {
-        console.error(e);
-        return false;
-      });
-  }
-
-  return fetchSuccessful;
-}
-
-/**
  * Show the colors and element names, and initialize CS selection.
  */
 async function setup() {
@@ -183,7 +137,9 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="complete"> Complete painting </SelectItem>
-          <SelectItem v-for="element in elements" :key="element.channel" :value="element.name"> {{ element.name }} </SelectItem>
+          <SelectItem v-for="element in elements" :key="element.channel" :value="element.name">
+            {{ element.name }}
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -194,7 +150,7 @@ function setSelection(selectedElement: string, color: string, colorIndex: number
         v-for="(color, colorIndex) in colors"
         :key="color"
         :style="{ 'background-color': color }"
-        class="m-1 inline-block h-12 w-12 rounded-md"
+        class="m-1 inline-block size-12 rounded-md"
         :class="{ 'border-2 border-border': selectedChannel === colorIndex }"
         @click="setSelection(selectedElement, color, colorIndex)"
       ></div>
