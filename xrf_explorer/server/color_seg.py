@@ -118,7 +118,6 @@ def get_elemental_clusters_using_k_means(image: np.ndarray, data_cube_path : str
 
     :param image: the image to apply the k-means on
     :param data_cube_path: the path to the data cube
-    :param config_path: Path to the backend config file.
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param image_width: the width to resize the image before applying k-means, if -1, the data cube's
                         dimensions are used instead
