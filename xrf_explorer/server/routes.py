@@ -4,8 +4,8 @@ from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
 from werkzeug.utils import secure_filename
 from os.path import exists, join, abspath
-import json
 from os import mkdir
+import json
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray

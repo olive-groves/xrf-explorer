@@ -79,14 +79,17 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
     # set seed so results are consistent
     cv2.setRNGSeed(0)
 
-    # Get registered image
-    registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
-    if not registered_image:
-        LOG.error("Image could not be registered to data cube")
-        return np.ndarray([])
+    # Register image if not already registered
+    if not path.exists(reg_image_path):
+        # Get registered image
+        registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
+        if not registered_image:
+            LOG.error("Image could not be registered to data cube")
+            return np.ndarray([])
 
     image: np.ndarray = get_image(reg_image_path)
     reshaped_image: np.ndarray = reshape_image(image)
+
     # Transform image to LAB format
     reshaped_image = image_to_lab(reshaped_image)
 
@@ -133,11 +136,13 @@ def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, r
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
-    # Get registered image
-    registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
-    if not registered_image:
-        LOG.error("Image could not be registered to data cube")
-        return np.ndarray([])
+    # Register image if not already registered
+    if not path.exists(reg_image_path):
+        # Get registered image
+        registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
+        if not registered_image:
+            LOG.error("Image could not be registered to data cube")
+            return np.ndarray([])
 
     image: np.ndarray = get_image(reg_image_path)
 
