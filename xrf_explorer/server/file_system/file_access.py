@@ -8,10 +8,9 @@ from pathlib import Path
 import json
 import numpy as np
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
-BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
 
 def get_elemental_cube_name(data_source: str) -> str:
@@ -69,7 +68,7 @@ def get_elemental_cube_recipe_path(data_source: str, config_path: str = "config/
     :return: Path string pointing to the recipe of the elemental cube.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -95,7 +94,7 @@ def get_raw_rpl_names(data_source: str, config_path: str = "config/backend.yml")
     :return: Names of the raw data and rpl files.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return np.empty(0)

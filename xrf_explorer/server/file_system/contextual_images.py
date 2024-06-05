@@ -66,7 +66,7 @@ contextual image.
         return None
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:
         LOG.error("Config file is empty.")
         return None
@@ -97,7 +97,7 @@ contextual image.
         return None
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:
         LOG.error("Config file is empty.")
         return None

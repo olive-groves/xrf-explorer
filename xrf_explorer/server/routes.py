@@ -13,7 +13,7 @@ from markupsafe import escape
 from numpy import ndarray
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
