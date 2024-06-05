@@ -8,6 +8,7 @@ import { LayerGroup, LayerVisibility } from "./types";
 import { config } from "@/main";
 import { createElementalLayers } from "./elementalHelper";
 import { registerLayer } from "./registering";
+import {createSelectionLayers} from "@/components/image-viewer/drSelectionHelper.ts";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -38,7 +39,8 @@ function loadWorkspace(workspace: WorkspaceConfig) {
 
   // Create color segmentation layers
 
-  // Create dimensionality reduction layers
+  // Create selection layers
+  createSelectionLayers();
 }
 
 /**

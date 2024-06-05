@@ -1,16 +1,18 @@
-import { computed, inject, ref, watch } from "vue";
-import { appState, datasource } from "@/lib/appState";
-import { SelectionToolInfo } from "@/lib/selection";
-import { Point2D } from "@/components/image-viewer/types";
-import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
-import { FrontendConfig } from "@/lib/config.ts";
-import { hexToRgb } from "@/lib/utils";
-import { useFetch } from "@vueuse/core";
-import { toast } from "vue-sonner";
-import { PNG } from "pngjs";
-import { createReadStream } from "fs";
-import { layerGroups } from "@/components/image-viewer/state.ts";
-import { disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
+import {computed, inject, ref, watch} from "vue";
+import {appState, datasource} from "@/lib/appState";
+import {SelectionToolInfo} from "@/lib/selection";
+import {Layer, LayerType, Point2D} from "@/components/image-viewer/types";
+import {SelectionOption} from "@/components/functional/selection/selection_tool.ts";
+import {FrontendConfig} from "@/lib/config.ts";
+import {hexToRgb} from "@/lib/utils";
+import {useFetch} from "@vueuse/core";
+import {toast} from "vue-sonner";
+import {PNG} from "pngjs";
+import {createReadStream} from "fs";
+import {createLayer, layerGroups} from "@/components/image-viewer/state.ts";
+import {createDataTexture, disposeLayer, loadLayer, updateDataTexture} from "@/components/image-viewer/scene.ts";
+import {DataTexture} from "three";
+import {layerGroupDefaults} from "@/components/image-viewer/workspace.ts";
 
 const selection = computed(() => appState.selection.drSelection);
 
@@ -22,6 +24,9 @@ let imageHeight: number = -1;
 // each index represents a pixel and the value represents whether the pixel is selected
 const bitmask: boolean[] = new Array<boolean>(embeddingWidth * embeddingHeight);
 const middleImagePath = ref();
+// buffer with color data for each pixel
+const layerData: Uint8Array = new Uint8Array(imageWidth * imageHeight * 4);
+const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
@@ -30,11 +35,9 @@ async function onSelectionUpdate(newSelection: SelectionToolInfo) {
     updateBitmask(newSelection);
     await getMiddleImage();
     const middleImageToEmbedding: { imagePoint: Point2D, embeddingPoint: Point2D }[] = mapImageToEmbedding();
-    const selectedPointsInImage: Point2D[] = [];
-    for (const mapping of middleImageToEmbedding)
-
-        if (bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
-            selectedPointsInImage.push(mapping.imagePoint)
+    const selectedPointsInImage: Point2D[] = middleImageToEmbedding
+        .filter((mapping) => bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
+        .map((mapping) => mapping.imagePoint);
     updateLayer(selectedPointsInImage);
 
 }
@@ -123,7 +126,7 @@ function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
     createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function() {
         // update image dimensions
-        imageWidth = this.width;
+        imageWidth = this.width;    // TODO: how do i fix this?
         imageHeight = this.height;
 
         for (let x: number = 0; x < imageWidth; x++)
@@ -148,7 +151,6 @@ function mapImageToEmbedding() {
 
 
 function updateLayer(selection: Point2D[]) {
-    const layerData: Uint8Array = new Uint8Array(imageWidth * imageHeight * 4);    // buffer with color data
     const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
 
     for (let i = 0; i < layerData.length; i++) {
@@ -158,11 +160,11 @@ function updateLayer(selection: Point2D[]) {
         layerData[i] = pixelInSelection ? selectionColor[0] : 0;
         layerData[i + 1] = pixelInSelection ? selectionColor[1] : 0;
         layerData[i + 2] = pixelInSelection ? selectionColor[2] : 0;
-        layerData[i + 3] = pixelInSelection ? Math.round(255 * config.selectionToolConfig.opacity) : 0;
+        layerData[i + 3] = 255;   // opacity is set in the layer itself
     }
 
     if (layerGroups.value.selection != undefined) {
-        const layer = layerGroups.value.selection.layers.filter(layer => layer.image == "drSelection")[0];
+        const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.image == "dr_selection")[0];
 
         if (layer.mesh == undefined && selection.length > 0)        // layer was disposed of, load it again
             loadLayer(layer);
@@ -171,6 +173,33 @@ function updateLayer(selection: Point2D[]) {
 
         updateDataTexture(layerGroups.value.selection);
     }
+}
+
+export async function createSelectionLayers() {
+    const layers: Layer[] = [
+        createLayer("selection_dr", "dr_selection", false),
+        createLayer("selection_image_viewer", "image_viewer_selection", false),
+    ]
+
+    // set up layers
+    layers.forEach(layer => {
+        layer.uniform.iLayerType.value = LayerType.Selection;
+        layer.uniform.tAuxiliary.value = { value: layerTexture, type: "t" };    // TODO: why do i get these errors?
+    });
+
+    // add layers to the layer groups
+    layerGroups.value.selection = {
+        name: "Selections",
+        description: "Visualizes the current selections",
+        layers: layers,
+        index: 5000,    // TODO: no sure which value to use here
+        visible: true,
+        ...layerGroupDefaults,
+    }
+
+    // set opacity to default values
+    for (let i = 0; i < layerGroups.value.selection.layers.length; i++)
+        layerGroups.value.selection.opacity[i] = config.selectionToolConfig.opacity;
 }
 
 /**
