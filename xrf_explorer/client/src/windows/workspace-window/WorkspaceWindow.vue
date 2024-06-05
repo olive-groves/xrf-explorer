@@ -6,7 +6,7 @@ import { appState, datasource } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
 import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
-import { ChannelSetupDialog, FileSetupDialog } from "@/components/file-setup";
+import { ChannelSetupDialog, FileSetupDialog } from "@/components/workspace";
 import { deepClone } from "@/lib/utils";
 
 const config = inject<FrontendConfig>("config")!;

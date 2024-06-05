@@ -7,7 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
 import { titleCase } from "title-case";
 import { toast } from "vue-sonner";
-import { CreateWorkspaceDialog } from "@/components/file-setup";
+import { CreateWorkspaceDialog } from "@/components/workspace";
 
 const config = inject<FrontendConfig>("config")!;
 
