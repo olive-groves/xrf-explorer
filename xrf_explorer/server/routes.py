@@ -474,7 +474,9 @@ def get_color_clusters(data_source: str):
     if path_to_image is None:
         return 'Error occurred while getting rgb image path', 500
 
-    config: dict = get_config()
+    config: dict | None = get_config()
+    if not config:
+        return 'Error occurred while getting backend config', 500
     uploads_folder: str = str(config['uploads-folder'])
     cs_folder: str = str(config['color-segmentation']['folder-name'])
     reg_image_name: str = str(config['color-segmentation']['registered-image'])
@@ -483,7 +485,7 @@ def get_color_clusters(data_source: str):
     path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
     path_to_data_cube: str = get_elemental_cube_path(data_source)
     if not path_to_data_cube:
-        return f"Could not find elemental data cube in source {data_source}", 404
+        return f"Could not find elemental data cube in source {data_source}", 500
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
 
     # get default dim reduction config for image clusters
@@ -565,7 +567,9 @@ def get_color_cluster_bitmask(data_source: str):
     :param data_source: data_source to get the bitmask from
     :return bitmask png file for the whole image
     """
-    config: dict = get_config()
+    config: dict | None = get_config()
+    if not config:
+        return 'Error occurred while getting backend config', 500
     uploads_folder: str = str(config['uploads-folder'])
     cs_folder: str = str(config['color-segmentation']['folder-name'])
 
