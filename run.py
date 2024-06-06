@@ -29,13 +29,16 @@ if __name__ == '__main__':
     # import app dependencies only after showing initial log message
     from waitress import serve
     from xrf_explorer import app
-    from xrf_explorer.server.file_system.config_handler import load_yml
+    from xrf_explorer.server.file_system.config_handler import get_config, set_config
 
     LOG.info("Finished loading XRF-Explorer")
 
-    # load config
-    config: dict = load_yml(args.config)
+    # set up configuration
+    if not set_config(args.config):
+        LOG.critical("Could not find config specified at %s, exiting", args.config)
+        exit(-1)
 
     # serve XRF-Explorer
+    config: dict = get_config()
     serve(app, host=config["bind-address"], port=config["port"], max_request_body_size=1073741824000000,
           max_request_header_size=85899345920000)

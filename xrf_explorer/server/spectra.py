@@ -6,7 +6,7 @@ import logging
 from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, parse_rpl
 LOG: logging.Logger = logging.getLogger(__name__)
 
-def get_raw_data(data_source: str, config_path: str = "config/backend.yml") -> np.ndarray:
+def get_raw_data(data_source: str) -> np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array
     
     :param data_source: the path to the .raw file

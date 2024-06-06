@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
 from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image
@@ -17,19 +17,18 @@ matplotlib.use('Agg')
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def create_embedding_image(data_source: str, overlay_type: str, config_path: str = "config/backend.yml") -> str:
+def create_embedding_image(data_source: str, overlay_type: str) -> str:
     """Creates the embedding image from the embedding.
 
     :param data_source: Name of the data source to create the embedding image for.
     :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_.
-    :param config_path: Path to the backend config file
     :return: Path to created embedding image is successful, otherwise empty string.
     """
 
     LOG.info("Creating embedding image...")
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         return ""
     dr_folder: str = join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name'])
@@ -43,7 +42,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
         return ""
 
     # Get the path to the elemental data cube
-    cube_path: str = get_elemental_cube_path(data_source, config_path)
+    cube_path: str = get_elemental_cube_path(data_source)
     if not cube_path:
         return ""
 
@@ -55,7 +54,7 @@ def create_embedding_image(data_source: str, overlay_type: str, config_path: str
         image_type: str = overlay_type.removeprefix("contextual_")
 
         # Get the pixels of registered image
-        registered_image: np.ndarray = get_registered_image(data_source, image_type, config_path)
+        registered_image: np.ndarray = get_registered_image(data_source, image_type)
         if len(registered_image) == 0:
             return ""
 

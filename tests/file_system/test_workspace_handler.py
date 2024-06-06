@@ -8,6 +8,8 @@ from pathlib import Path
 
 from json import load
 
+from xrf_explorer.server.file_system.config_handler import set_config
+
 sys.path.append('.')
 
 from xrf_explorer.server.file_system import get_path_to_workspace, update_workspace
@@ -24,9 +26,10 @@ class TestWorkspaceHandler:
     def test_config_not_found_get_workspace(self, caplog):
         # setup
         expected_output: str = "Failed to access config"
+        set_config("imaginary-config-file.yml")
 
         # execute
-        result: str = get_path_to_workspace(self.DATASOURCE_NAME, "imaginary-config-file.yml")
+        result: str = get_path_to_workspace(self.DATASOURCE_NAME, )
         
         # verify
         assert not result
@@ -36,9 +39,10 @@ class TestWorkspaceHandler:
         # setup
         expected_output: str = "Failed to access config"
         new_workspace: dict = {"message": "Hi!"}
+        set_config("imaginary-config-file.yml")
 
         # execute
-        result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace, "imaginary-config-file.yml")
+        result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace)
         
         # verify
         assert not result
@@ -47,9 +51,10 @@ class TestWorkspaceHandler:
     def test_datasource_not_found_get_workspace(self, caplog):
         # setup
         expected_output: str = "Datasource this_is_not_a_datasource not found."
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = get_path_to_workspace("this_is_not_a_datasource", self.CUSTOM_CONFIG_PATH)
+        result: str = get_path_to_workspace("this_is_not_a_datasource")
         
         # verify
         assert not result
@@ -59,9 +64,10 @@ class TestWorkspaceHandler:
         # setup
         expected_output: str = "Datasource this_is_not_a_datasource not found."
         new_workspace: dict = {"message": "Hi!"}
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: bool = update_workspace("this_is_not_a_datasource", new_workspace, self.CUSTOM_CONFIG_PATH)
+        result: bool = update_workspace("this_is_not_a_datasource", new_workspace)
         
         # verify
         assert not result
@@ -72,9 +78,10 @@ class TestWorkspaceHandler:
 
         # setup
         expected_output: str = f"Workspace {self.DATASOURCE_NAME} found."
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = get_path_to_workspace(self.DATASOURCE_NAME, self.CUSTOM_CONFIG_PATH)
+        result: str = get_path_to_workspace(self.DATASOURCE_NAME)
         
         # verify
         assert Path(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME, 'workspace.json').samefile(result)
@@ -86,9 +93,10 @@ class TestWorkspaceHandler:
         # setup
         expected_output: str = f"Data written to workspace {self.DATASOURCE_NAME_NO_WORKSPACE} successfully"
         new_workspace: dict = {"message": "Hi!"}
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace, self.CUSTOM_CONFIG_PATH)
+        result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace)
         
         # verify
         assert result

@@ -6,9 +6,9 @@ from os import remove
 from os.path import join
 from pathlib import Path
 
-from numpy import ndarray, empty, array_equal, array, float32
+from numpy import ndarray, array_equal, array, float32
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import set_config, get_config
 
 sys.path.append('.')
 
@@ -42,7 +42,8 @@ class TestElementalData:
         expected_output: str = f"Elements loaded. Total elements: {len(self.ELEMENTS)}"
         
         # load custom config
-        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH)
+        custom_config: dict = get_config()
         path: str = join(Path(custom_config["uploads-folder"]), source)
 
         # execute
@@ -60,7 +61,8 @@ class TestElementalData:
         expected_output: str = f"Elemental data cube loaded. Shape: {self.RAW_ELEMENTAL_CUBE.shape}"
         
         # load custom config
-        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH)
+        custom_config: dict = get_config()
         path: str = join(Path(custom_config["uploads-folder"]), source)
 
         # execute
@@ -78,7 +80,8 @@ class TestElementalData:
         expected_output: str = f"Elemental map loaded. Shape: {elemental_map.shape}"
         
         # load custom config
-        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH)
+        custom_config: dict = get_config()
         path: str = join(Path(custom_config["uploads-folder"]), source)
 
         # execute
@@ -107,7 +110,8 @@ class TestElementalData:
         expected_output: str = "Calculated the average composition of the elements."
         
         # load custom config
-        custom_config: dict = load_yml(self.CUSTOM_CONFIG_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH)
+        custom_config: dict = get_config()
         path: str = join(Path(custom_config["uploads-folder"]), self.DATA_CUBE_DMS)
         
         # execute
@@ -120,8 +124,11 @@ class TestElementalData:
         assert expected_output in caplog.text
 
     def test_csv_to_dms(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # execute
-        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS, self.CUSTOM_CONFIG_PATH)
+        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
 
         # verify
         assert result

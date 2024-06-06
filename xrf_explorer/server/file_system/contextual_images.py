@@ -7,15 +7,14 @@ from pathlib import Path
 import PIL
 from PIL.Image import Image
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_contextual_image_data(data_source: str, name: str, config_path: str = "config/backend.yml") -> dict | None:
+def get_contextual_image_data(data_source: str, name: str) -> dict | None:
     """
     Returns a contextual image from workspace.json. Returns None if the image or data_source does not exist.
-    :param config_path: The path to the config file.
     :param data_source: The data source to fetch the image from.
     :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
 contextual image.
@@ -25,7 +24,7 @@ contextual image.
     LOG.info("Searching for contextual image %s in data source %s.", name, data_source)
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:
         LOG.error("Config file is empty.")
         return None
@@ -49,11 +48,10 @@ contextual image.
     return None
 
 
-def get_contextual_image_path(data_source: str, name: str, config_path: str = "config/backend.yml") -> str | None:
+def get_contextual_image_path(data_source: str, name: str) -> str | None:
     """
     Returns the path of the requested contextual image. If no file is found, it will return None. This will
 also happen if the config file is empty.
-    :param config_path: The path to the config file.
     :param data_source: The data source to fetch the image from.
     :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
 contextual image.
@@ -61,12 +59,12 @@ contextual image.
     """
 
     # Get the contextual image
-    image: dict = get_contextual_image_data(data_source, name, config_path)
+    image: dict = get_contextual_image_data(data_source, name)
     if not image:
         return None
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:
         LOG.error("Config file is empty.")
         return None
@@ -74,12 +72,10 @@ contextual image.
     return abspath(join(Path(backend_config["uploads-folder"]), data_source, image["imageLocation"]))
 
 
-def get_contextual_image_recipe_path(data_source: str, name: str,
-                                     config_path: str = "config/backend.yml") -> str | None:
+def get_contextual_image_recipe_path(data_source: str, name: str) -> str | None:
     """
     Returns the path of the registering recipe of the requested contextual image. If no file is found, it will return
 None. This will also happen if the config file is empty.
-    :param config_path: The path to the config file.
     :param data_source: The data source to fetch the image from.
     :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a
 contextual image.
@@ -87,7 +83,7 @@ contextual image.
     """
 
     # Get the contextual image
-    image: dict = get_contextual_image_data(data_source, name, config_path)
+    image: dict = get_contextual_image_data(data_source, name)
     if not image:
         return None
 
@@ -97,7 +93,7 @@ contextual image.
         return None
 
     # Find the folder where the contextual image is stored.
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:
         LOG.error("Config file is empty.")
         return None
