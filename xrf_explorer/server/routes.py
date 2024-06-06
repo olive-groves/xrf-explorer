@@ -1,10 +1,7 @@
-from io import StringIO, BytesIO
-import json
+from io import BytesIO
 import logging
 
-import PIL.Image
-from PIL.Image import Image
-import flask
+from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
 from werkzeug.utils import secure_filename
@@ -14,7 +11,6 @@ import json
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
-from typing import List
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import get_config
@@ -405,7 +401,7 @@ def elemental_map(data_source: str, channel: int):
     # Get the elemental map
     image_array: np.ndarray = get_elemental_map(channel, path)
     image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array)
-    image: Image = PIL.Image.fromarray(image_normalized).convert("L")
+    image: Image = fromarray(image_normalized).convert("L")
 
     # Save the image to an io buffer
     image_io = BytesIO()
