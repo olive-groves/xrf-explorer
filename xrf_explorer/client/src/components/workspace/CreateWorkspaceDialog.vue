@@ -147,11 +147,12 @@ async function completeSetup() {
     <DialogTitle class="mb-2 font-bold"> Create new data source </DialogTitle>
     <Input placeholder="Data source name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
     <div class="flex items-end justify-between">
-      <div class="flex items-center space-x-1.5">
+      <div class="flex items-center space-x-1.5" v-if="progress != Progress.Files">
         <TriangleAlert class="size-5 text-primary" />
         <div class="text-muted-foreground">This can not be changed afterwards</div>
       </div>
-      <Button @click="nextStep" variant="outline" :disabled="sourceName.trim() == ''" class="ml-2 w-40"> Next </Button>
+      <Button @click="resetProgress" variant="destructive" v-else>Abort</Button>
+      <Button @click="nextStep" :disabled="sourceName.trim() == ''"> Next </Button>
     </div>
     <Dialog v-model:open="dialogOpen">
       <FileSetupDialog v-model="workspace" @save="completeSetup" />
