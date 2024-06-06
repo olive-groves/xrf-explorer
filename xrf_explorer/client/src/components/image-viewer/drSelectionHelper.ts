@@ -29,6 +29,9 @@ const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, image
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
 async function onSelectionUpdate(newSelection: SelectionToolInfo) {
+    // ensure that the new selection is not undefined
+    if (newSelection == undefined)
+        return;
 
     // extract selection information
     let { width, height } = newSelection.embeddedImageDimensions;
