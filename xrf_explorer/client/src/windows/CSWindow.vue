@@ -196,7 +196,8 @@ function getElementIndex(elementName: string | undefined) {
           :style="{ 'background-color': color }"
           class="inline-block size-12 rounded-md"
           :class="{
-            'ring ring-foreground': selection[getElementIndex(selectedElement)].enabled[colorIndex],
+            'ring-2 ring-foreground ring-offset-1 ring-offset-background':
+              selection[getElementIndex(selectedElement)].enabled[colorIndex],
           }"
           @click="setSelection(selectedElement, colorIndex)"
         />
