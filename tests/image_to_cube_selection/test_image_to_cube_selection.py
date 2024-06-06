@@ -1,4 +1,3 @@
-from os import RTLD_GLOBAL
 import numpy as np
 
 import sys
@@ -16,6 +15,7 @@ from xrf_explorer.server.image_to_cube_selection import (
     get_selected_data_cube,
     get_scaled_cube_coordinates,
 )
+from xrf_explorer.server.file_system.config_handler import set_config
 from cv2 import imread
 import pytest
 
@@ -28,6 +28,11 @@ class TestImageToCubeSelection:
     )
     DATA_SOURCE_FOLDR_NAME = "Data_source"
 
+    @pytest.fixture(autouse=True)
+    def setup_environment(self):
+        set_config(self.CUSTOM_CONFIG_PATH)
+        yield
+
     def test_get_selected_data_cube_dir_not_found(self, caplog):
         RGB_POINT_1: tuple[int, int] = (0, 0)
         RGB_POINT_2: tuple[int, int] = (1, 1)
@@ -38,7 +43,7 @@ class TestImageToCubeSelection:
         )
 
         result: np.ndarray | None = get_selected_data_cube(
-            data_source_folder_name, RGB_POINT_1, RGB_POINT_2, self.CUSTOM_CONFIG_PATH
+            data_source_folder_name, RGB_POINT_1, RGB_POINT_2
         )
 
         assert result is None
@@ -49,10 +54,7 @@ class TestImageToCubeSelection:
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
         result: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDR_NAME,
-            RGB_POINT_1,
-            RGB_POINT_2,
-            self.CUSTOM_CONFIG_PATH,
+            self.DATA_SOURCE_FOLDR_NAME, RGB_POINT_1, RGB_POINT_2
         )
 
         assert result is not None
@@ -93,7 +95,6 @@ class TestImageToCubeSelection:
 
         if cube_dir is None:
             pytest.fail("Cube directory is None.")
-            return
 
         cube = get_elemental_data_cube(cube_dir)
         _, cube_h, cube_w = cube.shape
@@ -104,7 +105,6 @@ class TestImageToCubeSelection:
 
         if base_img_dir is None:
             pytest.fail("Base image directory is None")
-            return
 
         img_h, img_w, _ = imread(base_img_dir).shape
 
@@ -117,22 +117,17 @@ class TestImageToCubeSelection:
         selection_rgb_area_size = selection_rgb_w * selection_rgb_h
 
         selection_data = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDR_NAME,
-            RGB_POINT_1,
-            RGB_POINT_2,
-            self.CUSTOM_CONFIG_PATH,
+            self.DATA_SOURCE_FOLDR_NAME, RGB_POINT_1, RGB_POINT_2
         )
 
         if selection_data is None:
             pytest.fail("An error occured while extracting data cube selected region.")
-            return
 
         actual_size = selection_data.shape[1]
         expected_size = selection_rgb_area_size * cube_img_selection_area_ratio
 
         if selection_data is None:
             pytest.fail("Selected data is None.")
-            return
 
         # Calculate a percentage-based tolerance, because of rounding
         tolerance_percentage = 0.1  # 10% tolerance

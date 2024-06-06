@@ -60,7 +60,6 @@ def get_selected_data_cube(
     data_source_folder_name: str,
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
-    config_path="config/backend.yml",
 ) -> np.ndarray | None:
     """
     Extracts and returns a 2D representation of a data cube region, based on the rectangular selection coordinates on the base image. If the specified
@@ -73,13 +72,13 @@ def get_selected_data_cube(
     :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
     :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns represent their elemental map values.
     """
-    cube_dir: str | None = get_elemental_cube_path(data_source_folder_name, config_path)
+    cube_dir: str | None = get_elemental_cube_path(data_source_folder_name)
 
     if cube_dir is None:
         LOG.error(f"Data source directory {data_source_folder_name} does not exist.")
         return None
 
-    base_img_dir: str | None = get_base_image_path(data_source_folder_name, config_path)
+    base_img_dir: str | None = get_base_image_path(data_source_folder_name)
 
     if base_img_dir is None:
         LOG.error(
