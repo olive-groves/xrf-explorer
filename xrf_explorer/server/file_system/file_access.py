@@ -216,7 +216,7 @@ def get_cube_recipe_path(
     )
 
 
-def get_rgb_name(
+def get_base_image_name(
     data_source_folder_name: str, config_path: str = "config/backend.yml"
 ) -> str | None:
     """Get the name of the rgb image of a given data source.
@@ -238,7 +238,7 @@ def get_rgb_name(
     return workspace_dict["baseImage"]["imageLocation"]
 
 
-def get_rgb_path(
+def get_base_image_path(
     data_source_folder_name: str, config_path: str = "config/backend.yml"
 ) -> str | None:
     """Get the path to rgb image of a data source.
@@ -253,7 +253,7 @@ def get_rgb_path(
         LOG.error("Config is empty")
         return None
 
-    filename: str | None = get_rgb_name(data_source_folder_name, config_path)
+    filename: str | None = get_base_image_name(data_source_folder_name, config_path)
 
     if filename is not None:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)

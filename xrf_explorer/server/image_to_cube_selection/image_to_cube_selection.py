@@ -1,7 +1,8 @@
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
-    get_rgb_path,
+    get_base_image_path,
+    get_cube_recipe_path,
 )
 from cv2 import imread
 import numpy as np
@@ -10,32 +11,19 @@ import logging
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_sliced_data_cube(
-    data_cube: np.ndarray,
-    selection_coord_1: tuple[int, int],
-    selection_coord_2: tuple[int, int],
-) -> np.ndarray:
+def extract_selected_data(data_cube, mask) -> np.ndarray:
     """
-    Extracts and returns a rectangular region from the specified data cube. This rectangular region is specified by the
-    two diagonal corners - selection_coord_1 and selection_coord_2.
+    Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
 
-    :param data_cube: The data cube.
-    :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region.
-    :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region.
-    :return: A numpy array containing the data from the defined rectangular region within the original data cube.
-
+    :param data_cube: The 3D data cube from which data will be extracted.
+    :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
+    :return: A 2D array where the rows represent pixels in the data cube image and the columns represent their elemental map values.
     """
-    x1, y1 = selection_coord_1
-    x2, y2 = selection_coord_2
-
-    # We implement the case distinction
-    x_min, x_max = sorted([x1, x2])
-    y_min, y_max = sorted([y1, y2])
-
-    return data_cube[:, y_min:y_max, x_min:x_max]
+    indices = np.where(mask)
+    return data_cube[:, indices[0], indices[1]]
 
 
-def get_cube_coordinates(
+def get_scaled_cube_coordinates(
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
     base_img_width: int,
@@ -75,12 +63,15 @@ def get_selected_data_cube(
     config_path="config/backend.yml",
 ) -> np.ndarray | None:
     """
-    Extracts and returns a region of a data cube, based on the rectangular selection coordinates on the base image.
+    Extracts and returns a 2D representation of a data cube region, based on the rectangular selection coordinates on the base image. If the specified
+    data source contains a recipe for the data cube, the selection made on the base image is "deregistered" so that the returned data from the function
+    correctly represents the selected pixels on the image. If the data cube does not have a recipe, the selection made on the base image is simply scaled to
+    match the data cube's dimensions.
 
     :param data_source_name: The data source folder name.
     :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular region in the base image.
     :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the rectangular region in the base image.
-    :return: A numpy array containing the selected cube data or None if data source directory is not found.
+    :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns represent their elemental map values.
     """
     cube_dir: str | None = get_elemental_cube_path(data_source_folder_name, config_path)
 
@@ -88,7 +79,7 @@ def get_selected_data_cube(
         LOG.error(f"Data source directory {data_source_folder_name} does not exist.")
         return None
 
-    base_img_dir = get_rgb_path(data_source_folder_name, config_path)
+    base_img_dir: str | None = get_base_image_path(data_source_folder_name, config_path)
 
     if base_img_dir is None:
         LOG.error(
@@ -101,10 +92,25 @@ def get_selected_data_cube(
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
 
-    selection_coord_1_cube, selection_coord_2_cube = get_cube_coordinates(
-        selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
-    )
+    cube_recipe_path = get_cube_recipe_path(data_source_folder_name)
 
-    return get_sliced_data_cube(
-        data_cube, selection_coord_1_cube, selection_coord_2_cube
-    )
+    if (cube_recipe_path is None) or True:
+        # If the data cube has no recipe, then simply scale the selection coordinates to match the dimensions of the cube.
+        selection_coord_1_cube, selection_coord_2_cube = get_scaled_cube_coordinates(
+            selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
+        )
+
+        x1, y1 = selection_coord_1_cube
+        x2, y2 = selection_coord_2_cube
+
+        mask = np.zeros((cube_h, cube_w), dtype=bool)
+        mask[y1 : y2 + 1, x1 : x2 + 1] = True
+
+        # Note: Using selection with a boolean mask for a simple rectangular selection is not the best choice for performance
+        #       But the mask simplifies things, since it can be used for all kinds of selections to be implemented in the future.
+        #       And the performance decrease should be less than tenth of a second in most cases.
+        return extract_selected_data(data_cube, mask)
+    else:
+        # If the data cube has recipe, deregister the selection coordinates so they correctly represent the selected area on the data cube
+        # TODO: Implement the deregisration logic
+        return np.array([])
