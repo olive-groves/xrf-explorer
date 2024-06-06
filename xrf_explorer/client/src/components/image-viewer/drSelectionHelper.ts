@@ -11,6 +11,7 @@ import { appState, datasource } from "@/lib/appState";
 import { SelectionToolInfo } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
+import { PNG } from "pngjs";
 
 const selection = computed(() => appState.selection.drSelection);
 
