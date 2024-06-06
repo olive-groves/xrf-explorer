@@ -9,7 +9,7 @@ import { FrontendConfig } from "./lib/config";
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow } from "@/windows";
+import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
 
 // Import all reusable dialogs
 import { UploadFileDialog } from "@/components/dialogs";
@@ -41,6 +41,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <ChartWindow />
         <DRWindow />
         <SpectraWindow />
+        <CSWindow />
       </WindowContainer>
 
       <!-- Place all reusable dialogs here -->

@@ -7,6 +7,7 @@ import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { config } from "@/main";
 import { createElementalLayers } from "./elementalHelper";
+import { createColorClusterLayers } from "./colorClusterHelper";
 import { registerLayer } from "./registering";
 import { getImageSize, getRecipe, getTargetSize } from "./api";
 
@@ -38,6 +39,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   createElementalLayers(workspace);
 
   // Create color segmentation layers
+  createColorClusterLayers();
 
   // Create dimensionality reduction layers
 }
