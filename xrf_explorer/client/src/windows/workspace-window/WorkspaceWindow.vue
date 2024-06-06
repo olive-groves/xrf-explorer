@@ -95,7 +95,12 @@ function updateWorkspace() {
           >
             <template #icon><Atom class="size-full" /></template>
           </WorkspaceCard>
-          <WorkspaceCard name="Elemental channels" description="Generated data" @settings="channelsDialog = true">
+          <WorkspaceCard
+            name="Elemental channels"
+            description="Generated data"
+            @settings="channelsDialog = true"
+            v-if="workspace.elementalCubes.length > 0"
+          >
             <template #icon><Layers3 class="size-full" /></template>
           </WorkspaceCard>
         </div>
