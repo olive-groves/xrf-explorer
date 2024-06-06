@@ -457,6 +457,7 @@ def get_selection_spectra(data_source):
     response = json.dumps(result)
     return response
 
+
 @app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
     """Gets the colors corresponding to the image-wide color clusters, and saves the
@@ -481,6 +482,8 @@ def get_color_clusters(data_source: str):
     # Paths
     path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
     path_to_data_cube: str = get_elemental_cube_path(data_source)
+    if not path_to_data_cube:
+        return f"Could not find elemental data cube in source {data_source}", 404
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
 
     # get default dim reduction config for image clusters
@@ -489,10 +492,10 @@ def get_color_clusters(data_source: str):
     k: int = int(k_means_parameters['k'])
 
     # get default dim reduction config for elemental clusters
-    k_means_parameters_eleme: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters_eleme['elem-threshold'])
-    nr_attempts_elem: int = int(k_means_parameters_eleme['nr-attempts'])
-    k_elem: int = int(k_means_parameters_eleme['k'])
+    k_means_parameters_elem: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters_elem['elem-threshold'])
+    nr_attempts_elem: int = int(k_means_parameters_elem['nr-attempts'])
+    k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
     full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
@@ -506,7 +509,7 @@ def get_color_clusters(data_source: str):
     if not exists(path_to_save):
         mkdir(path_to_save)
 
-    # List to store colors per element
+    # List to store colors
     color_data: list[ndarray] = []
 
     # Compute colors and bitmasks
@@ -514,7 +517,7 @@ def get_color_clusters(data_source: str):
     bitmasks: ndarray
     colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
     # Merge similar clusters
-    colors, _ = merge_similar_colors(colors, bitmasks)
+    colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
     combined_bitmask: ndarray = combine_bitmasks(bitmasks)
 
@@ -535,7 +538,7 @@ def get_color_clusters(data_source: str):
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
-        colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
         color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
