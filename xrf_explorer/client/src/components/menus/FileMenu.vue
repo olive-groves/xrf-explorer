@@ -53,7 +53,7 @@ function loadWorkspace(source: string) {
     <MenubarMenu>
       <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
       <MenubarContent>
-        <DialogTrigger class="w-full"><MenubarItem>Upload files</MenubarItem></DialogTrigger>
+        <DialogTrigger class="w-full"><MenubarItem>New workspace</MenubarItem></DialogTrigger>
         <MenubarSeparator />
         <MenubarItem disabled v-if="sources.length <= 0">No data sources available</MenubarItem>
         <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
