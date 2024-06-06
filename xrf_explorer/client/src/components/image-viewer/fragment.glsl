@@ -93,13 +93,13 @@ void main() {
   float distance = distance(gl_FragCoord.xy, uMouse);
   if (distance <= uRadius) {
     if ((iShowLayer & IN_LENS) != 0) {
-      fragColor = texture(tImage, vUv);
+      fragColor = texture(tImage, uv.xy);
     } else {
       return;
     }
   } else {
     if ((iShowLayer & OUTSIDE_LENS) != 0) {
-      fragColor = texture(tImage, vUv);
+      fragColor = texture(tImage, uv.xy);
     } else {
       return;
     }

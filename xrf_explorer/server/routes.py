@@ -1,8 +1,7 @@
-from io import StringIO, BytesIO
-import json
+from io import BytesIO
 import logging
 
-from PIL.Image import Image
+from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
 from werkzeug.utils import secure_filename
@@ -12,7 +11,6 @@ import json
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
-from typing import List
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import get_config
@@ -22,7 +20,8 @@ from xrf_explorer.server.file_system.contextual_images import (get_contextual_im
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
+    get_elemental_map, normalize_ndarray_to_grayscale
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
@@ -383,6 +382,36 @@ def data_cube_recipe(data_source: str):
         return f"Could not find registering points at {path}", 404
 
     return points, 200
+
+
+@app.route("/api/<data_source>/data/elements/map/<int:channel>")
+def elemental_map(data_source: str, channel: int):
+    """Get an elemental map.
+
+    :param data_source: data source to get the map from
+    :param channel: the channel to get the map from
+    :return: the elemental map
+    """
+
+    # As XRF-Explorer only supports a single data cube, we do not have to do any wizardry to stitch maps together
+    path: str = get_elemental_cube_path(data_source)
+    if not path:
+        return f"Could not find elemental data cube in source {data_source}", 404
+
+    # Get the elemental map
+    image_array: np.ndarray = get_elemental_map(channel, path)
+    image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array)
+    image: Image = fromarray(image_normalized).convert("L")
+
+    # Save the image to an io buffer
+    image_io = BytesIO()
+    image.save(image_io, "png")
+    image_io.seek(0)
+
+    # Serve the image and ensure that the converted images are cached by the client
+    response = send_file(image_io, mimetype='image/png')
+    response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return response
 
 
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
