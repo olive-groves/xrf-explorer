@@ -166,3 +166,34 @@ def parse_rpl(path: str) -> dict:
         LOG.error("Error while parsing rpl file: file empty")
 
     return map
+
+
+def get_base_image_name(data_source: str) -> str | None:
+    """
+    Returns the name of the base image. If no base image is found, it will return None. This will
+also happen if the config file is empty.
+    :param data_source: The data source to fetch the image from.
+    :return: The name of the base image.
+    """
+
+    LOG.info("Finding the name for the base image in data source %s.", data_source)
+
+    # Find the folder where the contextual image is stored.
+    backend_config: dict = get_config()
+    if not backend_config:
+        LOG.error("Config file is empty.")
+        return None
+
+    data_source_dir = join(Path(backend_config["uploads-folder"]), data_source)
+    workspace_path = join(data_source_dir, "workspace.json")
+    try:
+        with open(workspace_path, 'r') as workspace:
+            data_json: str = workspace.read()
+            data = json.loads(data_json)
+            if data["baseImage"]["name"]:
+                return data["baseImage"]["name"]
+    except OSError as err:
+        LOG.error("Error while getting contextual image path: %s", err)
+
+    LOG.error("Could not find base image in source %s", data_source)
+    return None

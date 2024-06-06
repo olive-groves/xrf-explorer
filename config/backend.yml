@@ -13,13 +13,12 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 color-segmentation:
-  folder: "xrf_explorer/server/temp/color_segmentation"
+  folder-name: "generated_cs"
+  registered-image: "registered_rgb.png"
   k-means-parameters:
-    k: 20
+    k: 10
     nr-attempts: 10
-    image-width: 500
-    image-height: 500
   elemental-k-means-parameters:
-    k: 2
+    k: 5
     nr-attempts: 10
-    elem-threshold: 0.1
+    elem-threshold: 40 # range [0,255]
