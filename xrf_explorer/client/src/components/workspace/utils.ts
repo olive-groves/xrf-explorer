@@ -14,12 +14,14 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
     if (image.imageLocation.trim() == "") return [false, "Contextual image must have an associated image file"];
   }
 
+  if (workspace.spectralCubes.length > 1) return [false, "Having multiple spectral cubes is currently not supported"];
   for (const cube of workspace.spectralCubes) {
     if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
     if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associatiated raw file"];
     if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associatiated rpl file"];
   }
 
+  if (workspace.elementalCubes.length > 1) return [false, "Having multiple elemental cubes is currently not supported"];
   for (const cube of workspace.elementalCubes) {
     if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];
     if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associatiated data file"];
