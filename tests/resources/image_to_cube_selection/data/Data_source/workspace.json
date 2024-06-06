@@ -3,5 +3,5 @@
   "baseImage": { "name": "baseTest", "imageLocation": "image.png" },
   "contextualImages": [],
   "spectralCubes": [],
-  "elementalCubes": [{ "dataLocation": "cube_test.dms" }]
+  "elementalCubes": [{ "dataLocation": "3x300x300_test_cube.dms" }]
 }
