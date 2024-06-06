@@ -11,6 +11,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8001",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   build: {
     target: "es2020",
     chunkSizeWarningLimit: 2048,

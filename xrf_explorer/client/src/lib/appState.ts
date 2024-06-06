@@ -11,7 +11,7 @@ export const appState = reactive<AppState>({
     lens: null,
     rectangles: [],
     elements: [],
-    colorSegmentation: null,
+    colorSegmentation: [],
     dimensionalityReduction: null,
   },
 });
@@ -21,7 +21,9 @@ export const appState = reactive<AppState>({
  * Readonly, for writing you need to directly modify appState.
  */
 export const datasource = computed(() => appState.workspace?.name ?? "");
-export const elements = computed(() => appState.workspace?.elementalChannels ?? []);
+export const elements = computed(
+  () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
+);
 
 /**
  * Type describing the state of the client.

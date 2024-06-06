@@ -1,16 +1,15 @@
-# module responsible for giving the different paths corresponding to the files of a data source
+#  module responsible for giving the different paths corresponding to the files of a data source
 
 import logging
 import json
-from os.path import isfile, join, exists
+from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
 
-from xrf_explorer.server.file_system.config_handler import load_yml
-
+from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
-BACKEND_CONFIG: dict = load_yml("config/backend.yml")
+
 
 
 def get_elemental_cube_name(
@@ -23,7 +22,7 @@ def get_elemental_cube_name(
     :return: Path string pointing to the elemental cube location.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -45,7 +44,7 @@ def get_elemental_cube_path(
     :return: Path to the elemental data cube.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty.")
         return None
@@ -69,8 +68,35 @@ def get_elemental_cube_path(
     return path
 
 
-def get_raw_rpl_names(
-    data_source: str, config_path: str = "config/backend.yml"
+
+def get_elemental_cube_recipe_path(data_source: str) -> str | None:
+    """Get the location of the elemental cube recipe file of a given datasource
+
+    :param data_source: Name of the datasource.
+    :return: Path string pointing to the recipe of the elemental cube.
+    """
+    # load backend config
+    backend_config: dict = get_config()
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return None
+
+    
+    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
+    workspace_path: str = join(data_source_dir, "workspace.json")
+    try:
+        with open(workspace_path, 'r') as workspace:
+            data_json: str = workspace.read()
+            data = json.loads(data_json)
+            recipe_name: str = data["elementalCubes"][0]["recipeLocation"]
+    except OSError as err:
+        LOG.error("Error while getting recipe of elemental cube: {%s}", err)
+        return None
+
+    return abspath(join(data_source_dir, recipe_name))
+
+
+def get_raw_rpl_names(data_source: str
 ) -> tuple[str, str]:
     """Get the name of the raw data file (.raw) and the .rpl file of a given datasource
 
@@ -78,7 +104,7 @@ def get_raw_rpl_names(
     :return: Names of the raw data and rpl files.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ("", "")
@@ -99,16 +125,14 @@ def get_raw_rpl_names(
     return raw_data_name, rpl_name
 
 
-def get_raw_rpl_paths(
-    data_source: str, config_path: str = "config/backend.yml"
-) -> tuple[str, str]:
+def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     """Get the paths to the raw data file (.raw) and the .rpl file of a given datasource
 
     :param datasource: Name of the datasource.
     :return: Paths to the raw data and rpl files.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ("", "")

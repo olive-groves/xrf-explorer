@@ -66,6 +66,6 @@ watch(
     <div ref="content" v-if="appState.workspace != undefined">
       <slot />
     </div>
-    <div v-else class="p-2 text-center">No workspace loaded yet.</div>
+    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div>
   </Teleport>
 </template>

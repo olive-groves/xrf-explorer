@@ -6,7 +6,7 @@ import {
   MenubarTrigger,
   MenubarSeparator,
 } from "@/components/ui/menubar";
-import { windowState } from "./state";
+import { windowState } from "@/components/ui/window/state";
 import { computed, useSlots } from "vue";
 
 const slots = useSlots();

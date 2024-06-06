@@ -5,7 +5,7 @@ import numpy as np
 from os.path import join
 from pathlib import Path
 
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.from_csv import (
     get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
     get_elements_from_csv)
@@ -14,7 +14,6 @@ from xrf_explorer.server.file_system.from_dms import (
     get_elements_from_dms)
 
 LOG: logging.Logger = logging.getLogger(__name__)
-BACKEND_CONFIG: dict = load_yml("config/backend.yml")
 
 
 def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
@@ -55,7 +54,6 @@ def get_elemental_data_cube(path: str) -> np.ndarray:
     """Get the elemental data cube at the given path.
 
     :param path: Path to data cube.
-    :param config_path: Path to the backend config file.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
     
@@ -198,13 +196,12 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     return composition
 
 
-def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: str = "config/backend.yml") -> bool:
+def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     """"Saves a numpy array and list of elements to a DMS file.
 
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
     :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     :param elements: List of the names of the elements.
-    :param config_path: Path to the backend config file.
     :return: True if the cube was saved successfully, False otherwise.
     """
 
@@ -213,7 +210,7 @@ def to_dms(name_cube: str, cube: np.ndarray, elements: list[str], config_path: s
         return False
     
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return False

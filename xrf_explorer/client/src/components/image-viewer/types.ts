@@ -113,7 +113,7 @@ export type ToolState = {
 /**
  * The different tools in the image viewer.
  */
-export type Tool = "grab" | "lens" | "lasso";
+export type Tool = "grab" | "lens" | "rectangle" | "lasso";
 
 /**
  * Type describing a group of layers as used in the LayerSystem.
@@ -170,9 +170,9 @@ export type LayerGroup = {
  */
 export enum LayerVisibility {
   Invisible = 0,
-  Visible = 1,
-  InsideLens = 2,
-  OutsideLens = 3,
+  InsideLens = 1,
+  OutsideLens = 2,
+  Visible = 3,
 }
 
 /**

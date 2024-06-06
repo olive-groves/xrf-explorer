@@ -68,14 +68,20 @@
 @layer base {
   * {
     @apply border-border;
+    @apply text-sm;
+    @apply select-none;
   }
   body {
     @apply bg-background text-foreground;
   }
-}
-
-* {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  user-select: none;
+  code {
+    @apply relative;
+    @apply rounded;
+    @apply bg-muted;
+    @apply px-[0.3rem];
+    @apply py-[0.2rem];
+    @apply font-mono;
+    @apply text-xs;
+    @apply font-semibold;
+  }
 }

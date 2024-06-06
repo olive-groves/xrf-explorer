@@ -7,32 +7,31 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from xrf_explorer.server.file_system.config_handler import load_yml
-from xrf_explorer.server.dim_reduction.general import (valid_element, get_elemental_data_cube,
-                                                       get_registered_painting_image)
+from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system import get_elemental_data_cube
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
+from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image
 
 matplotlib.use('Agg')
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-OVERLAY_IMAGE: list[str] = ['rgb', 'uv', 'xray']
 
-
-def create_embedding_image(overlay_type: str, config_path: str = "config/backend.yml") -> str:
+def create_embedding_image(data_source: str, overlay_type: str) -> str:
     """Creates the embedding image from the embedding.
 
-    :param overlay_type: The type of overlay to create. Can be 'rgb', 'uv', 'xray' or an element number.
-    :param config_path: Path to the backend config file
+    :param data_source: Name of the data source to create the embedding image for.
+    :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_.
     :return: Path to created embedding image is successful, otherwise empty string.
     """
 
     LOG.info("Creating embedding image...")
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         return ""
-    dr_folder: str = backend_config['dim-reduction']['folder']
+    dr_folder: str = join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name'])
 
     # Load the file embedding.npy
     try:
@@ -42,20 +41,33 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return ""
 
+    # Get the path to the elemental data cube
+    cube_path: str = get_elemental_cube_path(data_source)
+    if not cube_path:
+        return ""
+
     # Create the overlay
     overlay: np.ndarray
 
-    if overlay_type in OVERLAY_IMAGE:
-        overlay = create_image_overlay(overlay_type, indices, config_path=config_path)
-    else:
+    if overlay_type.startswith("contextual_"):
+        # Get image type
+        image_type: str = overlay_type.removeprefix("contextual_")
+
+        # Get the pixels of registered image
+        registered_image: np.ndarray = get_registered_image(data_source, image_type)
+        if len(registered_image) == 0:
+            return ""
+
+        # Create the overlay
+        overlay = create_image_overlay(registered_image, indices)
+    elif overlay_type.startswith("elemental_"):
         # Show element overlay
         # Get the element
-        element: int = int(overlay_type)
+        element: int = int(overlay_type.removeprefix("elemental_"))
 
         # Get elemental data cube
-        data_cube: np.ndarray | None = get_elemental_data_cube(config_path=config_path)
-
-        if data_cube is None:
+        data_cube: np.ndarray = get_elemental_data_cube(cube_path)
+        if len(data_cube) == 0:
             return ""
 
         # Verify valid element
@@ -64,32 +76,31 @@ def create_embedding_image(overlay_type: str, config_path: str = "config/backend
 
         # Create the overlay
         embedding, overlay = create_element_overlay(element, indices, data_cube, embedding)
+    else:
+        LOG.error(f"Invalid overlay type: {overlay_type}")
+        return ""
 
     LOG.info("Created overlay successfully")
 
     # Create the plot
     LOG.info("Creating embedding image...")
-    path_to_image = plot_embedding_with_overlay(embedding, overlay, Path(dr_folder))
+    path_to_image = plot_embedding_with_overlay(embedding, overlay, dr_folder)
     LOG.info("Created embedding image successfully")
 
     return path_to_image
 
 
-def create_image_overlay(overlay_type: str, indices: np.ndarray, config_path: str = "config/backend.yml") -> np.ndarray:
+def create_image_overlay(registered_image: np.ndarray, indices: np.ndarray) -> np.ndarray:
     """Creates the overlay based on the given image type. This is done
     by getting the pixels out of the image at the given indices.
 
-    :param overlay_type: The type of overlay to create. i.e. 'rgb', 'uv', 'xray'.
+    :param registered_image: The pixels of the registered image to create the overlay from.
     :param indices: The indices to get the pixels from.
-    :param config_path: Path to the backend config file.
     :return: The normalized pixels at the given indices of the image.
     """
 
-    # Get the pixels in the picture at the given path
-    overlay_data: np.ndarray = get_registered_painting_image(overlay_type, config_path=config_path)
-
     # Get the pixels at the given indices
-    overlay: np.ndarray = overlay_data[indices[:, 0], indices[:, 1]]
+    overlay: np.ndarray = registered_image[indices[:, 0], indices[:, 1]]
     
     # Normalize the pixels values to be in the range [0, 1]
     overlay = overlay.astype(float) / 255.0
@@ -110,7 +121,7 @@ def create_element_overlay(
     """
 
     # Get elemental overlay
-    overlay: np.ndarray = data_cube[indices[:, 0], indices[:, 1], element]
+    overlay: np.ndarray = data_cube[element, indices[:, 0], indices[:, 1]]
 
     # We want to first show low intensities and then high intensities
     # This is because we are interested in high intensity regions
@@ -121,7 +132,7 @@ def create_element_overlay(
     return sorted_embedding, sorted_overlay
 
 
-def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: Path) -> str:
+def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: str) -> str:
     """Makes the image of the given embedding with the given overlay and 
     saves it to the given path.
     

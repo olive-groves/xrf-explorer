@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { inject, ref } from "vue";
+import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
-
 import * as d3 from "d3";
 import { datasource } from "@/lib/appState";
+import { exportableElements } from "@/lib/export";
 
-const spectraChart = ref(null);
+const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
-let svg: d3.Selection<null, unknown, null, undefined>;
+let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+
+/**
+ * Sets up export of chart.
+ */
+watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
@@ -42,7 +47,7 @@ function setup() {
 
   // append the svg object to the body of the page
   svg = d3
-    .select(spectraChart.value)
+    .select(spectraChart.value!)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -329,11 +334,11 @@ if (false) {
 </script>
 
 <template>
-  <Window title="Spectrum" location="right" opened @window-mounted="setup">
+  <Window title="Spectrum" location="right" @window-mounted="setup">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
-        <p class="ml-1 font-bold">Select which spectra to show:</p>
+        <p class="font-bold">Select which spectra to show:</p>
         <div class="mt-1 flex items-center">
           <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
           <label class="ml-1" for="globalCheck">Global average</label>

@@ -22,7 +22,7 @@ import { Slider } from "@/components/ui/slider";
 import { Window } from "@/components/ui/window";
 
 // Obtain configuration
-const config = await getConfig();
+export const config = await getConfig();
 
 const app = createApp(App, { config: config });
 
