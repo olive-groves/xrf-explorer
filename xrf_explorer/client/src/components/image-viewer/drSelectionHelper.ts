@@ -12,6 +12,7 @@ import { SelectionToolInfo } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
 import { PNG } from "pngjs";
+import { createReadStream } from "fs";
 
 const selection = computed(() => appState.selection.drSelection);
 
@@ -137,9 +138,7 @@ async function getMiddleImage() {
  */
 function mapImageToEmbedding() {
     const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
-    const fs = require("fs");
-    const PNG = require("pngjs").PNG;
-    fs.createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: typeof PNG) {
+    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: PNG) {
         // update image dimensions
         imageWidth = this.width;
         imageHeight = this.height;
