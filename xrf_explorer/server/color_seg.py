@@ -111,10 +111,10 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
         bitmasks.append(mask)
 
     # Transform back to rgb
-    colors = [lab_to_rgb(c) for c in colors]
+    colors = np.array([lab_to_rgb(c) for c in colors])
     LOG.info("Initial color clusters extracted successfully.")
 
-    return np.array(colors), np.array(bitmasks)
+    return colors, np.array(bitmasks)
 
 
 def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,

@@ -15,7 +15,7 @@ from numpy import ndarray
 from typing import List
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.config_handler import load_yml
+from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
@@ -24,7 +24,6 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
-from xrf_explorer.server.file_system.config_handler import load_yml
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.color_seg import (
@@ -38,8 +37,6 @@ from xrf_explorer.server.file_system.from_dms import (
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
-CONFIG_PATH: str = 'config/backend.yml'
-BACKEND_CONFIG: dict = load_yml(CONFIG_PATH)
 
 TEMP_RGB_IMAGE: str = 'rgb.tif'
 
@@ -115,6 +112,9 @@ def create_data_source_dir():
 
     :return: json with directory name
     """
+    # Get config
+    config: dict = get_config()
+
     # Check the 'name' field was provided in the request
     if "name" not in request.form:
         error_msg = "Data source name must be provided."
@@ -129,7 +129,7 @@ def create_data_source_dir():
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(BACKEND_CONFIG["uploads-folder"], data_source_name_secure)
+    data_source_dir = join(config["uploads-folder"], data_source_name_secure)
 
     # If the directory exists, return 400
     if exists(data_source_dir):
@@ -151,7 +151,10 @@ def delete_data_source():
     
     :request form attributes: **dir** - the directory name
     """
-    delete_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+    # get config
+    config: dict = get_config()
+
+    delete_dir = join(config["uploads-folder"], request.form["dir"])
 
     if exists(delete_dir):
         rmtree(delete_dir)
@@ -170,7 +173,10 @@ def upload_file_chunk():
         **startByte** - the start byte from which bytes are uploaded \n 
         **chunkBytes** - the chunk  of bytes to upload
     """
-    file_dir = join(BACKEND_CONFIG["uploads-folder"], request.form["dir"])
+    # get config
+    config: dict = get_config()
+
+    file_dir = join(config["uploads-folder"], request.form["dir"])
     start_byte = int(request.form["startByte"])
     chunk_bytes = request.files["chunkBytes"]
 
@@ -460,16 +466,17 @@ def get_color_clusters(data_source: str):
     :return json containing the ordered list of colors
     """
     # Get rgb image name and path
-    rgb_image_name: str = get_base_image_name(data_source, CONFIG_PATH)
+    rgb_image_name: str = get_base_image_name(data_source)
     if rgb_image_name is None:
         return 'Error occurred while getting rgb image name', 500
-    path_to_image: str = get_contextual_image_path(data_source, rgb_image_name, CONFIG_PATH)
+    path_to_image: str = get_contextual_image_path(data_source, rgb_image_name)
     if path_to_image is None:
         return 'Error occurred while getting rgb image path', 500
 
-    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
-    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
-    reg_image_name: str = str(BACKEND_CONFIG['color-segmentation']['registered-image'])
+    config: dict = get_config()
+    uploads_folder: str = str(config['uploads-folder'])
+    cs_folder: str = str(config['color-segmentation']['folder-name'])
+    reg_image_name: str = str(config['color-segmentation']['registered-image'])
 
     # Paths
     path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
@@ -477,12 +484,12 @@ def get_color_clusters(data_source: str):
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
 
     # get default dim reduction config for image clusters
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # get default dim reduction config for elemental clusters
-    k_means_parameters_eleme: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters_eleme: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters_eleme['elem-threshold'])
     nr_attempts_elem: int = int(k_means_parameters_eleme['nr-attempts'])
     k_elem: int = int(k_means_parameters_eleme['k'])
@@ -555,11 +562,12 @@ def get_color_cluster_bitmask(data_source: str):
     :param data_source: data_source to get the bitmask from
     :return bitmask png file for the whole image
     """
-    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
-    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
+    config: dict = get_config()
+    uploads_folder: str = str(config['uploads-folder'])
+    cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Get parameters
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
@@ -582,11 +590,12 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
     :param element: index of the element to get the bitmask from
     :return bitmask png file for the given element
     """
-    uploads_folder: str = str(BACKEND_CONFIG['uploads-folder'])
-    cs_folder: str = str(BACKEND_CONFIG['color-segmentation']['folder-name'])
+    config: dict = get_config()
+    uploads_folder: str = str(config['uploads-folder'])
+    cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Get parameters
-    k_means_parameters: dict[str, str] = BACKEND_CONFIG['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem-threshold'])
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
