@@ -1,4 +1,5 @@
 import { WorkspaceConfig } from "@/lib/workspace";
+import { config } from "@/main";
 
 /**
  * Validates a workspace to test if it is sufficient.
@@ -35,4 +36,30 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   if (new Set(names).size !== names.length) return [false, "Names must be unique"];
 
   return [true, ""];
+}
+
+/**
+ * Initializes the elements in the workspace based on the elemental cubes.
+ * @param workspace - The workspace to initialize.
+ * @returns Whether the initialization was successfull.
+ */
+export async function initializeChannels(workspace: WorkspaceConfig): Promise<boolean> {
+  const response = await fetch(`${config.api.endpoint}/${workspace.name}/element_names`);
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const channelNames = (await response.json()) as string[];
+
+  workspace.elementalChannels = [];
+  channelNames.forEach((channel, index) => {
+    workspace.elementalChannels.push({
+      channel: index,
+      name: channel,
+      enabled: false,
+    });
+  });
+
+  return true;
 }

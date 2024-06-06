@@ -10,7 +10,7 @@ import {
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-} from '@/components/ui/number-field'
+} from "@/components/ui/number-field";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
@@ -378,12 +378,7 @@ if (false) {
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField
-        id="excitation-input"
-        class="ml-1 mt-1 w-64"
-        v-model="excitation"
-        @change="updateElementSpectrum()"
-      >
+      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum()">
         <NumberFieldContent>
           <NumberFieldInput />
           <NumberFieldDecrement />

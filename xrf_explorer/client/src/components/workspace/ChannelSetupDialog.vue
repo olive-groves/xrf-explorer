@@ -2,9 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { DialogScrollContent, DialogTitle } from "@/components/ui/dialog";
 import { WorkspaceConfig } from "@/lib/workspace";
-import { validateWorkspace } from "./utils";
+import { initializeChannels, validateWorkspace } from "./utils";
 import { computed } from "vue";
-import { TriangleAlert } from "lucide-vue-next";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const model = defineModel<WorkspaceConfig>({ required: true });
@@ -42,10 +41,7 @@ function save() {
 
       <!-- Footer -->
       <div class="flex justify-between">
-        <div class="flex items-end space-x-1.5">
-          <TriangleAlert v-if="!modelValid[0]" class="size-5 text-primary" />
-          <div class="text-muted-foreground" v-text="modelValid[1]" />
-        </div>
+        <Button variant="outline" @click="initializeChannels(model)">Reinitialize elements</Button>
         <div class="space-x-2">
           <Button :disabled="!modelValid[0]" @click="save">Save</Button>
         </div>
