@@ -160,36 +160,44 @@ function getElementIndex(elementName: string | undefined) {
 
 <template>
   <Window title="Color segmentaton" location="right">
-    <!-- SELECTION MENU -->
-    <div class="mt-1 flex items-center" v-if="status == Status.SUCCESS">
-      <Select v-model="selectedElement">
-        <SelectTrigger class="mb-2 ml-1 w-40">
-          <SelectValue placeholder="Select an element" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="complete"> Complete painting </SelectItem>
-          <SelectItem v-for="element in elements" :key="element.channel" :value="element.name">
-            {{ element.name }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-
-    <div class="mb-2 mt-1 flex flex-col items-center justify-center space-y-2">
-      <!-- LOADING/ERROR MESSAGES -->
-      <span v-if="status == Status.LOADING">Loading...</span>
-      <div v-if="status == Status.LOADING" class="size-6">
-        <LoaderPinwheel class="size-full animate-spin" />
+    <div class="space-y-2 p-2">
+      <!-- SELECTION MENU -->
+      <div class="flex items-center" v-if="status == Status.SUCCESS">
+        <Select v-model="selectedElement">
+          <SelectTrigger class="w-40">
+            <SelectValue placeholder="Select an element" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="complete"> Complete painting </SelectItem>
+            <SelectItem v-for="element in elements" :key="element.channel" :value="element.name">
+              {{ element.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-      <span v-if="status == Status.ERROR"> An error ocurred while loading the color clusters. </span>
+
+      <!-- LOADING/ERROR MESSAGES -->
+      <div
+        class="flex flex-col items-center justify-center space-y-2 p-8"
+        v-if="status == Status.LOADING || status == Status.ERROR"
+      >
+        <span v-if="status == Status.LOADING">Loading...</span>
+        <div v-if="status == Status.LOADING" class="size-6">
+          <LoaderPinwheel class="size-full animate-spin" />
+        </div>
+        <span v-if="status == Status.ERROR"> An error ocurred while loading the color clusters. </span>
+      </div>
+
       <!-- COLOR PALETTE -->
-      <div v-if="selectedElement && status == Status.SUCCESS" class="flex flex-wrap">
+      <div v-if="selectedElement && status == Status.SUCCESS" class="flex flex-wrap gap-2">
         <div
           v-for="(color, colorIndex) in colors"
           :key="color"
           :style="{ 'background-color': color }"
-          class="m-1 inline-block size-12 rounded-md"
-          :class="{ 'border-2 border-border': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true }"
+          class="inline-block size-12 rounded-md"
+          :class="{
+            'border-2 border-foreground': selection[getElementIndex(selectedElement)].enabled[colorIndex] == true,
+          }"
           @click="setSelection(selectedElement, colorIndex)"
         ></div>
       </div>
