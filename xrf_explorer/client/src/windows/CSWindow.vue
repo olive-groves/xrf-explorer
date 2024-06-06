@@ -196,15 +196,10 @@ function getElementIndex(elementName: string | undefined) {
           :style="{ 'background-color': color }"
           class="inline-block size-12 rounded-md"
           :class="{
-            'border-[3px] border-background': selection[getElementIndex(selectedElement)].enabled[colorIndex],
+            'ring ring-foreground': selection[getElementIndex(selectedElement)].enabled[colorIndex],
           }"
           @click="setSelection(selectedElement, colorIndex)"
-        >
-          <div
-            class="m-[-3px] size-12 rounded-md border-2 border-foreground"
-            v-if="selection[getElementIndex(selectedElement)].enabled[colorIndex]"
-          />
-        </div>
+        />
       </div>
     </div>
   </Window>
