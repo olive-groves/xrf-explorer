@@ -22,7 +22,7 @@ def get_elemental_cube_name(
     :return: Path string pointing to the elemental cube location.
     """
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -44,7 +44,7 @@ def get_elemental_cube_path(
     :return: Path to the elemental data cube.
     """
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty.")
         return None
@@ -76,7 +76,7 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     :return: Path string pointing to the recipe of the elemental cube.
     """
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -104,7 +104,7 @@ def get_raw_rpl_names(data_source: str
     :return: Names of the raw data and rpl files.
     """
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ("", "")
@@ -132,7 +132,7 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     :return: Paths to the raw data and rpl files.
     """
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ("", "")
@@ -191,7 +191,12 @@ def get_workspace_dict(
     :param config_path: Path to the backend config file.
     :return: Dictionary format of the workspace.json
     """
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict | None = get_config()
+
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return None
+
     workspace_json_dir = join(
         backend_config["uploads-folder"], data_source_folder_name, "workspace.json"
     )
@@ -218,7 +223,7 @@ def get_cube_recipe_path(
     :return: Path of the data cube recipe
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -250,7 +255,7 @@ def get_base_image_name(
     :return: Name of the rgb image.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
@@ -272,7 +277,7 @@ def get_base_image_path(
     :return: Path to the rgb image.
     """
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
