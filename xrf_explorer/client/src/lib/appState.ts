@@ -10,7 +10,6 @@ export const appState = reactive<AppState>({
   selection: {
     lens: null,
     rectangles: [],
-    drSelectionPoints: [],
     elements: [],
     colorSegmentation: null,
     dimensionalityReduction: null,

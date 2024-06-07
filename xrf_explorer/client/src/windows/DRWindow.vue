@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import { SelectionOption, SelectionTool } from "@/components/functional/selection/selection_tool.ts";
+import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: SelectionTool = new SelectionTool(SelectionOption.Rectangle);
+const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 let imageToEmbeddingCropping: {
   xEmbedRange: number[], yEmbedRange: number[],
   xPlotRange: number[], yPlotRange: number[]
@@ -209,8 +209,8 @@ async function communicateSelectionWithImageViewer() {
   // update the selection points' coordinates to the embedding's coordinates;
   if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
   // communicate the relevant information to the image viewer using the app's state
-  appState.selection.drSelection = {
-    selectionType: selectionTool.selectionType,
+  appState.selection.dimensionalityReduction = {
+    selectionType: selectionTool.type(),
     points: selectionPointsInEmbedding,
     embeddedImageDimensions: {
       width: imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0],
@@ -269,7 +269,7 @@ function drawSelection() {
   const image: HTMLElement | null = document.getElementById("image");
 
   if (image == null)
-    console.error("Tried to draw selection but could not find image element in DR window.");
+    console.warn("Tried to draw selection but could not find image element in DR window.");
   else {
     // update dimensions with image element values to fit the SVG to the image
     const rect = image.getBoundingClientRect();

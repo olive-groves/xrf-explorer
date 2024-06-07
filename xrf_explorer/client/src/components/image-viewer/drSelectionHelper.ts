@@ -2,19 +2,18 @@ import { DataTexture } from "three";
 import { computed, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useFetch } from "@vueuse/core";
-import { SelectionOption } from "@/components/functional/selection/selection_tool.ts";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/image-viewer/state.ts";
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace.ts";
 import { appState, datasource } from "@/lib/appState";
-import { SelectionToolInfo } from "@/lib/selection";
+import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
 import { PNG } from "pngjs";
 import { createReadStream } from "fs";
 
-const selection = computed(() => appState.selection.drSelection);
+const selection = computed(() => appState.selection.dimensionalityReduction);
 
 // const config: FrontendConfig = inject<FrontendConfig>("config")!;
 let embeddingWidth: number = -1;
@@ -30,9 +29,9 @@ const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, image
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
-async function onSelectionUpdate(newSelection: SelectionToolInfo) {
+async function onSelectionUpdate(newSelection: DimensionalityReductionSelection | null) {
     // ensure that the new selection is not undefined
-    if (newSelection == undefined)
+    if (newSelection == null)
         return;
 
     // extract selection information
@@ -55,7 +54,7 @@ async function onSelectionUpdate(newSelection: SelectionToolInfo) {
 
 }
 
-function updateBitmask(newSelection: SelectionToolInfo) {
+function updateBitmask(newSelection: DimensionalityReductionSelection) {
     for (let i = 0; i < bitmask.length; i++) {
         // compute coordinates of point `i`
         const point: Point2D = indexToCoordinates(i, embeddingWidth);
