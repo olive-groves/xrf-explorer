@@ -179,23 +179,6 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
     return inside;
 }
 
-async function getMiddleImage() {
-    const url: string = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
-    const { response, data } = await useFetch(url).get().blob();
-
-    // error handling
-    if (!(response.value?.ok && data.value != null)) {
-        console.error("Failed to fetch middle image from: ", url,
-            ". Received: \n", response.value?.ok, "\n", data.value);
-        toast.error("An error occurred while parsing the Dimensionality Reduction selection.");
-        return;
-    }
-
-    console.info("Loaded middle image for DR selection.");
-
-    return URL.createObjectURL(data.value).toString();  // return the path
-}
-
 /**
  *
  * @param nPointsSelected
