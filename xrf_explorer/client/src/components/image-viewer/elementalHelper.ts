@@ -68,33 +68,24 @@ function selectionUpdated(newSelection: ElementSelection[]) {
 }
 
 /**
- * Gets the names of the image files for each element.
- * @returns The filenames of the elemental maps.
- */
-async function getFilenames(): Promise<{ [key: number]: string }> {
-  const filenames: { [key: number]: string } = {};
-  for (let i = 0; i < 26; i++) {
-    filenames[i] = `element_${i}.png`;
-  }
-  return filenames;
-}
-
-/**
  * Loads the workspace into the layer system.
  * @param workspace - The workspace to load into the layer system.
  */
 export async function createElementalLayers(workspace: WorkspaceConfig) {
   if (workspace.elementalCubes.length == 0) return;
 
-  const filenames = await getFilenames();
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
 
   const layers = workspace.elementalChannels
-    .filter((channel) => channel.enabled && channel.channel in filenames)
+    .filter((channel) => channel.enabled)
     .map((channel) => {
-      const layer = createLayer(`elemental_${channel.channel}`, filenames[channel.channel], false);
+      const layer = createLayer(
+        `elemental_${channel.channel}`,
+        `${config.api.endpoint}/${datasource.value}/data/elements/map/${channel.channel}`,
+        false,
+      );
       registerLayer(layer, recipe);
       layer.uniform.iLayerType.value = LayerType.Elemental;
       layer.uniform.iAuxiliary = { value: channel.channel };

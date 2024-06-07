@@ -1,8 +1,7 @@
-from io import StringIO, BytesIO
-import json
+from io import BytesIO
 import logging
 
-from PIL.Image import Image
+from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
 from os.path import exists, abspath, join
@@ -21,6 +20,10 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
+    get_elemental_map, normalize_ndarray_to_grayscale
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.color_seg import (
@@ -368,6 +371,36 @@ def data_cube_recipe(data_source: str):
     return points, 200
 
 
+@app.route("/api/<data_source>/data/elements/map/<int:channel>")
+def elemental_map(data_source: str, channel: int):
+    """Get an elemental map.
+
+    :param data_source: data source to get the map from
+    :param channel: the channel to get the map from
+    :return: the elemental map
+    """
+
+    # As XRF-Explorer only supports a single data cube, we do not have to do any wizardry to stitch maps together
+    path: str = get_elemental_cube_path(data_source)
+    if not path:
+        return f"Could not find elemental data cube in source {data_source}", 404
+
+    # Get the elemental map
+    image_array: np.ndarray = get_elemental_map(channel, path)
+    image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array)
+    image: Image = fromarray(image_normalized).convert("L")
+
+    # Save the image to an io buffer
+    image_io = BytesIO()
+    image.save(image_io, "png")
+    image_io.seek(0)
+
+    # Serve the image and ensure that the converted images are cached by the client
+    response = send_file(image_io, mimetype='image/png')
+    response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    return response
+
+
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
@@ -440,6 +473,7 @@ def get_selection_spectra(data_source):
     response = json.dumps(result)
     return response
 
+
 @app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
     """Gets the colors corresponding to the image-wide color clusters, and saves the
@@ -456,7 +490,9 @@ def get_color_clusters(data_source: str):
     if path_to_image is None:
         return 'Error occurred while getting rgb image path', 500
 
-    config: dict = get_config()
+    config: dict | None = get_config()
+    if not config:
+        return 'Error occurred while getting backend config', 500
     uploads_folder: str = str(config['uploads-folder'])
     cs_folder: str = str(config['color-segmentation']['folder-name'])
     reg_image_name: str = str(config['color-segmentation']['registered-image'])
@@ -464,6 +500,8 @@ def get_color_clusters(data_source: str):
     # Paths
     path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
     path_to_data_cube: str = get_elemental_cube_path(data_source)
+    if not path_to_data_cube:
+        return f"Could not find elemental data cube in source {data_source}", 500
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
 
     # get default dim reduction config for image clusters
@@ -472,10 +510,10 @@ def get_color_clusters(data_source: str):
     k: int = int(k_means_parameters['k'])
 
     # get default dim reduction config for elemental clusters
-    k_means_parameters_eleme: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
-    elem_threshold: float = float(k_means_parameters_eleme['elem-threshold'])
-    nr_attempts_elem: int = int(k_means_parameters_eleme['nr-attempts'])
-    k_elem: int = int(k_means_parameters_eleme['k'])
+    k_means_parameters_elem: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
+    elem_threshold: float = float(k_means_parameters_elem['elem-threshold'])
+    nr_attempts_elem: int = int(k_means_parameters_elem['nr-attempts'])
+    k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
     full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
@@ -489,7 +527,7 @@ def get_color_clusters(data_source: str):
     if not exists(path_to_save):
         mkdir(path_to_save)
 
-    # List to store colors per element
+    # List to store colors
     color_data: list[ndarray] = []
 
     # Compute colors and bitmasks
@@ -497,7 +535,7 @@ def get_color_clusters(data_source: str):
     bitmasks: ndarray
     colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
     # Merge similar clusters
-    colors, _ = merge_similar_colors(colors, bitmasks)
+    colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
     combined_bitmask: ndarray = combine_bitmasks(bitmasks)
 
@@ -518,7 +556,7 @@ def get_color_clusters(data_source: str):
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
-        colors_per_elem[i], _ = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
         color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
@@ -545,7 +583,9 @@ def get_color_cluster_bitmask(data_source: str):
     :param data_source: data_source to get the bitmask from
     :return bitmask png file for the whole image
     """
-    config: dict = get_config()
+    config: dict | None = get_config()
+    if not config:
+        return 'Error occurred while getting backend config', 500
     uploads_folder: str = str(config['uploads-folder'])
     cs_folder: str = str(config['color-segmentation']['folder-name'])
 
