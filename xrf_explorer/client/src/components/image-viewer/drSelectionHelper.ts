@@ -10,6 +10,8 @@ import { appState, datasource } from "@/lib/appState";
 import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
+import {getDataSize, getRecipe, getTargetSize} from "@/components/image-viewer/api.ts";
+import {registerLayer} from "@/components/image-viewer/registering.ts";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);
 
@@ -221,22 +223,23 @@ async function updateLayer(nPointsSelected: number) {
 /**
  *
  */
-export async function createSelectionLayers() {
-    const layers: Layer[] = [
-        createLayer("selection_dr", "dr_selection", false),
-        createLayer("selection_image_viewer", "image_viewer_selection", false),
-    ]
+export async function createSelectionLayer() {
+    const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
+    recipe.movingSize = await getDataSize();
+    recipe.targetSize = await getTargetSize();
 
-    // set up layers
-    layers.forEach(layer => {
-        layer.uniform.iLayerType.value = LayerType.Selection;
-        layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
-    });
+    // set up layer
+    const layers: Layer[] = [];
+    const layer: Layer = createLayer("selection_dr",
+        `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`, false)
+    registerLayer(layer, recipe);
+    layer.uniform.iLayerType.value = LayerType.Selection;
+    layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
 
     // add layers to the groups of layers
     layerGroups.value.selection = {
-        name: "Selections",
-        description: "Visualizes the current selections",
+        name: "DR Selection",
+        description: "Visualizes the current selection in the DR Window",
         layers: layers,
         index: -2,
         visible: true,
