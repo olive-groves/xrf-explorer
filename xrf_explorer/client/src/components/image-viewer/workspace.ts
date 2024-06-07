@@ -10,7 +10,7 @@ import { createElementalLayers } from "./elementalHelper";
 import { createColorClusterLayers } from "./colorClusterHelper";
 import { registerLayer } from "./registering";
 import { getImageSize, getRecipe, getTargetSize } from "./api";
-import { createSelectionLayers } from "@/components/image-viewer/drSelectionHelper.ts";
+import { createDRSelectionLayer } from "@/components/image-viewer/drSelectionHelper.ts";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -43,7 +43,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   createColorClusterLayers();
 
   // Create selection layers
-  createSelectionLayers();
+  createDRSelectionLayer();
 }
 
 /**

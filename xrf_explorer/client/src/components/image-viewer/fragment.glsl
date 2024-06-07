@@ -130,6 +130,16 @@ void main() {
     // if cluster i of element j is selected
     float clusterIndex = texture(tImage, vUv).g * 8.0;
     fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
+  } else if (iLayerType == TYPE_DR) {
+    vec4 middleImage = texture(tImage, somthingicannotcomprehend);
+    if (middleImage.b == 0.0) {
+      fragColor = transparent;
+    } else if (middleImage.b == 255.0) {
+      fragColor = vec4(
+        middleImage.rgb
+        clamp(middleImage.a, 0.0, 1.0)
+      );
+    }
   }
 
   // Apply contrast

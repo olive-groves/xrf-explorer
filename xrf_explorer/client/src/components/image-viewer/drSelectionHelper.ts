@@ -1,7 +1,5 @@
 import { DataTexture } from "three";
 import { computed, watch } from "vue";
-import { toast } from "vue-sonner";
-import { useFetch } from "@vueuse/core";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/image-viewer/state.ts";
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
@@ -98,7 +96,7 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
         const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
         for (let rgbValue = 0; rgbValue < 3; rgbValue++)        // rgbValue corresponds to red, green, blue
             layerData[normalizedIndex + rgbValue] = (isInSelection ? selectionColor[rgbValue] : 0);
-        layerData[normalizedIndex + 3] = (isInSelection ? 255 : 0);     // opacity is set in the layer itself
+        layerData[normalizedIndex + 3] = (isInSelection ? config.selectionToolConfig.opacity : 0);     // opacity is set in the layer itself
     }
 }
 
@@ -183,7 +181,7 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
  *
  * @param nPointsSelected
  */
-async function updateLayer(nPointsSelected: number) {
+function updateLayer(nPointsSelected: number): void {
     if (layerGroups.value.selection != undefined) {
         const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.id == "selection_dr")[0];
 
@@ -200,7 +198,7 @@ async function updateLayer(nPointsSelected: number) {
 /**
  *
  */
-export async function createSelectionLayer() {
+export async function createDRSelectionLayer() {
     const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
     recipe.movingSize = await getDataSize();
     recipe.targetSize = await getTargetSize();
@@ -222,10 +220,6 @@ export async function createSelectionLayer() {
         visible: true,
         ...layerGroupDefaults,
     }
-
-    // set opacity to default values
-    for (let i = 0; i < layerGroups.value.selection.layers.length; i++)
-        layerGroups.value.selection.opacity[i] = config.selectionToolConfig.opacity;
 
     updateLayerGroupLayers(layerGroups.value.selection);
 }
