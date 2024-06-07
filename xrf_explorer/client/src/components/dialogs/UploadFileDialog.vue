@@ -182,8 +182,8 @@ function generateWorkspaceJSON() {
   const baseImageName: string = getNameAttribute(rgbImageInputRef)!;
   const baseImageLocation: string = `${baseImageName}.${getFileType(getFile(rgbImageInputRef)!)}`;
   const low = 50;
-  const high = 2000
-  const binSize = 4
+  const high = 2000;
+  const binSize = 4;
 
   const workspace: WorkspaceConfig = {
     name: dataSourceName,

@@ -24,6 +24,8 @@ export const datasource = computed(() => appState.workspace?.name ?? "");
 export const elements = computed(
   () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
 );
+export const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
+export const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
 
 /**
  * Type describing the state of the client.

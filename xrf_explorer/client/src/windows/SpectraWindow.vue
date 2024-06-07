@@ -2,7 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { datasource } from "@/lib/appState";
+import { low, high, datasource } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const spectraChart = ref<HTMLElement>();
@@ -17,11 +17,6 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
-
-//const low = appState.workspace?.spectralParams?.low;
-//const high = appState.workspace?.spectralParams?.high;
-const low = 50;
-const high = 2000;
 
 interface Point {
   index: number;
@@ -41,7 +36,7 @@ function setup() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([low, high]);
+    .domain([low.value, high.value]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
