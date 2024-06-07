@@ -86,7 +86,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     :param element: The element to generate the embedding for.
     :param threshold: The threshold to filter the data cube by.
     :param new_umap_parameters: The parameters passed on to the UMAP algorithm.
-    :return: string code indicating the status of the embedding generation. "error" when error occured, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled.
+    :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled.
     """
 
     # load backend config
@@ -102,7 +102,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     umap_parameters.update(new_umap_parameters)
 
     # get data cube
-    path_to_cube: str = get_elemental_cube_path(data_source, config_path)
+    path_to_cube: str = get_elemental_cube_path(data_source)
     data_cube: np.ndarray = get_elemental_data_cube(path_to_cube)
     if len(data_cube) == 0:
         return "error"
@@ -135,7 +135,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
         return "error"
 
     # get path to folder to store the embedding and the indices
-    dr_folder: str = get_path_to_dr_folder(data_source, config_path)
+    dr_folder: str = get_path_to_dr_folder(data_source)
 
     # Check if the folder exists, otherwise create it
     if not isdir(dr_folder):

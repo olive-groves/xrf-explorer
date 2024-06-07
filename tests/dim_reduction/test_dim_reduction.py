@@ -188,8 +188,7 @@ class TestDimReduction:
         path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
 
         # execute
-        result: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE,
-                                             config_path=self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+        result: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
 
         # verify
         assert result

@@ -71,16 +71,15 @@ def get_registered_image(data_source: str, image_name: str) -> np.ndarray:
     return pixels_of_image
 
 
-def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.yml") -> str:
-    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exists the folder is created.
+def get_path_to_dr_folder(data_source: str) -> str:
+    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is created.
     
     :param data_source: The name of the datasource
-    :param config_path: The path to the backend config file
     :return: The path to the dimensionality reduction folder for the given datasource.
     """
 
     # load backend config
-    backend_config: dict = load_yml(config_path)
+    backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return ""
@@ -112,22 +111,21 @@ def get_path_to_dr_folder(data_source: str, config_path: str = "config/backend.y
     return path_to_dr_folder
 
 
-def get_image_of_indices_to_embedding(data_source: str, config_path: str = "config/backend.yml") -> str:
+def get_image_of_indices_to_embedding(data_source: str) -> str:
     """Creates the image for lasso selection that decodes to which points in the embedding
     the pixels of the elemental data cube are mapped. Uses the current embedding and indices
     to create the image.
 
     :param data_source: Name of the data source.
-    :param config_path: Path to the backend config file
     :return: True if the image was created successfully, otherwise False.
     """
     # Get the path to the dimensionality reduction folder
-    dr_folder: str = get_path_to_dr_folder(data_source, config_path)
+    dr_folder: str = get_path_to_dr_folder(data_source)
     if not dr_folder:
         return ""
 
     # Load the elemental data cube
-    path_to_cube = get_elemental_cube_path(data_source, config_path=config_path)
+    path_to_cube = get_elemental_cube_path(data_source)
     elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
     if elemental_cube is None:
         return ""
@@ -160,6 +158,6 @@ def get_image_of_indices_to_embedding(data_source: str, config_path: str = "conf
     path_image: str = join(dr_folder, 'image_index_to_embedding.png')
     imwrite(path_image, newimage)
 
-    LOG.info(f"Created DR image index to embedding.")
+    LOG.info("Created DR image index to embedding.")
 
     return path_image
