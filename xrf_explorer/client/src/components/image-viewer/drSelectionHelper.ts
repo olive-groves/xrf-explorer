@@ -10,8 +10,6 @@ import { appState, datasource } from "@/lib/appState";
 import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
-import { PNG } from "pngjs";
-import { createReadStream } from "fs";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);
 
@@ -20,12 +18,10 @@ let embeddingWidth: number = -1;
 let embeddingHeight: number = -1;
 let imageWidth: number = -1;
 let imageHeight: number = -1;
-// each index represents a pixel and the value represents whether the pixel is selected
-const bitmask: boolean[] = new Array<boolean>(embeddingWidth * embeddingHeight);    // resize bitmask to 256x256
 const middleImagePath = ref();
-// buffer with color data for each pixel
+// list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(256 * 256 * 4);
-const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);    // layersData replace with bitmask
+const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
@@ -33,6 +29,24 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
     // ensure that the new selection is not undefined
     if (newSelection == null)
         return;
+
+    // remove selection
+    if (newSelection.points.length == 0) {
+        updateLayer(0);
+        console.info("Removed dimensionality reduction selection.");
+        return;
+    }
+
+    // edge case: rectangle selection must have exactly 2 points
+    if (newSelection.selectionType == SelectionOption.Rectangle && newSelection.points.length != 2) {
+        console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
+        return;
+    }
+    // edge case: polygon selection must have at least 2 points
+    if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 2) {
+        console.error("Invalid polygon selection. Expected at least 2 points but got: ", newSelection);
+        return;
+    }
 
     // extract selection information
     let { width, height } = newSelection.embeddedImageDimensions;
@@ -42,44 +56,97 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
 
     // map the selection to the image viewer
     await getMiddleImage();
-    const middleImageToEmbedding: { imagePoint: Point2D, embeddingPoint: Point2D }[] = mapImageToEmbedding();
-    const selectedPointsInImage: Point2D[] = middleImageToEmbedding
-        .filter(mapping =>
-            bitmask[coordinatesToIndex(mapping.embeddingPoint.x, mapping.embeddingPoint.y, embeddingWidth)])
-        .map(mapping => mapping.imagePoint);
 
     // update the layer to display the selection
-    updateLayer(selectedPointsInImage);
+    updateLayer(newSelection.points.length);
     console.info("Updated the image viewer to display the selection in the DR window.");
 
 }
 
-function updateBitmask(newSelection: DimensionalityReductionSelection) {
-    for (let i = 0; i < bitmask.length; i++) {
+/**
+ *
+ * @param newSelection
+ */
+function updateBitmask(newSelection: DimensionalityReductionSelection): void {
+    // the number of pixels in the embedding image
+    const nPixels: number = embeddingWidth * embeddingHeight;
+
+    // compute the indices of the bounding box in which the selection is contained for faster updates
+    const boundingBox: Point2D[] = (newSelection.selectionType == SelectionOption.Rectangle) ?
+        newSelection.points : getBoundingBox(newSelection);
+    const topLeftIndex: number = coordinatesToIndex(boundingBox[0].x, boundingBox[0].y, embeddingWidth);
+    const bottomRightIndex: number = coordinatesToIndex(boundingBox[1].x, boundingBox[1].y, embeddingWidth);
+
+    // reset bitmask
+    layerData.fill(0);
+
+    // check which points are in the selection and update the bitmask accordingly
+    for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
+
+        // index of the point in the 256x256 bitmask
+        const normalizedIndex: number = Math.floor(embeddingPixel * 256 / nPixels);
+
+        // we don't want to overwrite the selection
+        if (layerData[normalizedIndex] != 0 &&
+            layerData[normalizedIndex + 1] != 0 &&
+            layerData[normalizedIndex + 2] != 0)
+            continue;
+
         // compute coordinates of point `i`
-        const point: Point2D = indexToCoordinates(i, embeddingWidth);
+        const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
+        const isInSelection: boolean = isPointInSelection(point, newSelection);
 
-        switch (newSelection.selectionType) {
-            case SelectionOption.Rectangle: {
-                // bitmask[i] = true iff the pixel is inside the rectangle
-                bitmask[i] =
-                    newSelection.points[0].x <= point.x && point.x < newSelection.points[1].x &&
-                    newSelection.points[0].y <= point.y && point.y < newSelection.points[1].y;
-                break;
-            }
+        // update the layer's bitmask
+        const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
+        for (let rgbValue = 0; rgbValue < 3; rgbValue++)        // rgbValue corresponds to red, green, blue
+            layerData[normalizedIndex + rgbValue] = (isInSelection ? selectionColor[rgbValue] : 0);
+        layerData[normalizedIndex + 3] = (isInSelection ? 255 : 0);     // opacity is set in the layer itself
+    }
+}
 
-            case SelectionOption.Lasso: {
-                // bitmask[i] = true iff the pixel is inside the polygon
-                bitmask[i] = isInPolygon(point, newSelection.points);
-                break;
-            }
+function getBoundingBox(selection: DimensionalityReductionSelection): Point2D[] {
+    const xCoords: number[] = selection.points.map(point => point.x);
+    const yCoords: number[] = selection.points.map(point => point.y);
+    return [
+        {
+            x: Math.min(...xCoords),
+            y: Math.min(...yCoords)
+        },
+        {
+            x: Math.max(...xCoords),
+            y: Math.max(...yCoords)
+        }
+    ]
+}
 
-            default: {
-                console.error("Selection type", newSelection.selectionType, "not recognized");
-                bitmask[i] = false;
-            }
+/**
+ *
+ * @param point
+ * @param selection
+ */
+function isPointInSelection(point: Point2D, selection: DimensionalityReductionSelection): boolean {
+    switch (selection.selectionType) {
+        case SelectionOption.Rectangle:
+            return isInRectangle(point, selection.points);
+
+        case SelectionOption.Lasso:
+            return isInPolygon(point, selection.points);
+
+        default: {
+            console.error("Selection type", selection.selectionType, "not recognized");
+            return false;
         }
     }
+}
+
+/**
+ *
+ * @param point
+ * @param rectangleBoundingPoints
+ */
+function isInRectangle(point: Point2D, rectangleBoundingPoints: Point2D[]): boolean {
+    return rectangleBoundingPoints[0].x <= point.x && point.x < rectangleBoundingPoints[1].x &&
+        rectangleBoundingPoints[0].y <= point.y && point.y < rectangleBoundingPoints[1].y;
 }
 
 /**
@@ -132,61 +199,16 @@ async function getMiddleImage() {
 }
 
 /**
- * For each pixel in the middle image, map it to the corresponding pixel in the embedding if it exists in the embedding.
- * We use `pngjs` to get the middle image's pixels' RGB values: https://www.npmjs.com/package/pngjs
+ *
+ * @param nPointsSelected
  */
-function mapImageToEmbedding() {
-    const map: { imagePoint: Point2D, embeddingPoint: Point2D }[] = [];
-    createReadStream(middleImagePath.value).pipe(new PNG()).on("parsed", function (this: PNG) {
-        // update image dimensions
-        imageWidth = this.width;
-        imageHeight = this.height;
-
-        for (let x: number = 0; x < imageWidth; x++)
-            for (let y: number = 0; y < imageHeight; y++) {
-                const pixelIndex: number = (coordinatesToIndex(x, y, imageWidth)) << 2;
-
-                const red: number = this.data[pixelIndex];
-                const green: number = this.data[pixelIndex + 1];
-                const blue: number = this.data[pixelIndex + 2];
-
-                // only pixels where blue = 255 are in the embedding
-                if (blue == 255)
-                    map.push({
-                        imagePoint: { x: x, y: y },
-                        embeddingPoint: { x: red, y: green }    // imageRed = embeddingX, imageGreen = embeddingY
-                    });
-            }
-    });
-
-    return map;
-}
-
-
-function updateLayer(selection: Point2D[]) {
-    const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
-
-    for (let i = 0; i < bitmask.length; i++) {
-        // we scale down the bitmask to 256x256, works through shader magic that eludes me
-        const scaledIndex: number = i * 256 / bitmask.length;
-        // const pixelInSelection: boolean = selection.includes(indexToCoordinates(i, imageWidth));
-        const pixelInSelection: boolean = bitmask[i];
-
-        // if the pixel has already been set a value, leave that value (means it was selected before)
-        // otherwise, if the pixel is in the selection, color it, otherwise make it transparent
-        for (let rgbValue = 0; rgbValue < 3; rgbValue++)    // rgbValue corresponds to red, green, blue
-            layerData[scaledIndex + rgbValue] = (layerData[scaledIndex + rgbValue] != 0) ?
-                layerData[scaledIndex + rgbValue] :
-                (pixelInSelection ? selectionColor[rgbValue] : 0);
-        layerData[scaledIndex + 3] = 255;                           // opacity is set in the layer itself
-    }
-
+function updateLayer(nPointsSelected: number): void {
     if (layerGroups.value.selection != undefined) {
         const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.image == "dr_selection")[0];
 
-        if (layer.mesh == undefined && selection.length > 0)        // layer was disposed of, load it again
+        if (layer.mesh == undefined && nPointsSelected > 0)        // layer was disposed of, load it again
             loadLayer(layer);
-        else if (layer.mesh != undefined && selection.length == 0)  // layer was loaded, dispose of it
+        else if (layer.mesh != undefined && nPointsSelected == 0)  // layer was loaded, dispose of it
             disposeLayer(layer);
 
         updateDataTexture(layerGroups.value.selection);
@@ -194,6 +216,9 @@ function updateLayer(selection: Point2D[]) {
     console.log("selection layer: ", layerGroups.value.selection);
 }
 
+/**
+ *
+ */
 export async function createSelectionLayers() {
     const layers: Layer[] = [
         createLayer("selection_dr", "dr_selection", false),
