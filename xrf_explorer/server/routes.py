@@ -160,6 +160,11 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     # get file location
     path: str = abspath(join(config['uploads-folder'], data_source, file_name))
 
+    # test that path is a sub path of the uploads-folder
+    if not path.startswith(abspath(join(config['uploads-folder'], data_source))):
+        LOG.info("Attempted to upload chunk to %s which is not allowed", path)
+        return "Unauthorized file chunk location", 401
+
     # create file if it does not exist
     if not exists(path):
         LOG.info("Created file %s", path)
