@@ -17,9 +17,11 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
+//TODO push to appstate on file loading
+//const low = appState.workspace?.spectralParams?.low;
+//const high = appState.workspace?.spectralParams?.high;
 const low = 50;
 const high = 2000;
-const binSize = 32;
 
 interface Point {
   index: number;
@@ -62,7 +64,7 @@ function setup() {
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
 
   getElements();
-  plotAverageSpectrum(low, high, binSize);
+  plotAverageSpectrum();
 }
 
 const globalChecked = ref(false);
@@ -73,20 +75,12 @@ const excitation = ref(0);
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
  */
-async function plotAverageSpectrum(low: number, high: number, binSize: number) {
+async function plotAverageSpectrum() {
   try {
     //make api call
     const response = await fetch(
-      `${url}/${datasource.value}/get_average_data?` +
-        new URLSearchParams({
-          low: low as unknown as string,
-          high: high as unknown as string,
-          binSize: binSize as unknown as string,
-        }),
+      `${url}/${datasource.value}/get_average_data`,
       {
         method: "GET",
         headers: {
@@ -123,22 +117,13 @@ async function plotAverageSpectrum(low: number, high: number, binSize: number) {
 /**
  * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
- * @param pixels Array of selected pixels.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
+ * @param selection json object representing the selection
  */
-async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: number, high: number, binSize: number) {
+async function plotSelectionSpectrum(selection: string) {
   try {
     //make api call
     const response = await fetch(
-      `${url}/${datasource.value}/get_selection_spectrum?` +
-        new URLSearchParams({
-          pixels: pixels as unknown as string,
-          low: low as unknown as string,
-          high: high as unknown as string,
-          binSize: binSize as unknown as string,
-        }),
+      `${url}/${datasource.value}/get_selection_spectrum/${selection}`,
       {
         method: "GET",
         headers: {
@@ -183,19 +168,12 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
  * @param high Higher channel boundary.
  * @param binSize Number of channels per bin.
  */
-async function plotElementSpectrum(element: string, excitation: number, low: number, high: number, binSize: number) {
+async function plotElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
       const response = await fetch(
-        `${url}/get_element_spectrum?` +
-          new URLSearchParams({
-            element: element as string,
-            excitation: excitation as unknown as string,
-            low: low as unknown as string,
-            high: high as unknown as string,
-            binSize: binSize as unknown as string,
-          }),
+        `${url}/get_element_spectrum/element/excitation`,
         {
           method: "GET",
           headers: {
@@ -320,16 +298,16 @@ function updateSelection() {
 }
 
 /**
- * Plots element spectrum when an elemented is selected in the dropdown.
+ * Plots element spectrum when an element is selected in the dropdown.
  */
 function updateElementSpectrum() {
-  plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize);
+  plotElementSpectrum(selectedElement.value, excitation.value);
 }
 
 //need to connect to selection tool
 if (false) {
-  const pixels = [];
-  plotSelectionSpectrum(pixels, low, high, binSize);
+  const selection = "";
+  plotSelectionSpectrum(selection);
 }
 </script>
 
