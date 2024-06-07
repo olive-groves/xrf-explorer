@@ -1,22 +1,23 @@
-#This module contains all functions related to the spectral chart
-import numpy as np 
-import xraydb 
+# This module contains all functions related to the spectral chart
+import numpy as np
+import xraydb
 import logging
 
 from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, parse_rpl
 LOG: logging.Logger = logging.getLogger(__name__)
 
+
 def get_raw_data(data_source: str) -> np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array
-    
+
     :param data_source: the path to the .raw file
     :
     :return: 3-dimensional array containing the raw data in format {x, y, channel}
     """
-    #get paths to files
+    # get paths to files
     path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
-    
-    #get dimensions from rpl file
+
+    # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
@@ -26,18 +27,19 @@ def get_raw_data(data_source: str) -> np.ndarray:
     channels = int(info['depth'])
 
     try:
-        #load raw file and parse it as 3d array with correct dimensions
+        # load raw file and parse it as 3d array with correct dimensions
         datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
-        return []
-    datacube = np.reshape(datacube, (width, height, channels))
+        return np.empty(0)
+    datacube = np.reshape(datacube, (height, width, channels))
     return datacube
+
 
 def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
-    Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
-    
+    Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
+
     :param data: datacube containing the raw data
     :param low: lower channel boundary
     :param high: higher channel boundary
@@ -46,229 +48,230 @@ def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> 
     """
 
     average_values = []
-    
-    #compute average per channel per bin size and add to dictionary
+
+    # compute average per channel per bin size and add to dictionary
     for i in range(low, high, bin_size):
         mean = data[:, :, i:i+bin_size].mean()
         average_values.append({"index": i, "value": mean})
-    
+
     return average_values
 
-def get_average_selection(data: np.ndarray, pixels: np.ndarray, low: int, high: int, bin_size: int) -> list:
+
+def get_average_selection(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
     """Computes the average of the raw data for each bin of channels in range [low, high] on the selected pixels
-    Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
+    Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
     Precondition: forall pixel in pixels, 0 <= pixel[0] < width, 0 <= pixel[1] < height
-    
-    :param data: datacube containing the raw data
-    :param pixels: list of selected pixels
+
+    :param data: 2D array where the rows represent the selected pixels from the data cube image and the columns
+    represent their energy channel value
     :param low: lower channel boundary
     :param high: higher channel boundary
     :param bin_size: size of each bin
     :return: list with the average raw data for each bin in the range
     """
-    
-    if pixels:
-        #initialize average array of length the number of channels
-        sum = np.zeros(high-low)
+    # initialize average array of length the number of channels
+    avg = np.zeros(high-low)
 
-        #add the required channels of all pixels
-        for i in range(len(pixels)):
-            pixel_data = data[pixels[i][0], pixels[i][1], low:high]
-            sum = np.add(sum, pixel_data)
-        
-        #average
-        avg = sum/len(pixels)
-        
-        result = []
-        
-        #average per bin
-        for i in range(low, high, bin_size):
-            mean = np.mean(avg[i-low:i-low+bin_size])
-            dict = {"index": i, "value": mean}
-            result.append(dict)   
+    for pixel in data:
+        avg = np.add(avg, pixel[low:high])
 
-        return result
-    else :
-        return []
-    
-def get_theoretical_data(element: str, excitation_energy_keV: int, low: int, high: int, bin_size: int) -> list:
+    # average
+    avg = avg/len(data)
+
+    result = []
+
+    # average per bin
+    for i in range(low, high, bin_size):
+        mean = np.mean(avg[i-low, i-low+bin_size])
+        dic = {"index": i, "value": mean}
+        result.append(dic)
+
+    return result
+
+
+def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element
-        Precondition: 0 <= low < high <= 4096, 0 < bin_sinze <= 4096
+        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
 
         :param element: symbol of the element
-        :excitation_energy_keV: excitation energy
+        :excitation_energy_kev: excitation energy
         :param low: lower channel boundary
         :param high: higher channel boundary
         :param bin_size: size of each bin
-        :return: list with first element being a list of dictionaries representing the spectra points, secodn being a list of dictionaries representing the peaks
+        :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks
     """
-    
-    #remove last character to get periodic table symbol
+
+    # remove last character to get periodic table symbol
     element = element[:len(element)-1]
     if element == 'yAl':
         element = 'Al'
-    
-    #get spectrum and peaks
-    data = get_element_spectrum(element, excitation_energy_keV)
-    
-    #get_element_spectrum returns normalized data, rescale to [0, 255]
+
+    # get spectrum and peaks
+    data = get_element_spectrum(element, excitation_energy_kev)
+
+    # get_element_spectrum returns normalized data, rescale to [0, 255]
     y_scale = 255
-    
-    #get_element_spectrum returns 10000 points instead of 'high-low' points, so rescale bin_size
+
+    # get_element_spectrum returns 10000 points instead of 'high-low' points, so rescale bin_size
     bin_size = round(bin_size/((high-low)/len(data[0])))
-    
+
     response = []
     spectrum = []
     for i in range(0, len(data[0]), bin_size):
-        #take average of the y-values in the bin
+        # take average of the y-values in the bin
         value = np.mean(data[1][i:i+bin_size])
-        
-        #rescale index to domain [low, high] and the mean to range [0, 255]
-        dict = {"index": i*((high-low)/len(data[0]))+low, "value": value*y_scale}
+
+        # rescale index to domain [low, high] and the mean to range [0, 255]
+        dict = {"index": i *
+                ((high-low)/len(data[0]))+low, "value": value*y_scale}
         spectrum.append(dict)
     response.append(spectrum)
-    
-    #get_element_spectrum returns data in domain [0, 40], rescale to [low, high]
+
+    # get_element_spectrum returns data in domain [0, 40], rescale to [low, high]
     x_scale = (high-low)/abs(data[0].max()-data[0].min())
-    
+
     peaks = []
     for i in range(len(data[2])):
-        #take only the peaks within the domain [high, low]
-        if(low<=data[2][i]*x_scale + low and high > data[2][i]*x_scale + low):
-            #scale x and y values
-            dict = {"index": data[2][i]*x_scale + low, "value": data[3][i]*y_scale}
+        # take only the peaks within the domain [high, low]
+        if (low <= data[2][i]*x_scale + low and high > data[2][i]*x_scale + low):
+            # scale x and y values
+            dict = {"index": data[2][i]*x_scale +
+                    low, "value": data[3][i]*y_scale}
             peaks.append(dict)
     response.append(peaks)
-    
+
     return response
 
 
-#functions to compute theoratical elemental spectrum
-#From xrf4u: https://github.com/fligt/maxrf4u/blob/main/maxrf4u/xphysics.py
-#Author: Frank Ligterink
-class ElementLines(): 
+# functions to compute theoretical elemental spectrum
+# From xrf4u: https://github.com/fligt/maxrf4u/blob/main/maxrf4u/xphysics.py
+# Author: Frank Ligterink
+class ElementLines():
     '''Computes fluorescence emission line energies and intensities for `element`.
-    
+
     '''
-    
-    def __init__(self, element, excitation_energy_keV): 
 
-        excitation_energy = 1000 * excitation_energy_keV
+    def __init__(self, element, excitation_energy_kev):
 
-        lines = xraydb.xray_lines(element, excitation_energy=excitation_energy) 
+        excitation_energy = 1000 * excitation_energy_kev
+
+        lines = xraydb.xray_lines(element, excitation_energy=excitation_energy)
 
         peak_names = []
         peak_labels = []
-        peak_energies = [] 
+        peak_energies = []
         peak_intensities = []
 
-        for name, line in lines.items(): 
+        for name, line in lines.items():
 
             peak_names.append(name)
 
-            # intensities (a.k.a. transition probablities) sum up to unity within each level 
-            energy, intensity, initial_level, final_level = line  
+            # intensities (a.k.a. transition probabilities) sum up to unity within each level
+            energy, intensity, initial_level, final_level = line
             peak_energies.append(energy)
-            label = f'{element}_{initial_level}{final_level}' 
+            label = f'{element}_{initial_level}{final_level}'
             peak_labels.append(label)
 
-            # get corresponding edge properties 
-            edge = initial_level # IUPAC notation!  e.g. 'L1', not 'La'
-            edge_energy, fluo_yield, jump_ratio = xraydb.xray_edge(element, edge) 
-            jump_coeff = (jump_ratio - 1) / jump_ratio # see Volker 
-            #print(f'{name}: {energy}; jump_coeff: {jump_coeff:.03f}; fluo_yield: {fluo_yield}')
+            # get corresponding edge properties
+            edge = initial_level  # IUPAC notation!  e.g. 'L1', not 'La'
+            edge_energy, fluo_yield, jump_ratio = xraydb.xray_edge(
+                element, edge)
+            jump_coeff = (jump_ratio - 1) / jump_ratio  # see Volker
+            # print(f'{name}: {energy}; jump_coeff: {jump_coeff:.03f}; fluo_yield: {fluo_yield}')
 
-            # multiplying edge jump coefficient, intensity and fluorescence yield... 
-            peak_intensity = jump_coeff * intensity * fluo_yield 
-            peak_intensities.append(peak_intensity) 
-        
-        # determine sorting according to peak_intensities... 
+            # multiplying edge jump coefficient, intensity and fluorescence yield...
+            peak_intensity = jump_coeff * intensity * fluo_yield
+            peak_intensities.append(peak_intensity)
+
+        # determine sorting according to peak_intensities...
         self.peak_intensities = np.array(peak_intensities)
-        indices = np.argsort(self.peak_intensities)[::-1] 
+        indices = np.argsort(self.peak_intensities)[::-1]
 
-        # sort 
+        # sort
         self.peak_intensities = self.peak_intensities[indices]
         self.peak_energies = np.array(peak_energies)[indices] / 1000
         self.peak_names = np.array(peak_names)[indices]
         self.peak_labels = np.array(peak_labels)[indices]
 
-        
-def get_element_spectrum(element, excitation_energy_keV, normalize=True, x_keVs=None, std=0.01): 
+
+def get_element_spectrum(element, excitation_energy_kev, normalize=True, x_kevs=None, std=0.01):
     '''Compute simple excitation spectrum (no matrix effects) and peaks
-    
+
     :param element: symbol of the element
-    :param excitation_energy_keV: excitation energy
+    :param excitation_energy_kev: excitation energy
     :param normalize: boolean representing wether to normalize y values
-    :param x_keVs: pre-determined x values
+    :param x_kevs: pre-determined x values
     :param std: standard deviation of gaussian filter
     :return: x values of the spectrum, y values of the spectrum, peak energies, peak intensities
     '''
-    
-    el = ElementLines(element, excitation_energy_keV)  
+
+    el = ElementLines(element, excitation_energy_kev)
     pe = el.peak_energies
     pi = el.peak_intensities
-    
-    x, y_spectrum = gaussian_convolve(pe, pi, x_keVs=x_keVs, std=std)
-    
-    if normalize: 
+
+    x, y_spectrum = gaussian_convolve(pe, pi, x_kevs=x_kevs, std=std)
+
+    if normalize:
         y_spectrum = y_spectrum / y_spectrum.max()
-        
-    if x_keVs is None: 
-    
+
+    if x_kevs is None:
+
         return x, y_spectrum, pe, pi
-    
-    else: 
+
+    else:
         return y_spectrum
 
-    
-def get_element_spectra(elements, x_keVs, excitation_energy_keV): 
+
+def get_element_spectra(elements, x_kevs, excitation_energy_kev):
     '''Compute theoretical emission spectrum for multiple elements. 
     Sorts elements according to largest (alpha) peak. Based on xraydb. 
-    
+
     :param element: symbols of the elements
-    :param x_keVs: pre-determined x values
-    :param excitation_energy_keV: excitation energy
+    :param x_kevs: pre-determined x values
+    :param excitation_energy_kev: excitation energy
     :returns: elements, element_spectra
     '''
 
-    n_channels = len(x_keVs)
+    n_channels = len(x_kevs)
     n_elements = len(elements)
 
-    element_spectra = np.zeros([n_elements, n_channels]) 
+    element_spectra = np.zeros([n_elements, n_channels])
 
-    for i, elem in enumerate(elements): 
-        element_spectra[i] = get_element_spectrum(elem, excitation_energy_keV, x_keVs=x_keVs)
+    for i, elem in enumerate(elements):
+        element_spectra[i] = get_element_spectrum(
+            elem, excitation_energy_kev, x_kevs=x_kevs)
 
         # normalize
         element_spectra[i] = element_spectra[i] / element_spectra[i].max()
 
-
     # sort according to energy of largest (=alpha) peak
     alpha_idxs = np.argmax(element_spectra, axis=1)
-    alpha_order = np.argsort(alpha_idxs) 
+    alpha_order = np.argsort(alpha_idxs)
 
     elements = [elements[i] for i in alpha_order]
     element_spectra = element_spectra[alpha_order]
-    
-    return elements, element_spectra 
 
-def gaussian_convolve(peak_energies, peak_intensities, x_keVs=None, std=0.01): 
+    return elements, element_spectra
+
+
+def gaussian_convolve(peak_energies, peak_intensities, x_kevs=None, std=0.01):
     '''Convolves line spectrum defined by `peak_energies` and `peak_intensities` 
     with a Gaussian peak shape. 
-    
+
     :param peak_energies: peak energies of the element
     :param peak_intensities: peak intensities of the element
-    :param x_keVs: pre-determined x values
+    :param x_kevs: pre-determined x values
     :param std: standard deviation of gaussian filter
     '''
-    
-    if x_keVs is None: 
-        x_keVs = np.linspace(0, 40, 10000)
 
-    y_spectrum = np.zeros_like(x_keVs) 
+    if x_kevs is None:
+        x_kevs = np.linspace(0, 40, 10000)
 
-    for peak_energy, peak_intensity in zip(peak_energies, peak_intensities): 
+    y_spectrum = np.zeros_like(x_kevs)
 
-        y_spectrum += peak_intensity * np.exp(-(1 / std) * (x_keVs - peak_energy)**2)
-        
-    return x_keVs, y_spectrum 
+    for peak_energy, peak_intensity in zip(peak_energies, peak_intensities):
+
+        y_spectrum += peak_intensity * \
+            np.exp(-(1 / std) * (x_kevs - peak_energy)**2)
+
+    return x_kevs, y_spectrum

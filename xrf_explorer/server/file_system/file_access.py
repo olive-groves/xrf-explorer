@@ -5,6 +5,8 @@ import json
 from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
+from matplotlib.font_manager import json_dump
+
 
 from xrf_explorer.server.file_system.config_handler import get_config
 
@@ -52,11 +54,13 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
         LOG.error("An error occured while trying to find elemental cube name.")
         return None
 
-    path: str = join(Path(backend_config["uploads-folder"]), data_source_folder, filename)
+    path: str = join(
+        Path(backend_config["uploads-folder"]), data_source_folder, filename)
 
     # raise error is the path does not exist
     if not isfile(path):
-        raise OSError("Provided datasource does not have an elemental cube file")
+        raise OSError(
+            "Provided datasource does not have an elemental cube file")
 
     return path
 
@@ -72,7 +76,7 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
-    
+
     data_source_dir: str = join(backend_config["uploads-folder"], data_source)
     workspace_path: str = join(data_source_dir, "workspace.json")
     try:
@@ -88,7 +92,7 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
 
 
 def get_raw_rpl_names(data_source: str
-) -> tuple[str, str]:
+                      ) -> tuple[str, str]:
     """Get the name of the raw data file (.raw) and the .rpl file of a given datasource
 
     :param data_source: Name of the data source.
@@ -130,10 +134,12 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
 
     raw_name, rpl_name = get_raw_rpl_names(data_source)
     # get the path to the raw data in the server
-    path_to_raw: str = join(backend_config["uploads-folder"], data_source, raw_name)
+    path_to_raw: str = join(
+        backend_config["uploads-folder"], data_source, raw_name)
 
     # get the path to the rpl file in the server
-    path_to_rpl: str = join(backend_config["uploads-folder"], data_source, rpl_name)
+    path_to_rpl: str = join(
+        backend_config["uploads-folder"], data_source, rpl_name)
 
     return path_to_raw, path_to_rpl
 
@@ -155,7 +161,8 @@ def parse_rpl(path: str) -> dict:
 
     try:
         with open(path, "r") as in_file:
-            info: list[str] = in_file.read().splitlines()  # first split on linebreak
+            # first split on linebreak
+            info: list[str] = in_file.read().splitlines()
     except OSError as err:
         LOG.error("error while reading rpl file: {%s}", err)
         return {}
@@ -165,11 +172,26 @@ def parse_rpl(path: str) -> dict:
         for line in info:
             split: list[str] = line.split()  # split on whitespace
             if len(split) == 2:
-                parsed_rpl[split[0].strip()] = split[1].strip()  # add tuple to dictionary
+                # add tuple to dictionary
+                parsed_rpl[split[0].strip()] = split[1].strip()
     else:
         LOG.error("Error while parsing rpl file: file empty")
 
     return parsed_rpl
+
+
+def get_spectra_params(data_source: str) -> dict[str, int] | None:
+    """
+    Returns the spectrum parameters (low/high boundaries and binsize) of a data source.
+
+    :param data_source: Name of the data source.
+    :return: dictionary with the low, high and binsize values
+    """
+    workspace_dict: dict | None = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        return None
+
+    return workspace_dict["spectraParams"]
 
 
 def get_workspace_dict(data_source_folder_name: str) -> dict | None:
@@ -194,7 +216,8 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
             return workspace_json
     except Exception:
         LOG.error(
-            f"Error while reading workspace json of data source with folder name {data_source_folder_name}"
+            f"Error while reading workspace json of data source with folder name {
+                data_source_folder_name}"
         )
         return None
 
@@ -269,4 +292,3 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)
 
     return None
-
