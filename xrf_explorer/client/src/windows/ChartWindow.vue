@@ -52,11 +52,24 @@ const displayGrey = ref(true);
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
  * @param url URL to the server API endpoint which provides the elemental data.
+ * @param rectangle_selection Whether to fetch averages for a rectangle selection.
  * @returns True if the averages were fetched successfully, false otherwise.
  */
-async function fetchAverages(url: string) {
+async function fetchAverages(url: string, rectangle_selection: boolean) {
+  // Build the URL
+  let request_url: string = `${url}/${datasource.value}/element_averages`;
+  if (rectangle_selection) {
+    const params: URLSearchParams = new URLSearchParams({
+      x1: "100",
+      y1: "100",
+      x2: "200",
+      y2: "200"
+    });
+    request_url += `_selection?${params}`;
+  }
+
   // Make API call
-  const response: Response = await fetch(`${url}/${datasource.value}/element_averages`, {
+  const response: Response = await fetch(request_url, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -275,7 +288,7 @@ async function updateCharts() {
 async function setupWindow() {
   try {
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint);
+    const fetched: boolean = await fetchAverages(config.api.endpoint, true);
     if (fetched) {
       // After having fetched the data, update the workspace elements
       updateWorkspaceElements();
