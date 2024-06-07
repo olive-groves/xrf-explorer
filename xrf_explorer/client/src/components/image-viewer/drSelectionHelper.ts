@@ -202,13 +202,7 @@ async function getMiddleImage() {
  */
 async function updateLayer(nPointsSelected: number) {
     if (layerGroups.value.selection != undefined) {
-        const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.image == "dr_selection")[0];
-        const middleImagePath: string | undefined = await getMiddleImage();
-        if (middleImagePath == undefined) {
-            console.error("Failed to load DR middle image.");
-            return;
-        }
-        layer.image = middleImagePath;
+        const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.id == "selection_dr")[0];
 
         if (layer.mesh == undefined && nPointsSelected > 0)        // layer was disposed of, load it again
             loadLayer(layer);
