@@ -1,5 +1,5 @@
 import { DataTexture } from "three";
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useFetch } from "@vueuse/core";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene.ts";
