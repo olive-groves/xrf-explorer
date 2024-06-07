@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
-import { DialogScrollContent, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { FileSetupTable } from ".";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { validateWorkspace } from "./utils";
@@ -22,7 +22,7 @@ function save() {
 </script>
 
 <template>
-  <DialogScrollContent class="max-w-fit">
+  <DialogContent class="max-w-fit">
     <div class="w-[48rem] space-y-4">
       <!-- Header -->
       <DialogTitle class="font-bold">Set up workspace data</DialogTitle>
@@ -41,5 +41,5 @@ function save() {
         </div>
       </div>
     </div>
-  </DialogScrollContent>
+  </DialogContent>
 </template>

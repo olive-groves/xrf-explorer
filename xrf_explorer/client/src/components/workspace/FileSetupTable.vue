@@ -8,6 +8,7 @@ import { useFetch } from "@vueuse/core";
 import { computed, inject, ref } from "vue";
 import { Image, ImagePlus, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
+import { ScrollArea } from "../ui/scroll-area";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -100,71 +101,73 @@ function removeElement(type: string, name: string) {
 </script>
 
 <template>
-  <div class="grid grid-cols-[min-content,min-content,1fr,2rem] place-items-center gap-2">
-    <!-- Header -->
-    <div />
-    <div class="place-self-start">Name</div>
-    <div class="place-self-start">Files</div>
-    <div />
-    <Separator class="col-span-full" />
-
-    <!-- Base image -->
-    <Image class="ml-2 size-6" title="Base image" />
-    <Input placeholder="Name" v-model:model-value="model.baseImage.name" />
-    <FileSetupTableRow type="an image" :options="imageFiles" v-model="model.baseImage.imageLocation" />
-    <Separator class="col-span-full" />
-
-    <!-- Contextual images -->
-    <template v-for="(image, index) in model.contextualImages" :key="index">
-      <ImagePlus class="ml-2 size-6" title="Contextual image" />
-      <Input placeholder="Name" v-model:model-value="image.name" />
-      <FileSetupTableRow type="an image" :options="imageFiles" v-model="image.imageLocation" />
-      <Button variant="destructive" class="size-8 p-2" @click="removeElement('contextual_image', image.name)">
-        <Trash2 />
-      </Button>
-      <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="image.recipeLocation" />
+  <ScrollArea class="mr-[-0.8125rem] h-[32rem] pr-[0.8125rem]">
+    <div class="grid grid-cols-[min-content,min-content,1fr,2rem] place-items-center gap-2">
+      <!-- Header -->
+      <div />
+      <div class="place-self-start">Name</div>
+      <div class="place-self-start">Files</div>
+      <div />
       <Separator class="col-span-full" />
-    </template>
 
-    <!-- Spectral datacubes -->
-    <template v-for="(cube, index) in model.spectralCubes" :key="index">
-      <AudioWaveform class="ml-2 size-6" title="Spectral datacube" />
-      <Input placeholder="Name" v-model:model-value="cube.name" />
-      <FileSetupTableRow type="a raw" :options="rawFiles" v-model="cube.rawLocation" />
-      <Button variant="destructive" class="size-8 p-2" @click="removeElement('spectral_cube', cube.name)">
-        <Trash2 />
-      </Button>
-      <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="cube.rplLocation" />
-      <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
+      <!-- Base image -->
+      <Image class="ml-2 size-6" title="Base image" />
+      <Input placeholder="Name" v-model:model-value="model.baseImage.name" />
+      <FileSetupTableRow type="an image" :options="imageFiles" v-model="model.baseImage.imageLocation" />
       <Separator class="col-span-full" />
-    </template>
 
-    <!-- Elemental datacubes -->
-    <template v-for="(cube, index) in model.elementalCubes" :key="index">
-      <Atom class="ml-2 size-6" title="Elemental datacube" />
-      <Input placeholder="Name" v-model:model-value="cube.name" />
-      <FileSetupTableRow type="a data" :options="elementalFiles" v-model="cube.dataLocation" />
-      <Button variant="destructive" class="size-8 p-2" @click="removeElement('elemental_cube', cube.name)">
-        <Trash2 />
-      </Button>
-      <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
-      <Separator class="col-span-full" />
-    </template>
+      <!-- Contextual images -->
+      <template v-for="(image, index) in model.contextualImages" :key="index">
+        <ImagePlus class="ml-2 size-6" title="Contextual image" />
+        <Input placeholder="Name" v-model:model-value="image.name" />
+        <FileSetupTableRow type="an image" :options="imageFiles" v-model="image.imageLocation" />
+        <Button variant="destructive" class="size-8 p-2" @click="removeElement('contextual_image', image.name)">
+          <Trash2 />
+        </Button>
+        <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="image.recipeLocation" />
+        <Separator class="col-span-full" />
+      </template>
 
-    <!-- Footer -->
-    <Select v-model:model-value="addElementType">
-      <SelectTrigger class="col-start-2 w-48">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem default value="contextual_image">Contextual image</SelectItem>
-        <SelectItem default value="spectral_cube">Spectral datacube</SelectItem>
-        <SelectItem default value="elemental_cube">Elemental datacube</SelectItem>
-      </SelectContent>
-    </Select>
-    <div class="flex w-full justify-between">
-      <Button @click="addElementToWorkspace()" variant="outline">Add element</Button>
-      <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
+      <!-- Spectral datacubes -->
+      <template v-for="(cube, index) in model.spectralCubes" :key="index">
+        <AudioWaveform class="ml-2 size-6" title="Spectral datacube" />
+        <Input placeholder="Name" v-model:model-value="cube.name" />
+        <FileSetupTableRow type="a raw" :options="rawFiles" v-model="cube.rawLocation" />
+        <Button variant="destructive" class="size-8 p-2" @click="removeElement('spectral_cube', cube.name)">
+          <Trash2 />
+        </Button>
+        <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="cube.rplLocation" />
+        <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
+        <Separator class="col-span-full" />
+      </template>
+
+      <!-- Elemental datacubes -->
+      <template v-for="(cube, index) in model.elementalCubes" :key="index">
+        <Atom class="ml-2 size-6" title="Elemental datacube" />
+        <Input placeholder="Name" v-model:model-value="cube.name" />
+        <FileSetupTableRow type="a data" :options="elementalFiles" v-model="cube.dataLocation" />
+        <Button variant="destructive" class="size-8 p-2" @click="removeElement('elemental_cube', cube.name)">
+          <Trash2 />
+        </Button>
+        <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
+        <Separator class="col-span-full" />
+      </template>
+
+      <!-- Footer -->
+      <Select v-model:model-value="addElementType">
+        <SelectTrigger class="col-start-2 w-48">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem default value="contextual_image">Contextual image</SelectItem>
+          <SelectItem default value="spectral_cube">Spectral datacube</SelectItem>
+          <SelectItem default value="elemental_cube">Elemental datacube</SelectItem>
+        </SelectContent>
+      </Select>
+      <div class="flex w-full justify-between">
+        <Button @click="addElementToWorkspace()" variant="outline">Add element</Button>
+        <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
+      </div>
     </div>
-  </div>
+  </ScrollArea>
 </template>
