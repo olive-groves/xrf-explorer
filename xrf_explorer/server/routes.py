@@ -436,7 +436,7 @@ def get_average_data(data_source: str):
     return response
 
 
-@app.route('/api/get_element_spectrum/<data_source>/<element>/<excitation>', methods=['GET'])
+@app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
 def get_element_spectra(data_source: str, element: str, excitation: int):
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
@@ -462,25 +462,39 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     return response
 
 
-@app.route('/api/<data_source>/<selection>/get_selection_spectrum', methods=['GET'])
-def get_selection_spectra(data_source: str, selection: dict):
+@app.route('/api/<data_source>/get_selection_spectrum/<selection>', methods=['GET'])
+def get_selection_spectra(data_source: str, selection: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
-    :param data_source: the name of the data source 
+    :param data_source: the name of the data source
+    :param selection: the json object representing the selection
     :return: json list of tuples containing the channel number and the average intensity of this channel.
     """
-    # selection to be retrieved from selection tool
-    params: dict[str, int] | None = get_spectra_params(data_source)
 
-    if params is None:
+    # parse selection
+    selection_dict = json.loads(selection)
+    match selection_dict["selection_type"]:
+        # rectangle selection case
+        case "rectangle":
+            x1 = selection_dict["bounding_points"][0]["x"]
+            y1 = selection_dict["bounding_points"][0]["y"]
+            x2 = selection_dict["bounding_points"][1]["x"]
+            y2 = selection_dict["bounding_points"][1]["y"]
+
+            # TODO replace with get_selected_raw_data
+            data = get_selected_data_cube(
+                data_source, tuple([x1, y1]), tuple([x2, y2]))
+
+    params: dict[str, int] | None = get_spectra_params(data_source)
+    if params is None or data is None:
         return "Error occurred while loading element spectrum", 404
 
     low: int = params["low"]
     high: int = params["high"]
     bin_size: int = params["binSize"]
-    # TODO get coordinates from selection
-    data: ndarray | None = get_selected_data_cube(
-        data_source, coord_1, coord_2)
+
+    # data is not None so we can parse it as array
+    data = np.array(data)
     result: list = get_average_selection(data, low, high, bin_size)
 
     response = json.dumps(result)
