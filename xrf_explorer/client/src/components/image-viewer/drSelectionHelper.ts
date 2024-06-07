@@ -198,7 +198,7 @@ async function getMiddleImage() {
  *
  * @param nPointsSelected
  */
-async function updateLayer(nPointsSelected: number): void {
+async function updateLayer(nPointsSelected: number) {
     if (layerGroups.value.selection != undefined) {
         const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.image == "dr_selection")[0];
         const middleImagePath: string | undefined = await getMiddleImage();
