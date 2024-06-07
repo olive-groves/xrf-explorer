@@ -269,3 +269,4 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)
 
     return None
+
