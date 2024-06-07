@@ -76,6 +76,8 @@ async function processQueue() {
   }
 
   processing.value = false;
+
+  toast.info("Finished uploading files");
 }
 
 /**
