@@ -20,8 +20,11 @@ from xrf_explorer.server.file_system.contextual_images import (get_contextual_im
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
-from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
-    get_elemental_map, normalize_ndarray_to_grayscale
+from xrf_explorer.server.file_system.elemental_cube import (
+    get_short_element_names, get_element_averages,
+    get_elemental_map, normalize_ndarray_to_grayscale,
+    get_element_averages_rect
+)
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
@@ -34,6 +37,9 @@ from xrf_explorer.server.file_system.from_dms import (
     get_elemental_datacube_dimensions_from_dms,
 )
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
+from xrf_explorer.server.image_to_cube_selection import (
+    get_selected_data_cube
+)
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -208,6 +214,53 @@ def list_element_averages(data_source: str):
         LOG.error(f"Failed to serialize element averages: {str(e)}")
         return "Error occurred while listing element averages", 500
 
+
+@app.route("/api/<data_source>/element_averages_selection")
+def list_element_averages_selection(data_source: str):
+    """Get the names and averages of the elements present in a rectangular selection
+    of the painting.
+    
+    :param data_source: data_source to get the element averages from
+    :return: JSON list of objects indicating average abundance for every element. Each object
+    is of the form {name: element name, average: element abundance}
+    """
+    # path to elemental cube
+    path: str = get_elemental_cube_path(data_source)
+
+    # top left point
+    top_left: tuple[int, int] = (
+        int(request.args.get('x1')),
+        int(request.args.get('y1'))
+    )
+
+    # bottom right point
+    bottom_right: tuple[int, int] = (
+        int(request.args.get('x2')),
+        int(request.args.get('y2'))
+    )
+
+    # get selection
+    selection_cube: np.ndarray | None = get_selected_data_cube(
+        data_source, top_left, bottom_right
+    )
+
+    if not selection_cube:
+        return "Error occurred while getting selection from datacube", 500
+
+    # get names
+    names: list[str] = get_short_element_names(path)
+
+    # get averages
+    composition: list[dict[str, str | float]] = get_element_averages_rect(
+        selection_cube, names
+    )
+    LOG.info(composition)
+
+    try:
+        return json.dumps(composition)
+    except Exception as e:
+        LOG.error(f"Failed to serialize element averages: {str(e)}")
+        return "Error occurred while listing element averages", 500
 
 @app.route("/api/<data_source>/element_names")
 def list_element_names(data_source: str):

@@ -185,8 +185,19 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
 
     # Calculate the average composition of the elements
+    composition: list[dict[str,  str | float]] = get_element_averages_rect(image_cube, names)
+
+    return composition
+
+
+def get_element_averages_rect(image_cube: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
+    """Get the names and averages of the elements present in (a subarea of) the painting.
+    :param image_cube: The normalized (subarea of) the painting.
+    :param names: The names of the elements present in the painting.
+    :return: List of the names and average composition of the elements.
+    """
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
-    
+
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
         [{"name": names[i], "average": averages[i]} for i in range(averages.size)]
@@ -194,7 +205,6 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     LOG.info("Calculated the average composition of the elements.")
 
     return composition
-
 
 def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     """"Saves a numpy array and list of elements to a DMS file.
