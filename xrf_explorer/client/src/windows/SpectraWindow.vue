@@ -17,7 +17,7 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
-//TODO push to appstate on file loading
+
 //const low = appState.workspace?.spectralParams?.low;
 //const high = appState.workspace?.spectralParams?.high;
 const low = 50;
@@ -79,15 +79,12 @@ const excitation = ref(0);
 async function plotAverageSpectrum() {
   try {
     //make api call
-    const response = await fetch(
-      `${url}/${datasource.value}/get_average_data`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
     const data = await response.json();
 
     //create line
@@ -117,20 +114,17 @@ async function plotAverageSpectrum() {
 /**
  * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
- * @param selection json object representing the selection
+ * @param selection Json object representing the selection.
  */
 async function plotSelectionSpectrum(selection: string) {
   try {
     //make api call
-    const response = await fetch(
-      `${url}/${datasource.value}/get_selection_spectrum/${selection}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/${selection}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+    });
     const data = await response.json();
 
     //remove spectrum of previous selection
@@ -164,23 +158,17 @@ async function plotSelectionSpectrum(selection: string) {
  * Plots the theoretical spectrum and peaks of an element.
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
  */
 async function plotElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
-      const response = await fetch(
-        `${url}/get_element_spectrum/element/excitation`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      const response = await fetch(`${url}/get_element_spectrum/element/excitation`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+      });
       const data = await response.json();
       const spectrum = data[0];
 

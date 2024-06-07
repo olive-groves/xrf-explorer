@@ -483,7 +483,7 @@ def get_selection_spectra(data_source: str, selection: str):
 
             # TODO replace with get_selected_raw_data
             data = get_selected_data_cube(
-                data_source, "raw" tuple([x1, y1]), tuple([x2, y2]))
+                data_source, "raw", tuple([x1, y1]), tuple([x2, y2]))
 
     params: dict[str, int] | None = get_spectra_params(data_source)
     if params is None or data is None:

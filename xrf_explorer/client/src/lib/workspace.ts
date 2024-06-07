@@ -27,7 +27,7 @@ export type WorkspaceConfig = {
    */
   elementalChannels: ElementalChannel[];
   /**
-   * The parameters to read the spectral data
+   * The parameters to read the spectral data.
    */
   spectralParams: SpectralParams;
 };
@@ -73,17 +73,20 @@ export type SpectralCube = {
   recipeLocation: string;
 };
 
+/**
+ * Parameters to read the data cube.
+ */
 export type SpectralParams = {
   /**
-   * The lower channel boundary to be used
+   * The lower channel boundary to be used.
    */
   low: number;
   /**
-   * The higher channel boundary to be used
+   * The higher channel boundary to be used.
    */
   high: number;
   /**
-   * The bin size to be used while reading the raw data
+   * The bin size to be used while reading the raw data.
    */
   binSize: number;
 };
