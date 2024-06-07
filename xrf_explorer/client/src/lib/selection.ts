@@ -23,9 +23,8 @@ export type Selection = {
   elements: ElementSelection[];
   /**
    * The selection made in the color segmentation window.
-   * Will be null if there is no active color segmentation selection.
    */
-  colorSegmentation: ColorSegmentationSelection[] | null;
+  colorSegmentation: ColorSegmentationSelection[];
   /**
    * The selection made in the dimensionality reduction window.
    * Will be null if there is no active dimensionality reduction selection.
@@ -101,17 +100,17 @@ export type ColorSegmentationSelection = {
    */
   element: number;
   /**
-   * The channel of the cluster.
-   */
-  channel: number;
-  /**
-   * Checks if elemental channel is selected.
+   * Whether the element is selected.
    */
   selected: boolean;
   /**
-   * The color associated with the element.
+   * Whether each cluster is enabled.
    */
-  color: string;
+  enabled: boolean[];
+  /**
+   * The color associated with each cluster.
+   */
+  colors: string[];
 };
 
 /**

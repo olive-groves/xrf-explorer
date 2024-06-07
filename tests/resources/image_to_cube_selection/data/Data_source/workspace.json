@@ -1,0 +1,9 @@
+{
+  "name": "Data source",
+  "baseImage": { "name": "baseTest", "imageLocation": "image.png" },
+  "contextualImages": [],
+  "spectralCubes": [],
+  "elementalCubes": [
+    { "dataLocation": "3x300x300_test_cube.dms", "recipeLocation": "" }
+  ]
+}

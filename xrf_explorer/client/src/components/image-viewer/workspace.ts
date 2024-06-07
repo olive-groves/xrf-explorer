@@ -7,6 +7,7 @@ import { disposeLayer } from "./scene";
 import { LayerGroup, LayerVisibility } from "./types";
 import { config } from "@/main";
 import { createElementalLayers } from "./elementalHelper";
+import { createColorClusterLayers } from "./colorClusterHelper";
 import { registerLayer } from "./registering";
 import { getImageSize, getRecipe, getTargetSize } from "./api";
 import { createSelectionLayers } from "@/components/image-viewer/drSelectionHelper.ts";
@@ -39,6 +40,7 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   createElementalLayers(workspace);
 
   // Create color segmentation layers
+  createColorClusterLayers();
 
   // Create selection layers
   createSelectionLayers();
