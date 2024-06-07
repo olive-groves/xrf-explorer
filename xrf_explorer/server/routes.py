@@ -5,25 +5,22 @@ import logging
 from PIL.Image import Image
 from flask import request, jsonify, abort, send_file
 import numpy as np
-from werkzeug.utils import secure_filename
 from os.path import exists, abspath, join
 from os import mkdir
 import json
-from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
-from typing import List
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl, get_base_image_name
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
-from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_data_cube
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
+from xrf_explorer.server.file_system import get_short_element_names, get_element_averages
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.color_seg import (
@@ -148,50 +145,33 @@ def create_data_source_dir(data_source: str):
     return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/delete_data_source", methods=["DELETE"])
-def delete_data_source():
-    """Delete a data source directory.
-    
-    :request form attributes: **dir** - the directory name
+@app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
+def upload_chunk(data_source: str, file_name: str, start: int):
+    """Upload a chunk of bytes to a file in specified data source.
+
+    :param data_source: The name of the data source to upload the chunk to
+    :param file_name: The name of the file to upload the chunk to
+    :param start: The start index of the chunk in the specified file
     """
+
     # get config
     config: dict = get_config()
 
-    delete_dir = join(config["uploads-folder"], request.form["dir"])
+    # get file location
+    path: str = abspath(join(config['uploads-folder'], data_source, file_name))
 
-    if exists(delete_dir):
-        rmtree(delete_dir)
-        LOG.info(f"Data source at {delete_dir} removed.")
-        return "Deleted", 200
-    else:
-        return "Directory not found", 404
+    # create file if it does not exist
+    if not exists(path):
+        LOG.info("Created file %s", path)
+        open(path, "x+b").close()
 
+    # write chunk to file
+    with open(path, "r+b") as file:
+        file.seek(start)
+        file.write(request.get_data())
+        LOG.info("Wrote chunk from %i into %s", start, path)
 
-@app.route("/api/upload_file_chunk", methods=["POST"])
-def upload_file_chunk():
-    """Upload a chunk of bytes to a file.
-    
-    :request form attributes: 
-        **dir** - the directory name \n 
-        **startByte** - the start byte from which bytes are uploaded \n 
-        **chunkBytes** - the chunk  of bytes to upload
-    """
-    # get config
-    config: dict = get_config()
-
-    file_dir = join(config["uploads-folder"], request.form["dir"])
-    start_byte = int(request.form["startByte"])
-    chunk_bytes = request.files["chunkBytes"]
-
-    # If the file does not exist, create it
-    if not exists(file_dir):
-        open(file_dir, "w+b").close()
-
-    with open(file_dir, "r+b") as file:
-        file.seek(start_byte)
-        file.write(chunk_bytes.read())
-
-    return "Ok"
+    return "Uploaded file chunk", 200
 
 
 @app.route("/api/<data_source>/element_averages")

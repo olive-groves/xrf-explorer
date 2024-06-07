@@ -164,7 +164,7 @@ function removeElement(type: string, name: string) {
     </Select>
     <div class="flex w-full justify-between">
       <Button @click="addElementToWorkspace()" variant="outline">Add element</Button>
-      <FileUploadDialog @files-uploaded="fileFetch.execute()" />
+      <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
     </div>
   </div>
 </template>
