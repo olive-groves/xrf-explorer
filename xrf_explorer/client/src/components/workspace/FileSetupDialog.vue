@@ -32,12 +32,12 @@ function save() {
 
       <!-- Footer -->
       <div class="flex justify-between">
-        <div class="flex items-end space-x-1.5">
+        <div class="flex items-center space-x-1.5">
           <TriangleAlert v-if="!modelValid[0]" class="size-5 text-primary" />
           <div class="text-muted-foreground" v-text="modelValid[1]" />
         </div>
         <div class="space-x-2">
-          <Button :disabled="!modelValid[0]" @click="save">Save</Button>
+          <Button :disabled="!modelValid[0]" @click="save" :title="modelValid[1]">Save</Button>
         </div>
       </div>
     </div>

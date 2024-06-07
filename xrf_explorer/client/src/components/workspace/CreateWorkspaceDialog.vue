@@ -176,7 +176,7 @@ async function updateWorkspace() {
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Create new data source </DialogTitle>
     <Input placeholder="Data source name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
-    <div class="flex items-end justify-between">
+    <div class="flex items-center justify-between">
       <div class="flex items-center space-x-1.5" v-if="progress == Progress.Name">
         <TriangleAlert class="size-5 text-primary" />
         <div class="text-muted-foreground">This can not be changed afterwards</div>
