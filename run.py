@@ -30,9 +30,6 @@ if __name__ == '__main__':
     from waitress import serve
     from xrf_explorer import app
     from xrf_explorer.server.file_system.config_handler import load_yml
-    from flask_cors import CORS
-
-    CORS(app)
 
     LOG.info("Finished loading XRF-Explorer")
 
