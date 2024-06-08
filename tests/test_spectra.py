@@ -23,5 +23,5 @@ class TestSpectra:
         expected_result = [{"index": 0, "value": 2.0},
                            {"index": 1, "value": 2.0},
                            {"index": 2, "value": 3.0},
-                           {"index": 4, "value": 4.0}]
+                           {"index": 3, "value": 4.0}]
         assert result == expected_result

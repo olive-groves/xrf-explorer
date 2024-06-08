@@ -95,10 +95,10 @@ async function uploadDataSource() {
     alert("Something went wrong with uploading data source metadata. Please try again later.");
   }
 
-  const binParams = `{"low": ${low}, "high": ${high}, "binSize": ${binSize}}` 
+  const binParams = `{"low": ${low}, "high": ${high}, "binSize": ${binSize}}`; 
 
   const binResponse: Response = await fetch(API_ENDPOINT + `/bin_raw/${binParams}`, {
-    method: "GET"
+    method: "GET",
   });
   const jsonbinResponse = await binResponse.json();
   const binSuccess: string = jsonbinResponse["binSuccess"];
@@ -205,7 +205,7 @@ function generateWorkspaceJSON() {
     spectralCubes: [],
     elementalCubes: [],
     elementalChannels: [],
-    spectralParams: {low: low, high: high, binSize: binSize}
+    spectralParams: { low: low, high: high, binSize: binSize }
   };
 
   if (getFile(uvImageInputRef) !== undefined) {
