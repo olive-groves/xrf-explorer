@@ -23,7 +23,7 @@ from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system.elemental_cube import (
     get_short_element_names, get_element_averages,
     get_elemental_map, normalize_ndarray_to_grayscale,
-    get_element_averages_rect
+    get_element_averages_selection
 )
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
@@ -240,21 +240,20 @@ def list_element_averages_selection(data_source: str):
     )
 
     # get selection
-    selection_cube: np.ndarray | None = get_selected_data_cube(
+    selection: np.ndarray | None = get_selected_data_cube(
         data_source, top_left, bottom_right
     )
 
-    if not selection_cube:
+    if selection is None:
         return "Error occurred while getting selection from datacube", 500
 
     # get names
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_rect(
-        selection_cube, names
+    composition: list[dict[str, str | float]] = get_element_averages_selection(
+        selection, names
     )
-    LOG.info(composition)
 
     try:
         return json.dumps(composition)

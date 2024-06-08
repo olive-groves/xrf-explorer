@@ -60,10 +60,10 @@ async function fetchAverages(url: string, rectangle_selection: boolean) {
   let request_url: string = `${url}/${datasource.value}/element_averages`;
   if (rectangle_selection) {
     const params: URLSearchParams = new URLSearchParams({
-      x1: "100",
-      y1: "100",
-      x2: "200",
-      y2: "200"
+      x1: "0",
+      y1: "0",
+      x2: "924",
+      y2: "1479"
     });
     request_url += `_selection?${params}`;
   }
@@ -288,7 +288,7 @@ async function updateCharts() {
 async function setupWindow() {
   try {
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint, true);
+    const fetched: boolean = await fetchAverages(config.api.endpoint, false);
     if (fetched) {
       // After having fetched the data, update the workspace elements
       updateWorkspaceElements();

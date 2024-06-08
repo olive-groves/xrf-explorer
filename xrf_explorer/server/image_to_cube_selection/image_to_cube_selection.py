@@ -1,4 +1,6 @@
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+from xrf_explorer.server.file_system.elemental_cube import (
+    get_elemental_data_cube, normalize_ndarray_to_grayscale
+)
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
@@ -95,14 +97,15 @@ def get_selected_data_cube(
         )
         return None
 
-    data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
+    raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
+    data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
 
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
 
     cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
 
-    if cube_recipe_path is None:
+    if (cube_recipe_path is None) or True:
         # If the data cube has no recipe, simply scale the selection coordinates to match the dimensions of the cube.
         selection_coord_1_cube, selection_coord_2_cube = get_scaled_cube_coordinates(
             selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
