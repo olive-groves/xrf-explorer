@@ -22,6 +22,11 @@ const cubeDataInputRef = ref<HTMLInputElement>();
 const rawDataInputRef = ref<HTMLInputElement>();
 const rplDataInputRef = ref<HTMLInputElement>();
 
+//binning parameters harcoded for now, input fields need to be added
+const low = 50;
+const high = 2000;
+const binSize = 4;
+
 /**
  * Handles the uploading of data source files to the server.
  * Triggered by the "Upload" button.
@@ -88,6 +93,17 @@ async function uploadDataSource() {
     uploadedChunks.value = 0;
   } else {
     alert("Something went wrong with uploading data source metadata. Please try again later.");
+  }
+
+  const binParams = `{"low": ${low}, "high": ${high}, "binSize": ${binSize}}` 
+
+  const binResponse: Response = await fetch(API_ENDPOINT + `/bin_raw/${binParams}`, {
+    method: "GET"
+  });
+  const jsonbinResponse = await binResponse.json();
+  const binSuccess: string = jsonbinResponse["binSuccess"];
+  if (binSuccess == "False") {
+    alert("Something went wrong while bining raw file. Please try again later.");
   }
 }
 
@@ -181,9 +197,6 @@ function generateWorkspaceJSON() {
   const dataSourceName: string = getTrimmedInputString(dataSourceNameInputRef)!;
   const baseImageName: string = getNameAttribute(rgbImageInputRef)!;
   const baseImageLocation: string = `${baseImageName}.${getFileType(getFile(rgbImageInputRef)!)}`;
-  const low = 50;
-  const high = 2000;
-  const binSize = 4;
 
   const workspace: WorkspaceConfig = {
     name: dataSourceName,

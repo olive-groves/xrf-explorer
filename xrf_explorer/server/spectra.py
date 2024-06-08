@@ -2,8 +2,9 @@
 import numpy as np
 import xraydb
 import logging
+from math import ceil
 
-from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, parse_rpl
+from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
@@ -11,7 +12,6 @@ def get_raw_data(data_source: str) -> np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array
 
     :param data_source: the path to the .raw file
-    :
     :return: 3-dimensional array containing the raw data in format {x, y, channel}
     """
     # get paths to files
@@ -21,7 +21,47 @@ def get_raw_data(data_source: str) -> np.ndarray:
     info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
+    width = int(info['width'])
+    height = int(info['height'])
 
+    try:
+        params: dict = get_spectra_params(data_source)
+    except FileNotFoundError as err:
+        LOG.error(
+            "error while loading workspace to retrieve spectra params: {%s}", err)
+        return np.array([])
+
+    low: int = params["low"]
+    high: int = params["high"]
+    bin_size: int = params["binSize"]
+    bin_nr = ceil((high-low)/bin_size)
+
+    try:
+        # load raw file and parse it as 3d array with correct dimensions
+        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
+    except OSError as err:
+        LOG.error("error while loading raw file: {%s}", err)
+        return np.empty(0)
+    datacube = np.reshape(datacube, (height, width, bin_nr))
+    return datacube
+
+
+def bin_data(data_source: str, low: int, high: int, bin_size: int):
+    """Reduces a the raw data of a data source to channels in range [low:high] and averages channels per bin.
+
+    :param data_source: the name of the data source containing the raw data.
+    :param low: the lower channel boundary.
+    :param high: the higher channel boundary.
+    :param bin_size: the number of channels per bin.
+    """
+    # get paths to files
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    # get dimensions of original data
     width = int(info['width'])
     height = int(info['height'])
     channels = int(info['depth'])
@@ -30,63 +70,63 @@ def get_raw_data(data_source: str) -> np.ndarray:
         # load raw file and parse it as 3d array with correct dimensions
         datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
     except OSError as err:
-        LOG.error("error while loading raw file: {%s}", err)
-        return np.empty(0)
+        LOG.error("error while loading raw file for binning: {%s}", err)
+        raise
     datacube = np.reshape(datacube, (height, width, channels))
-    return datacube
+
+    nr_bins = ceil((high-low)/bin_size)
+
+    # initialize  array
+    new_cube = np.zeros(shape=(1187, 1069, nr_bins), dtype=np.int16)
+
+    for i in range(nr_bins):
+        # convert bin number to start channel in original data
+        start_channel = low + i*bin_size
+
+        bin = np.mean(
+            datacube[:, :, start_channel:start_channel+bin_size], axis=2)
+        new_cube[:, :, i] = bin
+
+    # overwrite file
+    new_cube.flatten().tofile(path_to_raw)
 
 
-def get_average_global(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
-    """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting
-    Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
+def get_average_global(data: np.ndarray) -> list:
+    """Computes the average of the raw data for each bin on the whole painting
 
-    :param data: datacube containing the raw data
-    :param low: lower channel boundary
-    :param high: higher channel boundary
-    :param bin_size: size of each bin
-    :return: list with the average raw data for each bin in the range
+    :param data: datacube containing the raw data.
+    :return: list with the average raw data for each channel in the range.
     """
 
     average_values = []
 
-    # compute average per channel per bin size and add to dictionary
-    for i in range(low, high, bin_size):
-        mean = data[:, :, i:i+bin_size].mean()
-        average_values.append({"index": i, "value": mean})
+    mean = np.mean(data, axis=(0, 1))
+
+    # create list of dictionaries
+    for i in range(np.size(mean)):
+        average_values.append({"index": i, "value": mean[i]})
 
     return average_values
 
 
-def get_average_selection(data: np.ndarray, low: int, high: int, bin_size: int) -> list:
-    """Computes the average of the raw data for each bin of channels in range [low, high] on the selected pixels
-    Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
-    Precondition: forall pixel in pixels, 0 <= pixel[0] < width, 0 <= pixel[1] < height
+def get_average_selection(data: np.ndarray) -> list:
+    """Computes the average of the raw data for each bin on the selected pixels
 
     :param data: 2D array where the rows represent the selected pixels from the data cube image and the columns
     represent their energy channel value
-    :param low: lower channel boundary
-    :param high: higher channel boundary
-    :param bin_size: size of each bin
     :return: list with the average raw data for each bin in the range
     """
-    # initialize average array of length the number of channels
-    avg = np.zeros(high-low)
 
-    for pixel in data:
-        avg = np.add(avg, pixel[low:high])
+    # compute average
+    result = np.mean(data, axis=0)
 
-    # average
-    avg = avg/len(data)
+    response = []
 
-    result = []
+    # create list of dictionaries
+    for i in range(np.size(result)):
+        response.append({"index": i, "value": result[i]})
 
-    # average per bin
-    for i in range(low, high, bin_size):
-        mean = np.mean(avg[i-low: i-low+bin_size])
-        dic = {"index": i, "value": mean}
-        result.append(dic)
-
-    return result
+    return response
 
 
 def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, high: int, bin_size: int) -> list:
@@ -109,43 +149,52 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     # get spectrum and peaks
     data = get_element_spectrum(element, excitation_energy_kev)
 
+    # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
+    x_spectrum = data[0]*4096/abs(data[0].max()-data[0].min())
+
+    # only take points in range [low, high], scaled to get_element_spectrum indexing
+    x_spectrum = x_spectrum[low*len(data[0])/4096:high*len(data[0])/4096]
+
     # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_scale = 255
+    y_spectrum = data[1]*255
+
+    # only take points in range [low, high], scale to get_element_spectrum indexing
+    y_spectrum = y_spectrum[low*len(data[0])/4096:high*len(data[0])/4096]
 
     # get_element_spectrum returns 10000 points instead of 'high-low' points, so rescale bin_size
-    bin_size = round(bin_size/((high-low)/len(data[0])))
+    bin_size = round(bin_size/((4096)/len(data[0])))
 
     response = []
-    spectrum = []
-    for i in range(0, len(data[0]), bin_size):
-        # take average of the y-values in the bin
-        value = np.mean(data[1][i:i+bin_size])
 
-        # rescale index to domain [low, high] and the mean to range [0, 255]
-        dict = {"index": i *
-                ((high-low)/len(data[0]))+low, "value": value*y_scale}
+    spectrum = []
+    for i in range(0, len(x_spectrum), bin_size):
+        mean = np.mean(data[1][i:i+bin_size])
+
+        dict = {"index": i/bin_size, "value": mean}
         spectrum.append(dict)
     response.append(spectrum)
 
-    # get_element_spectrum returns data in domain [0, 40], rescale to [low, high]
-    x_scale = (high-low)/abs(data[0].max()-data[0].min())
+    # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
+    x_peaks = data[2]*4096/abs(data[0].max()-data[0].min())
+
+    # get_element_spectrum returns normalized data, rescale to [0, 255]
+    y_peaks = data[3]*255
 
     peaks = []
     for i in range(len(data[2])):
         # take only the peaks within the domain [high, low]
-        if (low <= data[2][i]*x_scale + low and high > data[2][i]*x_scale + low):
-            # scale x and y values
-            dict = {"index": data[2][i]*x_scale +
-                    low, "value": data[3][i]*y_scale}
+        if (low <= x_peaks[i] and high > x_peaks[i]):
+            dict = {"index": x_peaks[i], "value": y_peaks[i]}
             peaks.append(dict)
     response.append(peaks)
 
     return response
 
-
 # functions to compute theoretical elemental spectrum
 # From xrf4u: https://github.com/fligt/maxrf4u/blob/main/maxrf4u/xphysics.py
 # Author: Frank Ligterink
+
+
 class ElementLines():
     '''Computes fluorescence emission line energies and intensities for `element`.
 

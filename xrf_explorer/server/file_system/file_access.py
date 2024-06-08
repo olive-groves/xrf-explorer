@@ -180,16 +180,16 @@ def parse_rpl(path: str) -> dict:
     return parsed_rpl
 
 
-def get_spectra_params(data_source: str) -> dict[str, int] | None:
+def get_spectra_params(data_source: str) -> dict[str, int]:
     """
-    Returns the spectrum parameters (low/high boundaries and binsize) of a data source.
+    Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
 
     :param data_source: Name of the data source.
-    :return: dictionary with the low, high and binsize values
+    :return: dictionary with the low, high and bin size values
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
-        return None
+        raise FileNotFoundError
 
     return workspace_dict["spectraParams"]
 
