@@ -155,15 +155,16 @@ def create_data_source_dir(data_source: str):
     return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/<data_source>/remove", methods=["GET", "POST"])
+@app.route("/api/<data_source>/abort", methods=["GET", "POST"])
 def remove_data_source_dir(data_source: str):
-    """Remove a directory for a data source.
+    """Abort creation of a directory for a data source.
 
-    :param data_source: The name of the data source to remove
+    :param data_source: The name of the data source to be aborted
     :return: json with directory name
     """
     # Get config
     config: dict | None = get_config()
+    LOG.info(f"Aborting data source directory creation for {data_source}")
 
     if not config:
         error_msg: str = "Error occurred while removing data source directory"

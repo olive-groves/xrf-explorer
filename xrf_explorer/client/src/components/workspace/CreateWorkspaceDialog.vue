@@ -115,7 +115,7 @@ async function removeDataSource() {
   const name = workspace.value.name;
 
   try {
-    const response = await fetch(`${config.api.endpoint}/${name}/remove`, { method: "POST" });
+    const response = await fetch(`${config.api.endpoint}/${name}/abort`, { method: "GET" });
 
     if (response.ok) {
       const data = await response.json();
