@@ -4,7 +4,7 @@ import logging
 from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
-from os.path import exists, abspath, join, isfile
+from os.path import exists, abspath, join, isfile, isdir
 from os import mkdir, rmdir
 import json
 from markupsafe import escape
@@ -176,22 +176,16 @@ def remove_data_source_dir(data_source: str):
         LOG.error(error_msg)
         return error_msg, 400
 
-    if data_source not in get_data_sources_names():
+    data_source_dir = join(config['uploads-folder'], data_source)
+
+    if not isdir(data_source_dir):
         error_msg: str = "Data source name does not exist."
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(config["uploads-folder"], data_source)
-
     # remove data source dir
-    if isfile(data_source_dir):
-        LOG.info(f"Removing data source directory at {data_source_dir}")
-        rmdir(data_source_dir)
-
-    if not isfile(data_source_dir):
-        error_msg: str = "Data source directory does not exist."
-        LOG.error(error_msg)
-        return error_msg, 400
+    LOG.info(f"Removing data source directory at {data_source_dir}")
+    rmdir(data_source_dir)
 
     return jsonify({"dataSourceDir": data_source})
 
