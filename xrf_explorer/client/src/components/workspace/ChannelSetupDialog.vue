@@ -18,6 +18,16 @@ const modelValid = computed(() => validateWorkspace(model.value));
 function save() {
   emit("save");
 }
+
+/**
+ * Enable all channels in the workspace.
+ * @param {WorkspaceConfig} model - The workspace configuration.
+ */
+function selectAllChannels(model: WorkspaceConfig) {
+  model.elementalChannels.forEach((channel: any) => {
+    channel.enabled = true;
+  });
+}
 </script>
 
 <template>
@@ -41,7 +51,10 @@ function save() {
 
       <!-- Footer -->
       <div class="flex justify-between">
-        <Button variant="outline" @click="initializeChannels(model)">Reinitialize elements</Button>
+        <div>
+          <Button variant="outline" @click="initializeChannels(model)">Reinitialize elements</Button>
+          <Button variant="outline" class="ml-2" @click="selectAllChannels(model)">Select all elements</Button>
+        </div>
         <div class="space-x-2">
           <Button :disabled="!modelValid[0]" @click="save">Save</Button>
         </div>
