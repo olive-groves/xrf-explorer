@@ -2,7 +2,7 @@
 import numpy as np
 import xraydb
 import logging
-from math import ceil
+from math import ceil, floor
 
 from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -68,7 +68,8 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
+        datacube = np.memmap(
+            'C:/Users/20210792/Documents/GitHub/xrf-explorer/xrf_explorer/server/data/Painting/spectral.raw', dtype=np.uint16, mode='r')
     except OSError as err:
         LOG.error("error while loading raw file for binning: {%s}", err)
         raise
@@ -140,7 +141,6 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
         :param bin_size: size of each bin
         :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks
     """
-
     # remove last character to get periodic table symbol
     element = element[:len(element)-1]
     if element == 'yAl':
@@ -149,29 +149,27 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     # get spectrum and peaks
     data = get_element_spectrum(element, excitation_energy_kev)
 
-    # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
-    x_spectrum = data[0]*4096/abs(data[0].max()-data[0].min())
-
-    # only take points in range [low, high], scaled to get_element_spectrum indexing
-    x_spectrum = x_spectrum[low*len(data[0])/4096:high*len(data[0])/4096]
-
     # get_element_spectrum returns normalized data, rescale to [0, 255]
     y_spectrum = data[1]*255
-
-    # only take points in range [low, high], scale to get_element_spectrum indexing
-    y_spectrum = y_spectrum[low*len(data[0])/4096:high*len(data[0])/4096]
-
-    # get_element_spectrum returns 10000 points instead of 'high-low' points, so rescale bin_size
-    bin_size = round(bin_size/((4096)/len(data[0])))
 
     response = []
 
     spectrum = []
-    for i in range(0, len(x_spectrum), bin_size):
-        mean = np.mean(data[1][i:i+bin_size])
+    bin_nr = ceil((high-low)/bin_size)
 
-        dict = {"index": i/bin_size, "value": mean}
+    # for each bin
+    for i in range(bin_nr):
+        # compute starting channel
+        start_channel = low+i*bin_size
+
+        # y_spectra has 10000 points instead of 4096, so scale index and bin size to slice it
+        start_index = floor(start_channel*len(y_spectrum)/4096)
+        new_bin_size = round(bin_size/((4096)/len(y_spectrum)))
+        mean = np.mean(y_spectrum[start_index:start_index+new_bin_size])
+
+        dict = {"index": i, "value": mean}
         spectrum.append(dict)
+
     response.append(spectrum)
 
     # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
@@ -181,13 +179,12 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     y_peaks = data[3]*255
 
     peaks = []
-    for i in range(len(data[2])):
-        # take only the peaks within the domain [high, low]
+    for i in range(len(x_peaks)):
+        # take only the peaks within the domain [low, high]
         if (low <= x_peaks[i] and high > x_peaks[i]):
-            dict = {"index": x_peaks[i], "value": y_peaks[i]}
+            dict = {"index": (x_peaks[i]-low)/bin_size, "value": y_peaks[i]}
             peaks.append(dict)
     response.append(peaks)
-
     return response
 
 # functions to compute theoretical elemental spectrum

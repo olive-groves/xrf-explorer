@@ -2,7 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { low, high, datasource } from "@/lib/appState";
+import { binSize, datasource, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const spectraChart = ref<HTMLElement>();
@@ -36,7 +36,7 @@ function setup() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([low.value, high.value]);
+    .domain([0, (high.value-low.value)/binSize.value]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
@@ -158,7 +158,7 @@ async function plotElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
-      const response = await fetch(`${url}/get_element_spectrum/element/excitation`, {
+      const response = await fetch(`${url}/${datasource.value}/get_element_spectrum/${element}/${excitation}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

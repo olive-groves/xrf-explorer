@@ -475,7 +475,7 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     high: int = params["high"]
     bin_size: int = params["binSize"]
     response = get_theoretical_data(
-        element, excitation, low, high, bin_size)
+        element, int(excitation), low, high, bin_size)
 
     response = json.dumps(response)
 
