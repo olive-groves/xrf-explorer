@@ -109,6 +109,29 @@ function resetProgress() {
 }
 
 /**
+ * Remove data source directory in the backend if it exists.
+ */
+async function removeDataSource() {
+  const name = workspace.value.name;
+
+  try {
+    const response = await fetch(`${config.api.endpoint}/${name}/remove`, { method: "POST" });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`Data source directory removed: ${data.dataSourceDir}`);
+    } else {
+      const error = await response.text();
+      console.error(`Error removing data source directory: ${error}`);
+    }
+  } catch (error) {
+    console.error(`An error occurred: ${error}`);
+  }
+
+  resetProgress();
+}
+
+/**
  * Completes setup by saving the initialized workspace.json to the backend.
  * @returns - Whether setup was successfull.
  */
@@ -191,7 +214,7 @@ async function updateWorkspace() {
         <TriangleAlert class="size-5 text-primary" />
         <div class="text-muted-foreground">This can not be changed afterwards</div>
       </div>
-      <Button @click="resetProgress" variant="destructive" v-else-if="progress == Progress.Files">Abort</Button>
+      <Button @click="removeDataSource" variant="destructive" v-else-if="progress == Progress.Files">Abort</Button>
       <Button @click="updateWorkspace" variant="outline" v-else-if="progress == Progress.Channels">
         Skip channel setup
       </Button>

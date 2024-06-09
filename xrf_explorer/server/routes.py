@@ -5,7 +5,7 @@ from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
 from os.path import exists, abspath, join, isfile
-from os import mkdir
+from os import mkdir, rmdir
 import json
 from markupsafe import escape
 from numpy import ndarray
@@ -149,6 +149,46 @@ def create_data_source_dir(data_source: str):
 
     if isfile(data_source_dir):
         error_msg: str = "Data source directory already exists."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    return jsonify({"dataSourceDir": data_source})
+
+
+@app.route("/api/<data_source>/remove", methods=["GET", "POST"])
+def remove_data_source_dir(data_source: str):
+    """Remove a directory for a data source.
+
+    :param data_source: The name of the data source to remove
+    :return: json with directory name
+    """
+    # Get config
+    config: dict | None = get_config()
+
+    if not config:
+        error_msg: str = "Error occurred while removing data source directory"
+        LOG.error(error_msg)
+        return error_msg, 500
+
+    if data_source == "":
+        error_msg: str = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    if data_source not in get_data_sources_names():
+        error_msg: str = "Data source name does not exist."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    data_source_dir = join(config["uploads-folder"], data_source)
+
+    # remove data source dir
+    if isfile(data_source_dir):
+        LOG.info(f"Removing data source directory at {data_source_dir}")
+        rmdir(data_source_dir)
+
+    if not isfile(data_source_dir):
+        error_msg: str = "Data source directory does not exist."
         LOG.error(error_msg)
         return error_msg, 400
 
