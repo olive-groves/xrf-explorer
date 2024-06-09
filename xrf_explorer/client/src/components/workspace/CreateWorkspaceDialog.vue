@@ -39,6 +39,7 @@ const workspace = ref(createEmptyWorkspace());
 const dialog = ref<HTMLElement>();
 watch(dialog, console.log);
 
+// Progress state of the setup process
 enum Progress {
   Name,
   Files,
@@ -49,6 +50,7 @@ enum Progress {
 
 const progress = ref(Progress.Name);
 
+// Data source name
 const sourceName = ref("");
 
 // Dialogs for file and channel setup
@@ -58,7 +60,7 @@ const channelDialog = ref(false);
 /**
  * Creates the data source directory in the backend if it does not yet exist with a workspace.json inside.
  */
-async function nextStep() {
+async function initializeDataSource() {
   if (progress.value == Progress.Name) {
     progress.value = Progress.Busy;
     const name = sourceName.value;
@@ -87,7 +89,7 @@ async function nextStep() {
 
     // Move to the next step
     progress.value = Progress.Files;
-    nextStep();
+    initializeDataSource();
   } else if (progress.value == Progress.Files) {
     fileDialog.value = true;
   } else if (progress.value == Progress.Channels) {
@@ -194,7 +196,7 @@ async function updateWorkspace() {
         Skip channel setup
       </Button>
       <div v-else />
-      <Button @click="nextStep" :disabled="progress == Progress.Busy || sourceName.trim() == ''">{{
+      <Button @click="initializeDataSource" :disabled="progress == Progress.Busy || sourceName.trim() == ''">{{
         progress == Progress.Channels ? "Channel setup" : "Next"
       }}</Button>
     </div>
