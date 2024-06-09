@@ -51,6 +51,7 @@ const progress = ref(Progress.Name);
 
 const sourceName = ref("");
 
+// Dialogs for file and channel setup
 const fileDialog = ref(false);
 const channelDialog = ref(false);
 
@@ -62,6 +63,7 @@ async function nextStep() {
     progress.value = Progress.Busy;
     const name = sourceName.value;
 
+    // Check if the name is empty
     if (name.trim() == "") {
       progress.value = Progress.Name;
       toast.warning("Data source name must not be empty");
@@ -71,6 +73,7 @@ async function nextStep() {
     // Create the data source directory
     const response = await fetch(`${config.api.endpoint}/${name}/create`, { method: "POST" });
 
+    // Check if the request was successful
     if (!response.ok) {
       progress.value = Progress.Name;
       toast.error(`Failed to create data source "${name}"`, {
@@ -82,6 +85,7 @@ async function nextStep() {
     // Set name in workspace
     workspace.value.name = name;
 
+    // Move to the next step
     progress.value = Progress.Files;
     nextStep();
   } else if (progress.value == Progress.Files) {
@@ -111,6 +115,7 @@ async function setupWorkspace(): Promise<boolean> {
   channelDialog.value = false;
   const workspaceClone = deepClone(workspace.value);
 
+  // Validate the configured files
   const validation = validateWorkspace(workspaceClone);
   if (!validation[0]) {
     toast.warning("Configured files are not valid", {
@@ -128,6 +133,7 @@ async function setupWorkspace(): Promise<boolean> {
     },
   });
 
+  // Inform the if the request was not successful
   if (!response.ok) {
     toast.error("Failed to set up workspace");
     return false;
@@ -149,6 +155,7 @@ async function updateWorkspace() {
       // Elemental channels need to get set up
       const initialized = initializeChannels(workspace.value);
 
+      // Check if the channels can be initialized
       if (!initialized) {
         progress.value = Progress.Files;
         toast.error("Failed to initialize elemental channels", {
@@ -157,6 +164,7 @@ async function updateWorkspace() {
         return;
       }
 
+      // Move to the next step
       progress.value = Progress.Channels;
       fileDialog.value = false;
       channelDialog.value = true;
