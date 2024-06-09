@@ -184,7 +184,7 @@ function removeElement(type: string, name: string) {
             <SelectItem default value="elemental_cube">Elemental datacube</SelectItem>
           </SelectContent>
         </Select>
-        <Button @click="addElementToWorkspace()" variant="outline">Add element</Button>
+        <Button @click="addElementToWorkspace()" variant="outline">Add component</Button>
       </div>
       <div>
         <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />

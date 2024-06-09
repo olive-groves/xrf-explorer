@@ -21,8 +21,10 @@ const props = defineProps<{
 
 const dialogOpen = ref(false);
 
+// Reference to the input component to access the selected files
 const inputComponent = ref<InstanceType<typeof Input>>();
 
+// Variables to track the upload progress
 const processing = ref(false);
 const uploaded = ref(0);
 const fileQueue = ref<File[]>([]);
