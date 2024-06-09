@@ -4,7 +4,7 @@ import logging
 from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
-from os.path import exists, abspath, join
+from os.path import exists, abspath, join, isfile
 from os import mkdir
 import json
 from markupsafe import escape
