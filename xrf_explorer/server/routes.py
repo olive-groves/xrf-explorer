@@ -105,6 +105,7 @@ def get_workspace(data_source: str):
 def datasource_files(data_source: str):
     """Return a list of all available files for a data source.
 
+    :param data_source: The name of the data source to get the files for
     :return: json list of strings representing the file names
     """
     try:
@@ -122,25 +123,29 @@ def create_data_source_dir(data_source: str):
     :return: json with directory name
     """
     # Get config
-    config: dict = get_config()
+    config: dict | None = get_config()
 
     if data_source == "":
-        error_msg = "Data source name provided, but empty."
+        error_msg: str = "Data source name provided, but empty."
         LOG.error(error_msg)
         return error_msg, 400
 
     if data_source in get_data_sources_names():
-        error_msg = "Data source name already exists."
+        error_msg: str = "Data source name already exists."
         LOG.error(error_msg)
         return error_msg, 400
 
     data_source_dir = join(config["uploads-folder"], data_source)
 
     # create data source dir
-    if not exists(data_source_dir):
+    if not isfile(data_source_dir):
+        LOG.info(f"Creating data source directory at {data_source_dir}")
         mkdir(data_source_dir)
 
-    LOG.info(f"Data source directory created at {data_source_dir}")
+    if isfile(data_source_dir):
+        error_msg: str = "Data source directory already exists."
+        LOG.error(error_msg)
+        return error_msg, 400
 
     return jsonify({"dataSourceDir": data_source})
 
@@ -155,7 +160,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     """
 
     # get config
-    config: dict = get_config()
+    config: dict | None = get_config()
 
     # get file location
     path: str = abspath(join(config['uploads-folder'], data_source, file_name))
@@ -166,7 +171,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
         return "Unauthorized file chunk location", 401
 
     # create file if it does not exist
-    if not exists(path):
+    if not isfile(path):
         LOG.info("Created file %s", path)
         open(path, "x+b").close()
 
