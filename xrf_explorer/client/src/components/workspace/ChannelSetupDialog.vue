@@ -21,10 +21,10 @@ function save() {
 
 /**
  * Enable all channels in the workspace.
- * @param {WorkspaceConfig} model - The workspace configuration.
+ * @param model - The workspace configuration.
  */
 function selectAllChannels(model: WorkspaceConfig) {
-  model.elementalChannels.forEach((channel: any) => {
+  model.elementalChannels.forEach((channel) => {
     channel.enabled = true;
   });
 }
