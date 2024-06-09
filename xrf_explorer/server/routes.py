@@ -125,6 +125,11 @@ def create_data_source_dir(data_source: str):
     # Get config
     config: dict | None = get_config()
 
+    if not config:
+        error_msg: str = "Error occurred while creating data source directory"
+        LOG.error(error_msg)
+        return error_msg, 500
+
     if data_source == "":
         error_msg: str = "Data source name provided, but empty."
         LOG.error(error_msg)
@@ -161,6 +166,11 @@ def upload_chunk(data_source: str, file_name: str, start: int):
 
     # get config
     config: dict | None = get_config()
+
+    if not config:
+        error_msg: str = "Error occurred while uploading file chunk"
+        LOG.error(error_msg)
+        return error_msg, 500
 
     # get file location
     path: str = abspath(join(config['uploads-folder'], data_source, file_name))
