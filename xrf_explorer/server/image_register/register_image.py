@@ -230,35 +230,52 @@ def register_image_to_image(
 
 
 def register_image_to_data_cube(
-        path_data_cube: str, path_image_register: str, path_result_registered_image: str
+        path_data_cube: str, path_image_register: str, path_csv_points: str, path_result_registered_image: str
 ) -> bool:
     """
     Registers an image (given by the path path_image_register) to align with the dimensions of the data cube (given by the path path_data_cube).
 
     :param path_data_cube: The path of the data cube.
     :param path_image_register: The path of the image to be registered.
+    :path path_csv_points: The path of the .csv file.
     :param path_result_registered_image: The path where the registered image will be saved.
     :return: True if the registered image has been written to the specified path successfully and false otherwise.
     """
 
-    path_result_dirname = dirname(path_result_registered_image)
+    # Check if the result directory exists
+    path_result_dirname: str = dirname(path_result_registered_image)
     if not exists(path_result_dirname):
         LOG.error(
             f"Registered image could not be saved at {path_result_registered_image} because directory does not exist."
         )
         return False
 
+    # Check if the data cube exists
     if not exists(path_data_cube):
         LOG.error(f"Data cube not found at {path_data_cube}")
         return False
+    
+    # Check if the control points file exists
+    if not exists(path_csv_points):
+        LOG.error(f"Control points file could not be found at {path_csv_points}")
+        return False
 
+    # Load the data cube dimensions
     cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
-    image_register = imread(path_image_register)
-
+    
+    # Load the image to be registered
+    image_register: MatLike = imread(path_image_register)
     if image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
         return False
 
-    image_resized = resize(image_register, (cube_w, cube_h))
+    # Resize and pad the image to match the dimensions of the data cube
+    image_register_resize: MatLike = resize_image_fit_aspect_ratio(image_register, cube_h, cube_w)
+    image_register_pad: MatLike = pad_image_to_match_size(image_register_resize, cube_h, cube_w)
 
-    return imwrite(path_result_registered_image, image_resized)
+    # Load the control points and apply the perspective transformation
+    points_source, points_destination = load_points(path_csv_points)
+    image_registered: MatLike = apply_prespective_transformation(image_register_pad, points_source, points_destination)
+    
+    # Write the registered image to the specified path
+    return imwrite(path_result_registered_image, image_registered)

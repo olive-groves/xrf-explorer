@@ -89,7 +89,7 @@ class TestImageRegistration:
 
     def test_register_image_to_cube_data_cube_not_found(self, caplog):
         result: bool = register_image_to_data_cube(
-            "made/up/path", self.PATH_IMAGE_REGISTER, self.PATH_RESULT
+            "made/up/path", self.PATH_IMAGE_REGISTER, self.PATH_CONTROL_POINTS, self.PATH_RESULT
         )
 
         assert not result
@@ -99,7 +99,7 @@ class TestImageRegistration:
 
     def test_register_image_to_cube_image_register_not_found(self, caplog):
         result: bool = register_image_to_data_cube(
-            self.PATH_CUBE, "made/up/path", self.PATH_RESULT
+            self.PATH_CUBE, "made/up/path", self.PATH_CONTROL_POINTS, self.PATH_RESULT
         )
 
         assert not result
@@ -111,6 +111,7 @@ class TestImageRegistration:
         result: bool = register_image_to_data_cube(
             self.PATH_CUBE,
             self.PATH_IMAGE_REGISTER,
+            self.PATH_CONTROL_POINTS,
             "tests/resources/image_registration/unexistantdir/result.tif",
         )
 
@@ -124,7 +125,7 @@ class TestImageRegistration:
 
     def test_register_image_to_cube_success(self, caplog):
         result: bool = register_image_to_data_cube(
-            self.PATH_CUBE, self.PATH_IMAGE_REGISTER, self.PATH_RESULT
+            self.PATH_CUBE, self.PATH_IMAGE_REGISTER, self.PATH_CONTROL_POINTS, self.PATH_RESULT
         )
 
         assert result
