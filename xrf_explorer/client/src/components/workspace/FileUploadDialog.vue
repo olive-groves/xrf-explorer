@@ -45,15 +45,17 @@ function uploadFiles() {
   }
 
   const input = inputComponent.value?.$el as HTMLInputElement;
-
   const files = input.files;
 
   if (files == null) return;
 
+  // Add each selected file to the file queue
+  // Loops through the selected files and adds them to the queue for processing.
   for (let i = 0; i < files?.length; i++) {
     fileQueue.value.push(files.item(i)!);
   }
 
+  // Clear the input value
   input.value = "";
 
   processQueue();
@@ -85,6 +87,7 @@ async function processQueue() {
  * @param file - The file to upload.
  */
 async function uploadFile(file: File) {
+  // Create an AbortController to handle aborting the upload if needed
   const controller = new AbortController();
 
   currentFile.value = file.name;
@@ -93,14 +96,17 @@ async function uploadFile(file: File) {
 
   const uploads: Promise<void>[] = [];
 
+  // Split the file into chunks and upload each chunk
   for (let i = 0; i < file.size; i += config.upload.chunkSize) {
     const chunk: Blob = file.slice(i, i + config.upload.chunkSize);
 
+    // Upload the chunk to the backend
     const upload = fetch(`${config.api.endpoint}/${props.dataSource}/upload/${file.name}/${i}`, {
       method: "POST",
       body: chunk,
       signal: controller.signal,
     }).then((response) => {
+      // If the response is successful (status code 200), update the progress
       if (response.ok) {
         progressCompleted.value += 1;
       } else throw new Error("Chunk upload failed");
@@ -110,6 +116,7 @@ async function uploadFile(file: File) {
   }
 
   try {
+    // Wait for all chunk uploads to complete
     await Promise.all(uploads);
 
     fileLog.value.push({
@@ -118,6 +125,7 @@ async function uploadFile(file: File) {
     });
     emit("filesUploaded");
   } catch {
+    // Abort the upload if any chunk fails
     controller.abort();
 
     fileLog.value.push({
