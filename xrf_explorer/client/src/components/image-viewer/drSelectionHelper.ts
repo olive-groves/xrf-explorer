@@ -84,8 +84,8 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
 
         // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
-        const pointCoords: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
-        const convertedPoint: Point2D = { x:  pointCoords.x, y: embeddingHeight - pointCoords.y };
+        const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
+        const convertedPoint: Point2D = { x:  point.x, y: embeddingHeight - point.y };
         const convertedIndex: number = coordinatesToIndex(convertedPoint.x, convertedPoint.y, width);
 
         // index of the point in the 256x256 bitmask
@@ -97,13 +97,11 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
             layerData[normalizedIndex + 2] != 0)
             continue;
 
-        // compute coordinates of point `i`
-        const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
         const isInSelection: boolean = isPointInSelection(point, newSelection);
 
         // update the layer's bitmask
         const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
-        for (let rgbValue = 0; rgbValue < 3; rgbValue++)        // rgbValue corresponds to red, green, blue
+        for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)            // rgbValue corresponds to red, green, blue
             layerData[normalizedIndex + rgbValue] = (isInSelection ? selectionColor[rgbValue] : 0);
         // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
         layerData[normalizedIndex + 3] = (isInSelection ? config.selectionToolConfig.opacity : 0);

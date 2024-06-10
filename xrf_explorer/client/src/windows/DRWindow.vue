@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import { LassoSelectionTool } from "@/lib/selection";
+import {LassoSelectionTool, RectangleSelectionTool} from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,8 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: LassoSelectionTool = new LassoSelectionTool();
+const selectionTool: RectangleSelectionTool = new RectangleSelectionTool();
+// const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 let imageToEmbeddingCropping: {
   xEmbedRange: number[], yEmbedRange: number[],
@@ -264,6 +265,7 @@ async function communicateSelectionWithImageViewer() {
 /**
  * The image element on which the embedding is plotted has larger dimensions than the embedding itself, here we update
  * the coordinates of the selection to fit the embedding's dimensions instead of the image's.
+ * @param writeList - The list of points where the updated points will be written to.
  */
 function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
   // compute cropping
