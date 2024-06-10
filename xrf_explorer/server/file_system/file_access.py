@@ -271,7 +271,7 @@ def get_base_image_name(data_source_folder_name: str) -> str | None:
     if workspace_dict is None:
         return None
 
-    return workspace_dict["baseImage"]["imageLocation"]
+    return workspace_dict["baseImage"]["name"]
 
 
 def get_base_image_path(data_source_folder_name: str) -> str | None:
@@ -286,7 +286,11 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
         LOG.error("Config is empty")
         return None
 
-    filename: str | None = get_base_image_name(data_source_folder_name)
+    workspace_dict: dict = get_workspace_dict(data_source_folder_name)
+    if workspace_dict is None:
+        return None
+
+    filename: str | None = workspace_dict["baseImage"]["imageLocation"]
 
     if filename is not None:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)

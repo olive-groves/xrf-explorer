@@ -4,6 +4,13 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { binSize, datasource, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
+import {
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@/components/ui/number-field";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
@@ -314,7 +321,7 @@ if (false) {
         </div>
       </div>
       <!-- ELEMENT SELECTION -->
-      <Separator />
+      <Separator class="mt-2" />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
         <Select id="element-dropdown" v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
@@ -330,17 +337,17 @@ if (false) {
         </Select>
       </div>
       <!-- ENERGY SELECTION -->
-      <Separator />
-      <p class="ml-1 font-bold">Choose the excitation energy (keV):</p>
-      <Input
-        id="excitation-input"
-        type="number"
-        class="ml-1 mt-1 w-64"
-        v-model="excitation"
-        @change="updateElementSpectrum()"
-      />
+      <Separator class="mt-2" />
+      <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
+      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum()">
+        <NumberFieldContent>
+          <NumberFieldInput />
+          <NumberFieldDecrement />
+          <NumberFieldIncrement />
+        </NumberFieldContent>
+      </NumberField>
       <!-- PLOTTING THE CHART -->
-      <Separator />
+      <Separator class="mt-2" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
       <svg class="ml-1" ref="spectraChart"></svg>
     </div>
