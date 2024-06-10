@@ -79,7 +79,7 @@ async function initializeDataSource() {
     if (!response.ok) {
       progress.value = Progress.Name;
       toast.error(`Failed to create data source "${name}"`, {
-        description: "It might already exist",
+        description: "The data source might already exist",
       });
       return;
     }

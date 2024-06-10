@@ -143,11 +143,11 @@ def create_data_source_dir(data_source: str):
     data_source_dir = join(config["uploads-folder"], data_source)
 
     # create data source dir
-    if not isfile(data_source_dir):
+    if not isdir(data_source_dir):
         LOG.info(f"Creating data source directory at {data_source_dir}")
         mkdir(data_source_dir)
 
-    if isfile(data_source_dir):
+    elif isdir(data_source_dir):
         error_msg: str = "Data source directory already exists."
         LOG.error(error_msg)
         return error_msg, 400
@@ -176,7 +176,7 @@ def remove_data_source_dir(data_source: str):
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(config['uploads-folder'], data_source)
+    data_source_dir: str = join(config['uploads-folder'], data_source)
 
     if not isdir(data_source_dir):
         error_msg: str = "Data source name does not exist."

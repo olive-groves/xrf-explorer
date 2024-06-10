@@ -21,7 +21,7 @@ function save() {
 
 /**
  * Enable all channels in the workspace.
- * @param model - The workspace configuration.
+ * @param model The workspace configuration.
  */
 function selectAllChannels(model: WorkspaceConfig) {
   model.elementalChannels.forEach((channel) => {
@@ -52,7 +52,7 @@ function selectAllChannels(model: WorkspaceConfig) {
       <!-- Footer -->
       <div class="flex justify-between">
         <div>
-          <Button variant="outline" @click="initializeChannels(model)">Reinitialize elements</Button>
+          <Button variant="outline" @click="initializeChannels(model)">Deselect all elements</Button>
           <Button variant="outline" class="ml-2" @click="selectAllChannels(model)">Select all elements</Button>
         </div>
         <div class="space-x-2">

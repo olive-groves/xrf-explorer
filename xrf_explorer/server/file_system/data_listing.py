@@ -2,7 +2,6 @@ import logging
 
 from os import listdir
 from os.path import isdir, isfile, join
-from pathlib import Path
 
 from .config_handler import get_config
 
@@ -49,7 +48,7 @@ def get_data_source_files(data_source: str) -> list[str]:
         return []
 
     # Path to folder where the files are stored
-    path = join(config['uploads-folder'], data_source)
+    path: str = join(config['uploads-folder'], data_source)
 
     # Return list of all data source names in the folder
     # The data source names are the names of the folders in the data folder that contain a workspace.json
