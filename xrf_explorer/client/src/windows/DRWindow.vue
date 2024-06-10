@@ -181,10 +181,10 @@ async function updateImageToEmbeddingCropping() {
           }
           const rect = image.getBoundingClientRect();
 
-          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xmin, xmax, rect.left, rect.left + rect.width);
-          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, ymin, ymax, rect.top + rect.height, rect.top).reverse();
-          imageToEmbeddingCropping.xPlotRange = [rect.left, rect.left + rect.width];
-          imageToEmbeddingCropping.yPlotRange = [rect.top, rect.top + rect.height];
+          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xmin, xmax, 0, rect.width);
+          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, ymin, ymax, rect.height, 0).reverse();
+          imageToEmbeddingCropping.xPlotRange = [0, rect.width];
+          imageToEmbeddingCropping.yPlotRange = [0, rect.height];
         },
         () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
       );
