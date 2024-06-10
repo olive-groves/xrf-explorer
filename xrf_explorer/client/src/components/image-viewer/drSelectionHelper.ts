@@ -17,7 +17,7 @@ let embeddingWidth: number = -1;
 let embeddingHeight: number = -1;
 const width: number = 256;          // arbitrary amount to compress embedding data
 const height: number = 256;         // arbitrary amount to compress embedding data
-const middleImageApiUrl: string = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
+let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(width * height * 4);
 const layerTexture: DataTexture = createDataTexture(layerData, width, height);
@@ -33,7 +33,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
     if (newSelection == null)
         return;
 
-    // remove selection
+    // remove current selection
     if (newSelection.points.length == 0) {
         updateLayer(0, false);
         console.info("Removed dimensionality reduction selection.");
@@ -227,12 +227,15 @@ function updateLayer(nPointsSelected: number, updateImage: boolean): void {
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
+    // update the middle image api url if it hasn't been loaded yet
+    if (middleImageApiUrl == "")
+        middleImageApiUrl = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
+
     const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
     recipe.movingSize = await getDataSize();
     recipe.targetSize = await getTargetSize();
 
     // set up layer
-    const layers: Layer[] = [];
     const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
     registerLayer(layer, recipe);
     layer.uniform.iLayerType.value = LayerType.Selection;
@@ -240,9 +243,9 @@ export async function createDRSelectionLayer() {
 
     // add layers to the groups of layers
     layerGroups.value.selection = {
-        name: "DR Selection",
+        name: "Dimensionality Reduction Selection",
         description: "Visualizes the current selection in the DR Window",
-        layers: layers,
+        layers: [layer],
         index: -2,
         visible: true,
         ...layerGroupDefaults,
