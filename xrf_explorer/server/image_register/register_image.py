@@ -23,7 +23,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def load_image_toregister(path_image_toregister: str) -> MatLike | None:
     """Loads an image from the specified path. Preserves the alpha channel of .png files.
-    
+
     :param path_image_toregister: Path of the image to be loaded for registering.
     :return: A MatLike representation of the image. If the image cannot be read, it returns None
     """
@@ -31,7 +31,7 @@ def load_image_toregister(path_image_toregister: str) -> MatLike | None:
     if path_image_toregister.endswith(".png"):  # Preserve the alpha channel if a PNG.
         image_toregister = imread(path_image_toregister, IMREAD_UNCHANGED)
         if (
-                image_toregister.ndim == 2
+            image_toregister.ndim == 2
         ):  # ...but if the PNG is monochannel, redo the imread and let cv2 determine how.
             image_toregister = imread(path_image_toregister)
     else:
@@ -43,8 +43,35 @@ def load_image_toregister(path_image_toregister: str) -> MatLike | None:
     return image_toregister
 
 
+def compute_fitting_dimensions_by_aspect(
+    image_to_resize_height,
+    image_to_resize_width,
+    image_reference_height,
+    image_reference_width,
+):
+    aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
+    aspect_toregister = (
+        image_to_resize_width / image_to_resize_height
+    )  # w/h (e.g., 16:9)
+
+    image_resized_height = None
+    image_resized_width = None
+
+    if aspect_toregister > aspect_reference:
+        # If the toregister is wider than the reference, resize toregister to match widths
+        image_resized_width = image_reference_width
+        image_resized_height = int(image_reference_width / aspect_toregister)
+    else:
+        # If the toregister is narrower or equi-aspect to the reference, resize toregister to match heights
+        image_resized_height = image_reference_height
+        image_resized_width = int(image_resized_height * aspect_toregister)
+
+    return image_resized_height, image_resized_width
+
+
+# TODO: Make the description better
 def resize_image_fit_aspect_ratio(
-        image_resize: MatLike, image_reference_height: int, image_reference_width: int
+    image_resize: MatLike, image_reference_height: int, image_reference_width: int
 ) -> MatLike:
     """Resizes an image to the aspect ratio calculated by the reference image width
     and height (image_reference_width, image_reference_height).
@@ -57,23 +84,14 @@ def resize_image_fit_aspect_ratio(
 
     image_register_height, image_register_width = image_resize.shape[:2]
 
-    aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
-    aspect_toregister = image_register_width / image_register_height  # w/h (e.g., 16:9)
-
-    image_toregister_resize_width = None
-    image_toregister_resize_height = None
-
-    if aspect_toregister > aspect_reference:
-        # If the toregister is wider than the reference, resize toregister to match widths
-        image_toregister_resize_width = image_reference_width
-        image_toregister_resize_height = int(image_reference_width / aspect_toregister)
-    else:
-        # If the toregister is narrower or equi-aspect to the reference, resize toregister to match heights
-        image_toregister_resize_height = image_reference_height
-        image_toregister_resize_width = int(
-            image_toregister_resize_height * aspect_toregister
+    image_toregister_resize_height, image_toregister_resize_width = (
+        compute_fitting_dimensions_by_aspect(
+            image_register_height,
+            image_register_width,
+            image_reference_height,
+            image_reference_width,
         )
-
+    )
     return resize(
         image_resize,
         (image_toregister_resize_width, image_toregister_resize_height),
@@ -82,7 +100,7 @@ def resize_image_fit_aspect_ratio(
 
 
 def pad_image_to_match_size(
-        image_to_pad: MatLike, image_reference_height: int, image_reference_width: int
+    image_to_pad: MatLike, image_reference_height: int, image_reference_width: int
 ) -> MatLike:
     """Pads the image to match the size of the reference image (given by image_reference_width
     and image_reference_height).
@@ -109,7 +127,7 @@ def pad_image_to_match_size(
 
 
 def apply_prespective_transformation(
-        image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
+    image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
 ) -> MatLike:
     """Applies a perspective transformation on an image based on source and destination points.
     :param image_to_transform: A MatLike representation of the image to be transoformed.
@@ -125,7 +143,7 @@ def apply_prespective_transformation(
 
 
 def load_points(
-        path_points_csv_file: str,
+    path_points_csv_file: str,
 ) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
     """Loads the control points for the transformation from a CSV file, as generated by the
     butterfly_registrator
@@ -159,24 +177,23 @@ def load_points_dict(path_points_csv_file: str) -> dict[str, list[np.float32]] |
     """
 
     # Get the recipe points
-    points: tuple[NDArray[np.float32], NDArray[np.float32]] = load_points(path_points_csv_file)
+    points: tuple[NDArray[np.float32], NDArray[np.float32]] = load_points(
+        path_points_csv_file
+    )
     if not points:
         return None
 
     # Convert the points to a nice format
-    points_dict: dict = {
-        "moving": points[0].tolist(),
-        "target": points[1].tolist()
-    }
+    points_dict: dict = {"moving": points[0].tolist(), "target": points[1].tolist()}
 
     return points_dict
 
 
 def register_image_to_image(
-        path_image_reference: str,
-        path_image_register: str,
-        path_csv_points: str,
-        path_result_registered_image: str,
+    path_image_reference: str,
+    path_image_register: str,
+    path_csv_points: str,
+    path_result_registered_image: str,
 ) -> bool:
     """
     Registers an image to align with a reference image by resizing, padding, and applying
@@ -230,7 +247,7 @@ def register_image_to_image(
 
 
 def register_image_to_data_cube(
-        path_data_cube: str, path_image_register: str, path_result_registered_image: str
+    path_data_cube: str, path_image_register: str, path_result_registered_image: str
 ) -> bool:
     """
     Registers an image (given by the path path_image_register) to align with the dimensions of the data cube (given by the path path_data_cube).
