@@ -248,7 +248,7 @@ def get_base_image_name(data_source_folder_name: str) -> str | None:
     if workspace_dict is None:
         return None
 
-    return workspace_dict["baseImage"]["imageLocation"]
+    return workspace_dict["baseImage"]["name"]
 
 
 def get_base_image_path(data_source_folder_name: str) -> str | None:
