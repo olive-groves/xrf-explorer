@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import {LassoSelectionTool, RectangleSelectionTool} from "@/lib/selection";
+import { LassoSelectionTool, RectangleSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -136,7 +136,7 @@ async function updateEmbedding() {
     if (data.value == "downsampled") {
       toast.warning("Downsampled data points", {
         description:
-            "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+          "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
       });
     }
 
@@ -144,6 +144,7 @@ async function updateEmbedding() {
     await fetchDRImage();
     // Load the new values representing the difference between the image and the embedding
     await updateImageToEmbeddingCropping();
+    console.log(imageToEmbeddingCropping)
     // the middle image used for conversion from embedding to image needs to be updated
     updateInEmbedding = true;
     return;
@@ -154,23 +155,41 @@ async function updateEmbedding() {
   status.value = Status.ERROR;
 }
 
+
+function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: number, newMax: number): Array<number> {
+  return a.map((x) => (x - oldMin) / (oldMax - oldMin) * (newMax - newMin) + newMin);
+}
+
 /**
  * Get the new values representing the difference in dimensions between the image and the embedding.
  */
 async function updateImageToEmbeddingCropping() {
   fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
-      async (response) => {
-        response.json().then(
-            (dimensions) => {
-              imageToEmbeddingCropping.xEmbedRange = dimensions.xembedrange;
-              imageToEmbeddingCropping.yEmbedRange = dimensions.yembedrange;
-              imageToEmbeddingCropping.xPlotRange = dimensions.xplotrange;
-              imageToEmbeddingCropping.yPlotRange = dimensions.yplotrange;
-            },
-            () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
-        );
-      },
-      () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
+    async (response) => {
+      response.json().then(
+        (dimensions) => {
+          const xmin = dimensions.xplotrange[0]
+          const ymin = dimensions.yplotrange[0]
+
+          const xmax = dimensions.xplotrange[1]
+          const ymax = dimensions.yplotrange[1]
+
+          const image: HTMLElement | null = document.getElementById("image");
+          if (image == null) {
+            console.warn("Tried to update the image to embedding cropping but could not find image element in DR window.");
+            return;
+          }
+          const rect = image.getBoundingClientRect();
+
+          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xmin, xmax, rect.left, rect.left + rect.width);
+          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, ymin, ymax, rect.top + rect.height, rect.top).reverse();
+          imageToEmbeddingCropping.xPlotRange = [rect.left, rect.left + rect.width];
+          imageToEmbeddingCropping.yPlotRange = [rect.top, rect.top + rect.height];
+        },
+        () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
+      );
+    },
+    () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
   );
 }
 
@@ -306,7 +325,7 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
       <div class="mt-1 flex items-center">
         <Select v-model="selectedOverlay">
           <SelectTrigger>
-            <SelectValue placeholder="Select an overlay"/>
+            <SelectValue placeholder="Select an overlay" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -327,11 +346,11 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
       </div>
       <!-- PARAMETERS SECTIONS -->
       <p class="mt-4 font-bold">Embedding:</p>
-      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]"/>
+      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
       <div class="mt-1 flex items-center">
         <Select v-model="selectedElement">
           <SelectTrigger>
-            <SelectValue placeholder="Select an element"/>
+            <SelectValue placeholder="Select an element" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -347,19 +366,19 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
       <!-- GENERATION OF THE IMAGE -->
       <p class="mt-4 font-bold">Generated image:</p>
       <div
-          class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center pointer-events-auto"
-          style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="imageContainer" ref="output">
+        class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center pointer-events-auto"
+        style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="imageContainer" ref="output">
         <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
           <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
           <span v-if="status == Status.LOADING">Loading</span>
           <span v-if="status == Status.GENERATING">Generating</span>
           <span v-if="status == Status.ERROR">{{ currentError }}</span>
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
-            <LoaderPinwheel class="size-full animate-spin"/>
+            <LoaderPinwheel class="size-full animate-spin" />
           </div>
-          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR"/>
+          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR" />
           <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
-               style="position: absolute"></svg>
+            style="position: absolute"></svg>
 
           <!--        <img id="image" :src="mrIncredible" @error="status = Status.ERROR"/>-->
           <!--        <svg id="svgOverlay" ref="svgOverlay" style="position: absolute"></svg>-->
