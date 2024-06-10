@@ -20,12 +20,15 @@ function save() {
 }
 
 /**
- * Enable all channels in the workspace.
+ * Toggles all channels in the workspace.
  * @param model The workspace configuration.
  */
-function selectAllChannels(model: WorkspaceConfig) {
+function toggleAllChannels(model: WorkspaceConfig) {
+  console.log(model);
+  const allEnabled = model.elementalChannels.filter((channel) => !channel.enabled).length == 0;
   model.elementalChannels.forEach((channel) => {
-    channel.enabled = true;
+    // Enable everything, unless everything is enabled, then disable everything
+    channel.enabled = !allEnabled;
   });
 }
 </script>
@@ -51,13 +54,11 @@ function selectAllChannels(model: WorkspaceConfig) {
 
       <!-- Footer -->
       <div class="flex justify-between">
-        <div>
-          <Button variant="outline" @click="initializeChannels(model)">Deselect all elements</Button>
-          <Button variant="outline" class="ml-2" @click="selectAllChannels(model)">Select all elements</Button>
-        </div>
         <div class="space-x-2">
-          <Button :disabled="!modelValid[0]" @click="save">Save</Button>
+          <Button variant="outline" @click="initializeChannels(model)">Initialize elements</Button>
+          <Button variant="outline" @click="toggleAllChannels(model)">Toggle all elements</Button>
         </div>
+        <Button :disabled="!modelValid[0]" @click="save">Save</Button>
       </div>
     </div>
   </DialogScrollContent>
