@@ -33,34 +33,29 @@ function updateWorkspace() {
   console.info("Saving changes to workspace", newWorkspace);
 
   // Send a POST request to update the workspace
-  try {
-    fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
-      method: "POST",
-      body: JSON.stringify(newWorkspace),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(
-      () => {
-        // If the request is successful, update the app state and display a success message
-        appState.workspace = newWorkspace;
-        fileDialog.value = false;
-        channelsDialog.value = false;
-        toast.success("Updated workspace", {
-          description: "The updates are persistent between sessions",
-        });
-      },
-      () => {
-        // If the request fails, display a warning message
-        toast.warning("Failed to update workspace", {
-          description: "No changes have been made",
-        });
-      },
-    );
-  } catch (e) {
-    // Handle any exceptions (e.g., network errors)
-    console.error(`Error updating workspace: ${e}`);
-  }
+  fetch(`${config.api.endpoint}/${newWorkspace.name}/workspace`, {
+    method: "POST",
+    body: JSON.stringify(newWorkspace),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(
+    () => {
+      // If the request is successful, update the app state and display a success message
+      appState.workspace = newWorkspace;
+      fileDialog.value = false;
+      channelsDialog.value = false;
+      toast.success("Updated workspace", {
+        description: "The updates are persistent between sessions",
+      });
+    },
+    () => {
+      // If the request fails, display a warning message
+      toast.warning("Failed to update workspace", {
+        description: "No changes have been made",
+      });
+    },
+  );
 }
 </script>
 
