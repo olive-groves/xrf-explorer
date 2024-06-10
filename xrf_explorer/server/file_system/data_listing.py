@@ -28,7 +28,7 @@ def get_data_sources_names() -> list[str]:
     # Return list of all data source names in the folder
     # The data source names are the names of the folders in the data folder that contain a workspace.json
     folders: list[str] = [filename for filename in listdir(path) if isdir(join(path, filename)) 
-            and isfile(join(path, filename, "workspace.json"))]
+                          and isfile(join(path, filename, "workspace.json"))]
 
     LOG.info(f"Successful. Data sources in folder: {folders}")
     return folders
