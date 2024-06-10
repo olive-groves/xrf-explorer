@@ -271,10 +271,10 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
   // compute cropping
   const xDelta: number = imageToEmbeddingCropping.xEmbedRange[0] - imageToEmbeddingCropping.xPlotRange[0];
   const xMin: number = imageToEmbeddingCropping.xEmbedRange[0];
-  const xMax: number = imageToEmbeddingCropping.xPlotRange[1] - imageToEmbeddingCropping.xEmbedRange[1];
-  const yMin: number = imageToEmbeddingCropping.yEmbedRange[0];
+  const xMax: number = imageToEmbeddingCropping.xEmbedRange[1];
   const yDelta: number = imageToEmbeddingCropping.yEmbedRange[0] - imageToEmbeddingCropping.yPlotRange[0];
-  const yMax: number = imageToEmbeddingCropping.yPlotRange[1] - imageToEmbeddingCropping.yEmbedRange[1];
+  const yMin: number = imageToEmbeddingCropping.yEmbedRange[0];
+  const yMax: number = imageToEmbeddingCropping.yEmbedRange[1];
 
   // adapt the coordinates of the selected points to the cropped embedding
   for (const point of selectionTool.selectedPoints) {
