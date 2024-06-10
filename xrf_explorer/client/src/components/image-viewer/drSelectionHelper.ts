@@ -1,5 +1,7 @@
 import { DataTexture } from "three";
 import { computed, watch } from "vue";
+import { getDataSize, getRecipe, getTargetSize } from "@/components/image-viewer/api";
+import { registerLayer } from "@/components/image-viewer/registering";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/image-viewer/state";
 import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
@@ -8,8 +10,6 @@ import { appState, datasource } from "@/lib/appState";
 import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
 import { config } from "@/main";
-import { getDataSize, getRecipe, getTargetSize } from "@/components/image-viewer/api";
-import { registerLayer } from "@/components/image-viewer/registering";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);
 
