@@ -113,7 +113,7 @@ def pad_image_to_match_size(
         )
 
 
-def apply_prespective_transformation(
+def apply_perspective_transformation(
         image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
 ) -> MatLike:
     """Applies a perspective transformation on an image based on source and destination points.
@@ -196,7 +196,7 @@ def register_image(
 
     padded_image: MatLike = pad_image_to_match_size(resized_image, new_height, new_width)
 
-    return apply_prespective_transformation(padded_image, points_source, points_destination)
+    return apply_perspective_transformation(padded_image, points_source, points_destination)
 
 
 def inverse_register_image(
@@ -215,8 +215,8 @@ def inverse_register_image(
     """
 
     # Inverse transform the image, this is done by swapping the source and destination points in the method
-    image_transformed: MatLike = apply_prespective_transformation(image, points_destination, points_source)
-
+    image_transformed: MatLike = apply_perspective_transformation(image, points_destination, points_source)
+    
     # Get the dimensions of the image
     image_height, image_width = image_transformed.shape[:2]
 
@@ -303,32 +303,20 @@ def register_image_to_image(
     return imwrite(path_result_registered_image, registered_image)
 
 
-def register_image_to_data_cube(
-        data_source: str, image_name: str, path_result_registered_image: str
-) -> bool:
+def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatLike | None:
     """
-    Registers an image (given by the path path_image_register) to align with the dimensions of the data cube (given by the path path_data_cube).
+    Registers an image to align with the dimensions of the data cube.
 
-    :param path_data_cube: The path of the data cube.
-    :param path_image_register: The path of the image to be registered.
-    :path path_csv_points: The path of the .csv file.
-    :param path_result_registered_image: The path where the registered image will be saved.
-    :return: True if the registered image has been written to the specified path successfully and false otherwise.
+    :param data_source: The name of the data source.
+    :param image_name: The name of the image to be registered.
+    :return: The registered image or None in case of an error.
     """
-
-    # Check if the result directory exists
-    path_result_dirname: str = dirname(path_result_registered_image)
-    if not exists(path_result_dirname):
-        LOG.error(
-            f"Registered image could not be saved at {path_result_registered_image} because directory does not exist."
-        )
-        return False
 
     # Get the data cube and check if the data cube exists
-    path_data_cube: str = get_elemental_cube_path(data_source)
-    if not exists(path_data_cube):
+    path_data_cube: str | None = get_elemental_cube_path(data_source)
+    if path_data_cube is None:
         LOG.error(f"Data cube not found at {path_data_cube}")
-        return False
+        return None
     
     # Load the data cube dimensions
     cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
@@ -337,25 +325,25 @@ def register_image_to_data_cube(
     path_image_register: str | None = get_contextual_image_path(data_source, image_name)
     if path_image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
-        return False
+        return None
     
     # Load the image to be registered
     image_register: MatLike = imread(path_image_register)
     if image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
-        return False
+        return None
     
     # Check if the image is the base image
     is_image_base_image: bool | None = is_base_image(data_source, image_name)
     if is_image_base_image is None:
-        return False
+        return None
 
     # If not base image, register image to base image first
     if not is_image_base_image:
         # Get recipe to base image
         base_recipe_path: str | None = get_contextual_image_recipe_path(data_source, image_name)
         if base_recipe_path is None:
-            return False 
+            return None 
         
         # Load the control points and apply the perspective transformation
         points_source, points_destination = load_points(base_recipe_path)
@@ -363,12 +351,12 @@ def register_image_to_data_cube(
         # Get path to base image
         path_to_base_image: str | None = get_path_to_base_image(data_source)
         if path_to_base_image is None:
-            return False
+            return None
 
         # Get the size of the base image
         base_image_size: tuple[int, int] | None = get_contextual_image_size(path_to_base_image)
         if base_image_size is None:
-            return False
+            return None
         
         base_image_width, base_image_height = base_image_size
 
@@ -382,14 +370,12 @@ def register_image_to_data_cube(
     # Get elemental data cube recipe
     cube_recipe_path: str | None = get_elemental_cube_recipe_path(data_source)
     if cube_recipe_path is None:
-        return False
+        return None
     
     # Load the control points and apply the perspective transformation
     points_source, points_destination = load_points(cube_recipe_path)
     
-    # Inverse register image 
+    # Inverse register the image 
     LOG.info("Registering image to elemental cube")
-    registred_image: MatLike = inverse_register_image(image_register, cube_w, cube_h, points_source, points_destination)
-
-    # Write the registered image to the specified path
-    return imwrite(path_result_registered_image, registred_image)
+    
+    return inverse_register_image(image_register, cube_w, cube_h, points_source, points_destination)

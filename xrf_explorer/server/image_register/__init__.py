@@ -1,1 +1,1 @@
-from .register_image import register_image_to_image, register_image_to_data_cube
+from .register_image import register_image_to_image, get_image_registered_to_data_cube

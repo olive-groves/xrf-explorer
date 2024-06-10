@@ -1,18 +1,26 @@
+import logging
 import pytest
+
 from os import remove
 from os.path import exists
-from xrf_explorer.server.image_register import register_image_to_image
-from xrf_explorer.server.image_register.register_image import (
-    register_image_to_data_cube,
-)
+
+from cv2.typing import MatLike
+
+from xrf_explorer.server.file_system.config_handler import set_config
+from xrf_explorer.server.image_register import register_image_to_image, get_image_registered_to_data_cube
 
 
 class TestImageRegistration:
-    PATH_IMAGE_REFERENCE = "tests/resources/image_registration/image.png"
-    PATH_IMAGE_REGISTER = "tests/resources/image_registration/image.png"
-    PATH_CUBE = "tests/resources/image_registration/cube.dms"
-    PATH_CONTROL_POINTS = "tests/resources/image_registration/control_points.csv"
+    CONFIG_PATH = "tests/resources/configs/image-registration.yml"
+
+    PATH_IMAGE_REFERENCE = "tests/resources/image_registration/data_source/image.png"
+    PATH_IMAGE_REGISTER = "tests/resources/image_registration/data_source/image.png"
+    PATH_CUBE = "tests/resources/image_registration/data_source/cube.dms"
+    PATH_CONTROL_POINTS = "tests/resources/image_registration/data_source/control_points.csv"
     PATH_RESULT = "tests/resources/image_registration/result.tif"
+
+    DATA_SOURCE = "data_source"
+    IMAGE_NAME = "RGB"
 
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -88,45 +96,41 @@ class TestImageRegistration:
         assert exists(self.PATH_RESULT)
 
     def test_register_image_to_cube_data_cube_not_found(self, caplog):
-        result: bool = register_image_to_data_cube(
-            "made/up/path", self.PATH_IMAGE_REGISTER, self.PATH_CONTROL_POINTS, self.PATH_RESULT
+        # setup 
+        set_config(self.CONFIG_PATH)
+
+        # execute
+        result: MatLike | None = get_image_registered_to_data_cube(
+            "not_a_data_source", self.IMAGE_NAME
         )
 
-        assert not result
-        assert not exists(self.PATH_RESULT)
-
-        assert "Data cube not found at made/up/path" in caplog.text
+        # verify
+        assert result is None
+        assert "Data cube not found at" in caplog.text
 
     def test_register_image_to_cube_image_register_not_found(self, caplog):
-        result: bool = register_image_to_data_cube(
-            self.PATH_CUBE, "made/up/path", self.PATH_CONTROL_POINTS, self.PATH_RESULT
+        # setup
+        set_config(self.CONFIG_PATH)
+
+        # execute
+        result: MatLike | None = get_image_registered_to_data_cube(
+            self.DATA_SOURCE, "not_an_image_name"
         )
 
-        assert not result
-        assert not exists(self.PATH_RESULT)
-
-        assert "Image for registering not found at made/up/path" in caplog.text
-
-    def test_register_image_to_cube_destination_not_found(self, caplog):
-        result: bool = register_image_to_data_cube(
-            self.PATH_CUBE,
-            self.PATH_IMAGE_REGISTER,
-            self.PATH_CONTROL_POINTS,
-            "tests/resources/image_registration/unexistantdir/result.tif",
-        )
-
-        assert not result
-        assert not exists(self.PATH_RESULT)
-
-        assert (
-            "Registered image could not be saved at tests/resources/image_registration/unexistantdir/result.tif because directory does not exist."
-            in caplog.text
-        )
+        # verify
+        assert result is None
+        assert "Image for registering not found at" in caplog.text
 
     def test_register_image_to_cube_success(self, caplog):
-        result: bool = register_image_to_data_cube(
-            self.PATH_CUBE, self.PATH_IMAGE_REGISTER, self.PATH_CONTROL_POINTS, self.PATH_RESULT
+        # setup
+        set_config(self.CONFIG_PATH)
+        caplog.set_level(logging.INFO)
+        
+        # execute
+        result: MatLike | None = get_image_registered_to_data_cube(
+            self.DATA_SOURCE, self.IMAGE_NAME
         )
 
-        assert result
-        assert exists(self.PATH_RESULT)
+        # verifiy
+        assert result is not None
+        assert "Registering image to elemental cube" in caplog.text

@@ -11,6 +11,7 @@ import json
 from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
+from cv2 import imwrite
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.config_handler import get_config
@@ -23,7 +24,7 @@ from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
     get_elemental_map, normalize_ndarray_to_grayscale
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
-from xrf_explorer.server.image_register.register_image import load_points_dict, register_image_to_data_cube, register_image_to_image
+from xrf_explorer.server.image_register.register_image import load_points_dict, get_image_registered_to_data_cube
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.color_seg import (
     combine_bitmasks, get_clusters_using_k_means,
@@ -61,25 +62,9 @@ def api():
 def testtt():
     path = "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\temp\\test.png"
 
-    register_image_to_data_cube(
-        "Postman",
-        "UV",
-        path
-    )
+    registered_image = get_image_registered_to_data_cube("Postman", "RGB")
 
-    # register_image_to_image(
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_RGB.tif",
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_UV.tif",
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\recipe_uv.csv",
-    #     path
-    # )
-
-    # register_image_to_data_cube(
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\elemental.dms",
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_RGB.tif",
-    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\recipe_area_image.csv",
-    #     path
-    # )
+    imwrite(path, registered_image)
 
     return send_file(path, mimetype='image/png')
 
@@ -572,7 +557,7 @@ def get_color_clusters(data_source: str):
     # Compute colors and bitmasks
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
@@ -591,7 +576,8 @@ def get_color_clusters(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts_elem, k_elem)
+        data_source, rgb_image_name, elem_threshold, nr_attempts_elem, k_elem
+    )
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters

@@ -6,11 +6,13 @@ from pathlib import Path
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
-from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
+from xrf_explorer.server.dim_reduction.general import valid_element
 
 matplotlib.use('Agg')
 
@@ -54,8 +56,8 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         image_type: str = overlay_type.removeprefix("contextual_")
 
         # Get the pixels of registered image
-        registered_image: np.ndarray = get_registered_image(data_source, image_type)
-        if len(registered_image) == 0:
+        registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_type)
+        if registered_image is None:
             return ""
 
         # Create the overlay
