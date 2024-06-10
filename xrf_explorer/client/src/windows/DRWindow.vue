@@ -60,6 +60,7 @@ const imageSourceUrl = ref();
 // Selection
 const svgOverlay = ref(null);
 const selectionTool: LassoSelectionTool = new LassoSelectionTool();
+// the area (plot image) on which the embedding is displayed is larger than the embedding itself
 let imageToEmbeddingCropping: {
   xEmbedRange: number[], yEmbedRange: number[],
   xPlotRange: number[], yPlotRange: number[]
@@ -67,7 +68,7 @@ let imageToEmbeddingCropping: {
   xEmbedRange: [], yEmbedRange: [],
   xPlotRange: [], yPlotRange: [],
 }
-let updateInEmbedding: boolean = false;
+let updateInEmbedding: boolean = false;   // true if the embedding has been updated since the last finished selection
 // const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
@@ -193,7 +194,14 @@ function onMouseDown(event: MouseEvent) {
   else if (event.button == config.selectionToolConfig.confirmButton)
     selectionTool.confirmSelection();
 
-  // update the SVG overlay
+  updateSelectionVisuals();
+}
+
+/**
+ * Update the visual representation of the selection in the embedding image and in the main viewer.
+ */
+function updateSelectionVisuals() {
+  // update the embedding's SVG overlay
   drawSelection();
 
   // relay information to the image viewer
@@ -201,6 +209,35 @@ function onMouseDown(event: MouseEvent) {
     console.info("Confirmed selection with " + selectionTool.selectedPoints.length + " points.");
     communicateSelectionWithImageViewer();
   }
+}
+
+/**
+ * Draw the shape of the selection on the SVG overlay.
+ */
+function drawSelection() {
+
+  // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
+  const imageDimensions: { x: number, y: number, width: number, height: number } = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0
+  }
+
+  const image: HTMLElement | null = document.getElementById("image");
+
+  if (image == null)
+    console.warn("Tried to draw selection but could not find image element in DR window.");
+  else {
+    // update dimensions with image element values to fit the SVG to the image
+    const rect = image.getBoundingClientRect();
+    imageDimensions.x = rect.left;
+    imageDimensions.y = rect.top;
+    imageDimensions.width = rect.width;
+    imageDimensions.height = rect.height;
+  }
+
+  selectionTool.draw(d3.select(svgOverlay.value), imageDimensions, config);
 }
 
 /**
@@ -256,35 +293,6 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
 
     writeList.push(newPoint);
   }
-}
-
-/**
- * Draw the shape of the selection on the SVG overlay
- */
-function drawSelection() {
-
-  // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
-  const imageDimensions: { x: number, y: number, width: number, height: number } = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0
-  }
-
-  const image: HTMLElement | null = document.getElementById("image");
-
-  if (image == null)
-    console.warn("Tried to draw selection but could not find image element in DR window.");
-  else {
-    // update dimensions with image element values to fit the SVG to the image
-    const rect = image.getBoundingClientRect();
-    imageDimensions.x = rect.left;
-    imageDimensions.y = rect.top;
-    imageDimensions.width = rect.width;
-    imageDimensions.height = rect.height;
-  }
-
-  selectionTool.draw(d3.select(svgOverlay.value), imageDimensions, config);
 }
 </script>
 

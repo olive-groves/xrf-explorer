@@ -137,7 +137,7 @@ export type DimensionalityReductionSelection = {
 };
 
 /**
- * Supported types of selection.
+ * Supported types of selection by the selection tool.
  */
 export enum SelectionOption {
     Lasso = "lasso",
@@ -149,7 +149,7 @@ export enum SelectionOption {
  */
 abstract class BaseSelectionTool {
   /**
-   * Determines the type of selection the tool should perform (rectangle, lasso, etc.).
+   * Determines the type of selection the tool should perform (rectangle, lasso, etc.). Should not be changed.
    */
   protected selectionType: SelectionOption;
   /**
@@ -170,10 +170,17 @@ abstract class BaseSelectionTool {
     this.selectionType = selectionType;
   }
 
+  /**
+   * Getter method for the selection type.
+   * @returns The selection type of the selection tool object.
+   */
   type(): SelectionOption {
     return this.selectionType;
   }
 
+  /**
+   * Reset all necessary values to reflect no selection.
+   */
   cancelSelection(): void {
     this.selectedPoints = [];
     this.activeSelection = false;
@@ -188,8 +195,16 @@ abstract class BaseSelectionTool {
     this.finishedSelection = true;
   }
 
-  protected handleSelection(): void {}
+  /**
+   * Perform necessary computations based on the selection type. Must be implemented by child classes.
+   * @protected
+   */
+  protected abstract handleSelection(): void;
 
+  /**
+   * Update all necessary values to add a new point to the selection.
+   * @param newPoint - The new point to be added to the selection.
+   */
   addPointToSelection(newPoint: Point2D): void {
     // restart selection if the current selection is complete
     if (this.finishedSelection)
@@ -204,6 +219,12 @@ abstract class BaseSelectionTool {
     this.handleSelection();
   }
 
+  /**
+   * Removes any and all selection drawings made on the SVG overlay where the selection is displayed.
+   * @param svg - D3 SVG object on which we are drawing the selection.
+   * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
+   * @protected
+   */
   protected resetSVGDrawing(svg: d3.Selection<null, unknown, null, undefined>,
                   dimensions: { x: number, y: number, width: number, height: number }):
       d3.Selection<null, unknown, null, undefined> {
@@ -217,6 +238,12 @@ abstract class BaseSelectionTool {
     return svg;
   }
 
+  /**
+   * Draws the current selection on the given SVG overlay.
+   * @param svg - D3 SVG object on which we are drawing the selection.
+   * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
+   * @param config - Frontend config values containing constants for the aesthetics of the selection.
+   */
   abstract draw(svg: d3.Selection<null, unknown, null, undefined>,
        dimensions: { x: number, y: number, width: number, height: number },
        config: FrontendConfig): void
@@ -231,10 +258,9 @@ export class RectangleSelectionTool extends BaseSelectionTool {
   }
 
   /**
-   * Update the list of points to achieve a list of format `[top-left, bottom-right]`.
+   * Reformat the list of points to achieve a list of format `[top-left, bottom-right]` and update the selection state.
    */
   protected handleSelection(): void {
-    // TODO: origin in image viewer is bottom-left, but on image itself it's top-left, this needs to be converted when sending to the backend
     this.selectedPoints.sort((a, b) => a.y - b.y || a.x - b.x);
 
     // selection has concluded if we have 2 points
@@ -279,9 +305,9 @@ export class RectangleSelectionTool extends BaseSelectionTool {
 
   /**
    * Draw the selection rectangle on a given SVG element. Note that everything on this SVG will be overwritten.
-   * @param svg - SVG HTML element on which to draw the selection.
-   * @param dimensions - x and y coordinates of the top-left corner of the SVG element and its width and height.
-   * @param config - Frontend config containing constants for the aesthetics of the selection.
+   * @param svg - D3 SVG object on which we are drawing the selection.
+   * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
+   * @param config - Frontend config values containing constants for the aesthetics of the selection.
    */
   draw(svg: d3.Selection<null, unknown, null, undefined>,
        dimensions: { x: number, y: number, width: number, height: number },
@@ -308,7 +334,8 @@ export class LassoSelectionTool extends BaseSelectionTool {
   }
 
   /**
-   * Update the list of points to avoid colliding areas.
+   * Update the list of points to avoid colliding areas when a previously selected point is fully contained in the new
+   * selection.
    */
   handleSelection(): void {
     // TODO: i have no clue how to actually do this
@@ -328,9 +355,9 @@ export class LassoSelectionTool extends BaseSelectionTool {
 
   /**
    * Draw the selection polygon on a given SVG element. Note that everything on this SVG will be overwritten.
-   * @param svg - SVG HTML element on which to draw the selection.
-   * @param dimensions - x and y coordinates of the top-left corner of the SVG element and its width and height.
-   * @param config - Frontend config containing constants for the aesthetics of the selection.
+   * @param svg - D3 SVG object on which we are drawing the selection.
+   * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
+   * @param config - Frontend config values containing constants for the aesthetics of the selection.
    */
   draw(svg: d3.Selection<null, unknown, null, undefined>,
        dimensions: { x: number, y: number, width: number, height: number },
