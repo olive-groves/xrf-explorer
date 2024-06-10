@@ -270,10 +270,10 @@ async function communicateSelectionWithImageViewer() {
   // communicate the relevant information to the image viewer using the app's state
   appState.selection.dimensionalityReduction = {
     selectionType: selectionTool.type(),
-    points: selectionPointsInEmbedding,
+    points: selectionPointsInEmbedding.map(point => ({ x: Math.floor(point.x), y: Math.floor(point.y) })),
     embeddedImageDimensions: {
-      width: imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0],
-      height: imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0]
+      width: Math.floor(imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0]),
+      height: Math.floor(imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0])
     },
     updateMiddleImage: updateInEmbedding,
   };

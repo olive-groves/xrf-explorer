@@ -117,10 +117,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     filtered_data: np.ndarray = data_cube[:, indices[:, 0], indices[:, 1]].transpose()
 
     # compute embedding
-    LOG.info(f"Generating embedding with:\n"
-             f"\telement: {element},\n"
-             f"\tthreshold: {threshold},\n"
-             f"\tsize: {filtered_data.shape}")
+    LOG.info(f"Generating embedding with: {{element: {element}, threshold: {threshold}, size: {filtered_data.shape}}}")
 
     embedded_data: np.ndarray | None = apply_umap(
         filtered_data,
