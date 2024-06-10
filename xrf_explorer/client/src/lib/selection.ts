@@ -221,10 +221,11 @@ abstract class BaseSelectionTool {
    * Removes any and all selection drawings made on the SVG overlay where the selection is displayed.
    * @param svg - D3 SVG object on which we are drawing the selection.
    * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
-   * @param dimensions.x
-   * @param dimensions.y
-   * @param dimensions.width
-   * @param dimensions.height
+   * @param dimensions.x - The x coordinate of the top-left point of the SVG overlay.
+   * @param dimensions.y - The y coordinate of the top-left point of the SVG overlay.
+   * @param dimensions.width - The desired width of the SVG overlay.
+   * @param dimensions.height - The desired height of the SVG overlay.
+   * @returns The SVG object cleaned of all selection drawings and adjusted to the desired dimensions.
    */
   protected resetSVGDrawing(
     svg: d3.Selection<null, unknown, null, undefined>,
@@ -259,7 +260,7 @@ abstract class BaseSelectionTool {
  */
 export class RectangleSelectionTool extends BaseSelectionTool {
   /**
-   *
+   * Constructs a new instance of `RectangleSelectionTool`.
    */
   constructor() {
     super(SelectionOption.Rectangle);
@@ -318,11 +319,11 @@ export class RectangleSelectionTool extends BaseSelectionTool {
    * Draw the selection rectangle on a given SVG element. Note that everything on this SVG will be overwritten.
    * @param svg - D3 SVG object on which we are drawing the selection.
    * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
-   * @param dimensions.x
+   * @param dimensions.x - The x coordinate of the top-left point of the SVG overlay.
+   * @param dimensions.y - The y coordinate of the top-left point of the SVG overlay.
+   * @param dimensions.width - The desired width of the SVG overlay.
+   * @param dimensions.height - The desired height of the SVG overlay.
    * @param config - Frontend config values containing constants for the aesthetics of the selection.
-   * @param dimensions.y
-   * @param dimensions.width
-   * @param dimensions.height
    */
   draw(
     svg: d3.Selection<null, unknown, null, undefined>,

@@ -164,6 +164,7 @@ async function updateEmbedding() {
  * @param oldMax - The maximum value of the original range.
  * @param newMin - The minimum value of the desired range.
  * @param newMax - The maximum value of the desired range.
+ * @returns A new list with the numbers scaled to the desired range.
  */
 function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: number, newMax: number): Array<number> {
   return a.map((x) => ((x - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin);
@@ -388,8 +389,11 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
           </div>
           <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR" />
           <svg
-              v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
-              style="position: absolute"
+            v-if="status == Status.SUCCESS"
+            id="svgOverlay"
+            ref="svgOverlay"
+            @error="status = Status.ERROR"
+            style="position: absolute"
           ></svg>
         </div>
       </div>
