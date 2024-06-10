@@ -16,11 +16,11 @@ const selection = computed(() => appState.selection.dimensionalityReduction);
 // const config: FrontendConfig = inject<FrontendConfig>("config")!;
 let embeddingWidth: number = -1;
 let embeddingHeight: number = -1;
-let imageWidth: number = -1;
-let imageHeight: number = -1;
+const width = 256;          // arbitrary amount to compress embedding data
+const height = 256;         // arbitrary amount to compress embedding data
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
-const layerData: Uint8Array = new Uint8Array(256 * 256 * 4);
-const layerTexture: DataTexture = createDataTexture(layerData, imageWidth, imageHeight);
+const layerData: Uint8Array = new Uint8Array(width * height * 4);
+const layerTexture: DataTexture = createDataTexture(layerData, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
@@ -79,8 +79,13 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     // check which points are in the selection and update the bitmask accordingly
     for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
 
+        // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
+        const pointCoords: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
+        const convertedPoint: Point2D = { x:  pointCoords.x, y: embeddingHeight - pointCoords.y };
+        const convertedIndex: number = coordinatesToIndex(convertedPoint.x, convertedPoint.y, width);
+
         // index of the point in the 256x256 bitmask
-        const normalizedIndex: number = Math.floor(embeddingPixel * 256 / nPixels);
+        const normalizedIndex: number = Math.floor(convertedIndex * 256 / nPixels);
 
         // we don't want to overwrite the selection
         if (layerData[normalizedIndex] != 0 &&
