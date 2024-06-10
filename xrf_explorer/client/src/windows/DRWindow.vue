@@ -61,14 +61,18 @@ const imageSourceUrl = ref();
 const svgOverlay = ref(null);
 const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
-let imageToEmbeddingCropping: {
-  xEmbedRange: number[], yEmbedRange: number[],
-  xPlotRange: number[], yPlotRange: number[]
+const imageToEmbeddingCropping: {
+  xEmbedRange: number[];
+  yEmbedRange: number[];
+  xPlotRange: number[];
+  yPlotRange: number[];
 } = {
-  xEmbedRange: [], yEmbedRange: [],
-  xPlotRange: [], yPlotRange: [],
-}
-let updateInEmbedding: boolean = false;   // true if the embedding has been updated since the last finished selection
+  xEmbedRange: [],
+  yEmbedRange: [],
+  xPlotRange: [],
+  yPlotRange: [],
+};
+let updateInEmbedding: boolean = false; // true if the embedding has been updated since the last finished selection
 
 /**
  * Fetch the dimensionality reduction image
@@ -153,9 +157,16 @@ async function updateEmbedding() {
   status.value = Status.ERROR;
 }
 
-
+/**
+ * Scale a list from one range to another.
+ * @param a - The list of numbers to be scaled.
+ * @param oldMin - The minimum value of the original range.
+ * @param oldMax - The maximum value of the original range.
+ * @param newMin - The minimum value of the desired range.
+ * @param newMax - The maximum value of the desired range.
+ */
 function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: number, newMax: number): Array<number> {
-  return a.map((x) => (x - oldMin) / (oldMax - oldMin) * (newMax - newMin) + newMin);
+  return a.map((x) => ((x - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin);
 }
 
 /**
@@ -166,15 +177,17 @@ async function updateImageToEmbeddingCropping() {
     async (response) => {
       response.json().then(
         (dimensions) => {
-          const xmin = dimensions.xplotrange[0]
-          const ymin = dimensions.yplotrange[0]
+          const xmin = dimensions.xplotrange[0];
+          const ymin = dimensions.yplotrange[0];
 
-          const xmax = dimensions.xplotrange[1]
-          const ymax = dimensions.yplotrange[1]
+          const xmax = dimensions.xplotrange[1];
+          const ymax = dimensions.yplotrange[1];
 
           const image: HTMLElement | null = document.getElementById("image");
           if (image == null) {
-            console.warn("Tried to update the image to embedding cropping but could not find image element in DR window.");
+            console.warn(
+              "Tried to update the image to embedding cropping but could not find image element in DR window.",
+            );
             return;
           }
           const rect = image.getBoundingClientRect();
@@ -191,26 +204,23 @@ async function updateImageToEmbeddingCropping() {
   );
 }
 
+/**
+ * Handle mouse events when the mouse is clicked.
+ * @param event - The mouse event.
+ */
 function onMouseDown(event: MouseEvent) {
-
-  if (event.button == config.selectionToolConfig.cancelButton)
-    selectionTool.cancelSelection();
-
+  if (event.button == config.selectionToolConfig.cancelButton) selectionTool.cancelSelection();
   else if (event.button == config.selectionToolConfig.addPointButton) {
-
     const svg: HTMLElement | null = document.getElementById("svgOverlay");
     if (svg != null) {
       // compute the position of the click relative to the SVG based on the client coordinates
       const clickedPos = {
         x: event.clientX - svg.getBoundingClientRect().left,
-        y: event.clientY - svg.getBoundingClientRect().top
+        y: event.clientY - svg.getBoundingClientRect().top,
       };
       selectionTool.addPointToSelection(clickedPos);
     }
-  }
-
-  else if (event.button == config.selectionToolConfig.confirmButton)
-    selectionTool.confirmSelection();
+  } else if (event.button == config.selectionToolConfig.confirmButton) selectionTool.confirmSelection();
 
   updateSelectionVisuals();
 }
@@ -233,19 +243,17 @@ function updateSelectionVisuals() {
  * Draw the shape of the selection on the SVG overlay.
  */
 function drawSelection() {
-
   // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
-  const imageDimensions: { x: number, y: number, width: number, height: number } = {
+  const imageDimensions: { x: number; y: number; width: number; height: number } = {
     x: 0,
     y: 0,
     width: 0,
-    height: 0
-  }
+    height: 0,
+  };
 
   const image: HTMLElement | null = document.getElementById("image");
 
-  if (image == null)
-    console.warn("Tried to draw selection but could not find image element in DR window.");
+  if (image == null) console.warn("Tried to draw selection but could not find image element in DR window.");
   else {
     // update dimensions with image element values to fit the SVG to the image
     const rect = image.getBoundingClientRect();
@@ -262,16 +270,16 @@ function drawSelection() {
  * Send the relevant information about the selection to the image viewer.
  */
 async function communicateSelectionWithImageViewer() {
-  let selectionPointsInEmbedding: Point2D[] = [];
+  const selectionPointsInEmbedding: Point2D[] = [];
   // update the selection points' coordinates to the embedding's coordinates;
   if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
   // communicate the relevant information to the image viewer using the app's state
   appState.selection.dimensionalityReduction = {
     selectionType: selectionTool.type(),
-    points: selectionPointsInEmbedding.map(point => ({ x: Math.floor(point.x), y: Math.floor(point.y) })),
+    points: selectionPointsInEmbedding.map((point) => ({ x: Math.floor(point.x), y: Math.floor(point.y) })),
     embeddedImageDimensions: {
       width: Math.floor(imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0]),
-      height: Math.floor(imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0])
+      height: Math.floor(imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0]),
     },
     updateMiddleImage: updateInEmbedding,
   };
@@ -364,8 +372,12 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
       <!-- GENERATION OF THE IMAGE -->
       <p class="mt-4 font-bold">Generated image:</p>
       <div
-        class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center pointer-events-auto"
-        style="cursor: crosshair; position: relative" @mousedown="onMouseDown" id="imageContainer" ref="output">
+        class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
+        style="cursor: crosshair; position: relative"
+        @mousedown="onMouseDown"
+        id="imageContainer"
+        ref="output"
+      >
         <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
           <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
           <span v-if="status == Status.LOADING">Loading</span>
@@ -375,11 +387,10 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
           <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR" />
-          <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
-            style="position: absolute"></svg>
-
-          <!--        <img id="image" :src="mrIncredible" @error="status = Status.ERROR"/>-->
-          <!--        <svg id="svgOverlay" ref="svgOverlay" style="position: absolute"></svg>-->
+          <svg
+              v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
+              style="position: absolute"
+          ></svg>
         </div>
       </div>
     </div>

@@ -68,6 +68,9 @@ export type ImageViewerConfig = {
   zoomLimit: number;
 };
 
+/**
+ * Type declaration for the selection tool configuration.
+ */
 export type SelectionToolConfig = {
   /**
    * Button that will add the current location point to the current selection.
@@ -84,16 +87,16 @@ export type SelectionToolConfig = {
   /**
    * Color in which the selected area should be displayed.
    */
-  fill_color: string,
+  fill_color: string;
   /**
    * Color of the outline of the selected area.
    */
-  stroke_color: string,
+  stroke_color: string;
   /**
    * Set the opacity of the selection overlay.
    */
-  opacity: number,
-}
+  opacity: number;
+};
 
 /**
  * The default configuration for the client.
@@ -113,13 +116,13 @@ export const DefaultConfig: FrontendConfig = {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
   selectionToolConfig: {
-    addPointButton: 0,    // left mouse button
-    cancelButton: 1,      // wheel mouse button
-    confirmButton: 2,     // right mouse button
+    addPointButton: 0, // left mouse button
+    cancelButton: 1, // wheel mouse button
+    confirmButton: 2, // right mouse button
     fill_color: "lightblue",
     stroke_color: "black",
     opacity: 0.5,
-  }
+  },
 };
 
 /**

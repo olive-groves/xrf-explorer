@@ -15,8 +15,8 @@ const selection = computed(() => appState.selection.dimensionalityReduction);
 
 let embeddingWidth: number = -1;
 let embeddingHeight: number = -1;
-const width: number = 256;          // arbitrary amount to compress embedding data
-const height: number = 256;         // arbitrary amount to compress embedding data
+const width: number = 256; // arbitrary amount to compress embedding data
+const height: number = 256; // arbitrary amount to compress embedding data
 let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(width * height * 4);
@@ -29,38 +29,36 @@ watch(selection, onSelectionUpdate, { immediate: true, deep: true });
  * @param newSelection - Object containing all necessary information about the selection to update the layer.
  */
 async function onSelectionUpdate(newSelection: DimensionalityReductionSelection | null) {
-    // ensure that the new selection is not undefined
-    if (newSelection == null)
-        return;
+  // ensure that the new selection is not undefined
+  if (newSelection == null) return;
 
-    // remove current selection
-    if (newSelection.points.length == 0) {
-        updateLayer(0, false);
-        console.info("Removed dimensionality reduction selection.");
-        return;
-    }
+  // remove current selection
+  if (newSelection.points.length == 0) {
+    updateLayer(0, false);
+    console.info("Removed dimensionality reduction selection.");
+    return;
+  }
 
-    // edge case: rectangle selection must have exactly 2 points
-    if (newSelection.selectionType == SelectionOption.Rectangle && newSelection.points.length != 2) {
-        console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
-        return;
-    }
-    // edge case: polygon selection must have at least 2 points
-    if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 2) {
-        console.error("Invalid polygon selection. Expected at least 2 points but got: ", newSelection);
-        return;
-    }
+  // edge case: rectangle selection must have exactly 2 points
+  if (newSelection.selectionType == SelectionOption.Rectangle && newSelection.points.length != 2) {
+    console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
+    return;
+  }
+  // edge case: polygon selection must have at least 2 points
+  if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 2) {
+    console.error("Invalid polygon selection. Expected at least 2 points but got: ", newSelection);
+    return;
+  }
 
-    // extract selection information
-    let { width: embedWidth, height: embedHeight } = newSelection.embeddedImageDimensions;
-    embeddingWidth = embedWidth;
-    embeddingHeight = embedHeight;
-    updateBitmask(newSelection);
+  // extract selection information
+  const { width: embedWidth, height: embedHeight } = newSelection.embeddedImageDimensions;
+  embeddingWidth = embedWidth;
+  embeddingHeight = embedHeight;
+  updateBitmask(newSelection);
 
-    // update the layer to display the selection
-    updateLayer(newSelection.points.length, newSelection.updateMiddleImage);
-    console.info("Updated the image viewer to display the selection in the DR window.");
-
+  // update the layer to display the selection
+  updateLayer(newSelection.points.length, newSelection.updateMiddleImage);
+  console.info("Updated the image viewer to display the selection in the DR window.");
 }
 
 /**
@@ -68,63 +66,64 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
  * @param newSelection - Object containing all necessary information about the selection to update the layer.
  */
 function updateBitmask(newSelection: DimensionalityReductionSelection): void {
-    // compute the indices of the bounding box in which the selection is contained for faster updates
-    const boundingBox: Point2D[] = (newSelection.selectionType == SelectionOption.Rectangle) ?
-        newSelection.points : getBoundingBox(newSelection.points);
-    const topLeftIndex: number = coordinatesToIndex(boundingBox[0].x, boundingBox[0].y, embeddingWidth);
-    const bottomRightIndex: number = coordinatesToIndex(boundingBox[1].x, boundingBox[1].y, embeddingWidth);
+  // compute the indices of the bounding box in which the selection is contained for faster updates
+  const boundingBox: Point2D[] =
+    newSelection.selectionType == SelectionOption.Rectangle ? newSelection.points : getBoundingBox(newSelection.points);
+  const topLeftIndex: number = coordinatesToIndex(boundingBox[0].x, boundingBox[0].y, embeddingWidth);
+  const bottomRightIndex: number = coordinatesToIndex(boundingBox[1].x, boundingBox[1].y, embeddingWidth);
 
-    // reset bitmask
-    layerData.fill(0);
+  // reset bitmask
+  layerData.fill(0);
 
-    // check which points are in the selection and update the bitmask accordingly
-    for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
+  // check which points are in the selection and update the bitmask accordingly
+  for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
+    // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
+    const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
+    const convertedPoint: Point2D = { x: point.x, y: embeddingHeight - point.y }; // point with correct origin
+    // scale down to 256x256
+    const scaledDownPoint: Point2D = {
+      x: Math.floor((convertedPoint.x * width) / embeddingWidth),
+      y: Math.floor((convertedPoint.y * height) / embeddingHeight),
+    };
+    // index in a 256x256 image
+    const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
 
-        // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
-        const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
-        const convertedPoint: Point2D = { x:  point.x, y: embeddingHeight - point.y };      // point with correct origin
-        // scale down to 256x256
-        const scaledDownPoint: Point2D = { x: Math.floor(convertedPoint.x * width / embeddingWidth),
-            y: Math.floor(convertedPoint.y * height / embeddingHeight) };
-        // index in a 256x256 image
-        const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
+    // index of the point in the 256x256x4 bitmask
+    const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
 
-        // index of the point in the 256x256x4 bitmask
-        const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
+    // we don't want to overwrite the selection
+    if (layerData[normalizedIndex + 3] != 0) continue;
 
-        // we don't want to overwrite the selection
-        if (layerData[normalizedIndex + 3] != 0)
-            continue;
+    const isInSelection: boolean = isPointInSelection(point, newSelection);
 
-        const isInSelection: boolean = isPointInSelection(point, newSelection);
-
-        // update the layer's bitmask
-        const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to the canary islands
-        for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)            // rgbValue corresponds to red, green, blue
-            layerData[normalizedIndex + rgbValue] = (isInSelection ? selectionColor[rgbValue] : 0);
-        // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-        layerData[normalizedIndex + 3] = (isInSelection ? Math.floor(config.selectionToolConfig.opacity * 256) : 0);
-    }
+    // update the layer's bitmask
+    const selectionColor: [number, number, number] = hexToRgb("#FFEF00"); // shoutout to the canary islands
+    // rgbValue corresponds to red, green, blue
+    for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)
+      layerData[normalizedIndex + rgbValue] = isInSelection ? selectionColor[rgbValue] : 0;
+    // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
+    layerData[normalizedIndex + 3] = isInSelection ? Math.floor(config.selectionToolConfig.opacity * 256) : 0;
+  }
 }
 
 /**
  * Compute the smallest rectangle encapsulating every point in a polygon.
- * @param delimitingPoints - List of points that make up the polygon (vertices)
+ * @param delimitingPoints - List of points that make up the polygon (vertices).
  * @returns The top-left and bottom-right points of the computed bounding box, in that order.
  */
 function getBoundingBox(delimitingPoints: Point2D[]): Point2D[] {
-    const xCoords: number[] = delimitingPoints.map(point => point.x);
-    const yCoords: number[] = delimitingPoints.map(point => point.y);
-    return [
-        {
-            x: Math.min(...xCoords),
-            y: Math.min(...yCoords)
-        },
-        {
-            x: Math.max(...xCoords),
-            y: Math.max(...yCoords)
-        }
-    ]
+  const xCoords: number[] = delimitingPoints.map((point: Point2D) => point.x);
+  const yCoords: number[] = delimitingPoints.map((point: Point2D) => point.y);
+  return [
+    {
+      x: Math.min(...xCoords),
+      y: Math.min(...yCoords),
+    },
+    {
+      x: Math.max(...xCoords),
+      y: Math.max(...yCoords),
+    },
+  ];
 }
 
 /**
@@ -134,18 +133,18 @@ function getBoundingBox(delimitingPoints: Point2D[]): Point2D[] {
  * @returns True if the point lies in the selection, false otherwise.
  */
 function isPointInSelection(point: Point2D, selection: DimensionalityReductionSelection): boolean {
-    switch (selection.selectionType) {
-        case SelectionOption.Rectangle:
-            return isInRectangle(point, selection.points);
+  switch (selection.selectionType) {
+    case SelectionOption.Rectangle:
+      return isInRectangle(point, selection.points);
 
-        case SelectionOption.Lasso:
-            return isInPolygon(point, selection.points);
+    case SelectionOption.Lasso:
+      return isInPolygon(point, selection.points);
 
-        default: {
-            console.error("Selection type", selection.selectionType, "not recognized");
-            return false;
-        }
+    default: {
+      console.error("Selection type", selection.selectionType, "not recognized");
+      return false;
     }
+  }
 }
 
 /**
@@ -155,8 +154,12 @@ function isPointInSelection(point: Point2D, selection: DimensionalityReductionSe
  * @returns True if the point lies in the rectangle, false otherwise.
  */
 function isInRectangle(point: Point2D, rectangleBoundingPoints: Point2D[]): boolean {
-    return rectangleBoundingPoints[0].x <= point.x && point.x < rectangleBoundingPoints[1].x &&
-        rectangleBoundingPoints[0].y <= point.y && point.y < rectangleBoundingPoints[1].y;
+  return (
+    rectangleBoundingPoints[0].x <= point.x &&
+    point.x < rectangleBoundingPoints[1].x &&
+    rectangleBoundingPoints[0].y <= point.y &&
+    point.y < rectangleBoundingPoints[1].y
+  );
 }
 
 /**
@@ -167,30 +170,30 @@ function isInRectangle(point: Point2D, rectangleBoundingPoints: Point2D[]): bool
  * @returns True if the point lies in the polygon, false otherwise.
  */
 function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
-    let inside: boolean = false;
+  let inside: boolean = false;
 
-    let polyPoint1: Point2D = polygon[0];
-    let polyPoint2: Point2D;
+  let polyPoint1: Point2D = polygon[0];
+  let polyPoint2: Point2D;
 
-    // iterate through all edges in the polygon, starting at the second and finishing at the first
-    for (let i = 1; i <= polygon.length; i++) {
-        polyPoint2 = polygon[i % polygon.length];   // last i = polygon.length, we need i = 0 in this case
+  // iterate through all edges in the polygon, starting at the second and finishing at the first
+  for (let i = 1; i <= polygon.length; i++) {
+    polyPoint2 = polygon[i % polygon.length]; // last i = polygon.length, we need i = 0 in this case
 
-        if ((point.y > Math.min(polyPoint1.y, polyPoint2.y)) &&     // point.y is above the lowest point in the poly
-             (point.y <= Math.max(polyPoint1.y, polyPoint2.y)) &&   // point.y is below the highest point in the poly
-                (point.x <= Math.max(polyPoint1.x, polyPoint2.x))) {
-                    const x_intersection: number =
-                        ((point.y - polyPoint1.y) * (polyPoint2.x - polyPoint1.x)) / (polyPoint2.y - polyPoint1.y) +
-                        polyPoint1.x;
+    if (
+      point.y > Math.min(polyPoint1.y, polyPoint2.y) && // point.y is above the lowest point in the poly
+      point.y <= Math.max(polyPoint1.y, polyPoint2.y) && // point.y is below the highest point in the poly
+      point.x <= Math.max(polyPoint1.x, polyPoint2.x)
+    ) {
+      const x_intersection: number =
+        ((point.y - polyPoint1.y) * (polyPoint2.x - polyPoint1.x)) / (polyPoint2.y - polyPoint1.y) + polyPoint1.x;
 
-                    if (polyPoint1.x == polyPoint2.x || point.x <= x_intersection)
-                        inside = !inside;
-                }
-
-        polyPoint1 = polyPoint2;    // advance polyPoint1 by 1 edge in the polygon list
+      if (polyPoint1.x == polyPoint2.x || point.x <= x_intersection) inside = !inside;
     }
 
-    return inside;
+    polyPoint1 = polyPoint2; // advance polyPoint1 by 1 edge in the polygon list
+  }
+
+  return inside;
 }
 
 /**
@@ -199,56 +202,57 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
  * @param updateImage - True if the middle image needs to be updated, false otherwise.
  */
 function updateLayer(nPointsSelected: number, updateImage: boolean): void {
-    if (layerGroups.value.selection != undefined) {
-        const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.id == "selection_dr")[0];
+  if (layerGroups.value.selection != undefined) {
+    const layer: Layer = layerGroups.value.selection.layers.filter((layer: Layer) => layer.id == "selection_dr")[0];
 
-        const isLoaded: boolean = layer.mesh != undefined;  // true if the layer is currently loaded
+    const isLoaded: boolean = layer.mesh != undefined; // true if the layer is currently loaded
 
-        // reload the middle image if necessary
-        if (updateImage) {
-            if (isLoaded) disposeLayer(layer);      // remove the layer so we can update it
-            loadLayer(layer, false);      // update the middle image
-            if (!isLoaded) disposeLayer(layer);     // reset to previous state
-        }
-
-        if (!isLoaded && nPointsSelected > 0)       // layer was not loaded, load it again
-            loadLayer(layer, false);
-        else if (!isLoaded && nPointsSelected == 0) // layer was loaded, remove it
-            disposeLayer(layer);
-
-        updateDataTexture(layerGroups.value.selection);
+    // reload the middle image if necessary
+    if (updateImage) {
+      if (isLoaded) disposeLayer(layer); // remove the layer so we can update it
+      loadLayer(layer, false); // update the middle image
+      if (!isLoaded) disposeLayer(layer); // reset to previous state
     }
+
+    if (!isLoaded && nPointsSelected > 0)
+      // layer was not loaded, load it again
+      loadLayer(layer, false);
+    else if (!isLoaded && nPointsSelected == 0)
+      // layer was loaded, remove it
+      disposeLayer(layer);
+
+    updateDataTexture(layerGroups.value.selection);
+  }
 }
 
 /**
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
-    // update the middle image api url if it hasn't been loaded yet
-    if (middleImageApiUrl == "")
-        middleImageApiUrl = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
+  // update the middle image api url if it hasn't been loaded yet
+  if (middleImageApiUrl == "") middleImageApiUrl = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
 
-    const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
-    recipe.movingSize = await getDataSize();
-    recipe.targetSize = await getTargetSize();
+  const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
+  recipe.movingSize = await getDataSize();
+  recipe.targetSize = await getTargetSize();
 
-    // set up layer
-    const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
-    registerLayer(layer, recipe);
-    layer.uniform.iLayerType.value = LayerType.Selection;
-    layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
+  // set up layer
+  const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
+  registerLayer(layer, recipe);
+  layer.uniform.iLayerType.value = LayerType.Selection;
+  layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
 
-    // add layers to the groups of layers
-    layerGroups.value.selection = {
-        name: "Dimensionality Reduction Selection",
-        description: "Visualizes the current selection in the DR Window",
-        layers: [layer],
-        index: -2,
-        visible: true,
-        ...layerGroupDefaults,
-    }
+  // add layers to the groups of layers
+  layerGroups.value.selection = {
+    name: "Dimensionality Reduction Selection",
+    description: "Visualizes the current selection in the DR Window",
+    layers: [layer],
+    index: -2,
+    visible: true,
+    ...layerGroupDefaults,
+  };
 
-    updateLayerGroupLayers(layerGroups.value.selection);
+  updateLayerGroupLayers(layerGroups.value.selection);
 }
 
 /**
@@ -258,7 +262,7 @@ export async function createDRSelectionLayer() {
  * @returns Point2D object containing the coordinates of the point at the given index.
  */
 function indexToCoordinates(index: number, imageWidth: number) {
-    return { x: index % imageWidth, y: Math.floor(index / imageWidth) };
+  return { x: index % imageWidth, y: Math.floor(index / imageWidth) };
 }
 
 /**
@@ -269,5 +273,5 @@ function indexToCoordinates(index: number, imageWidth: number) {
  * @returns Index in the array of the point at the given coordinates.
  */
 function coordinatesToIndex(x: number, y: number, imageWidth: number) {
-    return Math.floor(y * imageWidth + x);
+  return Math.floor(y * imageWidth + x);
 }
