@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import { LassoSelectionTool } from "@/lib/selection";
+import {LassoSelectionTool, RectangleSelectionTool} from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: LassoSelectionTool = new LassoSelectionTool();
+const selectionTool: RectangleSelectionTool = new RectangleSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 let imageToEmbeddingCropping: {
   xEmbedRange: number[], yEmbedRange: number[],
@@ -95,6 +95,11 @@ async function fetchDRImage() {
   if (response.value?.ok && data.value != null) {
     // Create URL for image and set it globally
     imageSourceUrl.value = URL.createObjectURL(data.value).toString();
+
+    // update image-embedding dimensions
+    await updateImageToEmbeddingCropping();
+    // the middle image used for conversion from embedding to main viewer image needs to be updated
+    updateInEmbedding = true;
 
     // Update status
     status.value = Status.SUCCESS;
@@ -140,11 +145,6 @@ async function updateEmbedding() {
 
     // Load the new embedding
     await fetchDRImage();
-    // Load the new values representing the difference between the image and the embedding
-    await updateImageToEmbeddingCropping();
-    console.log(imageToEmbeddingCropping)
-    // the middle image used for conversion from embedding to image needs to be updated
-    updateInEmbedding = true;
     return;
   }
 

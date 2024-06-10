@@ -338,7 +338,7 @@ export class LassoSelectionTool extends BaseSelectionTool {
    * selection.
    */
   handleSelection(): void {
-    // TODO: i have no clue how to actually do this
+    // not sure how to actually do this
   }
 
   /**

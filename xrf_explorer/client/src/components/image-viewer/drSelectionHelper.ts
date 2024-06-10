@@ -99,7 +99,7 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
         const isInSelection: boolean = isPointInSelection(point, newSelection);
 
         // update the layer's bitmask
-        const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to canary islands
+        const selectionColor: [number, number, number] = hexToRgb("#FFEF00");   // shoutout to the canary islands
         for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)            // rgbValue corresponds to red, green, blue
             layerData[normalizedIndex + rgbValue] = (isInSelection ? selectionColor[rgbValue] : 0);
         // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
