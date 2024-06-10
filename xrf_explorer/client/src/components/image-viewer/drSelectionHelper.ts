@@ -13,17 +13,21 @@ import {registerLayer} from "@/components/image-viewer/registering.ts";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);
 
-// const config: FrontendConfig = inject<FrontendConfig>("config")!;
 let embeddingWidth: number = -1;
 let embeddingHeight: number = -1;
-const width = 256;          // arbitrary amount to compress embedding data
-const height = 256;         // arbitrary amount to compress embedding data
+const width: number = 256;          // arbitrary amount to compress embedding data
+const height: number = 256;         // arbitrary amount to compress embedding data
+const middleImageApiUrl: string = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(width * height * 4);
 const layerTexture: DataTexture = createDataTexture(layerData, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
+/**
+ *
+ * @param newSelection
+ */
 async function onSelectionUpdate(newSelection: DimensionalityReductionSelection | null) {
     // ensure that the new selection is not undefined
     if (newSelection == null)
@@ -31,7 +35,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
 
     // remove selection
     if (newSelection.points.length == 0) {
-        updateLayer(0);
+        updateLayer(0, false);
         console.info("Removed dimensionality reduction selection.");
         return;
     }
@@ -54,7 +58,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
     updateBitmask(newSelection);
 
     // update the layer to display the selection
-    updateLayer(newSelection.points.length);
+    updateLayer(newSelection.points.length, newSelection.updateMiddleImage);
     console.info("Updated the image viewer to display the selection in the DR window.");
 
 }
@@ -185,14 +189,24 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
 /**
  *
  * @param nPointsSelected
+ * @param updateImage
  */
-function updateLayer(nPointsSelected: number): void {
+function updateLayer(nPointsSelected: number, updateImage: boolean): void {
     if (layerGroups.value.selection != undefined) {
         const layer: Layer = layerGroups.value.selection.layers.filter(layer => layer.id == "selection_dr")[0];
 
-        if (layer.mesh == undefined && nPointsSelected > 0)        // layer was disposed of, load it again
+        const isLoaded: boolean = layer.mesh != undefined;  // true if the layer is currently loaded
+
+        // reload the middle image if necessary
+        if (updateImage) {
+            if (isLoaded) disposeLayer(layer);      // remove the layer so we can update it
+            loadLayer(layer);                       // update the middle image
+            if (!isLoaded) disposeLayer(layer);     // reset to previous state
+        }
+
+        if (!isLoaded && nPointsSelected > 0)       // layer was not loaded, load it again
             loadLayer(layer);
-        else if (layer.mesh != undefined && nPointsSelected == 0)  // layer was loaded, dispose of it
+        else if (!isLoaded && nPointsSelected == 0) // layer was loaded, remove it
             disposeLayer(layer);
 
         updateDataTexture(layerGroups.value.selection);
@@ -210,8 +224,7 @@ export async function createDRSelectionLayer() {
 
     // set up layer
     const layers: Layer[] = [];
-    const layer: Layer = createLayer("selection_dr",
-        `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`, false)
+    const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
     registerLayer(layer, recipe);
     layer.uniform.iLayerType.value = LayerType.Selection;
     layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };

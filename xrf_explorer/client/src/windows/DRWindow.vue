@@ -67,6 +67,7 @@ let imageToEmbeddingCropping: {
   xEmbedRange: [], yEmbedRange: [],
   xPlotRange: [], yPlotRange: [],
 }
+let updateInEmbedding: boolean = false;
 // const mrIncredible: string = "src/windows/mr-incredible.png";
 
 /**
@@ -139,9 +140,10 @@ async function updateEmbedding() {
 
     // Load the new embedding
     await fetchDRImage();
-
     // Load the new values representing the difference between the image and the embedding
     await updateImageToEmbeddingCropping();
+    // the middle image used for conversion from embedding to image needs to be updated
+    updateInEmbedding = true;
     return;
   }
 
@@ -216,7 +218,10 @@ async function communicateSelectionWithImageViewer() {
       width: imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0],
       height: imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0]
     },
+    updateMiddleImage: updateInEmbedding,
   };
+
+  updateInEmbedding = false; // reset
 }
 
 /**
