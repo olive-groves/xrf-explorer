@@ -4,11 +4,61 @@ from xrf_explorer.server.file_system.file_access import (
     get_base_image_path,
     get_cube_recipe_path,
 )
-from cv2 import imread
+from cv2 import imread, perspectiveTransform, getPerspectiveTransform
+from xrf_explorer.server.image_register.register_image import (
+    load_points,
+    compute_fitting_dimensions_by_aspect,
+)
 import numpy as np
 import logging
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+
+def perspective_transform_coord(coord, transform_matrix):
+    coord_correct_format = np.array([[[coord[0], coord[1]]]], dtype="float32")
+
+    perspective_transformed_point = perspectiveTransform(
+        coord_correct_format, transform_matrix
+    )
+    return (
+        (perspective_transformed_point[0][0][0]),
+        (perspective_transformed_point[0][0][1]),
+    )
+
+
+def deregister_coord(
+    coord, cube_recipe_path, base_img_height, base_img_width, cube_height, cube_width
+):
+    # Note: Reversing padding is not needed, since the images are padded
+    #       on their right and bottom sides. Since (0, 0) is at the top
+    #       left corner of the image, padding does not affect the coordinate
+    #       system.
+
+    # First step: Reverse perspective tranformation
+    src_points, base_points = load_points(cube_recipe_path)
+    transform_matrix = getPerspectiveTransform(base_points, src_points)
+    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(
+        coord, transform_matrix
+    )
+
+    cube_height_scaled_before_pad, registered_uv_width_before_pad = (
+        compute_fitting_dimensions_by_aspect(
+            cube_height, cube_width, base_img_height, base_img_width
+        )
+    )
+
+    # Second step: Reverse scaling
+    x_reversed_scaling = None
+    y_reversed_scaling = None
+
+    ratio_x = cube_width / registered_uv_width_before_pad
+    ratio_y = cube_height / cube_height_scaled_before_pad
+
+    x_reversed_scaling = x_perspective_reversed * ratio_x
+    y_reversed_scaling = y_perspective_reversed * ratio_y
+
+    return round(x_reversed_scaling), round(y_reversed_scaling)
 
 
 def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray:
@@ -51,11 +101,11 @@ def get_scaled_cube_coordinates(
 
     scaled_coord_1: tuple[int, int] = (
         round(selection_coord_1[0] * ratio_cube_img_width),
-        round(selection_coord_1[1] * ratio_cube_img_height)
+        round(selection_coord_1[1] * ratio_cube_img_height),
     )
     scaled_coord_2: tuple[int, int] = (
         round(selection_coord_2[0] * ratio_cube_img_width),
-        round(selection_coord_2[1] * ratio_cube_img_height)
+        round(selection_coord_2[1] * ratio_cube_img_height),
     )
 
     return scaled_coord_1, scaled_coord_2
@@ -115,12 +165,13 @@ def get_selected_data_cube(
         mask[y1 : y2 + 1, x1 : x2 + 1] = True
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
-        #       the best choice for performance, but the mask simplifies things, since it can be 
+        #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also the performance decrease should be less than tenth of a second in most cases.
         return extract_selected_data(data_cube, mask)
     else:
-        # If the data cube has recipe, deregister the selection coordinates so they correctly represent 
+        # If the data cube has recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
+
         LOG.warn("Deregistration logic not yet implemented!")
         return np.array([])
