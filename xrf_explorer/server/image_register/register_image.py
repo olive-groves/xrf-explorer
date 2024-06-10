@@ -268,14 +268,41 @@ def register_image_to_data_cube(
     if image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
         return False
-
-    # Resize and pad the image to match the dimensions of the data cube
-    image_register_resize: MatLike = resize_image_fit_aspect_ratio(image_register, cube_h, cube_w)
-    image_register_pad: MatLike = pad_image_to_match_size(image_register_resize, cube_h, cube_w)
-
+    
     # Load the control points and apply the perspective transformation
     points_source, points_destination = load_points(path_csv_points)
-    image_registered: MatLike = apply_prespective_transformation(image_register_pad, points_source, points_destination)
     
+    # Inverse transform the image, this is done by swapping the source and destination points
+    image_register = apply_prespective_transformation(image_register, points_destination, points_source)
+
+    # Remove the padding 
+    image_register_height, image_register_width = image_register.shape[:2]
+
+    if image_register_width / image_register_height > cube_w / cube_h:
+        # Height is scaled to match the cube
+        # So columns are added to match the width, which we have to remove
+        new_width = int(cube_w * image_register_height / cube_h)
+        columns_added = image_register_width - new_width
+
+        LOG.info(f"Removing columns: {columns_added}")
+
+        image_register = image_register[:, :(image_register_width - columns_added)]
+    else:
+        # Width is scaled to match the cube
+        # So rows are added to match the height, which we have to remove
+        new_height = int(cube_h * image_register_width / cube_w)
+        rows_added = image_register_height - new_height
+        
+        LOG.info(f"Removing rows: {rows_added}")
+
+        image_register = image_register[:(image_register_height - rows_added), :]
+
+    # Scale image down to match the cube
+    image_register = resize(
+        image_register,
+        (cube_w, cube_h),
+        interpolation=INTER_AREA,
+    )
+
     # Write the registered image to the specified path
-    return imwrite(path_result_registered_image, image_registered)
+    return imwrite(path_result_registered_image, image_register)
