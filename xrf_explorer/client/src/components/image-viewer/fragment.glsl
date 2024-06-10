@@ -131,14 +131,12 @@ void main() {
     float clusterIndex = texture(tImage, vUv).g * 8.0;
     fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
   } else if (iLayerType == TYPE_DR) {
-    vec4 middleImage = texture(tImage, somthingicannotcomprehend);
-    if (middleImage.b == 0.0) {
-      fragColor = transparent;
-    } else if (middleImage.b == 255.0) {
-      fragColor = vec4(
-        middleImage.rgb
-        clamp(middleImage.a, 0.0, 1.0)
-      );
+    // the BLUE value in the middle image (0 or 256) denotes if this pixel is in the embedding
+    if (fragColor.b != 1.0) {
+      fragColor.a = 0.0;
+    } else {
+      vec4 bitmask = texture(tAuxiliary, vec2(fragColor.rg));
+      fragColor = bitmask;
     }
   }
 
