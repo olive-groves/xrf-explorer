@@ -147,11 +147,6 @@ def create_data_source_dir(data_source: str):
         LOG.info(f"Creating data source directory at {data_source_dir}")
         mkdir(data_source_dir)
 
-    elif isdir(data_source_dir):
-        error_msg: str = "Data source directory already exists."
-        LOG.error(error_msg)
-        return error_msg, 400
-
     return jsonify({"dataSourceDir": data_source})
 
 
