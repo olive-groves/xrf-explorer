@@ -62,11 +62,24 @@ def testtt():
     path = "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\temp\\test.png"
 
     register_image_to_data_cube(
-        "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\elemental.dms",
-        "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_RGB.tif",
-        "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\recipe_area_image.csv",
+        "Postman",
+        "UV",
         path
     )
+
+    # register_image_to_image(
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_RGB.tif",
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_UV.tif",
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\recipe_uv.csv",
+    #     path
+    # )
+
+    # register_image_to_data_cube(
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\elemental.dms",
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\196_1989_RGB.tif",
+    #     "C:\\Users\\20212202\\Documents\\SEP\\xrf-explorer\\xrf_explorer\\server\\data\\Postman\\recipe_area_image.csv",
+    #     path
+    # )
 
     return send_file(path, mimetype='image/png')
 

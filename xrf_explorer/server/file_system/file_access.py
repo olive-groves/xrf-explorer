@@ -12,10 +12,10 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def get_elemental_cube_name(data_source_folder: str) -> str | None:
-    """Get the location of the elemental cube file of a given datasource.
+    """Get the name of the elemental cube file of a given datasource.
 
     :param data_source_folder: Name of the data source folder.
-    :return: Path string pointing to the elemental cube location.
+    :return: Name of the elemental cube file.
     """
     # load backend config
     backend_config: dict | None = get_config()
