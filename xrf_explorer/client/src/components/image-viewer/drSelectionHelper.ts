@@ -207,12 +207,12 @@ function updateLayer(nPointsSelected: number, updateImage: boolean): void {
         // reload the middle image if necessary
         if (updateImage) {
             if (isLoaded) disposeLayer(layer);      // remove the layer so we can update it
-            loadLayer(layer);                       // update the middle image
+            loadLayer(layer, false);      // update the middle image
             if (!isLoaded) disposeLayer(layer);     // reset to previous state
         }
 
         if (!isLoaded && nPointsSelected > 0)       // layer was not loaded, load it again
-            loadLayer(layer);
+            loadLayer(layer, false);
         else if (!isLoaded && nPointsSelected == 0) // layer was loaded, remove it
             disposeLayer(layer);
 
