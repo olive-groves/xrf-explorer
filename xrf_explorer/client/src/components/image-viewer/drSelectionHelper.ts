@@ -84,7 +84,8 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
         const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
         const convertedPoint: Point2D = { x:  point.x, y: embeddingHeight - point.y };      // point with correct origin
         // scale down to 256x256
-        const scaledDownPoint: Point2D = { x: Math.floor(convertedPoint.x * width / embeddingWidth), y: Math.floor(convertedPoint.y * height / embeddingHeight) };
+        const scaledDownPoint: Point2D = { x: Math.floor(convertedPoint.x * width / embeddingWidth),
+            y: Math.floor(convertedPoint.y * height / embeddingHeight) };
         // index in a 256x256 image
         const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
 
