@@ -229,6 +229,59 @@ def register_image_to_image(
     return imwrite(path_result_registered_image, image_registered)
 
 
+def inverse_register_image(
+        image: MatLike, 
+        new_width: int, new_height: int, 
+        points_source: np.ndarray, points_destination: np.ndarray
+    ) -> MatLike:
+    """Inverse register the given image to match the new width and height with transformation given by the source and destination points.
+
+    :param image: The image to be registered.
+    :param new_width: The new width of the image.
+    :param new_height: The new height of the image.
+    :param points_source: The source points.
+    :param points_destination: The destination points.
+    :return: The inverse registered image.
+    """
+
+    # Inverse transform the image, this is done by swapping the source and destination points in the method
+    image_transformed: MatLike = apply_prespective_transformation(image, points_destination, points_source)
+
+    # Get the dimensions of the image
+    image_height, image_width = image_transformed.shape[:2]
+
+    # Calculate the aspect ratios
+    aspect_image: float = image_width / image_height
+    aspect_registered_image: float = new_width / new_height
+
+    # Remove the padding, either rows or columns from the bottom or right
+    image_without_padding: MatLike
+
+    if aspect_image > aspect_registered_image:
+        # Height is scaled to match the cube
+        # So columns are added to match the width, which we have to remove
+        scaled_width: int = int(new_width * image_height / new_height)
+
+        LOG.info(f"Removing columns: {image_width - scaled_width}")
+
+        image_without_padding = image_transformed[:, :scaled_width]
+    else:
+        # Width is scaled to match the cube
+        # So rows are added to match the height, which we have to remove
+        scaled_height: int = int(new_height * image_width / new_width)
+        
+        LOG.info(f"Removing rows: {image_height - scaled_height}")
+
+        image_without_padding = image_transformed[:scaled_height, :]
+
+    # Scale image down to match the cube
+    return resize(
+        image_without_padding,
+        (new_width, new_height),
+        interpolation=INTER_AREA,
+    )
+
+
 def register_image_to_data_cube(
         path_data_cube: str, path_image_register: str, path_csv_points: str, path_result_registered_image: str
 ) -> bool:
@@ -272,37 +325,8 @@ def register_image_to_data_cube(
     # Load the control points and apply the perspective transformation
     points_source, points_destination = load_points(path_csv_points)
     
-    # Inverse transform the image, this is done by swapping the source and destination points
-    image_register = apply_prespective_transformation(image_register, points_destination, points_source)
-
-    # Remove the padding 
-    image_register_height, image_register_width = image_register.shape[:2]
-
-    if image_register_width / image_register_height > cube_w / cube_h:
-        # Height is scaled to match the cube
-        # So columns are added to match the width, which we have to remove
-        new_width = int(cube_w * image_register_height / cube_h)
-        columns_added = image_register_width - new_width
-
-        LOG.info(f"Removing columns: {columns_added}")
-
-        image_register = image_register[:, :(image_register_width - columns_added)]
-    else:
-        # Width is scaled to match the cube
-        # So rows are added to match the height, which we have to remove
-        new_height = int(cube_h * image_register_width / cube_w)
-        rows_added = image_register_height - new_height
-        
-        LOG.info(f"Removing rows: {rows_added}")
-
-        image_register = image_register[:(image_register_height - rows_added), :]
-
-    # Scale image down to match the cube
-    image_register = resize(
-        image_register,
-        (cube_w, cube_h),
-        interpolation=INTER_AREA,
-    )
+    # Inverse register image 
+    registred_image: MatLike = inverse_register_image(image_register, cube_w, cube_h, points_source, points_destination)
 
     # Write the registered image to the specified path
-    return imwrite(path_result_registered_image, image_register)
+    return imwrite(path_result_registered_image, registred_image)
