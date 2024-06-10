@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import {LassoSelectionTool, RectangleSelectionTool} from "@/lib/selection";
+import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: RectangleSelectionTool = new RectangleSelectionTool();
+const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 let imageToEmbeddingCropping: {
   xEmbedRange: number[], yEmbedRange: number[],
