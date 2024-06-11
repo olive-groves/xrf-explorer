@@ -8,6 +8,7 @@ from json import dump
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from cv2 import cvtColor, COLOR_BGR2RGB
 from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system import get_elemental_data_cube
@@ -59,9 +60,12 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_type)
         if registered_image is None:
             return ""
+        
+        # Convert BGR to RGB
+        registered_rgb_image: np.ndarray = cvtColor(registered_image, COLOR_BGR2RGB)
 
         # Create the overlay
-        overlay = create_image_overlay(registered_image, indices)
+        overlay = create_image_overlay(registered_rgb_image, indices)
     elif overlay_type.startswith("elemental_"):
         # Show element overlay
         # Get the element

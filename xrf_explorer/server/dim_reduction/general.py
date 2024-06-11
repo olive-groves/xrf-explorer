@@ -109,10 +109,10 @@ def get_image_of_indices_to_embedding(data_source: str) -> str:
     # Initialize new image
     newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
     
-    # Fill pixels
-    newimage[indices[:, 0], indices[:, 1], 0] = embedding[:, 0]
+    # Fill pixels (in BGR format)
+    newimage[indices[:, 0], indices[:, 1], 0] = 255
     newimage[indices[:, 0], indices[:, 1], 1] = embedding[:, 1]
-    newimage[indices[:, 0], indices[:, 1], 2] = 255
+    newimage[indices[:, 0], indices[:, 1], 2] = embedding[:, 0]
 
     # Create and save the image
     path_image: str = join(dr_folder, 'image_index_to_embedding.png')
