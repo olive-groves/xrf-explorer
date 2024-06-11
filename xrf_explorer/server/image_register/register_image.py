@@ -74,7 +74,6 @@ def compute_fitting_dimensions_by_aspect(
     return image_resized_height, image_resized_width
 
 
-# TODO: Make the description better
 def resize_image_fit_aspect_ratio(
     image_resize: MatLike, image_reference_height: int, image_reference_width: int
 ) -> MatLike:
@@ -99,7 +98,7 @@ def resize_image_fit_aspect_ratio(
     )
     return resize(
         image_resize,
-        (image_to_register_resize_width, image_to_register_resize_height),
+        (image_toregister_resize_width, image_toregister_resize_height),
         interpolation=INTER_AREA,
     )
 
