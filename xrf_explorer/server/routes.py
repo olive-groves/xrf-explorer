@@ -289,7 +289,8 @@ def get_dr_embedding_mapping(data_source: str):
 
 @app.route("/api/<data_source>/dr/dimensions")
 def get_dr_embedding_plot_dimensions(data_source: str):
-    """Gets the dimensions of the embedding image. Both the xlims and ylims of the plot and the min and max values of the embedding.
+    """Gets the dimensions of the embedding image. Both the xlims and ylims of the plot and the min and max values of
+    the embedding.
 
     :param data_source: data source to get the overlay from
     :return: json with the xlims and ylims of the plot and the min and max values of the embedding
