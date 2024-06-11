@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import { RectangleSelectionTool } from "@/lib/selection";
+import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: RectangleSelectionTool = new RectangleSelectionTool();
+const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 const imageToEmbeddingCropping: {
   xEmbedRange: number[];
@@ -182,11 +182,11 @@ async function updateImageToEmbeddingCropping() {
     async (response) => {
       response.json().then(
         (dimensions) => {
-          const xMin = dimensions.xplotrange[0];  // min x coordinate of the outer image
-          const yMin = dimensions.yplotrange[0];  // min y coordinate of the outer image
+          const xMin = dimensions.xplotrange[0]; // min x coordinate of the outer image
+          const yMin = dimensions.yplotrange[0]; // min y coordinate of the outer image
 
-          const xMax = dimensions.xplotrange[1];  // max x coordinate of the outer image
-          const yMax = dimensions.yplotrange[1];  // max y coordinate of the outer image
+          const xMax = dimensions.xplotrange[1]; // max x coordinate of the outer image
+          const yMax = dimensions.yplotrange[1]; // max y coordinate of the outer image
 
           const image: HTMLElement | null = document.getElementById("image");
           if (image == null) {
@@ -195,7 +195,7 @@ async function updateImageToEmbeddingCropping() {
             );
             return;
           }
-          const rect = image.getBoundingClientRect();   // get the dimensions of the current window on the client
+          const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
 
           // compute the difference between the outer image and the embedding and scale it to the window's size
           imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xMin, xMax, 0, rect.width);

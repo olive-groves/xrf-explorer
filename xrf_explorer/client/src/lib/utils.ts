@@ -65,7 +65,7 @@ function rgbComponentToHex(component: number): string {
 /**
  * Converts RGB color into Hex color.
  * @param rgb - The RGB value to convert.
- * @reurns The Hex equivalent of the given RGB value.
+ * @returns The Hex equivalent of the given RGB value.
  */
 export function rgbToHex(rgb: [number, number, number]): string {
   return `#${rgbComponentToHex(rgb[0])}${rgbComponentToHex(rgb[1])}${rgbComponentToHex(rgb[2])}`;

@@ -251,18 +251,22 @@ abstract class BaseSelectionTool {
    * @param svgWidth - The width of the SVG object on which we are drawing the selection.
    */
   protected highlightPoints(svg: d3.Selection<null, unknown, null, undefined>, svgWidth: number): void {
-      this.selectedPoints.forEach((point: Point2D): void => {
-        const defaultFillColor: number[] = hexToRgb(config.selectionToolConfig.fill_color);
-        // invert the fillColor to ensure there is contrast
-        const invertedFillColor: string = rgbToHex([255 - defaultFillColor[0], 255 - defaultFillColor[1], 255 - defaultFillColor[2]]);
-        svg
-            .append("circle")
-            .attr("cx", point.x)
-            .attr("cy", point.y)
-            .attr("r", Math.floor(svgWidth / 100))  // radius = 1% of svg width
-            .attr("fill", invertedFillColor)
-            .attr("stroke", config.selectionToolConfig.stroke_color);
-      })
+    this.selectedPoints.forEach((point: Point2D): void => {
+      const defaultFillColor: number[] = hexToRgb(config.selectionToolConfig.fill_color);
+      // invert the fillColor to ensure there is contrast
+      const invertedFillColor: string = rgbToHex([
+        255 - defaultFillColor[0],
+        255 - defaultFillColor[1],
+        255 - defaultFillColor[2],
+      ]);
+      svg
+        .append("circle")
+        .attr("cx", point.x)
+        .attr("cy", point.y)
+        .attr("r", Math.floor(svgWidth / 100)) // radius = 1% of svg width
+        .attr("fill", invertedFillColor)
+        .attr("stroke", config.selectionToolConfig.stroke_color);
+    });
   }
 
   /**
@@ -352,14 +356,14 @@ export class RectangleSelectionTool extends BaseSelectionTool {
     svg = this.resetSVGDrawing(svg, dimensions);
     if (this.finishedSelection) {
       svg
-          .append("rect")
-          .attr("x", this.originPoint().x)
-          .attr("y", this.originPoint().y)
-          .attr("width", this.width())
-          .attr("height", this.height())
-          .attr("fill", config.selectionToolConfig.fill_color)
-          .attr("stroke", config.selectionToolConfig.stroke_color)
-          .attr("opacity", config.selectionToolConfig.opacity);
+        .append("rect")
+        .attr("x", this.originPoint().x)
+        .attr("y", this.originPoint().y)
+        .attr("width", this.width())
+        .attr("height", this.height())
+        .attr("fill", config.selectionToolConfig.fill_color)
+        .attr("stroke", config.selectionToolConfig.stroke_color)
+        .attr("opacity", config.selectionToolConfig.opacity);
 
       this.highlightPoints(svg, dimensions.width);
     }
