@@ -7,7 +7,7 @@ import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
-import { Point2D } from "@/lib/utils";
+import { mapRange, Point2D } from "@/lib/utils";
 import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
@@ -154,19 +154,6 @@ async function updateEmbedding() {
   // Set status to error
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
-}
-
-/**
- * Scale a list from one range to another.
- * @param a - The list of numbers to be scaled.
- * @param oldMin - The minimum value of the original range.
- * @param oldMax - The maximum value of the original range.
- * @param newMin - The minimum value of the desired range.
- * @param newMax - The maximum value of the desired range.
- * @returns A new list with the numbers scaled to the desired range.
- */
-function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: number, newMax: number): Array<number> {
-  return a.map((x) => ((x - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin);
 }
 
 /**
