@@ -241,7 +241,7 @@ export async function createDRSelectionLayer() {
   // set up layer
   const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
   registerLayer(layer, recipe);
-  layer.uniform.iLayerType.value = LayerType.Selection;
+  layer.uniform.iLayerType.value = LayerType.DimensionalityReductionSelection;
   layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
 
   // add layers to the groups of layers

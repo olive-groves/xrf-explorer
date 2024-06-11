@@ -182,7 +182,7 @@ export enum LayerType {
   Image = 0,
   Elemental = 1,
   ColorSegmentation = 2,
-  Selection = 3,
+  DimensionalityReductionSelection = 3,
 }
 
 /**
