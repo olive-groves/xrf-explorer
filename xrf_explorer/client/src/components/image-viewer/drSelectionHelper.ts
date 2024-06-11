@@ -21,9 +21,20 @@ const height: number = 256; // arbitrary amount to compress embedding data
 let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(width * height * 4);
+setSelectionColor(hexToRgb(config.selectionToolConfig.fill_color));
 const layerTexture: DataTexture = createDataTexture(layerData, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
+
+/**
+ * Set the color of the selection layer.
+ * @param color - Color to be used for highlighting the selection.
+ */
+function setSelectionColor(color: [number, number, number]): void {
+  color.push(0);  // opacity set to 0 (used for bitmask)
+  for (let i: number = 0; i < layerData.length; i++)
+      layerData[i] = color[i % 4];
+}
 
 /**
  * Perform any and all necessary updates to the DR Selection layer when a new selection comes through.
@@ -74,8 +85,8 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
   const topLeftIndex: number = coordinatesToIndex(boundingBox[0].x, boundingBox[0].y, embeddingWidth);
   const bottomRightIndex: number = coordinatesToIndex(boundingBox[1].x, boundingBox[1].y, embeddingWidth);
 
-  // reset bitmask
-  layerData.fill(0);
+  // reset bitmask (through the opacity)
+  for (let i: number = 3; i < layerData.length; i += 4) layerData[i] = 0;
 
   // check which points are in the selection and update the bitmask accordingly
   for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
@@ -99,10 +110,6 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     const isInSelection: boolean = isPointInSelection(point, newSelection);
 
     // update the layer's bitmask
-    const selectionColor: [number, number, number] = hexToRgb(config.selectionToolConfig.fill_color);
-    // rgbValue corresponds to red, green, blue
-    for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)
-      layerData[normalizedIndex + rgbValue] = isInSelection ? selectionColor[rgbValue] : 0;
     // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
     layerData[normalizedIndex + 3] = isInSelection ? 255 : 0;
   }
