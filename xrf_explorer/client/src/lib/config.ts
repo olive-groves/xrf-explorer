@@ -85,7 +85,7 @@ export type SelectionToolConfig = {
   /**
    * Keyboard key that will consolidate the current selection (not applicable to rectangle selection).
    */
-  confirmKey: string | null;
+  confirmKey?: string;
   /**
    * Color in which the selected area should be displayed.
    */
