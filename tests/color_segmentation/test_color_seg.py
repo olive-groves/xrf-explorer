@@ -7,41 +7,46 @@ import numpy as np
 
 sys.path.append('.')
 
+from xrf_explorer.server.file_system.config_handler import set_config
 from xrf_explorer.server.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
     get_elemental_clusters_using_k_means, combine_bitmasks,
     image_to_lab, image_to_rgb, lab_to_rgb, rgb_to_lab
 )
 
-from xrf_explorer.server.file_system.elemental_cube import to_dms
-
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
 
 class TestColorSegmentation:
-    BW_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'black_and_white_image.png'))
-    TEST_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'test_image_cs.png'))
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
-    DATA_CUBE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'test_cube.dms'))
-    REG_TEST_IMAGE_PATH: str = join(RESOURCES_PATH, Path('color_segmentation', 'registered_test_image.png'))
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'color-segmentation.yml')
+
+    DATA_SOURCE = "data_source"
+    IMAGE_NAME = "RGB"
+
+    PATH_DATA_SOURCE: str = join(RESOURCES_PATH, 'color_segmentation', DATA_SOURCE)
+
+    BW_IMAGE_PATH: str = join(RESOURCES_PATH, 'color_segmentation', 'black_and_white_image.png')
+    TEST_IMAGE_PATH: str = join(PATH_DATA_SOURCE, 'test_image_cs.png')
+    DATA_CUBE_PATH: str = join(PATH_DATA_SOURCE, 'test_cube.dms')
+    REG_TEST_IMAGE_PATH: str = join(PATH_DATA_SOURCE, 'registered_test_image.png')
 
     def test_get_clusters_using_k_means_colors(self, caplog):
         caplog.set_level(logging.INFO)
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # Set-up
         result: np.ndarray
-        num_attemps: int = 10
+        num_attempts: int = 10
         k: int = 2
 
         # Execute
-        result, _ = get_clusters_using_k_means(self.TEST_IMAGE_PATH, self.DATA_CUBE_PATH, self.REG_TEST_IMAGE_PATH,
-                                               num_attemps, k)
-
+        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, num_attempts, k)
+        print(result)
         # Verify
         # The image has 2 colors
         assert len(result) == 2
         assert np.sum(np.all(result == [0, 0, 0], axis=1)) == 1
-        assert np.sum(np.all(result == [255, 255, 255], axis=1)) == 1
+        assert np.sum(np.all(result == [189, 189, 189], axis=1)) == 1
 
         # Verify log message
         assert "Initial color clusters extracted successfully." in caplog.text
@@ -107,19 +112,21 @@ class TestColorSegmentation:
         assert np.array_equal(result, expected_result)
 
     def test_get_elem_clusters_using_k_means(self):
+        set_config(self.CUSTOM_CONFIG_PATH)
+
         # Set-up
         small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
         expected_result0: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [211, 211, 211]
         ])
         expected_result1: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [169, 169, 169]
         ])
         expected_result2: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [211, 211, 211]
         ])
         elem_threshold: float = 0.1
         num_attemps: int = 10
@@ -129,8 +136,7 @@ class TestColorSegmentation:
         clusters_per_elem: np.ndarray
         bitmasks_per_elem: np.ndarray
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                          self.TEST_IMAGE_PATH, self.DATA_CUBE_PATH, self.REG_TEST_IMAGE_PATH,
-                          elem_threshold, num_attemps, k)
+                          self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
 
         for i in range(len(clusters_per_elem)):
             clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])

@@ -21,15 +21,13 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
     get_elemental_map, normalize_ndarray_to_grayscale
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
 from xrf_explorer.server.color_seg import (
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
-)
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
 )
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
 
@@ -580,7 +578,7 @@ def get_color_clusters(data_source: str):
     # Compute colors and bitmasks
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
@@ -599,7 +597,8 @@ def get_color_clusters(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts_elem, k_elem)
+        data_source, rgb_image_name, elem_threshold, nr_attempts_elem, k_elem
+    )
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
