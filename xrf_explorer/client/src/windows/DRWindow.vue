@@ -249,7 +249,6 @@ function onMouseDown(event: MouseEvent) {
  * @param event - The keyboard event.
  */
 function onKeyDown(event: KeyboardEvent) {
-  console.log(event.key);
   if (event.key == config.selectionTool.cancelKey) cancelSelection();
   else if (event.key == config.selectionTool.confirmKey) confirmSelection();
 
