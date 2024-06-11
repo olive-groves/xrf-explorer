@@ -91,7 +91,8 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
 
 
 def create_image_overlay(registered_image: np.ndarray, indices: np.ndarray) -> np.ndarray:
-    """Creates the overlay based on the given image type. This is done by getting the pixels out of the image at the given indices.
+    """Creates the overlay based on the given image type. This is done by getting the pixels out of the image at the
+    given indices.
 
     :param registered_image: The pixels of the registered image to create the overlay from.
     :param indices: The indices to get the pixels from.
@@ -132,7 +133,8 @@ def create_element_overlay(
 
 
 def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: str) -> str:
-    """Makes the image of the given embedding with the given overlay and saves it to the given path. Saves the dimensions of the plot to "dimensions.json".
+    """Makes the image of the given embedding with the given overlay and saves it to the given path. Saves the
+    dimensions of the plot to "dimensions.json".
     
     :param embedding: The embedding data.
     :param overlay: The overlay data.
