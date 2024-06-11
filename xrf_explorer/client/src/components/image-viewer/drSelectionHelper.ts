@@ -45,9 +45,9 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
     console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
     return;
   }
-  // edge case: polygon selection must have at least 2 points
-  if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 2) {
-    console.error("Invalid polygon selection. Expected at least 2 points but got: ", newSelection);
+  // edge case: polygon selection must have at least 3 points
+  if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 3) {
+    console.error("Invalid polygon selection. Expected at least 3 points but got: ", newSelection);
     return;
   }
 
