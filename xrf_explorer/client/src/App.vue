@@ -28,7 +28,10 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
     <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
       <Header />
       <WindowContainer>
-        <ImageViewer />
+        <div class="flex justify-between w-full h-full">
+          <ImageViewer class="w-full h-full"/>
+          <ImageViewer class="w-full h-full"/>
+        </div>
 
         <!-- Place all windows below here -->
         <ElementalChannelWindow />
