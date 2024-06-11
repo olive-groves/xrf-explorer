@@ -77,7 +77,7 @@ export type SelectionToolConfig = {
   /**
    * Keyboard key that will cancel the current selection.
    */
-  cancelKey: string | null;
+  cancelKey?: string;
   /**
    * Mouse button that will consolidate the current selection (not applicable to rectangle selection).
    */
