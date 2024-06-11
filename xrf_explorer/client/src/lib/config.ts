@@ -20,10 +20,6 @@ export type FrontendConfig = {
    * Configuration related to the selection tool.
    */
   selectionToolConfig: SelectionToolConfig;
-  /**
-   * The default theme of the client.
-   */
-  defaultTheme: BasicColorMode;
 };
 
 /**
@@ -119,7 +115,6 @@ export const DefaultConfig: FrontendConfig = {
     defaultLensSize: 100.0,
     zoomLimit: 4.0,
   },
-  defaultTheme: "dark",
   upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
