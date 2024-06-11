@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { toast } from "vue-sonner";
-import { Point2D } from "@/components/image-viewer/types.ts";
-import { FrontendConfig } from "@/lib/config.ts";
+import { Point2D } from "@/components/image-viewer/types";
+import { config } from "@/main";
 
 /**
  * Type describing the current selection.
@@ -245,15 +245,30 @@ abstract class BaseSelectionTool {
   }
 
   /**
+   * Draw a small circle around each point in the selection to highlight where the selection boundaries are.
+   * @param svg - D3 SVG object on which we are drawing the selection.
+   * @param svgWidth - The width of the SVG object on which we are drawing the selection.
+   */
+  protected highlightPoints(svg: d3.Selection<null, unknown, null, undefined>, svgWidth: number): void {
+      this.selectedPoints.forEach((point: Point2D) => {
+          svg
+            .append("circle")
+            .attr("cx", point.x)
+            .attr("cy", point.y)
+            .attr("r", Math.floor(svgWidth / 100))  // radius = 1% of svg width
+            .attr("fill", "yellow")
+            .attr("stroke", config.selectionToolConfig.stroke_color);
+      })
+  }
+
+  /**
    * Draws the current selection on the given SVG overlay.
    * @param svg - D3 SVG object on which we are drawing the selection.
    * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
-   * @param config - Frontend config values containing constants for the aesthetics of the selection.
    */
   abstract draw(
     svg: d3.Selection<null, unknown, null, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
-    config: FrontendConfig,
   ): void;
 }
 
@@ -325,24 +340,25 @@ export class RectangleSelectionTool extends BaseSelectionTool {
    * @param dimensions.y - The y coordinate of the top-left point of the SVG overlay.
    * @param dimensions.width - The desired width of the SVG overlay.
    * @param dimensions.height - The desired height of the SVG overlay.
-   * @param config - Frontend config values containing constants for the aesthetics of the selection.
    */
   draw(
     svg: d3.Selection<null, unknown, null, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
-    config: FrontendConfig,
   ): void {
     svg = this.resetSVGDrawing(svg, dimensions);
-    if (this.finishedSelection)
+    if (this.finishedSelection) {
       svg
-        .append("rect")
-        .attr("x", this.originPoint().x)
-        .attr("y", this.originPoint().y)
-        .attr("width", this.width())
-        .attr("height", this.height())
-        .attr("fill", config.selectionToolConfig.fill_color)
-        .attr("stroke", config.selectionToolConfig.stroke_color)
-        .attr("opacity", config.selectionToolConfig.opacity);
+          .append("rect")
+          .attr("x", this.originPoint().x)
+          .attr("y", this.originPoint().y)
+          .attr("width", this.width())
+          .attr("height", this.height())
+          .attr("fill", config.selectionToolConfig.fill_color)
+          .attr("stroke", config.selectionToolConfig.stroke_color)
+          .attr("opacity", config.selectionToolConfig.opacity);
+
+      this.highlightPoints(svg, dimensions.width);
+    }
   }
 }
 
@@ -384,12 +400,10 @@ export class LassoSelectionTool extends BaseSelectionTool {
    * @param dimensions.y - The y coordinate of the top-left point of the SVG overlay.
    * @param dimensions.width - The desired width of the SVG overlay.
    * @param dimensions.height - The desired height of the SVG overlay.
-   * @param config - Frontend config values containing constants for the aesthetics of the selection.
    */
   draw(
     svg: d3.Selection<null, unknown, null, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
-    config: FrontendConfig,
   ): void {
     svg = this.resetSVGDrawing(svg, dimensions);
     svg
@@ -398,5 +412,6 @@ export class LassoSelectionTool extends BaseSelectionTool {
       .attr("fill", config.selectionToolConfig.fill_color)
       .attr("stroke", config.selectionToolConfig.stroke_color)
       .attr("opacity", config.selectionToolConfig.opacity);
+    this.highlightPoints(svg, dimensions.width);
   }
 }
