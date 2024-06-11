@@ -17,7 +17,7 @@ export type FrontendConfig = {
   /**
    * Configuration related to the selection tool.
    */
-  selectionToolConfig: SelectionToolConfig;
+  selectionTool: SelectionToolConfig;
 };
 
 /**
@@ -116,7 +116,7 @@ export const DefaultConfig: FrontendConfig = {
   upload: {
     uploadChunkSizeInBytes: 50000000, // 50 MB
   },
-  selectionToolConfig: {
+  selectionTool: {
     addPointButton: 0, // left mouse button
     cancelButton: null,
     cancelKey: "Escape",

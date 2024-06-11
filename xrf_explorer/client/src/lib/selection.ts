@@ -251,7 +251,7 @@ abstract class BaseSelectionTool {
    */
   protected highlightPoints(svg: d3.Selection<null, unknown, null, undefined>, svgWidth: number): void {
     this.selectedPoints.forEach((point: Point2D): void => {
-      const defaultFillColor: number[] = hexToRgb(config.selectionToolConfig.fill_color);
+      const defaultFillColor: number[] = hexToRgb(config.selectionTool.fill_color);
       // invert the fillColor to ensure there is contrast
       const invertedFillColor: string = rgbToHex([
         255 - defaultFillColor[0],
@@ -264,7 +264,7 @@ abstract class BaseSelectionTool {
         .attr("cy", point.y)
         .attr("r", Math.floor(svgWidth / 100)) // radius = 1% of svg width
         .attr("fill", invertedFillColor)
-        .attr("stroke", config.selectionToolConfig.stroke_color);
+        .attr("stroke", config.selectionTool.stroke_color);
     });
   }
 
@@ -360,9 +360,9 @@ export class RectangleSelectionTool extends BaseSelectionTool {
         .attr("y", this.originPoint().y)
         .attr("width", this.width())
         .attr("height", this.height())
-        .attr("fill", config.selectionToolConfig.fill_color)
-        .attr("stroke", config.selectionToolConfig.stroke_color)
-        .attr("opacity", config.selectionToolConfig.opacity);
+        .attr("fill", config.selectionTool.fill_color)
+        .attr("stroke", config.selectionTool.stroke_color)
+        .attr("opacity", config.selectionTool.opacity);
 
       this.highlightPoints(svg, dimensions.width);
     }
@@ -416,9 +416,9 @@ export class LassoSelectionTool extends BaseSelectionTool {
     svg
       .append("polygon")
       .attr("points", this.getPointsAsString())
-      .attr("fill", config.selectionToolConfig.fill_color)
-      .attr("stroke", config.selectionToolConfig.stroke_color)
-      .attr("opacity", config.selectionToolConfig.opacity);
+      .attr("fill", config.selectionTool.fill_color)
+      .attr("stroke", config.selectionTool.stroke_color)
+      .attr("opacity", config.selectionTool.opacity);
     this.highlightPoints(svg, dimensions.width);
   }
 }

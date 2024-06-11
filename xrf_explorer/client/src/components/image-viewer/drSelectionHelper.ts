@@ -21,7 +21,7 @@ const height: number = 256; // arbitrary amount to compress embedding data
 let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const layerData: Uint8Array = new Uint8Array(width * height * 4);
-setSelectionColor(hexToRgb(config.selectionToolConfig.fill_color));
+setSelectionColor(hexToRgb(config.selectionTool.fill_color));
 const layerTexture: DataTexture = createDataTexture(layerData, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });

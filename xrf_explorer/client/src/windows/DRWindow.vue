@@ -228,8 +228,8 @@ function confirmSelection() {
  * @param event - The mouse event.
  */
 function onMouseDown(event: MouseEvent) {
-  if (event.button == config.selectionToolConfig.cancelButton) cancelSelection();
-  else if (event.button == config.selectionToolConfig.addPointButton) {
+  if (event.button == config.selectionTool.cancelButton) cancelSelection();
+  else if (event.button == config.selectionTool.addPointButton) {
     const svg: HTMLElement | null = document.getElementById("svgOverlay");
     if (svg != null) {
       // compute the position of the click relative to the SVG based on the client coordinates
@@ -239,7 +239,7 @@ function onMouseDown(event: MouseEvent) {
       };
       selectionTool.addPointToSelection(clickedPos);
     }
-  } else if (event.button == config.selectionToolConfig.confirmButton) confirmSelection();
+  } else if (event.button == config.selectionTool.confirmButton) confirmSelection();
 
   updateSelectionVisuals();
 }
@@ -250,8 +250,8 @@ function onMouseDown(event: MouseEvent) {
  */
 function onKeyDown(event: KeyboardEvent) {
   console.log(event.key);
-  if (event.key == config.selectionToolConfig.cancelKey) cancelSelection();
-  else if (event.key == config.selectionToolConfig.confirmKey) confirmSelection();
+  if (event.key == config.selectionTool.cancelKey) cancelSelection();
+  else if (event.key == config.selectionTool.confirmKey) confirmSelection();
 
   updateSelectionVisuals();
 }
