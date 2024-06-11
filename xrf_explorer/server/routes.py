@@ -323,26 +323,6 @@ def get_dr_embedding_mapping(data_source: str):
     return send_file(abspath(image_path), mimetype='image/png')
 
 
-@app.route("/api/<data_source>/dr/dimensions")
-def get_dr_embedding_plot_dimensions(data_source: str):
-    """Gets the dimensions of the embedding image. Both the xlims and ylims of the plot and the min and max values of
-    the embedding.
-
-    :param data_source: data source to get the overlay from
-    :return: json with the xlims and ylims of the plot and the min and max values of the embedding
-    """
-
-    # Try to get the embedding image
-    path: str = abspath(join(get_path_to_dr_folder(data_source), 'dimensions.json'))
-
-    if not isfile(path):
-        error_msg: str = "Failed to find json file with embedding plot dimensions"
-        LOG.error(error_msg)
-        return error_msg, 400
-
-    return send_file(path, mimetype='application/json')
-
-
 @app.route("/api/<data_source>/image/<name>")
 def contextual_image(data_source: str, name: str):
     """Get a contextual image.

@@ -7,7 +7,7 @@ import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
-import { mapRange, Point2D } from "@/lib/utils";
+import { Point2D } from "@/lib/utils";
 import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
@@ -60,18 +60,6 @@ const imageSourceUrl = ref();
 // Selection
 const svgOverlay = ref<HTMLElement>();
 const selectionTool: LassoSelectionTool = new LassoSelectionTool();
-// the area (plot image) on which the embedding is displayed is larger than the embedding itself
-const imageToEmbeddingCropping: {
-  xEmbedRange: number[];
-  yEmbedRange: number[];
-  xPlotRange: number[];
-  yPlotRange: number[];
-} = {
-  xEmbedRange: [],
-  yEmbedRange: [],
-  xPlotRange: [],
-  yPlotRange: [],
-};
 
 /**
  * Fetch the dimensionality reduction image
@@ -99,8 +87,6 @@ async function fetchDRImage() {
     // Create URL for image and set it globally
     imageSourceUrl.value = URL.createObjectURL(data.value).toString();
 
-    // update image-embedding dimensions
-    await updateImageToEmbeddingCropping();
     // the middle image used for conversion from embedding to main viewer image needs to be updated
     updateMiddleImage();
 
@@ -154,46 +140,6 @@ async function updateEmbedding() {
   // Set status to error
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
-}
-
-/**
- * Get the new values representing the difference in dimensions between the image and the embedding.
- * The embedding is plotted onto another image which has different dimensions (slightly bigger). The image received from
- * the backend is a single image where the embedding is placed on top of the outer image. We therefore need to
- * compute the difference in dimensions between the image and the embedding for accurate representation of the user's
- * selection.
- */
-async function updateImageToEmbeddingCropping() {
-  fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
-    async (response) => {
-      response.json().then(
-        (dimensions) => {
-          const xMin = dimensions.xplotrange[0]; // min x coordinate of the outer image
-          const yMin = dimensions.yplotrange[0]; // min y coordinate of the outer image
-
-          const xMax = dimensions.xplotrange[1]; // max x coordinate of the outer image
-          const yMax = dimensions.yplotrange[1]; // max y coordinate of the outer image
-
-          const image: HTMLElement | null = document.getElementById("image");
-          if (image == null) {
-            console.warn(
-              "Tried to update the image to embedding cropping but could not find image element in DR window.",
-            );
-            return;
-          }
-          const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
-
-          // compute the difference between the outer image and the embedding and scale it to the window's size
-          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xMin, xMax, 0, rect.width);
-          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, yMin, yMax, rect.height, 0).reverse();
-          imageToEmbeddingCropping.xPlotRange = [0, rect.width];
-          imageToEmbeddingCropping.yPlotRange = [0, rect.height];
-        },
-        () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
-      );
-    },
-    () => toast.error("An error occurred while parsing the Dimensionality Reduction selection."),
-  );
 }
 
 /**
@@ -287,17 +233,25 @@ function drawSelection() {
  * Send the relevant information about the selection to the image viewer.
  */
 async function communicateSelectionWithImageViewer() {
+  const image: HTMLElement | null = document.getElementById("image");
+  if (image == null) {
+    console.warn(
+      "Tried to update the image to embedding cropping but could not find image element in DR window.",
+    );
+    return;
+  }
+  const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
+
   const selectionPointsInEmbedding: Point2D[] = [];
   // update the selection points' coordinates to the embedding's coordinates;
   if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
-  const embeddingWidth: number = imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0];
-  const embeddingHeight: number = imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0];
+
   // communicate the information to the image viewer using the app's state (selection is scaled down to a 256x256 image)
   appState.selection.dimensionalityReduction = {
     selectionType: selectionTool.type(),
     points: selectionPointsInEmbedding.map((point) => ({
-      x: Math.floor((point.x * 256) / embeddingWidth),
-      y: Math.floor((point.y * 256) / embeddingHeight),
+      x: Math.round((point.x * 255) / rect.width),
+      y: Math.round((point.y * 255) / rect.height),
     })),
   };
 }
@@ -308,27 +262,32 @@ async function communicateSelectionWithImageViewer() {
  * @param writeList - The list of points where the updated points will be written to.
  */
 function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
+  const image: HTMLElement | null = document.getElementById("image");
+  if (image == null) {
+    console.warn(
+      "Tried to update the image to embedding cropping but could not find image element in DR window.",
+    );
+    return;
+  }
+  const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
+
   // compute cropping
-  const xDelta: number = imageToEmbeddingCropping.xEmbedRange[0] - imageToEmbeddingCropping.xPlotRange[0];
-  const xMin: number = imageToEmbeddingCropping.xEmbedRange[0];
-  const xMax: number = imageToEmbeddingCropping.xEmbedRange[1];
-  const yDelta: number = imageToEmbeddingCropping.yEmbedRange[0] - imageToEmbeddingCropping.yPlotRange[0];
-  const yMin: number = imageToEmbeddingCropping.yEmbedRange[0];
-  const yMax: number = imageToEmbeddingCropping.yEmbedRange[1];
+  const xMin: number = 0;
+  const xMax: number = rect.width;
+  const yMin: number = 0;
+  const yMax: number = rect.height;
 
   // adapt the coordinates of the selected points to the cropped embedding
   for (const point of selectionTool.selectedPoints) {
     const newPoint: Point2D = { x: point.x, y: point.y };
     // crop left side
     if (newPoint.x < xMin) newPoint.x = xMin;
-    else newPoint.x -= xDelta;
 
     // crop right side
     if (newPoint.x > xMax) newPoint.x = xMax;
 
     // crop top side
     if (newPoint.y < yMin) newPoint.y = yMin;
-    else newPoint.y -= yDelta;
 
     // crop bottom side
     if (newPoint.y > yMax) newPoint.y = yMax;
@@ -388,13 +347,8 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
       <p class="mt-4 font-bold">Generated image:</p>
       <div
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
-        style="cursor: crosshair; position: relative"
-        @mousedown="onMouseDown"
-        tabindex="0"
-        @keyup="onKeyDown"
-        id="imageContainer"
-        ref="output"
-      >
+        style="cursor: crosshair; position: relative" @mousedown="onMouseDown" tabindex="0" @keyup="onKeyDown"
+        id="imageContainer" ref="output">
         <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
           <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
           <span v-if="status == Status.LOADING">Loading</span>
@@ -404,13 +358,8 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
           <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR" />
-          <svg
-            v-if="status == Status.SUCCESS"
-            id="svgOverlay"
-            ref="svgOverlay"
-            @error="status = Status.ERROR"
-            style="position: absolute"
-          ></svg>
+          <svg v-if="status == Status.SUCCESS" id="svgOverlay" ref="svgOverlay" @error="status = Status.ERROR"
+            style="position: absolute"></svg>
         </div>
       </div>
     </div>

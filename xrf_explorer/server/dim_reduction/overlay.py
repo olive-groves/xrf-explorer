@@ -22,7 +22,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def create_embedding_image(data_source: str, overlay_type: str) -> str:
-    """Creates the embedding image from the embedding. Saves the dimensions of the plot to "dimensions.json".
+    """Creates the embedding image from the embedding.
 
     :param data_source: Name of the data source to create the embedding image for.
     :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_.
@@ -139,8 +139,7 @@ def create_element_overlay(
 
 
 def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: str) -> str:
-    """Makes the image of the given embedding with the given overlay and saves it to the given path. Saves the
-    dimensions of the plot to "dimensions.json".
+    """Makes the image of the given embedding with the given overlay and saves it to the given path.
     
     :param embedding: The embedding data.
     :param overlay: The overlay data.
@@ -155,20 +154,6 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
     fig.patch.set_facecolor('black')
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
-
-    # Save the plot dimensions
-    x_plot_min, x_plot_max = plt.xlim()
-    y_plot_min, y_plot_max = plt.ylim()
-    x_embed_min, y_embed_min = np.min(embedding, axis=0)
-    x_embed_max, y_embed_max = np.max(embedding, axis=0)
-    dimension_data: dict = {
-        'xplotrange': [str(x_plot_min), str(x_plot_max)],
-        'yplotrange': [str(y_plot_min), str(y_plot_max)],
-        'xembedrange': [str(x_embed_min), str(x_embed_max)],
-        'yembedrange': [str(y_embed_min), str(y_embed_max)]
-    }
-    with open(join(path, 'dimensions.json'), 'w') as f:
-        dump(dimension_data, f)
 
     # Save the plot
     image_path = join(path, 'embedding.png')

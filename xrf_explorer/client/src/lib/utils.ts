@@ -103,22 +103,3 @@ export function removeValue<Type>(array: Type[], value: Type) {
     array.splice(index);
   }
 }
-
-/**
- * Scale a list from one range to another.
- * @param a - The list of numbers to be scaled.
- * @param oldMin - The minimum value of the original range.
- * @param oldMax - The maximum value of the original range.
- * @param newMin - The minimum value of the desired range.
- * @param newMax - The maximum value of the desired range.
- * @returns A new list with the numbers scaled to the desired range.
- */
-export function mapRange(
-  a: Array<number>,
-  oldMin: number,
-  oldMax: number,
-  newMin: number,
-  newMax: number,
-): Array<number> {
-  return a.map((x) => ((x - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin);
-}
