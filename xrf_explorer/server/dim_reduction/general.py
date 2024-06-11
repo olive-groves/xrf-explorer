@@ -104,9 +104,9 @@ def get_path_to_dr_folder(data_source: str) -> str:
     path_to_dr_folder: str = join(path_to_generated_folder, backend_config['dim-reduction']['folder-name'])
 
     # Check if the dimensionality reduction folder exists
-    if not isdir(path_to_data_source):
-        makedirs(path_to_data_source)
-        LOG.info(f"Created directory {path_to_data_source}.")
+    if not isdir(path_to_dr_folder):
+        makedirs(path_to_dr_folder)
+        LOG.info(f"Created directory {path_to_dr_folder}.")
 
     LOG.info(f"Dimensionality reduction folder {data_source} found.")
     return path_to_dr_folder
