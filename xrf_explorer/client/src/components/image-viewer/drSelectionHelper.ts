@@ -213,6 +213,10 @@ function updateLayer(nPointsSelected: number): void {
   }
 }
 
+/**
+ * Find and return the DR selection layer from the layer groups.
+ * @returns The layer corresponding to the DR selection.
+ */
 function getDRSelectionLayer(): Layer {
   return layerGroups.value.selection.layers.filter((layer: Layer): boolean => layer.id == "selection_dr")[0];
 }
