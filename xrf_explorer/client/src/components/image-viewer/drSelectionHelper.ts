@@ -104,7 +104,7 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)
       layerData[normalizedIndex + rgbValue] = isInSelection ? selectionColor[rgbValue] : 0;
     // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-    layerData[normalizedIndex + 3] = isInSelection ? Math.floor(config.selectionToolConfig.opacity * 256) : 0;
+    layerData[normalizedIndex + 3] = isInSelection ? 255 : 0;
   }
 }
 
