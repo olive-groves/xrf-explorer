@@ -35,7 +35,8 @@ const correctSpectraParams = ref(true);
  * Check if entered parameters satisfy the constraints.
  */
 function updateCorrectParams() {
- if (0 <= low.value &&
+  if (
+    0 <= low.value &&
     low.value < 4096 &&
     0 < high.value &&
     high.value <= 4096 &&
@@ -83,7 +84,7 @@ function save() {
             v-model="low"
             id="low-input"
             @change="updateCorrectParams"
-            />
+          />
         </div>
         <div class="space-x-2">
           <Label for="high-input">Higher channel boundary</Label>
@@ -96,7 +97,7 @@ function save() {
             v-model="high"
             id="high-input"
             @change="updateCorrectParams"
-            />
+          />
         </div>
         <div class="space-x-2">
           <Label for="bin-size-input">Bin size</Label>
@@ -109,7 +110,7 @@ function save() {
             v-model="binSize"
             id="bin-size-input"
             @change="updateCorrectParams"
-            />
+          />
         </div>
 
         <!--Footer-->
