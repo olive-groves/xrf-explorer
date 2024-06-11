@@ -242,9 +242,6 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled.
     """
 
-    # Get path to elemental cube
-    # path: str = get_elemental_cube_path(data_source)
-
     # Try to generate the embedding
     result = generate_embedding(data_source, element, threshold, request.args)
     if result == "success" or result == "downsampled":
