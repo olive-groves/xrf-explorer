@@ -300,8 +300,6 @@ async function communicateSelectionWithImageViewer() {
       y: Math.floor((point.y * 256) / embeddingHeight),
     })),
   };
-
-  updateInEmbedding = false; // reset
 }
 
 /**
