@@ -9,7 +9,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
-import { LassoSelectionTool } from "@/lib/selection";
+import { RectangleSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 
@@ -59,7 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref(null);
-const selectionTool: LassoSelectionTool = new LassoSelectionTool();
+const selectionTool: RectangleSelectionTool = new RectangleSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 const imageToEmbeddingCropping: {
   xEmbedRange: number[];
@@ -250,8 +250,11 @@ function onMouseDown(event: MouseEvent) {
  * @param event - The keyboard event.
  */
 function onKeyDown(event: KeyboardEvent) {
+  console.log(event.key);
   if (event.key == config.selectionToolConfig.cancelKey) cancelSelection();
   else if (event.key == config.selectionToolConfig.confirmKey) confirmSelection();
+
+  updateSelectionVisuals();
 }
 
 /**
@@ -404,7 +407,8 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
         style="cursor: crosshair; position: relative"
         @mousedown="onMouseDown"
-        @keydown="onKeyDown"
+        tabindex="0"
+        @keyup="onKeyDown"
         id="imageContainer"
         ref="output"
       >
