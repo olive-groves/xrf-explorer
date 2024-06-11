@@ -43,7 +43,7 @@ function setup() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([0, (high.value-low.value)/binSize.value]);
+    .domain([0, (high.value - low.value)/binSize.value]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])

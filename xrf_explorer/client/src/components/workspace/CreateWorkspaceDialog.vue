@@ -31,11 +31,11 @@ function createEmptyWorkspace(): WorkspaceConfig {
     spectralCubes: [],
     elementalCubes: [],
     elementalChannels: [],
-    spectralParams : {
+    spectralParams: {
       low: 0,
       high: 4096,
-      binSize: 1
-    }
+      binSize: 1,
+    },
   };
 }
 
@@ -206,8 +206,10 @@ async function updateWorkspace() {
   }
 }
 
+/**
+ * Update the workspace before binning the raw data.
+ */
 async function initWorkspace() {
-
   updateWorkspace();
   const workspaceClone = deepClone(workspace.value);
   // Validate the configured files
@@ -218,8 +220,11 @@ async function initWorkspace() {
     });
     return false;
   }
-  const binParams = `{"low": ${workspace.value.spectralParams.low}, "high": ${workspace.value.spectralParams.high}, "binSize": ${workspace.value.spectralParams.binSize}}`;
-  console.log('binning data')
+  // Get binning parameters
+  const binParams = `{"low": ${workspace.value.spectralParams.low}, 
+                      "high": ${workspace.value.spectralParams.high}, 
+                      "binSize": ${workspace.value.spectralParams.binSize}}`;
+  // Bin raw data
   const binResponse: Response = await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
     method: "GET",
   });
@@ -228,9 +233,7 @@ async function initWorkspace() {
   if (binSuccess == "False") {
     alert("Something went wrong while binning raw file. Please try again later.");
   }
-  console.log("data binned")
 }
-
 </script>
 
 <template>
