@@ -242,58 +242,14 @@ async function communicateSelectionWithImageViewer() {
   }
   const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
 
-  const selectionPointsInEmbedding: Point2D[] = [];
-  // update the selection points' coordinates to the embedding's coordinates;
-  if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
-
   // communicate the information to the image viewer using the app's state (selection is scaled down to a 256x256 image)
   appState.selection.dimensionalityReduction = {
     selectionType: selectionTool.type(),
-    points: selectionPointsInEmbedding.map((point) => ({
+    points: selectionTool.selectedPoints.map((point: Point2D) => ({
       x: Math.round((point.x * 255) / rect.width),
       y: Math.round((point.y * 255) / rect.height),
     })),
   };
-}
-
-/**
- * The image element on which the embedding is plotted has larger dimensions than the embedding itself, here we update
- * the coordinates of the selection to fit the embedding's dimensions instead of the image's.
- * @param writeList - The list of points where the updated points will be written to.
- */
-function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
-  const image: HTMLElement | null = document.getElementById("image");
-  if (image == null) {
-    console.warn(
-      "Tried to update the image to embedding cropping but could not find image element in DR window.",
-    );
-    return;
-  }
-  const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
-
-  // compute cropping
-  const xMin: number = 0;
-  const xMax: number = rect.width;
-  const yMin: number = 0;
-  const yMax: number = rect.height;
-
-  // adapt the coordinates of the selected points to the cropped embedding
-  for (const point of selectionTool.selectedPoints) {
-    const newPoint: Point2D = { x: point.x, y: point.y };
-    // crop left side
-    if (newPoint.x < xMin) newPoint.x = xMin;
-
-    // crop right side
-    if (newPoint.x > xMax) newPoint.x = xMax;
-
-    // crop top side
-    if (newPoint.y < yMin) newPoint.y = yMin;
-
-    // crop bottom side
-    if (newPoint.y > yMax) newPoint.y = yMax;
-
-    writeList.push(newPoint);
-  }
 }
 </script>
 
