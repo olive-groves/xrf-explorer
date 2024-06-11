@@ -4,7 +4,13 @@ from xrf_explorer.server.file_system.file_access import (
     get_base_image_path,
     get_cube_recipe_path,
 )
-from cv2 import imread, perspectiveTransform, getPerspectiveTransform
+from cv2 import (
+    imread,
+    perspectiveTransform,
+    getPerspectiveTransform,
+    convexHull,
+    fillConvexPoly,
+)
 from xrf_explorer.server.image_register.register_image import (
     load_points,
     compute_fitting_dimensions_by_aspect,
@@ -15,12 +21,18 @@ import logging
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def perspective_transform_coord(coord, transform_matrix):
+def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.ndarray) -> tuple[float, float]:
+    """
+    Transforms the perspective of a coordinate (x, y) to (x', y') based on a transformation
+    matrix.
+
+    :param coord: The (x, y) coordinate to be transformed.
+    :param transform_matrix: The transformation matrix.
+    :return: A (x', y') perspective transformed coordinate.
+    """
     coord_correct_format = np.array([[[coord[0], coord[1]]]], dtype="float32")
 
-    perspective_transformed_point = perspectiveTransform(
-        coord_correct_format, transform_matrix
-    )
+    perspective_transformed_point = perspectiveTransform(coord_correct_format, transform_matrix)
     return (
         (perspective_transformed_point[0][0][0]),
         (perspective_transformed_point[0][0][1]),
@@ -28,24 +40,37 @@ def perspective_transform_coord(coord, transform_matrix):
 
 
 def deregister_coord(
-    coord, cube_recipe_path, base_img_height, base_img_width, cube_height, cube_width
-):
+    coord: tuple[int, int],
+    cube_recipe_path: str,
+    base_img_height: int,
+    base_img_width: int,
+    cube_height: int,
+    cube_width: int,
+) -> tuple[int, int]:
+    """
+    Translates an (x, y) coordinate to its (x', y') counterpart in the cube coordinate system.
+    The function assumes that the cube recipe maps cube coordinates to the base image coordinates.
+
+    :param coord: The (x, y) coordinate to be translated.
+    :param cube_recipe_path: The path to the cube recipe.
+    :param base_img_height: The height of the base image in pixels.
+    :param base_img_width: The width of the base image in pixels.
+    :param cube_height: The height of the cube.
+    :param cube_width: The width of the cube.
+    :return: A (x', y') tuple representing the translated coordinate to the cube's coordinates.
+    """
     # Note: Reversing padding is not needed, since the images are padded
     #       on their right and bottom sides. Since (0, 0) is at the top
     #       left corner of the image, padding does not affect the coordinate
     #       system.
 
-    # First step: Reverse perspective tranformation
+    # First step: Reverse perspective transformation
     src_points, base_points = load_points(cube_recipe_path)
     transform_matrix = getPerspectiveTransform(base_points, src_points)
-    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(
-        coord, transform_matrix
-    )
+    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(coord, transform_matrix)
 
-    cube_height_scaled_before_pad, registered_uv_width_before_pad = (
-        compute_fitting_dimensions_by_aspect(
-            cube_height, cube_width, base_img_height, base_img_width
-        )
+    cube_height_scaled_before_pad, registered_uv_width_before_pad = compute_fitting_dimensions_by_aspect(
+        cube_height, cube_width, base_img_height, base_img_width
     )
 
     # Second step: Reverse scaling
@@ -140,9 +165,7 @@ def get_selected_data_cube(
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(
-            f"Error occured while retrieving the path fo the base image of {data_source_folder}"
-        )
+        LOG.error(f"Error occured while retrieving the path fo the base image of {data_source_folder}")
         return None
 
     data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
@@ -172,6 +195,33 @@ def get_selected_data_cube(
     else:
         # If the data cube has recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
+        x1, y1 = selection_coord_1
+        x2, y2 = selection_coord_2
 
-        LOG.warn("Deregistration logic not yet implemented!")
-        return np.array([])
+        # Get all 4 points of the selection rectangle
+        p1 = (x1, y1)
+        p2 = (x1, y2)
+        p3 = (x2, y1)
+        p4 = (x2, y2)
+
+        # Deregister to cube coordinates
+        args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
+        p1_cube = deregister_coord(p1, *args)
+        p2_cube = deregister_coord(p2, *args)
+        p3_cube = deregister_coord(p3, *args)
+        p4_cube = deregister_coord(p4, *args)
+
+        cube_points = np.array([p1_cube, p2_cube, p3_cube, p4_cube])
+        mask = np.zeros((cube_h, cube_w), dtype=np.uint8)
+
+        # Calculate the smallest convex set that contains all the points
+        # The purpose of this is to to order the points so they construct a polygon instead
+        # of an hourglass figure
+        convex_hull = convexHull(cube_points)
+
+        # Write 1's in the polygon area
+        fillConvexPoly(mask, convex_hull, (1,))
+
+        mask = mask.astype(bool)
+
+        return extract_selected_data(data_cube, mask)
