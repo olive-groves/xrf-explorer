@@ -135,11 +135,11 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     raw_name, rpl_name = get_raw_rpl_names(data_source)
     # get the path to the raw data in the server
     path_to_raw: str = join(
-        backend_config["uploads-folder"], data_source, raw_name)
+        Path(backend_config["uploads-folder"]), data_source, raw_name)
 
     # get the path to the rpl file in the server
     path_to_rpl: str = join(
-        backend_config["uploads-folder"], data_source, rpl_name)
+        Path(backend_config["uploads-folder"]), data_source, rpl_name)
 
     return path_to_raw, path_to_rpl
 
@@ -191,7 +191,7 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
     if workspace_dict is None:
         raise FileNotFoundError
 
-    return workspace_dict["spectraParams"]
+    return workspace_dict["spectralParams"]
 
 
 def get_workspace_dict(data_source_folder_name: str) -> dict | None:

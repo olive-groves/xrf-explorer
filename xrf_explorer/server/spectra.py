@@ -68,28 +68,37 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(
-            'C:/Users/20210792/Documents/GitHub/xrf-explorer/xrf_explorer/server/data/Painting/spectral.raw', dtype=np.uint16, mode='r')
+        datacube = np.fromfile(path_to_raw, dtype=np.uint16)
     except OSError as err:
         LOG.error("error while loading raw file for binning: {%s}", err)
         raise
     datacube = np.reshape(datacube, (height, width, channels))
 
-    nr_bins = ceil((high-low)/bin_size)
+    # if default settings, don't do anything
+    if low == 0 and high == 4096 and bin_size == 1:
+        return
+    # if we just need to crop
+    elif bin_size == 1:
+        new_cube = datacube[:, :, low:high]
+    else:
+        # compute number of bins
+        nr_bins = ceil((high-low)/bin_size)
+        # initialize  array
+        new_cube = np.zeros(shape=(1187, 1069, nr_bins), dtype=np.int16)
 
-    # initialize  array
-    new_cube = np.zeros(shape=(1187, 1069, nr_bins), dtype=np.int16)
-
-    for i in range(nr_bins):
-        # convert bin number to start channel in original data
-        start_channel = low + i*bin_size
-
-        bin = np.mean(
-            datacube[:, :, start_channel:start_channel+bin_size], axis=2)
-        new_cube[:, :, i] = bin
+        for i in range(nr_bins):
+            # convert bin number to start channel in original data (i.e. in range [0, 4096])
+            start_channel = low + i*bin_size
+            bin = np.mean(
+                datacube[:, :, start_channel:start_channel+bin_size], axis=2)
+            new_cube[:, :, i] = bin
 
     # overwrite file
-    new_cube.flatten().tofile(path_to_raw)
+    print(path_to_raw)
+    try:
+        new_cube.flatten().tofile(path_to_raw)
+    except Exception as e:
+        LOG.error("Failed to write binned data: {%s}", e)
 
 
 def get_average_global(data: np.ndarray) -> list:

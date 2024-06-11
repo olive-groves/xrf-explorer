@@ -31,6 +31,11 @@ function createEmptyWorkspace(): WorkspaceConfig {
     spectralCubes: [],
     elementalCubes: [],
     elementalChannels: [],
+    spectralParams : {
+      low: 0,
+      high: 4096,
+      binSize: 1
+    }
   };
 }
 
@@ -133,7 +138,7 @@ async function removeDataSource() {
 
 /**
  * Completes setup by saving the initialized workspace.json to the backend.
- * @returns - Whether setup was successfull.
+ * @returns - Whether setup was successful.
  */
 async function setupWorkspace(): Promise<boolean> {
   fileDialog.value = false;
@@ -203,6 +208,33 @@ async function updateWorkspace() {
     }
   }
 }
+async function initWorkspace() {
+
+  updateWorkspace();
+  const workspaceClone = deepClone(workspace.value);
+
+  // Validate the configured files
+  const validation = validateWorkspace(workspaceClone);
+  if (!validation[0]) {
+    toast.warning("Configured files are not valid", {
+      description: validation[1],
+    });
+    return false;
+  }
+
+  const binParams = `{"low": ${workspace.value.spectralParams.low}, "high": ${workspace.value.spectralParams.high}, "binSize": ${workspace.value.spectralParams.binSize}}`;
+  console.log('binning data')
+  const binResponse: Response = await fetch(`${config.api.endpoint}/${workspaceClone.name}/bin_raw/${binParams}`, {
+    method: "GET",
+  });
+  const jsonbinResponse = await binResponse.json();
+  const binSuccess: string = jsonbinResponse["binSuccess"];
+  if (binSuccess == "False") {
+    alert("Something went wrong while bining raw file. Please try again later.");
+  }
+  console.log("data binned")
+}
+
 </script>
 
 <template>
@@ -224,7 +256,7 @@ async function updateWorkspace() {
       }}</Button>
     </div>
     <Dialog v-model:open="fileDialog">
-      <FileSetupDialog v-model="workspace" @save="updateWorkspace" />
+      <FileSetupDialog v-model="workspace" @save="initWorkspace" />
     </Dialog>
     <Dialog v-model:open="channelDialog">
       <ChannelSetupDialog v-model="workspace" @save="updateWorkspace" />

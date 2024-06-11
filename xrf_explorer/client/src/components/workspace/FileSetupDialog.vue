@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { FileSetupTable } from ".";
+import { AdditionalSettingsDialog , FileSetupTable } from "."
 import { WorkspaceConfig } from "@/lib/workspace";
 import { validateWorkspace } from "./utils";
 import { computed } from "vue";
@@ -37,6 +36,7 @@ function save() {
           <div class="text-muted-foreground" v-text="modelValid[1]" />
         </div>
         <div class="space-x-2">
+          <AdditionalSettingsDialog v-model="model"/>
           <Button :disabled="!modelValid[0]" @click="save" :title="modelValid[1]">Save</Button>
         </div>
       </div>

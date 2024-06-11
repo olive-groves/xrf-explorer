@@ -164,11 +164,6 @@ def remove_data_source_dir(data_source: str):
 
     :param data_source: The name of the data source to be aborted
     :return: json with directory name
-@app.route("/api/delete_data_source", methods=["DELETE"])
-def delete_data_source():
-    """Delete a data source directory.
-
-    : request form attributes: **dir ** - the directory name
     """
     # Get config
     config: dict | None = get_config()
@@ -205,16 +200,6 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     : param data_source: The name of the data source to upload the chunk to
     : param file_name: The name of the file to upload the chunk to
     : param start: The start index of the chunk in the specified file
-
-
-@app.route("/api/upload_file_chunk", methods=["POST"])
-def upload_file_chunk():
-    """Upload a chunk of bytes to a file.
-
-    :request form attributes:
-        **dir** - the directory name \n
-        **startByte** - the start byte from which bytes are uploaded \n
-        **chunkBytes** - the chunk  of bytes to upload
     """
 
     # get config
@@ -255,19 +240,20 @@ def bin_raw_data(data_source: str, bin_params: str):
     :param bin_params: the JSON list of parameters: low, high, binSize.
     :return: A boolean indicating if the binning was successful.
     """
-
     params: dict = json.loads(bin_params)
     low: int = params["low"]
     high: int = params["high"]
     bin_size: int = params["binSize"]
 
     try:
+        print("binning")
         success: str = "True"
         bin_data(data_source, low, high, bin_size)
+        print("binned")
 
     except Exception as e:
         LOG.error("error while loading raw file: {%s}", e)
-        succes = "False"
+        success = "False"
 
     return jsonify({"binSuccess": success})
 
