@@ -20,9 +20,9 @@ const width: number = 256; // arbitrary amount to compress embedding data
 const height: number = 256; // arbitrary amount to compress embedding data
 let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
-const layerData: Uint8Array = new Uint8Array(width * height * 4);
+const data: Uint8Array = new Uint8Array(width * height * 4);
 setSelectionColor(hexToRgb(config.selectionTool.fill_color));
-const layerTexture: DataTexture = createDataTexture(layerData, width, height);
+const dataTexture: DataTexture = createDataTexture(data, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
@@ -32,8 +32,8 @@ watch(selection, onSelectionUpdate, { immediate: true, deep: true });
  */
 function setSelectionColor(color: [number, number, number]): void {
   color.push(0);  // opacity set to 0 (used for bitmask)
-  for (let i: number = 0; i < layerData.length; i++)
-      layerData[i] = color[i % 4];
+  for (let i: number = 0; i < data.length; i++)
+      data[i] = color[i % 4];
 }
 
 /**
@@ -86,7 +86,7 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
   const bottomRightPoint: Point2D = boundingBox[1];
 
   // reset bitmask (through the opacity)
-  for (let i: number = 3; i < layerData.length; i += 4) layerData[i] = 0;
+  for (let i: number = 3; i < data.length; i += 4) data[i] = 0;
 
   // check which points are in the selection and update the bitmask accordingly
   for (let x: number = topLeftPoint.x; x <= bottomRightPoint.x; x++) {
@@ -106,13 +106,13 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
       const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
 
       // we don't want to overwrite the selection
-      if (layerData[normalizedIndex + 3] != 0) continue;
+      if (data[normalizedIndex + 3] != 0) continue;
 
       const isInSelection: boolean = isPointInSelection(point, newSelection);
 
       // update the layer's bitmask
       // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-      layerData[normalizedIndex + 3] = isInSelection ? 255 : 0;
+      data[normalizedIndex + 3] = isInSelection ? 255 : 0;
     }
   }
 }
@@ -251,7 +251,7 @@ export async function createDRSelectionLayer() {
   const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
   registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.DimensionalityReductionSelection;
-  layer.uniform.tAuxiliary = { value: layerTexture, type: "t" };
+  layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
 
   // add layers to the groups of layers
   layerGroups.value.selection = {
