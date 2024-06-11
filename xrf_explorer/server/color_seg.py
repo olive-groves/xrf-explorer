@@ -102,12 +102,12 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     colors: np.ndarray
     labels: np.ndarray
     _, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    labels = labels.reshape(image.shape[:2])
 
     # Create bitmasks for each cluster
     bitmasks: list[np.ndarray] = []
     for i in range(k):
         mask: np.ndarray = np.array(labels == i)
-        mask = mask.reshape(image.shape[:2])
         bitmasks.append(mask)
 
     # Transform back to rgb
