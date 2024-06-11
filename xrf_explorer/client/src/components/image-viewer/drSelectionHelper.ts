@@ -255,8 +255,8 @@ export async function createDRSelectionLayer() {
 
   // add layers to the groups of layers
   layerGroups.value.selection = {
-    name: "Dimensionality Reduction Selection",
-    description: "Visualizes the current selection in the DR Window",
+    name: "Dimensionality reduction",
+    description: "Selection visualization",
     layers: [layer],
     index: -2,
     visible: true,
