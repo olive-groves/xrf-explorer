@@ -5,11 +5,11 @@ import { getDataSize, getRecipe, getTargetSize } from "@/components/image-viewer
 import { registerLayer } from "@/components/image-viewer/registering";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/image-viewer/state";
-import { Layer, LayerType, Point2D } from "@/components/image-viewer/types";
+import { Layer, LayerType } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace";
 import { appState, datasource } from "@/lib/appState";
 import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
-import { hexToRgb } from "@/lib/utils";
+import { hexToRgb, Point2D } from "@/lib/utils";
 import { config } from "@/main";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);

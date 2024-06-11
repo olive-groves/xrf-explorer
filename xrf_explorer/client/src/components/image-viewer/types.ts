@@ -184,17 +184,3 @@ export enum LayerType {
   ColorSegmentation = 2,
   DimensionalityReductionSelection = 3,
 }
-
-/**
- * Represent a point in 2D space.
- */
-export type Point2D = {
-  /**
-   * Represents the X coordinate of the point.
-   */
-  x: number;
-  /**
-   * Represents the Y coordinate of the point.
-   */
-  y: number;
-};

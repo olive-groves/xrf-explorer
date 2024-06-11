@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { appState, datasource, elements } from "@/lib/appState";
-import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
-import { Point2D } from "@/components/image-viewer/types";
+import { Point2D } from "@/lib/utils";
 import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";

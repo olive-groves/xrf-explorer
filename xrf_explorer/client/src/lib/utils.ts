@@ -2,6 +2,20 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 /**
+ * Represent a point in 2D space.
+ */
+export type Point2D = {
+  /**
+   * Represents the X coordinate of the point.
+   */
+  x: number;
+  /**
+   * Represents the Y coordinate of the point.
+   */
+  y: number;
+};
+
+/**
  * Combines arrays of tailwind classes, removing duplicate and overriding classes.
  * @param inputs - Arrays of class values.
  * @returns The merged array of tailwind classes.

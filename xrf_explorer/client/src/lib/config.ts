@@ -1,5 +1,3 @@
-import { BasicColorMode } from "@vueuse/core";
-
 /**
  * Type declaration for the client configuration.
  */
