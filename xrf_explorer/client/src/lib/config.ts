@@ -73,19 +73,19 @@ export type SelectionToolConfig = {
   /**
    * Mouse button that will cancel the current selection.
    */
-  cancelButton: number | null;
+  cancelButton?: number;
   /**
    * Keyboard key that will cancel the current selection.
    */
-  cancelKey: string | null;
+  cancelKey?: string;
   /**
    * Mouse button that will consolidate the current selection (not applicable to rectangle selection).
    */
-  confirmButton: number | null;
+  confirmButton?: number
   /**
    * Keyboard key that will consolidate the current selection (not applicable to rectangle selection).
    */
-  confirmKey: string | null;
+  confirmKey?: string;
   /**
    * Color in which the selected area should be displayed.
    */
