@@ -82,36 +82,38 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
   // compute the indices of the bounding box in which the selection is contained for faster updates
   const boundingBox: Point2D[] =
     newSelection.selectionType == SelectionOption.Rectangle ? newSelection.points : getBoundingBox(newSelection.points);
-  const topLeftIndex: number = coordinatesToIndex(boundingBox[0].x, boundingBox[0].y, embeddingWidth);
-  const bottomRightIndex: number = coordinatesToIndex(boundingBox[1].x, boundingBox[1].y, embeddingWidth);
+  const topLeftPoint: Point2D = boundingBox[0];
+  const bottomRightPoint: Point2D = boundingBox[1];
 
   // reset bitmask (through the opacity)
   for (let i: number = 3; i < layerData.length; i += 4) layerData[i] = 0;
 
   // check which points are in the selection and update the bitmask accordingly
-  for (let embeddingPixel: number = topLeftIndex; embeddingPixel <= bottomRightIndex; embeddingPixel++) {
-    // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
-    const point: Point2D = indexToCoordinates(embeddingPixel, embeddingWidth);
-    const convertedPoint: Point2D = { x: point.x, y: embeddingHeight - point.y }; // point with correct origin
-    // scale down to 256x256
-    const scaledDownPoint: Point2D = {
-      x: Math.floor((convertedPoint.x * width) / embeddingWidth),
-      y: Math.floor((convertedPoint.y * height) / embeddingHeight),
-    };
-    // index in a 256x256 image
-    const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
+  for (let x: number = topLeftPoint.x; x <= bottomRightPoint.x; x++) {
+    for (let y: number = topLeftPoint.y; y <= bottomRightPoint.y; y++) {
+      // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
+      const point: Point2D = { x: x, y: y };
+      const convertedPoint: Point2D = { x: point.x, y: embeddingHeight - point.y }; // point with correct origin
+      // scale down to 256x256
+      const scaledDownPoint: Point2D = {
+        x: Math.floor((convertedPoint.x * width) / embeddingWidth),
+        y: Math.floor((convertedPoint.y * height) / embeddingHeight),
+      };
+      // index in a 256x256 image
+      const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
 
-    // index of the point in the 256x256x4 bitmask
-    const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
+      // index of the point in the 256x256x4 bitmask
+      const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
 
-    // we don't want to overwrite the selection
-    if (layerData[normalizedIndex + 3] != 0) continue;
+      // we don't want to overwrite the selection
+      if (layerData[normalizedIndex + 3] != 0) continue;
 
-    const isInSelection: boolean = isPointInSelection(point, newSelection);
+      const isInSelection: boolean = isPointInSelection(point, newSelection);
 
-    // update the layer's bitmask
-    // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-    layerData[normalizedIndex + 3] = isInSelection ? 255 : 0;
+      // update the layer's bitmask
+      // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
+      layerData[normalizedIndex + 3] = isInSelection ? 255 : 0;
+    }
   }
 }
 
@@ -262,16 +264,6 @@ export async function createDRSelectionLayer() {
   };
 
   updateLayerGroupLayers(layerGroups.value.selection);
-}
-
-/**
- * Convert an index from a flattened matrix into a Point2D object.
- * @param index - Index in the array of the point to be obtained.
- * @param imageWidth - Width of the image on which the array is based.
- * @returns Point2D object containing the coordinates of the point at the given index.
- */
-function indexToCoordinates(index: number, imageWidth: number) {
-  return { x: index % imageWidth, y: Math.floor(index / imageWidth) };
 }
 
 /**
