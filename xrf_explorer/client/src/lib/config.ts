@@ -118,9 +118,9 @@ export const DefaultConfig: FrontendConfig = {
   },
   selectionTool: {
     addPointButton: 0, // left mouse button
-    cancelButton: null,
+    cancelButton: undefined,
     cancelKey: "Escape",
-    confirmButton: null,
+    confirmButton: undefined,
     confirmKey: "Enter",
     fill_color: "#FFEF00", // shoutout to the canary islands
     stroke_color: "#000000", // black
