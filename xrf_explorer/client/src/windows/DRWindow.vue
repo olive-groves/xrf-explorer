@@ -236,7 +236,7 @@ function drawSelection() {
 async function communicateSelectionWithImageViewer() {
   const image: HTMLElement | undefined = embeddingImage.value;
   if (image == undefined) {
-    console.warn("Tried to update the image to embedding cropping but could not find image element in DR window.");
+    console.warn("Tried to get the image bounds but could not find image element in DR window.");
     return;
   }
   const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
@@ -302,10 +302,10 @@ async function communicateSelectionWithImageViewer() {
       <p class="mt-4 font-bold">Generated image:</p>
       <div
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
-        style="cursor: crosshair; position: relative"
+        style="position: relative"
         @mousedown="onMouseDown"
         tabindex="0"
-        @keyup="onKeyDown"
+        @keydown="onKeyDown"
         id="imageContainer"
         ref="output"
       >
@@ -322,7 +322,7 @@ async function communicateSelectionWithImageViewer() {
             v-if="status == Status.SUCCESS"
             ref="svgOverlay"
             @error="status = Status.ERROR"
-            style="position: absolute"
+            style="position: absolute; cursor: crosshair"
           ></svg>
         </div>
       </div>
