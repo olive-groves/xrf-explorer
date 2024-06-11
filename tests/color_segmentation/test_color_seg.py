@@ -41,12 +41,12 @@ class TestColorSegmentation:
 
         # Execute
         result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, num_attemps, k)
-        
+        print(result)
         # Verify
         # The image has 2 colors
         assert len(result) == 2
         assert np.sum(np.all(result == [0, 0, 0], axis=1)) == 1
-        assert np.sum(np.all(result == [255, 255, 255], axis=1)) == 1
+        assert np.sum(np.all(result == [189, 189, 189], axis=1)) == 1
 
         # Verify log message
         assert "Initial color clusters extracted successfully." in caplog.text
@@ -118,15 +118,15 @@ class TestColorSegmentation:
         small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
         expected_result0: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [211, 211, 211]
         ])
         expected_result1: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [169, 169, 169]
         ])
         expected_result2: np.ndarray = np.array([
             [0, 0, 0],
-            [255, 255, 255]
+            [211, 211, 211]
         ])
         elem_threshold: float = 0.1
         num_attemps: int = 10

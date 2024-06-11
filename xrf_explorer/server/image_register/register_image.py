@@ -99,15 +99,33 @@ def pad_image_to_match_size(
 
     image_register_height, image_register_width = image_to_pad.shape[:2]
 
-    # NOTE: either add_rows or add_cols must be 0, since the resizing matches either the height or the width of the image to be image_registered
-    add_rows = image_reference_height - image_register_height
-    add_cols = image_reference_width - image_register_width
+    # Get the difference between the reference and the image to pad
+    row_difference: int = image_reference_height - image_register_height
+    col_differnece: int = image_reference_width - image_register_width
 
-    if image_to_pad.ndim == 2:
-        return np.pad(image_to_pad, ((0, add_rows), (0, add_cols)), "constant")
+    # Remove padding from the image
+    image_without_padding: MatLike = image_to_pad
+
+    if col_differnece < 0:
+        LOG.info(f"Removing columns: {-col_differnece}")
+        
+        image_without_padding = image_to_pad[:, :image_reference_width]
+    if row_difference < 0:
+        LOG.info(f"Removing rows: {-row_difference}")
+
+        image_without_padding = image_to_pad[:image_reference_height, :] 
+
+    # Add padding to the image
+    add_rows = max(0, row_difference)
+    add_cols = max(0, col_differnece)
+
+    LOG.info(f"Adding rows and columns: ({add_rows}, {add_cols})")
+
+    if image_without_padding.ndim == 2:
+        return np.pad(image_without_padding, ((0, add_rows), (0, add_cols)), "constant")
     else:
         return np.pad(
-            image_to_pad,
+            image_without_padding,
             ((0, add_rows), (0, add_cols), (0, 0)),
             "constant",
         )
@@ -231,18 +249,13 @@ def inverse_register_image(
         # Height is scaled to match the cube
         # So columns are added to match the width, which we have to remove
         scaled_width: int = int(new_width * image_height / new_height)
+        image_without_padding = pad_image_to_match_size(image_transformed, image_height, scaled_width)
 
-        LOG.info(f"Removing columns: {image_width - scaled_width}")
-
-        image_without_padding = image_transformed[:, :scaled_width]
     else:
         # Width is scaled to match the cube
         # So rows are added to match the height, which we have to remove
         scaled_height: int = int(new_height * image_width / new_width)
-        
-        LOG.info(f"Removing rows: {image_height - scaled_height}")
-
-        image_without_padding = image_transformed[:scaled_height, :]
+        image_without_padding = pad_image_to_match_size(image_transformed, scaled_height, image_width)
 
     # Scale image down to match the cube
     return resize(
