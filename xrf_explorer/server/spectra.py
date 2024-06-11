@@ -94,7 +94,6 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
             new_cube[:, :, i] = bin
 
     # overwrite file
-    print(path_to_raw)
     try:
         new_cube.flatten().tofile(path_to_raw)
     except Exception as e:

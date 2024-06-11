@@ -246,16 +246,16 @@ def bin_raw_data(data_source: str, bin_params: str):
     bin_size: int = params["binSize"]
 
     try:
-        print("binning")
         success: str = "True"
         bin_data(data_source, low, high, bin_size)
-        print("binned")
-
+        LOG.info("binned")
     except Exception as e:
         LOG.error("error while loading raw file: {%s}", e)
         success = "False"
 
-    return jsonify({"binSuccess": success})
+    response = jsonify({"binSuccess": success})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @ app.route("/api/<data_source>/element_averages")

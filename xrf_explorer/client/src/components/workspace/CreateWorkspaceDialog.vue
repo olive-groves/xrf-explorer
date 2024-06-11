@@ -76,7 +76,6 @@ async function initializeDataSource() {
       toast.warning("Data source name must not be empty");
       return;
     }
-
     // Create the data source directory
     const response = await fetch(`${config.api.endpoint}/${name}/create`, { method: "POST" });
 
@@ -118,7 +117,6 @@ function resetProgress() {
  */
 async function removeDataSource() {
   const name = workspace.value.name;
-
   try {
     const response = await fetch(`${config.api.endpoint}/${name}/abort`, { method: "GET" });
 
@@ -178,7 +176,6 @@ async function setupWorkspace(): Promise<boolean> {
 async function updateWorkspace() {
   if (progress.value != Progress.Busy) {
     progress.value = Progress.Busy;
-
     const setup = await setupWorkspace();
 
     if (workspace.value.elementalCubes.length > 0 && workspace.value.elementalChannels.length == 0) {
@@ -208,11 +205,11 @@ async function updateWorkspace() {
     }
   }
 }
+
 async function initWorkspace() {
 
   updateWorkspace();
   const workspaceClone = deepClone(workspace.value);
-
   // Validate the configured files
   const validation = validateWorkspace(workspaceClone);
   if (!validation[0]) {
@@ -221,16 +218,15 @@ async function initWorkspace() {
     });
     return false;
   }
-
   const binParams = `{"low": ${workspace.value.spectralParams.low}, "high": ${workspace.value.spectralParams.high}, "binSize": ${workspace.value.spectralParams.binSize}}`;
   console.log('binning data')
-  const binResponse: Response = await fetch(`${config.api.endpoint}/${workspaceClone.name}/bin_raw/${binParams}`, {
+  const binResponse: Response = await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
     method: "GET",
   });
-  const jsonbinResponse = await binResponse.json();
-  const binSuccess: string = jsonbinResponse["binSuccess"];
+  const jsonBinResponse = await binResponse.json();
+  const binSuccess: string = jsonBinResponse["binSuccess"];
   if (binSuccess == "False") {
-    alert("Something went wrong while bining raw file. Please try again later.");
+    alert("Something went wrong while binning raw file. Please try again later.");
   }
   console.log("data binned")
 }
