@@ -132,7 +132,7 @@ void main() {
     fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
   } else if (iLayerType == TYPE_DR) {
     // the BLUE value in the middle image (0 or 256) denotes if this pixel is in the embedding
-    if (fragColor.r != 1.0) {   // for some reason beyond my comprehension, red is blue and blue is red
+    if (fragColor.r != 1.0) {   // not sure why, but red is blue and blue is red
       fragColor.a = 0.0;
     } else {
       vec4 bitmask = texture(tAuxiliary, vec2(fragColor.bg));
