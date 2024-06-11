@@ -73,7 +73,7 @@ export type SelectionToolConfig = {
   /**
    * Mouse button that will cancel the current selection.
    */
-  cancelButton: number | null;
+  cancelButton?: number;
   /**
    * Keyboard key that will cancel the current selection.
    */
