@@ -11,6 +11,7 @@ import { mapRange, Point2D } from "@/lib/utils";
 import { LassoSelectionTool } from "@/lib/selection";
 import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
+import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -71,7 +72,6 @@ const imageToEmbeddingCropping: {
   xPlotRange: [],
   yPlotRange: [],
 };
-let updateInEmbedding: boolean = false; // true if the embedding has been updated since the last finished selection
 
 /**
  * Fetch the dimensionality reduction image
@@ -102,7 +102,7 @@ async function fetchDRImage() {
     // update image-embedding dimensions
     await updateImageToEmbeddingCropping();
     // the middle image used for conversion from embedding to main viewer image needs to be updated
-    updateInEmbedding = true;
+    updateMiddleImage();
 
     // Update status
     status.value = Status.SUCCESS;
@@ -299,7 +299,6 @@ async function communicateSelectionWithImageViewer() {
       x: Math.floor((point.x * 256) / embeddingWidth),
       y: Math.floor((point.y * 256) / embeddingHeight),
     })),
-    updateMiddleImage: updateInEmbedding,
   };
 
   updateInEmbedding = false; // reset

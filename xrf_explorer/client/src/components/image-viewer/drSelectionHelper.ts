@@ -41,7 +41,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
 
   // remove current selection
   if (newSelection.points.length == 0) {
-    updateLayer(0, false);
+    updateLayer(0);
     console.info("Removed dimensionality reduction selection.");
     return;
   }
@@ -60,7 +60,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
   updateBitmask(newSelection);
 
   // update the layer to display the selection
-  updateLayer(newSelection.points.length, newSelection.updateMiddleImage);
+  updateLayer(newSelection.points.length);
   toast.info("Now displaying the dimensionality reduction selection.");
   console.info("Updated the image viewer to display the selection in the DR window.");
 }
@@ -196,20 +196,11 @@ function isInPolygon(point: Point2D, polygon: Point2D[]): boolean {
 /**
  * Find the DR Selection layer and update its data based on the new selection.
  * @param nPointsSelected - Number of points in the new selection.
- * @param updateImage - True if the middle image needs to be updated, false otherwise.
  */
-function updateLayer(nPointsSelected: number, updateImage: boolean): void {
+function updateLayer(nPointsSelected: number): void {
   if (layerGroups.value.selection != undefined) {
-    const layer: Layer = layerGroups.value.selection.layers.filter((layer: Layer) => layer.id == "selection_dr")[0];
-
+    const layer: Layer = getDRSelectionLayer();
     const isLoaded: boolean = layer.mesh != undefined; // true if the layer is currently loaded
-
-    // reload the middle image if necessary
-    if (updateImage) {
-      if (isLoaded) disposeLayer(layer); // remove the layer so we can update it
-      loadLayer(layer, false); // update the middle image
-      if (!isLoaded) disposeLayer(layer); // reset to previous state
-    }
 
     if (!isLoaded && nPointsSelected > 0)
       // layer was not loaded, load it again
@@ -220,6 +211,22 @@ function updateLayer(nPointsSelected: number, updateImage: boolean): void {
 
     updateDataTexture(layerGroups.value.selection);
   }
+}
+
+function getDRSelectionLayer(): Layer {
+  return layerGroups.value.selection.layers.filter((layer: Layer): boolean => layer.id == "selection_dr")[0];
+}
+
+/**
+ * Update the middle image by reloading the layer.
+ */
+export function updateMiddleImage(): void {
+  const layer: Layer = getDRSelectionLayer();
+  const isLoaded: boolean = layer.mesh != undefined; // define current state of the layer
+
+  if (isLoaded) disposeLayer(layer); // remove the layer so we can update it
+  loadLayer(layer, false); // update the middle image
+  if (!isLoaded) disposeLayer(layer); // reset to previous state
 }
 
 /**

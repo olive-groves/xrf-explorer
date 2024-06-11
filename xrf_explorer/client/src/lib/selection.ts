@@ -126,11 +126,6 @@ export type DimensionalityReductionSelection = {
    * The list of points that make up the selection.
    */
   points: Point2D[];
-  /**
-   * Denotes whether the middle image should be updated (true when a new embedding has been generated since the last
-   * selection).
-   */
-  updateMiddleImage: boolean;
 };
 
 /**
