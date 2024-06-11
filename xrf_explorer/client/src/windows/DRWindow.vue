@@ -178,11 +178,11 @@ async function updateImageToEmbeddingCropping() {
     async (response) => {
       response.json().then(
         (dimensions) => {
-          const xmin = dimensions.xplotrange[0];
-          const ymin = dimensions.yplotrange[0];
+          const xMin = dimensions.xplotrange[0];
+          const yMin = dimensions.yplotrange[0];
 
-          const xmax = dimensions.xplotrange[1];
-          const ymax = dimensions.yplotrange[1];
+          const xMax = dimensions.xplotrange[1];
+          const yMax = dimensions.yplotrange[1];
 
           const image: HTMLElement | null = document.getElementById("image");
           if (image == null) {
@@ -193,8 +193,8 @@ async function updateImageToEmbeddingCropping() {
           }
           const rect = image.getBoundingClientRect();
 
-          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xmin, xmax, 0, rect.width);
-          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, ymin, ymax, rect.height, 0).reverse();
+          imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xMin, xMax, 0, rect.width);
+          imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, yMin, yMax, rect.height, 0).reverse();
           imageToEmbeddingCropping.xPlotRange = [0, rect.width];
           imageToEmbeddingCropping.yPlotRange = [0, rect.height];
         },
@@ -206,11 +206,25 @@ async function updateImageToEmbeddingCropping() {
 }
 
 /**
+ * Handle the event where the user cancels the current selection.
+ */
+function cancelSelection() {
+  selectionTool.cancelSelection();
+}
+
+/**
+ * Handle the event where the user confirms the current selection.
+ */
+function confirmSelection() {
+  selectionTool.confirmSelection();
+}
+
+/**
  * Handle mouse events when the mouse is clicked.
  * @param event - The mouse event.
  */
 function onMouseDown(event: MouseEvent) {
-  if (event.button == config.selectionToolConfig.cancelButton) selectionTool.cancelSelection();
+  if (event.button == config.selectionToolConfig.cancelButton) cancelSelection();
   else if (event.button == config.selectionToolConfig.addPointButton) {
     const svg: HTMLElement | null = document.getElementById("svgOverlay");
     if (svg != null) {
@@ -221,9 +235,18 @@ function onMouseDown(event: MouseEvent) {
       };
       selectionTool.addPointToSelection(clickedPos);
     }
-  } else if (event.button == config.selectionToolConfig.confirmButton) selectionTool.confirmSelection();
+  } else if (event.button == config.selectionToolConfig.confirmButton) confirmSelection();
 
   updateSelectionVisuals();
+}
+
+/**
+ * Handle keyboard events when the user presses a key.
+ * @param event - The keyboard event.
+ */
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key == config.selectionToolConfig.cancelKey) cancelSelection();
+  else if (event.key == config.selectionToolConfig.confirmKey) confirmSelection();
 }
 
 /**
@@ -376,11 +399,12 @@ function getSelectionAsEmbeddingDimensions(writeList: Point2D[]) {
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
         style="cursor: crosshair; position: relative"
         @mousedown="onMouseDown"
+        @keydown="onKeyDown"
         id="imageContainer"
         ref="output"
       >
         <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
-          <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
+          <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
           <span v-if="status == Status.LOADING">Loading</span>
           <span v-if="status == Status.GENERATING">Generating</span>
           <span v-if="status == Status.ERROR">{{ currentError }}</span>

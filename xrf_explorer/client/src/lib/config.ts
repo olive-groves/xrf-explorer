@@ -73,17 +73,25 @@ export type ImageViewerConfig = {
  */
 export type SelectionToolConfig = {
   /**
-   * Button that will add the current location point to the current selection.
+   * Mouse button that will add the current location point to the current selection.
    */
   addPointButton: number;
   /**
-   * Button that will cancel the current selection.
+   * Mouse button that will cancel the current selection.
    */
-  cancelButton: number;
+  cancelButton: number | null;
   /**
-   * Button that will consolidate the current selection (not applicable to rectangle selection).
+   * Keyboard key that will cancel the current selection.
    */
-  confirmButton: number;
+  cancelKey: string | null;
+  /**
+   * Mouse button that will consolidate the current selection (not applicable to rectangle selection).
+   */
+  confirmButton: number | null;
+  /**
+   * Keyboard key that will consolidate the current selection (not applicable to rectangle selection).
+   */
+  confirmKey: string | null;
   /**
    * Color in which the selected area should be displayed.
    */
@@ -117,8 +125,10 @@ export const DefaultConfig: FrontendConfig = {
   },
   selectionToolConfig: {
     addPointButton: 0, // left mouse button
-    cancelButton: 1, // wheel mouse button
-    confirmButton: 2, // right mouse button
+    cancelButton: null,
+    cancelKey: "Escape",
+    confirmButton: null,
+    confirmKey: "Enter",
     fill_color: "lightblue",
     stroke_color: "black",
     opacity: 0.5,
