@@ -2,7 +2,7 @@ import logging
 import pytest
 
 from os import remove
-from os.path import exists
+from os.path import join, exists
 
 from cv2.typing import MatLike
 
@@ -45,7 +45,7 @@ class TestImageRegistration:
     def test_register_image_to_image_register_not_found(self, caplog):
         result: bool = register_image_to_image(
             self.PATH_IMAGE_REFERENCE,
-            "some/random/non/existant/path",
+            "some/random/non/existent/path",
             self.PATH_CUBE,
             self.PATH_RESULT,
         )
@@ -69,18 +69,22 @@ class TestImageRegistration:
         assert "Control points file could not be found at made/up/path" in caplog.text
 
     def test_register_image_to_image_destination_not_found(self, caplog):
+        # setup
+        invalid_path: str = "tests/resources/image_registration/unexistantdir"
+
+        # execute
         result: bool = register_image_to_image(
             self.PATH_IMAGE_REFERENCE,
             self.PATH_IMAGE_REGISTER,
             self.PATH_CONTROL_POINTS,
-            "tests/resources/image_registration/unexistantdir/result.tif",
+            join(invalid_path, "result.tif"),
         )
 
+        # verify
         assert not result
         assert not exists(self.PATH_RESULT)
-
         assert (
-            "Registered image could not be saved at tests/resources/image_registration/unexistantdir because directory does not exist."
+            f"Registered image could not be saved at {invalid_path} because directory does not exist."
             in caplog.text
         )
 
@@ -131,7 +135,7 @@ class TestImageRegistration:
             self.DATA_SOURCE, self.IMAGE_NAME
         )
 
-        # verifiy
+        # verify
         assert result is not None
         assert result.shape == (3, 3, 3)
         assert "Removing columns: 1"

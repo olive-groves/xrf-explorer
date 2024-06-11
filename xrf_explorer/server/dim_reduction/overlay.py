@@ -33,7 +33,7 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
     backend_config: dict = get_config()
     if not backend_config:  # config is empty
         return ""
-    dr_folder: str = join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name'])
+    dr_folder: str = str(join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name']))
 
     # Load the file embedding.npy
     try:

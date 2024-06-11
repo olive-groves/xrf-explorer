@@ -36,11 +36,11 @@ class TestColorSegmentation:
 
         # Set-up
         result: np.ndarray
-        num_attemps: int = 10
+        num_attempts: int = 10
         k: int = 2
 
         # Execute
-        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, num_attemps, k)
+        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, num_attempts, k)
         print(result)
         # Verify
         # The image has 2 colors
