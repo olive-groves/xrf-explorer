@@ -9,7 +9,7 @@ import { FrontendConfig } from "./lib/config";
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
+import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow, ImageWindow } from "@/windows";
 
 // Provide configuration to app
 const props = defineProps<{
@@ -28,10 +28,10 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
     <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
       <Header />
       <WindowContainer>
-        <div class="flex justify-between w-full h-full">
-          <ImageViewer class="w-full h-full"/>
-          <ImageViewer class="w-full h-full"/>
-        </div>
+        <!-- <div class="flex w-full h-full"> -->
+          <ImageViewer class="w-full h-full flex-grow"/>
+          <!-- <ImageViewer class="w-full h-full flex-grow"/>
+        </div> -->
 
         <!-- Place all windows below here -->
         <ElementalChannelWindow />
@@ -41,6 +41,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <SpectraWindow />
         <CSWindow />
+        <ImageWindow />
       </WindowContainer>
     </div>
   </BaseContextMenu>
