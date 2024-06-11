@@ -57,7 +57,7 @@ const selectedOverlay = ref();
 const imageSourceUrl = ref();
 
 // Selection
-const svgOverlay = ref(null);
+const svgOverlay = ref<HTMLElement>();
 const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 // the area (plot image) on which the embedding is displayed is larger than the embedding itself
 const imageToEmbeddingCropping: {
@@ -217,8 +217,8 @@ function confirmSelection() {
 function onMouseDown(event: MouseEvent) {
   if (event.button == config.selectionTool.cancelButton) cancelSelection();
   else if (event.button == config.selectionTool.addPointButton) {
-    const svg: HTMLElement | null = document.getElementById("svgOverlay");
-    if (svg != null) {
+    const svg: HTMLElement | undefined = svgOverlay.value;
+    if (svg != undefined) {
       // compute the position of the click relative to the SVG based on the client coordinates
       const clickedPos = {
         x: event.clientX - svg.getBoundingClientRect().left,
