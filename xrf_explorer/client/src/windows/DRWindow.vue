@@ -59,6 +59,7 @@ const imageSourceUrl = ref();
 
 // Selection
 const svgOverlay = ref<HTMLElement>();
+const embeddingImage = ref<HTMLElement>();
 const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 
 /**
@@ -214,9 +215,9 @@ function drawSelection() {
     height: 0,
   };
 
-  const image: HTMLElement | null = document.getElementById("image");
+  const image: HTMLElement | undefined = embeddingImage.value;
 
-  if (image == null) console.warn("Tried to draw selection but could not find image element in DR window.");
+  if (image == undefined) console.warn("Tried to draw selection but could not find image element in DR window.");
   else {
     // update dimensions with image element values to fit the SVG to the image
     const rect = image.getBoundingClientRect();
@@ -226,15 +227,15 @@ function drawSelection() {
     imageDimensions.height = rect.height;
   }
 
-  selectionTool.draw(d3.select("svgOverlay"), imageDimensions);
+  selectionTool.draw(d3.select(svgOverlay.value!), imageDimensions);
 }
 
 /**
  * Send the relevant information about the selection to the image viewer.
  */
 async function communicateSelectionWithImageViewer() {
-  const image: HTMLElement | null = document.getElementById("image");
-  if (image == null) {
+  const image: HTMLElement | undefined = embeddingImage.value;
+  if (image == undefined) {
     console.warn("Tried to update the image to embedding cropping but could not find image element in DR window.");
     return;
   }
@@ -316,10 +317,9 @@ async function communicateSelectionWithImageViewer() {
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
-          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" id="image" @error="status = Status.ERROR" />
+          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
           <svg
             v-if="status == Status.SUCCESS"
-            id="svgOverlay"
             ref="svgOverlay"
             @error="status = Status.ERROR"
             style="position: absolute"
