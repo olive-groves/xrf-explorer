@@ -153,6 +153,10 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
     plt.axis('off')
     fig.patch.set_facecolor('black')
 
+    # Set limits to match the data
+    plt.xlim(embedding[:, 0].min(), embedding[:, 0].max())
+    plt.ylim(embedding[:, 1].min(), embedding[:, 1].max())
+
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
     # Save the plot
