@@ -35,9 +35,13 @@ const correctSpectraParams = ref(true);
  * Check if entered parameters satisfy the constraints.
  */
 function updateCorrectParams() {
- if (0 <= low.value && low.value < 4096 &&
-  0 < high.value && high.value <= 4096 &&
-  1 <= binSize.value && binSize.value <= high.value - low.value) {
+ if (0 <= low.value &&
+    low.value < 4096 &&
+    0 < high.value &&
+    high.value <= 4096 &&
+    1 <= binSize.value &&
+    binSize.value <= high.value - low.value
+  ) {
     correctSpectraParams.value = true;
   } else {
     correctSpectraParams.value = false;
@@ -70,7 +74,7 @@ function save() {
         <Label>{{ constraints }}</Label>
         <div class="space-x-2">
           <Label for="low-input">Lower channel boundary</Label>
-          <Input 
+          <Input
             ref="inputComponent"
             type="number"
             min="0"
@@ -78,11 +82,12 @@ function save() {
             step="1"
             v-model="low"
             id="low-input"
-          @change="updateCorrectParams"/>
+            @change="updateCorrectParams"
+            />
         </div>
         <div class="space-x-2">
           <Label for="high-input">Higher channel boundary</Label>
-          <Input 
+          <Input
             ref="inputComponent"
             type="number"
             min="0"
@@ -90,19 +95,21 @@ function save() {
             step="1"
             v-model="high"
             id="high-input"
-          @change="updateCorrectParams"/>
+            @change="updateCorrectParams"
+            />
         </div>
         <div class="space-x-2">
           <Label for="bin-size-input">Bin size</Label>
-          <Input 
+          <Input
             ref="inputComponent"
             type="number"
             min="1"
             max="4096"
             step="1"
-            v-model="binSize" 
+            v-model="binSize"
             id="bin-size-input"
-            @change="updateCorrectParams"/>
+            @change="updateCorrectParams"
+            />
         </div>
 
         <!--Footer-->
