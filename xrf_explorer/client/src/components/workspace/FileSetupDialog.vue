@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { AdditionalSettingsDialog ,FileSetupTable } from "."
+import { AdditionalSettingsDialog, FileSetupTable } from "."
 import { WorkspaceConfig } from "@/lib/workspace";
 import { validateWorkspace } from "./utils";
 import { computed } from "vue";

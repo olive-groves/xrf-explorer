@@ -208,6 +208,7 @@ async function updateWorkspace() {
 
 /**
  * Update the workspace before binning the raw data.
+ * @returns - Wether the setup was successful.
  */
 async function initWorkspace() {
   updateWorkspace();
