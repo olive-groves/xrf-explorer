@@ -99,7 +99,7 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     const isInSelection: boolean = isPointInSelection(point, newSelection);
 
     // update the layer's bitmask
-    const selectionColor: [number, number, number] = hexToRgb("#FFEF00"); // shoutout to the canary islands
+    const selectionColor: [number, number, number] = hexToRgb(config.selectionToolConfig.fill_color);
     // rgbValue corresponds to red, green, blue
     for (let rgbValue: number = 0; rgbValue < 3; rgbValue++)
       layerData[normalizedIndex + rgbValue] = isInSelection ? selectionColor[rgbValue] : 0;

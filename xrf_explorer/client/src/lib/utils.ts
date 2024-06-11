@@ -49,8 +49,26 @@ export function hexToRgb(hex: string): [number, number, number] {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
 
-  // return {r, g, b}
   return [r, g, b];
+}
+
+/**
+ * Convert a single RGB component to it corresponding Hex component.
+ * @param component - The value of R, G or B (0-255).
+ * @returns The corresponding Hex component of the given RGB component.
+ */
+function rgbComponentToHex(component: number): string {
+  const hex: string = component.toString(16);
+  return hex.length == 1 ? `0${hex}` : hex;
+}
+
+/**
+ * Converts RGB color into Hex color.
+ * @param rgb - The RGB value to convert.
+ * @reurns The Hex equivalent of the given RGB value.
+ */
+export function rgbToHex(rgb: [number, number, number]): string {
+  return `#${rgbComponentToHex(rgb[0])}${rgbComponentToHex(rgb[1])}${rgbComponentToHex(rgb[2])}`;
 }
 
 /**

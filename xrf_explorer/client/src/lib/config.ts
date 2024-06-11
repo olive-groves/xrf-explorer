@@ -129,8 +129,8 @@ export const DefaultConfig: FrontendConfig = {
     cancelKey: "Escape",
     confirmButton: null,
     confirmKey: "Enter",
-    fill_color: "lightblue",
-    stroke_color: "black",
+    fill_color: "#FFEF00",  // shoutout to the canary islands
+    stroke_color: "#000000",  // black
     opacity: 0.5,
   },
 };

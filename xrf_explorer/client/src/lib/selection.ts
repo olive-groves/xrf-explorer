@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types";
 import { config } from "@/main";
+import { hexToRgb, rgbToHex } from "@/lib/utils.ts";
 
 /**
  * Type describing the current selection.
@@ -250,13 +251,16 @@ abstract class BaseSelectionTool {
    * @param svgWidth - The width of the SVG object on which we are drawing the selection.
    */
   protected highlightPoints(svg: d3.Selection<null, unknown, null, undefined>, svgWidth: number): void {
-      this.selectedPoints.forEach((point: Point2D) => {
-          svg
+      this.selectedPoints.forEach((point: Point2D): void => {
+        const defaultFillColor: number[] = hexToRgb(config.selectionToolConfig.fill_color);
+        // invert the fillColor to ensure there is contrast
+        const invertedFillColor: string = rgbToHex([255 - defaultFillColor[0], 255 - defaultFillColor[1], 255 - defaultFillColor[2]]);
+        svg
             .append("circle")
             .attr("cx", point.x)
             .attr("cy", point.y)
             .attr("r", Math.floor(svgWidth / 100))  // radius = 1% of svg width
-            .attr("fill", "yellow")
+            .attr("fill", invertedFillColor)
             .attr("stroke", config.selectionToolConfig.stroke_color);
       })
   }
