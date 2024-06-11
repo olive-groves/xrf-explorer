@@ -226,9 +226,9 @@ abstract class BaseSelectionTool {
    * @returns The SVG object cleaned of all selection drawings and adjusted to the desired dimensions.
    */
   protected resetSVGDrawing(
-    svg: d3.Selection<null, unknown, null, undefined>,
+    svg: d3.Selection<null, unknown, HTMLElement, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
-  ): d3.Selection<null, unknown, null, undefined> {
+  ): d3.Selection<null, unknown, HTMLElement, undefined> {
     svg.selectAll("*").remove();
 
     svg
@@ -245,7 +245,7 @@ abstract class BaseSelectionTool {
    * @param svg - D3 SVG object on which we are drawing the selection.
    * @param svgWidth - The width of the SVG object on which we are drawing the selection.
    */
-  protected highlightPoints(svg: d3.Selection<null, unknown, null, undefined>, svgWidth: number): void {
+  protected highlightPoints(svg: d3.Selection<null, unknown, HTMLElement, undefined>, svgWidth: number): void {
     this.selectedPoints.forEach((point: Point2D): void => {
       const defaultFillColor: number[] = hexToRgb(config.selectionTool.fill_color);
       // invert the fillColor to ensure there is contrast
@@ -270,7 +270,7 @@ abstract class BaseSelectionTool {
    * @param dimensions - The desired dimensions of the SVG object on which we are drawing the selection.
    */
   abstract draw(
-    svg: d3.Selection<null, unknown, null, undefined>,
+    svg: d3.Selection<null, unknown, HTMLElement, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
   ): void;
 }
@@ -345,7 +345,7 @@ export class RectangleSelectionTool extends BaseSelectionTool {
    * @param dimensions.height - The desired height of the SVG overlay.
    */
   draw(
-    svg: d3.Selection<null, unknown, null, undefined>,
+    svg: d3.Selection<null, unknown, HTMLElement, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
   ): void {
     svg = this.resetSVGDrawing(svg, dimensions);
@@ -405,7 +405,7 @@ export class LassoSelectionTool extends BaseSelectionTool {
    * @param dimensions.height - The desired height of the SVG overlay.
    */
   draw(
-    svg: d3.Selection<null, unknown, null, undefined>,
+    svg: d3.Selection<null, unknown, HTMLElement, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
   ): void {
     svg = this.resetSVGDrawing(svg, dimensions);

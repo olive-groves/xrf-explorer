@@ -280,7 +280,7 @@ function drawSelection() {
     imageDimensions.height = rect.height;
   }
 
-  selectionTool.draw(d3.select(svgOverlay.value), imageDimensions);
+  selectionTool.draw(d3.select("svgOverlay"), imageDimensions);
 }
 
 /**
