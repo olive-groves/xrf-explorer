@@ -1,5 +1,6 @@
 import { DataTexture } from "three";
 import { computed, watch } from "vue";
+import { toast } from "vue-sonner";
 import { getDataSize, getRecipe, getTargetSize } from "@/components/image-viewer/api";
 import { registerLayer } from "@/components/image-viewer/registering";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene";
@@ -58,6 +59,7 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
 
   // update the layer to display the selection
   updateLayer(newSelection.points.length, newSelection.updateMiddleImage);
+  toast.info("Now displaying the dimensionality reduction selection.");
   console.info("Updated the image viewer to display the selection in the DR window.");
 }
 

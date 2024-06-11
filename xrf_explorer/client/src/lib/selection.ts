@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { toast } from "vue-sonner";
 import { Point2D } from "@/components/image-viewer/types.ts";
 import { FrontendConfig } from "@/lib/config.ts";
 
@@ -185,6 +186,7 @@ abstract class BaseSelectionTool {
     this.selectedPoints = [];
     this.activeSelection = false;
     this.finishedSelection = false;
+    toast.info("Cancelled current dimensionality reduction selection.");
   }
 
   /**
