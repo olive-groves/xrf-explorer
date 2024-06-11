@@ -16,7 +16,6 @@ const selection = computed(() => appState.selection.dimensionalityReduction);
 
 const width: number = 256; // arbitrary amount to compress embedding data
 const height: number = 256; // arbitrary amount to compress embedding data
-let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const data: Uint8Array = new Uint8Array(width * height * 4);
 const dataTexture: DataTexture = createDataTexture(data, width, height);
@@ -230,15 +229,12 @@ function updateLayer(nPointsSelected: number, updateImage: boolean): void {
 export async function createDRSelectionLayer() {
   setSelectionColor(hexToRgb(config.selectionTool.fill_color));
 
-  // update the middle image api url if it hasn't been loaded yet
-  if (middleImageApiUrl == "") middleImageApiUrl = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
-
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
 
   // set up layer
-  const layer: Layer = createLayer("selection_dr", middleImageApiUrl, false);
+  const layer: Layer = createLayer("selection_dr", `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`, false);
   registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.DimensionalityReductionSelection;
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
