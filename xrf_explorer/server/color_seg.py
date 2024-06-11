@@ -4,9 +4,12 @@ import cv2
 import numpy as np
 from os import path, makedirs
 from skimage import color
+from cv2.typing import MatLike
 
-from xrf_explorer.server.file_system import get_elemental_data_cube, normalize_elemental_cube_per_layer
-from xrf_explorer.server.image_register import register_image_to_data_cube
+from xrf_explorer.server.file_system import (
+    get_elemental_data_cube, normalize_elemental_cube_per_layer, get_elemental_cube_path
+)
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -63,13 +66,12 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     return clusters, bitmasks
 
 
-def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
+def get_clusters_using_k_means(data_source: str, image_name: str,
                                nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
-    :param image_path: the path to the image to apply k-means on
-    :param data_cube_path: the path to the data cube to register the image to it
-    :param reg_image_path: the path to save the registered image to
+    :param data_source: the name of the data source
+    :param image_name: the name of the image to apply k-means on
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
             Defaults to 10.
     :param k: number of clusters required at end. Defaults to 30.
@@ -79,15 +81,13 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
     # set seed so results are consistent
     cv2.setRNGSeed(0)
 
-    # Register image if not already registered
-    if not path.exists(reg_image_path):
-        # Get registered image
-        registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
-        if not registered_image:
-            LOG.error("Image could not be registered to data cube")
-            return np.ndarray([])
-
-    image: np.ndarray = get_image(reg_image_path)
+    # Get registered image
+    registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
+    if registered_image is None:
+        LOG.error("Image could not be registered to data cube")
+        return np.ndarray([]), np.ndarray([])
+    
+    image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
     reshaped_image: np.ndarray = reshape_image(image)
 
     # Transform image to LAB format
@@ -102,12 +102,12 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
     colors: np.ndarray
     labels: np.ndarray
     _, labels, colors = cv2.kmeans(reshaped_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    labels = labels.reshape(image.shape[:2])
 
     # Create bitmasks for each cluster
     bitmasks: list[np.ndarray] = []
     for i in range(k):
         mask: np.ndarray = np.array(labels == i)
-        mask = mask.reshape(image.shape[:2])
         bitmasks.append(mask)
 
     # Transform back to rgb
@@ -117,14 +117,13 @@ def get_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_p
     return colors, np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, reg_image_path: str,
+def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
                                          elem_threshold: float = 0.1, nr_of_attempts: int = 10, 
                                          k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
-    :param image_path: the path to the image to apply k-means on
-    :param data_cube_path: the path to the data cube to register the image to it
-    :param reg_image_path: the path to save the registered image to
+    :param data_source: the name of the data source
+    :param image_name: the name of the image to apply k-means on
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. 
                            Defaults to 10.
@@ -132,19 +131,25 @@ def get_elemental_clusters_using_k_means(image_path: str, data_cube_path: str, r
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
+
+    # Get the elemental data cube
+    data_cube_path: str | None = get_elemental_cube_path(data_source)
+    if data_cube_path is None:
+        LOG.error("Elemental data cube not found")
+        return [], []
+
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
+    
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
-    # Register image if not already registered
-    if not path.exists(reg_image_path):
-        # Get registered image
-        registered_image: bool = register_image_to_data_cube(data_cube_path, image_path, reg_image_path)
-        if not registered_image:
-            LOG.error("Image could not be registered to data cube")
-            return np.ndarray([])
+    # Get registered image
+    registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
+    if registered_image is None:
+        LOG.error("Image could not be registered to data cube")
+        return [], []
 
-    image: np.ndarray = get_image(reg_image_path)
+    image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
     # Transform image to lab
     image = image_to_lab(image)

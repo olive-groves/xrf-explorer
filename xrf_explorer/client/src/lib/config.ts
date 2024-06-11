@@ -27,7 +27,7 @@ export type UploadConfig = {
   /**
    * The size (in bytes) of the chunks into which each file will be split before being uploaded to the server.
    */
-  uploadChunkSizeInBytes: number;
+  chunkSize: number;
 };
 
 /**
@@ -114,7 +114,7 @@ export const DefaultConfig: FrontendConfig = {
     zoomLimit: 4.0,
   },
   upload: {
-    uploadChunkSizeInBytes: 50000000, // 50 MB
+    chunkSize: 50000000, // 50 MB
   },
   selectionTool: {
     addPointButton: 0, // left mouse button

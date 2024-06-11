@@ -4,11 +4,9 @@ import logging
 from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
-from werkzeug.utils import secure_filename
-from os.path import exists, abspath, join
-from os import mkdir
+from os.path import exists, abspath, join, isfile, isdir
+from os import mkdir, rmdir
 import json
-from shutil import rmtree
 from markupsafe import escape
 from numpy import ndarray
 
@@ -17,9 +15,10 @@ from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, parse_rpl
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl, get_base_image_name, \
+    get_raw_rpl_paths
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
-from xrf_explorer.server.file_system.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
     get_elemental_map, normalize_ndarray_to_grayscale
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
@@ -36,10 +35,7 @@ from xrf_explorer.server.color_seg import (
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
-from xrf_explorer.server.spectra import *
+from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -109,91 +105,127 @@ def get_workspace(data_source: str):
         return send_file(abspath(path), mimetype='application/json')
 
 
-@app.route("/api/create_ds_dir", methods=["POST"])
-def create_data_source_dir():
-    """Create a directory for a new data source.
-    
-    :request form attributes:  **name** - the data source name 
+@app.route("/api/<data_source>/files")
+def datasource_files(data_source: str):
+    """Return a list of all available files for a data source.
 
+    :param data_source: The name of the data source to get the files for
+    :return: json list of strings representing the file names
+    """
+    try:
+        return json.dumps(get_data_source_files(data_source))
+    except Exception as e:
+        LOG.error(f"Failed to serialize files: {str(e)}")
+        return "Error occurred while listing files", 500
+
+
+@app.route("/api/<data_source>/create", methods=["POST"])
+def create_data_source_dir(data_source: str):
+    """Create a directory for a new data source.
+
+    :param data_source: The name of the data source to create
     :return: json with directory name
     """
     # Get config
-    config: dict = get_config()
+    config: dict | None = get_config()
 
-    # Check the 'name' field was provided in the request
-    if "name" not in request.form:
-        error_msg = "Data source name must be provided."
+    if not config:
+        error_msg: str = "Error occurred while creating data source directory"
+        LOG.error(error_msg)
+        return error_msg, 500
+
+    if data_source == "":
+        error_msg: str = "Data source name provided, but empty."
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_name = request.form["name"].strip()
-    data_source_name_secure = secure_filename(data_source_name)
-
-    if data_source_name == "":
-        error_msg = "Data source name provided, but empty."
+    if data_source in get_data_sources_names():
+        error_msg: str = "Data source name already exists."
         LOG.error(error_msg)
         return error_msg, 400
 
-    data_source_dir = join(config["uploads-folder"], data_source_name_secure)
-
-    # If the directory exists, return 400
-    if exists(data_source_dir):
-        error_msg = "Data source name already exists."
-        LOG.error(error_msg)
-        return error_msg, 400
+    data_source_dir = join(config["uploads-folder"], data_source)
 
     # create data source dir
-    mkdir(data_source_dir)
+    if not isdir(data_source_dir):
+        LOG.info(f"Creating data source directory at {data_source_dir}")
+        mkdir(data_source_dir)
 
-    LOG.info(f"Data source directory created at {data_source_dir}")
-
-    return jsonify({"dataSourceDir": data_source_name_secure})
+    return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/delete_data_source", methods=["DELETE"])
-def delete_data_source():
-    """Delete a data source directory.
-    
-    :request form attributes: **dir** - the directory name
+@app.route("/api/<data_source>/abort", methods=["GET", "POST"])
+def remove_data_source_dir(data_source: str):
+    """Abort creation of a directory for a data source.
+
+    :param data_source: The name of the data source to be aborted
+    :return: json with directory name
     """
-    # get config
-    config: dict = get_config()
+    # Get config
+    config: dict | None = get_config()
+    LOG.info(f"Aborting data source directory creation for {data_source}")
 
-    delete_dir = join(config["uploads-folder"], request.form["dir"])
+    if not config:
+        error_msg: str = "Error occurred while removing data source directory"
+        LOG.error(error_msg)
+        return error_msg, 500
 
-    if exists(delete_dir):
-        rmtree(delete_dir)
-        LOG.info(f"Data source at {delete_dir} removed.")
-        return "Deleted", 200
-    else:
-        return "Directory not found", 404
+    if data_source == "":
+        error_msg: str = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    data_source_dir: str = join(config['uploads-folder'], data_source)
+
+    if not isdir(data_source_dir):
+        error_msg: str = "Data source name does not exist."
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    # remove data source dir
+    LOG.info(f"Removing data source directory at {data_source_dir}")
+    rmdir(data_source_dir)
+
+    return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/upload_file_chunk", methods=["POST"])
-def upload_file_chunk():
-    """Upload a chunk of bytes to a file.
-    
-    :request form attributes: 
-        **dir** - the directory name \n 
-        **startByte** - the start byte from which bytes are uploaded \n 
-        **chunkBytes** - the chunk  of bytes to upload
+@app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
+def upload_chunk(data_source: str, file_name: str, start: int):
+    """Upload a chunk of bytes to a file in specified data source.
+
+    :param data_source: The name of the data source to upload the chunk to
+    :param file_name: The name of the file to upload the chunk to
+    :param start: The start index of the chunk in the specified file
     """
+
     # get config
-    config: dict = get_config()
+    config: dict | None = get_config()
 
-    file_dir = join(config["uploads-folder"], request.form["dir"])
-    start_byte = int(request.form["startByte"])
-    chunk_bytes = request.files["chunkBytes"]
+    if not config:
+        error_msg: str = "Error occurred while uploading file chunk"
+        LOG.error(error_msg)
+        return error_msg, 500
 
-    # If the file does not exist, create it
-    if not exists(file_dir):
-        open(file_dir, "w+b").close()
+    # get file location
+    path: str = abspath(join(config['uploads-folder'], data_source, file_name))
 
-    with open(file_dir, "r+b") as file:
-        file.seek(start_byte)
-        file.write(chunk_bytes.read())
+    # test that path is a sub path of the uploads-folder
+    if not path.startswith(abspath(join(config['uploads-folder'], data_source))):
+        LOG.info("Attempted to upload chunk to %s which is not allowed", path)
+        return "Unauthorized file chunk location", 401
 
-    return "Ok"
+    # create file if it does not exist
+    if not isfile(path):
+        LOG.info("Created file %s", path)
+        open(path, "x+b").close()
+
+    # write chunk to file
+    with open(path, "r+b") as file:
+        file.seek(start)
+        file.write(request.get_data())
+        LOG.info("Wrote chunk from %i into %s", start, path)
+
+    return "Uploaded file chunk", 200
 
 
 @app.route("/api/<data_source>/element_averages")
@@ -592,7 +624,7 @@ def get_color_clusters(data_source: str):
     # Compute colors and bitmasks
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
@@ -611,7 +643,8 @@ def get_color_clusters(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts_elem, k_elem)
+        data_source, rgb_image_name, elem_threshold, nr_attempts_elem, k_elem
+    )
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
