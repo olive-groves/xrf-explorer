@@ -12,7 +12,7 @@ from cv2 import (
     resize,
 )
 
-from numpy._typing import NDArray
+from numpy.typing import NDArray
 from cv2.typing import MatLike
 from xrf_explorer.server.file_system import (
     get_elemental_cube_path, get_elemental_cube_recipe_path, 
@@ -62,26 +62,26 @@ def resize_image_fit_aspect_ratio(
 
     image_register_height, image_register_width = image_resize.shape[:2]
 
-    aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
-    aspect_toregister = image_register_width / image_register_height  # w/h (e.g., 16:9)
+    aspect_reference: float = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
+    aspect_to_register: float = image_register_width / image_register_height  # w/h (e.g., 16:9)
 
-    image_toregister_resize_width = None
-    image_toregister_resize_height = None
+    image_to_register_resize_width: int
+    image_to_register_resize_height: int
 
-    if aspect_toregister > aspect_reference:
-        # If the toregister is wider than the reference, resize toregister to match widths
-        image_toregister_resize_width = image_reference_width
-        image_toregister_resize_height = int(image_reference_width / aspect_toregister)
+    if aspect_to_register > aspect_reference:
+        # If the to_register is wider than the reference, resize to_register to match widths
+        image_to_register_resize_width = image_reference_width
+        image_to_register_resize_height = int(image_reference_width / aspect_to_register)
     else:
-        # If the toregister is narrower or equi-aspect to the reference, resize toregister to match heights
-        image_toregister_resize_height = image_reference_height
-        image_toregister_resize_width = int(
-            image_toregister_resize_height * aspect_toregister
+        # If the to_register is narrower or equi-aspect to the reference, resize to_register to match heights
+        image_to_register_resize_height = image_reference_height
+        image_to_register_resize_width = int(
+            image_to_register_resize_height * aspect_to_register
         )
 
     return resize(
         image_resize,
-        (image_toregister_resize_width, image_toregister_resize_height),
+        (image_to_register_resize_width, image_to_register_resize_height),
         interpolation=INTER_AREA,
     )
 
@@ -93,7 +93,8 @@ def pad_image_to_match_size(
     and image_reference_height).
 
     :param image_to_pad: A MatLike representation of the image to be padded.
-    :param image_referece_width: The width of the reference image.
+    :param image_reference_height: The height of the reference image.
+    :param image_reference_width: The width of the reference image.
     :return: A MatLike representation of the resized image.
     """
 
@@ -101,13 +102,13 @@ def pad_image_to_match_size(
 
     # Get the difference between the reference and the image to pad
     row_difference: int = image_reference_height - image_register_height
-    col_differnece: int = image_reference_width - image_register_width
+    col_difference: int = image_reference_width - image_register_width
 
     # Remove padding from the image
     image_without_padding: MatLike = image_to_pad
 
-    if col_differnece < 0:
-        LOG.info(f"Removing columns: {-col_differnece}")
+    if col_difference < 0:
+        LOG.info(f"Removing columns: {-col_difference}")
         
         image_without_padding = image_to_pad[:, :image_reference_width]
     if row_difference < 0:
@@ -117,7 +118,7 @@ def pad_image_to_match_size(
 
     # Add padding to the image
     add_rows = max(0, row_difference)
-    add_cols = max(0, col_differnece)
+    add_cols = max(0, col_difference)
 
     LOG.info(f"Adding rows and columns: ({add_rows}, {add_cols})")
 
@@ -135,9 +136,9 @@ def apply_perspective_transformation(
         image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
 ) -> MatLike:
     """Applies a perspective transformation on an image based on source and destination points.
-    :param image_to_transform: A MatLike representation of the image to be transoformed.
+    :param image_to_transform: A MatLike representation of the image to be transformed.
     :param points_src: A MatLike representation of the source points.
-    :param points_dst: A MatLike representation of the destination points.
+    :param points_dest: A MatLike representation of the destination points.
     """
 
     image_height, image_width = image_to_transform.shape[:2]
@@ -199,7 +200,7 @@ def register_image(
         image: MatLike, 
         new_width: int, new_height: int, 
         points_source: np.ndarray, points_destination: np.ndarray
-    ) -> MatLike:
+) -> MatLike:
     """Register the given image to match the new width and height with transformation given by the source and destination points.
 
     :param image: The image to be registered.
@@ -221,7 +222,7 @@ def inverse_register_image(
         image: MatLike, 
         new_width: int, new_height: int, 
         points_source: np.ndarray, points_destination: np.ndarray
-    ) -> MatLike:
+) -> MatLike:
     """Inverse register the given image to match the new width and height with transformation given by the source and destination points.
 
     :param image: The image to be registered.
@@ -274,11 +275,11 @@ def register_image_to_image(
     """
     Registers an image to align with a reference image by resizing, padding, and applying
     perspective transformation. It uses control points from a CSV, generated by the butterfly_registrator,
-    to apply the prespective transformation.
+    to apply the perspective transformation.
 
     :param path_image_reference: The path of the reference image.
-    :path path_image_register: The path of the image to be registered.
-    :path path_csv_points: The path of the .csv file.
+    :param path_image_register: The path of the image to be registered.
+    :param path_csv_points: The path of the .csv file.
     :param path_result_registered_image: The path where the registered image will be uploaded to.
     :return: True if the registered image has been written to the specified path successfully and false otherwise.
     """

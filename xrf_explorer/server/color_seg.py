@@ -136,7 +136,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
     data_cube_path: str | None = get_elemental_cube_path(data_source)
     if data_cube_path is None:
         LOG.error("Elemental data cube not found")
-        return np.ndarray([]), np.ndarray([])
+        return [], []
 
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
     
@@ -147,7 +147,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return np.ndarray([]), np.ndarray([])
+        return [], []
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
