@@ -133,4 +133,6 @@ class TestImageRegistration:
 
         # verifiy
         assert result is not None
+        assert result.shape == (3, 3, 3)
+        assert "Removing columns: 1"
         assert "Registering image to elemental cube" in caplog.text

@@ -89,13 +89,12 @@ def resize_image_fit_aspect_ratio(
 def pad_image_to_match_size(
         image_to_pad: MatLike, image_reference_height: int, image_reference_width: int
 ) -> MatLike:
-    """Pads the image to match the size of the reference image (given by image_reference_width
-    and image_reference_height).
+    """Pads the image or removes padding to match the size of the reference image.
 
     :param image_to_pad: A MatLike representation of the image to be padded.
     :param image_reference_height: The height of the reference image.
     :param image_reference_width: The width of the reference image.
-    :return: A MatLike representation of the resized image.
+    :return: A MatLike representation of the padded image.
     """
 
     image_register_height, image_register_width = image_to_pad.shape[:2]
