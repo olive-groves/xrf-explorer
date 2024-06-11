@@ -81,7 +81,7 @@ export type SelectionToolConfig = {
   /**
    * Mouse button that will consolidate the current selection (not applicable to rectangle selection).
    */
-  confirmButton?: number
+  confirmButton?: number;
   /**
    * Keyboard key that will consolidate the current selection (not applicable to rectangle selection).
    */

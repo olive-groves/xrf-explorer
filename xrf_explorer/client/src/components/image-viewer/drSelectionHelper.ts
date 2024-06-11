@@ -27,9 +27,8 @@ watch(selection, onSelectionUpdate, { immediate: true, deep: true });
  * @param color - Color to be used for highlighting the selection.
  */
 function setSelectionColor(color: [number, number, number]): void {
-  color.push(0);  // opacity set to 0 (used for bitmask)
-  for (let i: number = 0; i < data.length; i++)
-      data[i] = color[i % 4];
+  color.push(0); // opacity set to 0 (used for bitmask)
+  for (let i: number = 0; i < data.length; i++) data[i] = color[i % 4];
 }
 
 /**
@@ -234,7 +233,11 @@ export async function createDRSelectionLayer() {
   recipe.targetSize = await getTargetSize();
 
   // set up layer
-  const layer: Layer = createLayer("selection_dr", `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`, false);
+  const layer: Layer = createLayer(
+    "selection_dr",
+    `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`,
+    false,
+  );
   registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.DimensionalityReductionSelection;
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };

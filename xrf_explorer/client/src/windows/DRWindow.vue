@@ -292,10 +292,13 @@ async function communicateSelectionWithImageViewer() {
   if (selectionTool.selectedPoints.length != 0) getSelectionAsEmbeddingDimensions(selectionPointsInEmbedding);
   const embeddingWidth: number = imageToEmbeddingCropping.xEmbedRange[1] - imageToEmbeddingCropping.xEmbedRange[0];
   const embeddingHeight: number = imageToEmbeddingCropping.yEmbedRange[1] - imageToEmbeddingCropping.yEmbedRange[0];
-  // communicate the relevant information to the image viewer using the app's state (selection is scaled down to a 256x256 image)
+  // communicate the information to the image viewer using the app's state (selection is scaled down to a 256x256 image)
   appState.selection.dimensionalityReduction = {
     selectionType: selectionTool.type(),
-    points: selectionPointsInEmbedding.map((point) => ({ x: Math.floor(point.x * 256 / embeddingWidth), y: Math.floor(point.y * 256 / embeddingHeight) })),
+    points: selectionPointsInEmbedding.map((point) => ({
+      x: Math.floor((point.x * 256) / embeddingWidth),
+      y: Math.floor((point.y * 256) / embeddingHeight),
+    })),
     updateMiddleImage: updateInEmbedding,
   };
 

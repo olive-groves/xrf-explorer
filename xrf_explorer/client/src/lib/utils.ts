@@ -101,6 +101,12 @@ export function resetWindow() {
  * @param newMax - The maximum value of the desired range.
  * @returns A new list with the numbers scaled to the desired range.
  */
-export function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: number, newMax: number): Array<number> {
+export function mapRange(
+  a: Array<number>,
+  oldMin: number,
+  oldMax: number,
+  newMin: number,
+  newMax: number,
+): Array<number> {
   return a.map((x) => ((x - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin);
 }
