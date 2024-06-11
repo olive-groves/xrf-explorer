@@ -127,10 +127,6 @@ export type DimensionalityReductionSelection = {
    */
   points: Point2D[];
   /**
-   * The width and height of the embedded image on which the selection is made.
-   */
-  embeddedImageDimensions: { width: number; height: number };
-  /**
    * Denotes whether the middle image should be updated (true when a new embedding has been generated since the last
    * selection).
    */

@@ -14,14 +14,11 @@ import { config } from "@/main";
 
 const selection = computed(() => appState.selection.dimensionalityReduction);
 
-let embeddingWidth: number = -1;
-let embeddingHeight: number = -1;
 const width: number = 256; // arbitrary amount to compress embedding data
 const height: number = 256; // arbitrary amount to compress embedding data
 let middleImageApiUrl: string = "";
 // list of pixels in the embedding scaled down to 256x256, pixels that are selected have a color, others have opacity 0
 const data: Uint8Array = new Uint8Array(width * height * 4);
-setSelectionColor(hexToRgb(config.selectionTool.fill_color));
 const dataTexture: DataTexture = createDataTexture(data, width, height);
 
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
@@ -62,10 +59,6 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
     return;
   }
 
-  // extract selection information
-  const { width: embedWidth, height: embedHeight } = newSelection.embeddedImageDimensions;
-  embeddingWidth = embedWidth;
-  embeddingHeight = embedHeight;
   updateBitmask(newSelection);
 
   // update the layer to display the selection
@@ -93,17 +86,12 @@ function updateBitmask(newSelection: DimensionalityReductionSelection): void {
     for (let y: number = topLeftPoint.y; y <= bottomRightPoint.y; y++) {
       // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
       const point: Point2D = { x: x, y: y };
-      const convertedPoint: Point2D = { x: point.x, y: embeddingHeight - point.y }; // point with correct origin
-      // scale down to 256x256
-      const scaledDownPoint: Point2D = {
-        x: Math.floor((convertedPoint.x * width) / embeddingWidth),
-        y: Math.floor((convertedPoint.y * height) / embeddingHeight),
-      };
-      // index in a 256x256 image
-      const scaledDownIndex: number = coordinatesToIndex(scaledDownPoint.x, scaledDownPoint.y, width);
-
+      // point with correct origin
+      const convertedPoint: Point2D = { x: point.x, y: height - point.y };
+      // index in the 256x256 image version of the embedding with the correct coordinate system
+      const convertedIndex: number = coordinatesToIndex(convertedPoint.x, convertedPoint.y, width);
       // index of the point in the 256x256x4 bitmask
-      const normalizedIndex: number = Math.floor(scaledDownIndex * 4);
+      const normalizedIndex: number = Math.floor(convertedIndex * 4);
 
       // we don't want to overwrite the selection
       if (data[normalizedIndex + 3] != 0) continue;
@@ -240,6 +228,8 @@ function updateLayer(nPointsSelected: number, updateImage: boolean): void {
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
+  setSelectionColor(hexToRgb(config.selectionTool.fill_color));
+
   // update the middle image api url if it hasn't been loaded yet
   if (middleImageApiUrl == "") middleImageApiUrl = `${config.api.endpoint}/${datasource.value}/dr/embedding/mapping`;
 
