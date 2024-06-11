@@ -60,7 +60,7 @@ const unit = computed(() => props.unit ?? "");
       :min="props.min ?? 0"
       :step="props.step ?? 0.01"
       :max="props.max ?? 1"
-      class="pb-2"
+      class="cursor-auto pb-2"
       @update:model-value="emit('update')"
     />
   </div>
