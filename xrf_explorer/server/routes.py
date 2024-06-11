@@ -247,7 +247,9 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     if result == "success" or result == "downsampled":
         return result
 
-    abort(400)
+    error_msg: str = "Failed to create DR embedding image"
+    LOG.error(error_msg)
+    return error_msg, 400
 
 
 @app.route("/api/<data_source>/dr/overlay/<overlay_type>")
@@ -262,8 +264,9 @@ def get_dr_overlay(data_source: str, overlay_type: str):
     # Try to get the embedding image
     image_path: str = create_embedding_image(data_source, overlay_type)
     if not image_path:
-        LOG.error("Failed to create DR embedding image")
-        abort(400)
+        error_msg: str = "Failed to create DR embedding image"
+        LOG.error(error_msg)
+        return error_msg, 400
 
     return send_file(abspath(image_path), mimetype='image/png')
 
@@ -281,8 +284,9 @@ def get_dr_embedding_mapping(data_source: str):
     # Try to get the image
     image_path: str = get_image_of_indices_to_embedding(data_source)
     if not image_path:
-        LOG.error("Failed to create DR indices to embedding image")
-        abort(400)
+        error_msg: str = "Failed to create DR indices to embedding image"
+        LOG.error(error_msg)
+        return error_msg, 400
 
     return send_file(abspath(image_path), mimetype='image/png')
 
@@ -300,8 +304,9 @@ def get_dr_embedding_plot_dimensions(data_source: str):
     path: str = abspath(join(get_path_to_dr_folder(data_source), 'dimensions.json'))
 
     if not isfile(path):
-        LOG.error("Failed to find json file with embedding plot dimensions")
-        abort(404)
+        error_msg: str = "Failed to find json file with embedding plot dimensions"
+        LOG.error(error_msg)
+        return error_msg, 400
 
     return send_file(path, mimetype='application/json')
 
