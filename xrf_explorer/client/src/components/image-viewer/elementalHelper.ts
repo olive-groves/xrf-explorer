@@ -72,6 +72,8 @@ function selectionUpdated(newSelection: ElementSelection[]) {
  * @param workspace - The workspace to load into the layer system.
  */
 export async function createElementalLayers(workspace: WorkspaceConfig) {
+  if (workspace.elementalCubes.length == 0) return;
+
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
