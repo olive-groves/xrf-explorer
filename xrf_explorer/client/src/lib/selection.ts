@@ -162,6 +162,10 @@ abstract class BaseSelectionTool {
    * Determines whether the selection is currently complete.
    */
   finishedSelection: boolean = false;
+  /**
+   * Determines whether the selection was cancelled.
+   */
+  cancelledSelection: boolean = false;
 
   protected constructor(selectionType: SelectionOption) {
     this.selectionType = selectionType;
@@ -182,6 +186,7 @@ abstract class BaseSelectionTool {
     this.selectedPoints = [];
     this.activeSelection = false;
     this.finishedSelection = false;
+    this.cancelledSelection = true;
     toast.info("Cancelled current dimensionality reduction selection.");
   }
 
@@ -191,6 +196,7 @@ abstract class BaseSelectionTool {
   confirmSelection(): void {
     this.activeSelection = false;
     this.finishedSelection = true;
+    this.cancelledSelection = false;
   }
 
   /**

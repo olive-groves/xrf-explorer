@@ -250,6 +250,11 @@ function updateSelectionVisuals() {
   drawSelection();
 
   // relay information to the image viewer
+  if (selectionTool.cancelledSelection) {
+    console.info("Cancelled selection");
+    communicateSelectionWithImageViewer();
+    selectionTool.cancelledSelection = false;
+  }
   if (selectionTool.finishedSelection) {
     console.info("Confirmed selection with " + selectionTool.selectedPoints.length + " points.");
     communicateSelectionWithImageViewer();
