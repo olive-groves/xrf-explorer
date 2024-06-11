@@ -172,17 +172,21 @@ function mapRange(a: Array<number>, oldMin: number, oldMax: number, newMin: numb
 
 /**
  * Get the new values representing the difference in dimensions between the image and the embedding.
+ * The embedding is plotted onto another image which has different dimensions (slightly bigger). The image received from
+ * the backend is a single image where the embedding is placed on top of the outer image. We therefore need to
+ * compute the difference in dimensions between the image and the embedding for accurate representation of the user's
+ * selection.
  */
 async function updateImageToEmbeddingCropping() {
   fetch(`${config.api.endpoint}/${datasource.value}/dr/dimensions`).then(
     async (response) => {
       response.json().then(
         (dimensions) => {
-          const xMin = dimensions.xplotrange[0];
-          const yMin = dimensions.yplotrange[0];
+          const xMin = dimensions.xplotrange[0];  // min x coordinate of the outer image
+          const yMin = dimensions.yplotrange[0];  // min y coordinate of the outer image
 
-          const xMax = dimensions.xplotrange[1];
-          const yMax = dimensions.yplotrange[1];
+          const xMax = dimensions.xplotrange[1];  // max x coordinate of the outer image
+          const yMax = dimensions.yplotrange[1];  // max y coordinate of the outer image
 
           const image: HTMLElement | null = document.getElementById("image");
           if (image == null) {
@@ -191,8 +195,9 @@ async function updateImageToEmbeddingCropping() {
             );
             return;
           }
-          const rect = image.getBoundingClientRect();
+          const rect = image.getBoundingClientRect();   // get the dimensions of the current window on the client
 
+          // compute the difference between the outer image and the embedding and scale it to the window's size
           imageToEmbeddingCropping.xEmbedRange = mapRange(dimensions.xembedrange, xMin, xMax, 0, rect.width);
           imageToEmbeddingCropping.yEmbedRange = mapRange(dimensions.yembedrange, yMin, yMax, rect.height, 0).reverse();
           imageToEmbeddingCropping.xPlotRange = [0, rect.width];
