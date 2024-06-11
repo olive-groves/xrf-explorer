@@ -72,7 +72,8 @@ def get_registered_image(data_source: str, image_name: str) -> np.ndarray:
 
 
 def get_path_to_dr_folder(data_source: str) -> str:
-    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is created.
+    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is
+    created.
     
     :param data_source: The name of the datasource
     :return: The path to the dimensionality reduction folder for the given datasource.
