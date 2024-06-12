@@ -10,7 +10,7 @@ import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
-import { SelectionOption } from "@/lib/selection";
+import { SelectionAreaType } from "@/lib/selection";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -205,7 +205,7 @@ async function updateEmbedding() {
             <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
             <SelectionArea
               v-model="appState.selection.dimensionalityReduction"
-              :type="SelectionOption.Lasso"
+              :type="SelectionAreaType.Lasso"
               :x="0"
               :y="0"
               :w="256"

@@ -8,7 +8,7 @@ import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/i
 import { Layer, LayerType } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace";
 import { appState, datasource } from "@/lib/appState";
-import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { hexToRgb, Point2D } from "@/lib/utils";
 import { config } from "@/main";
 
@@ -49,12 +49,12 @@ async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
   }
 
   // edge case: rectangle selection must have exactly 2 points
-  if (newSelection.type == SelectionOption.Rectangle && newSelection.points.length != 2) {
+  if (newSelection.type == SelectionAreaType.Rectangle && newSelection.points.length != 2) {
     console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
     return;
   }
   // edge case: polygon selection must have at least 3 points
-  if (newSelection.type == SelectionOption.Lasso && newSelection.points.length < 3) {
+  if (newSelection.type == SelectionAreaType.Lasso && newSelection.points.length < 3) {
     console.error("Invalid polygon selection. Expected at least 3 points but got: ", newSelection);
     return;
   }
@@ -126,10 +126,10 @@ function getBoundingBox(delimitingPoints: Point2D[]): Point2D[] {
  */
 function isPointInSelection(point: Point2D, selection: SelectionAreaSelection): boolean {
   switch (selection.type) {
-    case SelectionOption.Rectangle:
+    case SelectionAreaType.Rectangle:
       return isInRectangle(point, selection.points);
 
-    case SelectionOption.Lasso:
+    case SelectionAreaType.Lasso:
       return isInPolygon(point, selection.points);
 
     default: {

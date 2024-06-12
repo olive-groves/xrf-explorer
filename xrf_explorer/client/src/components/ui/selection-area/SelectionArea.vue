@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { Point2D, deepClone } from "@/lib/utils";
 import { useElementBounding } from "@vueuse/core";
 import { computed, ref } from "vue";
 
 const props = defineProps<{
-  type?: SelectionOption;
+  type?: SelectionAreaType;
   x: number;
   y: number;
   w: number;
@@ -17,7 +17,7 @@ const model = defineModel<SelectionAreaSelection>({ required: true });
 const element = ref<SVGElement>();
 const box = useElementBounding(element);
 
-const candidateType = ref<SelectionOption | undefined>(undefined);
+const candidateType = ref<SelectionAreaType | undefined>(undefined);
 const candidatePoints = ref<Point2D[]>([]);
 const nearInitial = computed(() => {
   const first = candidatePoints.value[0];
@@ -51,12 +51,12 @@ function mapLocation(client: Point2D): Point2D {
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (props.type == SelectionOption.Lasso) {
+  if (props.type == SelectionAreaType.Lasso) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
-    if (candidateType.value == SelectionOption.Lasso) {
+    if (candidateType.value == SelectionAreaType.Lasso) {
       if (nearInitial.value) {
         model.value = {
-          type: SelectionOption.Lasso,
+          type: SelectionAreaType.Lasso,
           points: candidatePoints.value.slice(0, -1),
         };
         candidateType.value = undefined;
@@ -65,7 +65,7 @@ function onClick(event: MouseEvent) {
         candidatePoints.value.push(point);
       }
     } else {
-      candidateType.value = SelectionOption.Lasso;
+      candidateType.value = SelectionAreaType.Lasso;
       candidatePoints.value = [deepClone(point), deepClone(point)];
     }
   }
@@ -76,9 +76,9 @@ function onClick(event: MouseEvent) {
  * @param event
  */
 function onMouseDown(event: MouseEvent) {
-  if (props.type == SelectionOption.Rectangle) {
+  if (props.type == SelectionAreaType.Rectangle) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
-    candidateType.value = SelectionOption.Rectangle;
+    candidateType.value = SelectionAreaType.Rectangle;
     candidatePoints.value = [deepClone(point), deepClone(point)];
   }
 }
@@ -88,9 +88,9 @@ function onMouseDown(event: MouseEvent) {
  * @param event
  */
 function onMouseUp() {
-  if (candidateType.value == SelectionOption.Rectangle) {
+  if (candidateType.value == SelectionAreaType.Rectangle) {
     model.value = {
-      type: SelectionOption.Rectangle,
+      type: SelectionAreaType.Rectangle,
       points: [
         {
           x: Math.min(candidatePoints.value[0].x, candidatePoints.value[1].x),
@@ -136,7 +136,7 @@ function onMouseMove(event: MouseEvent) {
   >
     <!-- FINISHED SELECTION -->
     <rect
-      v-if="model.type == SelectionOption.Rectangle"
+      v-if="model.type == SelectionAreaType.Rectangle"
       :x="model.points[0].x"
       :y="model.points[0].y"
       :width="model.points[1].x - model.points[0].x"
@@ -148,7 +148,7 @@ function onMouseMove(event: MouseEvent) {
       fill-opacity="0.5"
     />
     <path
-      v-if="model.type == SelectionOption.Lasso"
+      v-if="model.type == SelectionAreaType.Lasso"
       :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
       stroke="red"
       stroke-width="2"
@@ -159,7 +159,7 @@ function onMouseMove(event: MouseEvent) {
 
     <!-- CANDIDATE SELECTION -->
     <rect
-      v-if="candidateType == SelectionOption.Rectangle"
+      v-if="candidateType == SelectionAreaType.Rectangle"
       :x="Math.min(candidatePoints[0].x, candidatePoints[1].x)"
       :y="Math.min(candidatePoints[0].y, candidatePoints[1].y)"
       :width="Math.abs(candidatePoints[0].x - candidatePoints[1].x)"
@@ -169,7 +169,7 @@ function onMouseMove(event: MouseEvent) {
       vector-effect="non-scaling-stroke"
     />
     <path
-      v-if="candidateType == SelectionOption.Lasso"
+      v-if="candidateType == SelectionAreaType.Lasso"
       :d="`M${candidatePoints
         .slice(0, -1)
         .map((point) => `${point.x} ${point.y}`)
@@ -179,7 +179,7 @@ function onMouseMove(event: MouseEvent) {
       vector-effect="non-scaling-stroke"
     />
     <path
-      v-if="candidateType == SelectionOption.Lasso"
+      v-if="candidateType == SelectionAreaType.Lasso"
       :d="lastLassoCandidateLine"
       stroke="green"
       stroke-width="2"

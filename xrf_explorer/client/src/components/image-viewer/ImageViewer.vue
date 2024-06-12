@@ -13,7 +13,7 @@ import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
-import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -222,9 +222,9 @@ const cursor = computed(() => {
         v-model="selection"
         :type="
           toolState.tool == 'lasso'
-            ? SelectionOption.Lasso
+            ? SelectionAreaType.Lasso
             : toolState.tool == 'rectangle'
-              ? SelectionOption.Rectangle
+              ? SelectionAreaType.Rectangle
               : undefined
         "
         :x="viewbox.x"
