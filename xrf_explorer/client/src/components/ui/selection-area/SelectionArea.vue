@@ -5,28 +5,57 @@ import { useElementBounding } from "@vueuse/core";
 import { computed, ref } from "vue";
 
 const props = defineProps<{
+  /**
+   * The active selection type for selections made in this selection area.
+   */
   type?: SelectionAreaType;
+  /**
+   * The x coordinate of the bottom left corner in the viewbox.
+   */
   x: number;
+  /**
+   * The y coordinate of the bottom left corner in the viewbox.
+   */
   y: number;
+  /**
+   * The width of the viewbox.
+   */
   w: number;
+  /**
+   * The height of the viewbox.
+   */
   h: number;
 }>();
 
+/**
+ * The selection object that is updated by the selection area when a selection is made.
+ * Will not contain an invalid selection.
+ */
 const model = defineModel<SelectionAreaSelection>({ required: true });
 
 const element = ref<SVGElement>();
 const box = useElementBounding(element);
 
+/**
+ * Variables for the candidate selection.
+ */
 const candidateType = ref<SelectionAreaType | undefined>(undefined);
 const candidatePoints = ref<Point2D[]>([]);
+
+/**
+ * True if the last candidate point is close to the first candidate point.
+ */
 const nearInitial = computed(() => {
   const first = candidatePoints.value[0];
   const last = candidatePoints.value[candidatePoints.value.length - 1];
   const dx = (100 * Math.abs(first.x - last.x)) / props.w;
   const dy = (100 * Math.abs(first.y - last.y)) / props.h;
-  return dx * dx + dy * dy <= 25;
+  return dx * dx + dy * dy <= 16;
 });
 
+/**
+ * The path for the last line in the candidate lasso selection.
+ */
 const lastLassoCandidateLine = computed(() => {
   const length = candidatePoints.value.length;
   const first = candidatePoints.value[length - 2];
@@ -54,6 +83,8 @@ function onClick(event: MouseEvent) {
   if (props.type == SelectionAreaType.Lasso) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
     if (candidateType.value == SelectionAreaType.Lasso) {
+      // If selection is already started, end it if the clicked point is close to the starting position.
+      // Add a new point to the selection otherwise.
       if (nearInitial.value) {
         model.value = {
           type: SelectionAreaType.Lasso,
@@ -65,6 +96,7 @@ function onClick(event: MouseEvent) {
         candidatePoints.value.push(point);
       }
     } else {
+      // Start new lasso selection
       candidateType.value = SelectionAreaType.Lasso;
       candidatePoints.value = [deepClone(point), deepClone(point)];
     }
@@ -72,8 +104,8 @@ function onClick(event: MouseEvent) {
 }
 
 /**
- *
- * @param event
+ * Starts a rectangle selection.
+ * @param event - The mouse event.
  */
 function onMouseDown(event: MouseEvent) {
   if (props.type == SelectionAreaType.Rectangle) {
@@ -84,8 +116,7 @@ function onMouseDown(event: MouseEvent) {
 }
 
 /**
- *
- * @param event
+ * Ends a rectangle selection.
  */
 function onMouseUp() {
   if (candidateType.value == SelectionAreaType.Rectangle) {
@@ -108,8 +139,8 @@ function onMouseUp() {
 }
 
 /**
- *
- * @param event
+ * Updates the last candidate point to follow the mouse.
+ * @param event - The mouse event.
  */
 function onMouseMove(event: MouseEvent) {
   if (candidateType.value != undefined) {
@@ -134,7 +165,7 @@ function onMouseMove(event: MouseEvent) {
     @mousemove="onMouseMove"
     @mouseleave="onMouseUp"
   >
-    <!-- FINISHED SELECTION -->
+    <!-- DISPLAY FINISHED SELECTION -->
     <rect
       v-if="model.type == SelectionAreaType.Rectangle"
       :x="model.points[0].x"
@@ -157,7 +188,7 @@ function onMouseMove(event: MouseEvent) {
       fill-opacity="0.5"
     />
 
-    <!-- CANDIDATE SELECTION -->
+    <!-- DISPLAY CANDIDATE SELECTION -->
     <rect
       v-if="candidateType == SelectionAreaType.Rectangle"
       :x="Math.min(candidatePoints[0].x, candidatePoints[1].x)"
