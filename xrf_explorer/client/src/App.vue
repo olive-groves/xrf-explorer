@@ -10,7 +10,7 @@ import { secondViewer } from "@/lib/appState";
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow, ImageWindow } from "@/windows";
+import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
 
 // Provide configuration to app
 const props = defineProps<{
@@ -50,7 +50,6 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <SpectraWindow />
         <CSWindow />
-        <ImageWindow />
       </WindowContainer>
     </div>
   </BaseContextMenu>
