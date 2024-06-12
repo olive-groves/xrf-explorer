@@ -165,7 +165,7 @@ def get_selected_data_cube(
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(f"Error occured while retrieving the path fo the base image of {data_source_folder}")
+        LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
         return None
 
     data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
@@ -215,7 +215,7 @@ def get_selected_data_cube(
         mask = np.zeros((cube_h, cube_w), dtype=np.uint8)
 
         # Calculate the smallest convex set that contains all the points
-        # The purpose of this is to to order the points so they construct a polygon instead
+        # The purpose of this is to order the points so they construct a polygon instead
         # of an hourglass figure
         convex_hull = convexHull(cube_points)
 

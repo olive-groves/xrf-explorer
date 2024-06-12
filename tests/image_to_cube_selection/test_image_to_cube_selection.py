@@ -142,11 +142,11 @@ class TestImageToCubeSelection:
         args = (self.SAMPLE_CUBE_RECIPE_PATH, base_h, base_w, cube_h, cube_w)
         cube_coord_actual = deregister_coord(base_img_coord, *args)
 
-        eucledian_dist = (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 + (
+        euclidean_dist = (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 + (
             cube_coord_expected[1] - cube_coord_actual[1]
         ) ** 2
 
-        return eucledian_dist <= tolerance_pixels
+        return euclidean_dist <= tolerance_pixels
 
     def test_deregister_coord(self):
         BASE_IMG_COORD_1 = (2046, 2691)
