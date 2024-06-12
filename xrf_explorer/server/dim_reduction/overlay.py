@@ -152,10 +152,19 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
 
     plt.axis('off')
     fig.patch.set_facecolor('black')
+    
+    # Get the minimum and maximum values of the embedding (values can possibly be NaN)
+    xmin, xmax = np.nanmin(embedding[:, 0]), np.nanmax(embedding[:, 0])
+    ymin, ymax = np.nanmin(embedding[:, 1]), np.nanmax(embedding[:, 1])
+
+    # Check if all min and max are not NaN
+    if np.isnan([xmin, xmax, ymin, ymax]).any():
+        LOG.error("Failed to create embedding image. The embedding data contains NaN values.")
+        return ""
 
     # Set limits to match the data
-    plt.xlim(embedding[:, 0].min(), embedding[:, 0].max())
-    plt.ylim(embedding[:, 1].min(), embedding[:, 1].max())
+    plt.xlim(xmin, xmax)
+    plt.ylim(ymin, ymax)
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 

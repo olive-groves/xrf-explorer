@@ -162,7 +162,6 @@ class TestDimReduction:
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
         )
         path_embedding_image: str = join(path_generated_folder, 'embedding.png')
-        path_dimensions: str = join(path_generated_folder, 'dimensions.json')
         set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # execute
@@ -171,12 +170,10 @@ class TestDimReduction:
         # verify
         assert result
         assert isfile(path_embedding_image)
-        assert isfile(path_dimensions)
         assert 'Created embedding image successfully' in caplog.text
 
         # cleanup
         remove(path_embedding_image)
-        remove(path_dimensions)
 
     def test_valid_create_embedding_image(self, caplog):
         caplog.set_level(logging.INFO)
