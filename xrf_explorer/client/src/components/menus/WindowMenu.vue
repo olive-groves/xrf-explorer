@@ -18,7 +18,7 @@ const hasSlot = computed(() => {
 });
 
 /**
- * Function to enable/disable the second viewer
+ * Function to enable/disable the second viewer.
  */
 function enableSecondViewer() {
   secondViewer.value = !secondViewer.value;
