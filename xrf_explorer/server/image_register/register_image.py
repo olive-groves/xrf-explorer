@@ -322,7 +322,7 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
 
     :param data_source: The name of the data source.
     :param image_name: The name of the image to be registered.
-    :return: The registered image or None in case of an error.
+    :return: The registered image in BGR format or None in case of an error.
     """
 
     # Get the data cube and check if the data cube exists

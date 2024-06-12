@@ -1,6 +1,13 @@
 import logging 
 
+from os import makedirs
+from os.path import join, isdir
+
 import numpy as np
+from cv2 import imwrite
+
+from xrf_explorer.server.file_system import get_elemental_cube_path, get_elemental_data_cube
+from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -21,3 +28,96 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
         return False
     
     return True
+
+
+def get_path_to_dr_folder(data_source: str) -> str:
+    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is
+    created.
+    
+    :param data_source: The name of the datasource
+    :return: The path to the dimensionality reduction folder for the given datasource.
+    """
+
+    # load backend config
+    backend_config: dict = get_config()
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+
+    # Path to the data source folder
+    path_to_data_source: str = join(
+        backend_config['uploads-folder'], data_source
+    )
+
+    # Check if the datasource exists
+    if not isdir(path_to_data_source):
+        LOG.error(f"Datasource {data_source} not found.")
+        return ""
+    
+    path_to_generated_folder: str = join(path_to_data_source, backend_config['generated-folder-name'])
+    if not isdir(path_to_generated_folder):
+        makedirs(path_to_generated_folder)
+        LOG.info(f"Created directory {path_to_generated_folder}.")
+
+    # Path to the dimensionality reduction folder
+    path_to_dr_folder: str = join(path_to_generated_folder, backend_config['dim-reduction']['folder-name'])
+
+    # Check if the dimensionality reduction folder exists
+    if not isdir(path_to_dr_folder):
+        makedirs(path_to_dr_folder)
+        LOG.info(f"Created directory {path_to_dr_folder}.")
+
+    LOG.info(f"Dimensionality reduction folder {data_source} found.")
+    return path_to_dr_folder
+
+
+def get_image_of_indices_to_embedding(data_source: str) -> str:
+    """Creates the image for lasso selection that decodes to which points in the embedding
+    the pixels of the elemental data cube are mapped. Uses the current embedding and indices
+    to create the image.
+
+    :param data_source: Name of the data source.
+    :return: True if the image was created successfully, otherwise False.
+    """
+    # Get the path to the dimensionality reduction folder
+    dr_folder: str = get_path_to_dr_folder(data_source)
+    if not dr_folder:
+        return ""
+
+    # Load the elemental data cube
+    path_to_cube = get_elemental_cube_path(data_source)
+    elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
+    if elemental_cube is None:
+        return ""
+
+    # Load the file embedding.npy
+    try:
+        indices: np.ndarray = np.load(join(dr_folder, 'indices.npy'))
+        embedding: np.ndarray = np.load(join(dr_folder, 'embedded_data.npy'))
+    except OSError as e:
+        LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
+        return ""
+
+    # Get min and max values
+    xmin, ymin = np.min(embedding, axis=0)
+    xmax, ymax = np.max(embedding, axis=0)
+
+    # Normalize values to be in the range [0, 255]
+    embedding[:, 0] = np.interp(embedding[:, 0], (xmin, xmax), (0, +255))
+    embedding[:, 1] = np.interp(embedding[:, 1], (ymin, ymax), (0, +255))
+
+    # Initialize new image
+    newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
+    
+    # Fill pixels (in BGR format)
+    newimage[indices[:, 0], indices[:, 1], 0] = 255
+    newimage[indices[:, 0], indices[:, 1], 1] = embedding[:, 1]
+    newimage[indices[:, 0], indices[:, 1], 2] = embedding[:, 0]
+
+    # Create and save the image
+    path_image: str = join(dr_folder, 'image_index_to_embedding.png')
+    imwrite(path_image, newimage)
+
+    LOG.info("Created DR image index to embedding.")
+
+    return path_image

@@ -10,8 +10,9 @@ from xrf_explorer.server.file_system.config_handler import set_config
 
 sys.path.append('.')
 
-from xrf_explorer.server.dim_reduction.embedding import generate_embedding
-from xrf_explorer.server.dim_reduction.overlay import create_embedding_image
+from xrf_explorer.server.dim_reduction import (
+    generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
+)
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -22,6 +23,7 @@ class TestDimReduction:
     CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT: str = join(RESOURCES_PATH, 'configs', 'dim-reduction-embedding-present.yml')
     TEST_DATA_SOURCE: str = 'test_data_source'
     PATH_TEST_CUBE: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'test_cube.dms')
+    PATH_GENERATED_FOLDER: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'from_dim_reduction')
 
     def test_config_not_found(self, caplog):
         # setup
@@ -32,7 +34,7 @@ class TestDimReduction:
 
         # execute
         result1: str = generate_embedding(
-            self.PATH_TEST_CUBE, element, threshold
+            self.TEST_DATA_SOURCE, element, threshold
         )
         result2: str = create_embedding_image(
             self.TEST_DATA_SOURCE, overlay_type
@@ -53,8 +55,8 @@ class TestDimReduction:
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result1: str = generate_embedding(self.PATH_TEST_CUBE, element1, threshold)
-        result2: str = generate_embedding(self.PATH_TEST_CUBE, element2, threshold)
+        result1: str = generate_embedding(self.TEST_DATA_SOURCE, element1, threshold)
+        result2: str = generate_embedding(self.TEST_DATA_SOURCE, element2, threshold)
 
         # verify
         assert result1 == 'error'
@@ -86,7 +88,7 @@ class TestDimReduction:
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args)
+        result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
         assert result == 'error'
@@ -115,19 +117,25 @@ class TestDimReduction:
         element: int = 2
         threshold: int = 0
         umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
-        path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'from_dim_reduction', 'embedded_data.npy')
+        path_generated = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
+        )
+        path_embedding: str = join(path_generated, 'embedded_data.npy')
+        path_indices: str = join(path_generated, 'indices.npy')
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args)
+        result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
         assert result == 'success'
-        assert isfile(path_generated_file)
+        assert isfile(path_embedding)
+        assert isfile(path_indices)
         assert 'Generated embedding successfully' in caplog.text
 
         # cleanup
-        remove(path_generated_file)
+        remove(path_embedding)
+        remove(path_indices)
 
     def test_high_threshold(self, caplog):
         # setup
@@ -137,7 +145,7 @@ class TestDimReduction:
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = generate_embedding(self.PATH_TEST_CUBE, element, threshold, new_umap_parameters=umap_args)
+        result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
         assert result == 'error'
@@ -150,7 +158,10 @@ class TestDimReduction:
 
         # setup
         overlay_type: str = 'elemental_1'
-        path_generated_file: str = join(RESOURCES_PATH, 'dim_reduction', 'embedding_present', 'embedding.png')
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
+        )
+        path_embedding_image: str = join(path_generated_folder, 'embedding.png')
         set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # execute
@@ -158,8 +169,28 @@ class TestDimReduction:
 
         # verify
         assert result
-        assert isfile(path_generated_file)
+        assert isfile(path_embedding_image)
         assert 'Created embedding image successfully' in caplog.text
 
         # cleanup
-        remove(path_generated_file)
+        remove(path_embedding_image)
+
+    def test_valid_create_embedding_image(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # setup
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
+        )
+        path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
+
+        # execute
+        result: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+
+        # verify
+        assert result
+        assert isfile(path_image)
+        assert 'Created DR image index to embedding.' in caplog.text
+
+        # cleanup
+        remove(path_image)

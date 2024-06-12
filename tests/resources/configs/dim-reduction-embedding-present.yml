@@ -1,6 +1,6 @@
 uploads-folder: "tests/resources/dim_reduction"
 temp-folder: "tests/resources/dim_reduction"
-generated-folder: "tests/resources/dim_reduction"
+generated-folder-name: "generated"
 dim-reduction:
   folder-name: "embedding_present"
   max-samples: 100
