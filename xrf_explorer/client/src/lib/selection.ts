@@ -115,6 +115,21 @@ export type ColorSegmentationSelection = {
 };
 
 /**
+ * Describes a selection made by a selection area.
+ */
+export type SelectionAreaSelection = {
+  /**
+   * The type of selection.
+   * Undefined if there is no finalized selection.
+   */
+  type?: SelectionOption;
+  /**
+   * The points in the selection.
+   */
+  points: Point2D[];
+};
+
+/**
  * Describes the dimensionality reduction selection.
  */
 export type DimensionalityReductionSelection = {
