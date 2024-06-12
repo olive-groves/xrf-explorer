@@ -2,10 +2,9 @@
 import { provide } from "vue";
 import { Header, BaseContextMenu } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
-import { ImageViewer } from "@/components/image-viewer";
+import { ImageViewerContainer } from "@/components/image-viewer";
 import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
-import { secondViewer } from "@/lib/appState";
 
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
@@ -29,17 +28,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
     <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
       <Header />
       <WindowContainer>
-        <div v-if="!secondViewer" class="size-full">
-          <ImageViewer />
-        </div>
-        <div v-else-if="secondViewer" class="flex size-full">
-          <div class="h-full w-1/2">
-            <ImageViewer />
-          </div>
-          <div class="h-full w-1/2">
-            <ImageViewer />
-          </div>
-        </div>
+        <ImageViewerContainer />
 
         <!-- Place all windows below here -->
         <ElementalChannelWindow />

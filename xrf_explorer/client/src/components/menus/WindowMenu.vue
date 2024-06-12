@@ -22,9 +22,7 @@ const hasSlot = computed(() => {
  */
 function enableSecondViewer() {
   secondViewer.value = !secondViewer.value;
-  toast.info(`Updating viewer layour.`, {
-    description: "This should take less than a minute",
-  });
+  toast.info("Viewer layout updated");
 }
 </script>
 
