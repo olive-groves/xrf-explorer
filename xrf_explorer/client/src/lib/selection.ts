@@ -351,8 +351,8 @@ export class RectangleSelectionTool extends BaseSelectionTool {
         .attr("y", this.originPoint().y)
         .attr("width", this.width())
         .attr("height", this.height())
-        .attr("fill", "hsl(var(--selection))")
-        .attr("stroke", "hsl(var(--selection-foreground))")
+        .attr("fill", config.selectionTool.fill_color)
+        .attr("stroke", config.selectionTool.stroke_color)
         .attr("opacity", config.selectionTool.opacity);
 
       this.highlightPoints(svg, dimensions.width);
@@ -407,8 +407,8 @@ export class LassoSelectionTool extends BaseSelectionTool {
     svg
       .append("polygon")
       .attr("points", this.getPointsAsString())
-      .attr("fill", "hsl(var(--selection))")
-      .attr("stroke", "hsl(var(--selection-foreground))")
+      .attr("fill", config.selectionTool.fill_color)
+      .attr("stroke", config.selectionTool.stroke_color)
       .attr("opacity", config.selectionTool.opacity);
     this.highlightPoints(svg, dimensions.width);
   }

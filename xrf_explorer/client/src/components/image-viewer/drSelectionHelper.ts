@@ -237,7 +237,7 @@ export function updateMiddleImage(): void {
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
-  setSelectionColor(hexToRgb("hsl(var(--selection-foreground))"));
+  setSelectionColor(hexToRgb(config.selectionTool.fill_color));
 
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();

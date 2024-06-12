@@ -205,6 +205,7 @@ function updateSelectionVisuals() {
 
 /**
  * Returns the dimensions of the embedding image element.
+ * @returns The dimensions of the embedding image element.
  */
 function getImageSize() {
   // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
@@ -317,8 +318,13 @@ async function communicateSelectionWithImageViewer() {
       <p class="mt-4 font-bold">Generated image:</p>
       <div
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
-        style="position: relative" @mousedown="onMouseDown" tabindex="0" @keydown="onKeyDown" id="imageContainer"
-        ref="output">
+        style="position: relative"
+        @mousedown="onMouseDown"
+        tabindex="0"
+        @keydown="onKeyDown"
+        id="imageContainer"
+        ref="output"
+      >
         <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
           <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
           <span v-if="status == Status.LOADING">Loading</span>
@@ -327,10 +333,19 @@ async function communicateSelectionWithImageViewer() {
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
-          <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR"
-            @load="resetSelection()" />
-          <svg v-if="status == Status.SUCCESS" ref="svgOverlay" @error="status = Status.ERROR"
-            style="position: absolute; cursor: crosshair"></svg>
+          <img
+            v-if="status == Status.SUCCESS"
+            :src="imageSourceUrl"
+            ref="embeddingImage"
+            @error="status = Status.ERROR"
+            @load="resetSelection()"
+          />
+          <svg
+            v-if="status == Status.SUCCESS"
+            ref="svgOverlay"
+            @error="status = Status.ERROR"
+            style="position: absolute; cursor: crosshair"
+          ></svg>
         </div>
       </div>
     </div>
