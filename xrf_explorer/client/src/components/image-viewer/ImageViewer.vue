@@ -7,7 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
 import * as THREE from "three";
 import { scene } from "./scene";
-import { datasource } from "@/lib/appState";
+import { datasource, initialRender } from "@/lib/appState";
 import { getTargetSize } from "./api";
 import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
@@ -54,8 +54,12 @@ onMounted(setup);
  * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
-  resetViewport();
-
+  if (initialRender.value) {
+    initialRender.value = false;
+  } else {
+    resetViewport();
+  }
+  
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
     alpha: true,
