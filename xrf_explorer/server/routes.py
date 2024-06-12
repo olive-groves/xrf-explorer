@@ -26,8 +26,15 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
     get_elemental_map, normalize_ndarray_to_grayscale
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
-from xrf_explorer.server.dim_reduction import generate_embedding, create_embedding_image
+from xrf_explorer.server.file_system.file_access import *
+from xrf_explorer.server.dim_reduction import (
+    generate_embedding,
+    create_embedding_image,
+    get_path_to_dr_folder,
+    get_image_of_indices_to_embedding
+)
 from xrf_explorer.server.color_seg import (
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
@@ -303,15 +310,14 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled.
     """
 
-    # Get path to elemental cube
-    path: str = get_elemental_cube_path(data_source)
-
     # Try to generate the embedding
-    result = generate_embedding(path, element, threshold, request.args)
+    result = generate_embedding(data_source, element, threshold, request.args)
     if result == "success" or result == "downsampled":
         return result
 
-    abort(400)
+    error_msg: str = "Failed to create DR embedding image"
+    LOG.error(error_msg)
+    return error_msg, 400
 
 
 @ app.route("/api/<data_source>/dr/overlay/<overlay_type>")
@@ -326,8 +332,29 @@ def get_dr_overlay(data_source: str, overlay_type: str):
     # Try to get the embedding image
     image_path: str = create_embedding_image(data_source, overlay_type)
     if not image_path:
-        LOG.error("Failed to create DR embedding image")
-        abort(400)
+        error_msg: str = "Failed to create DR embedding image"
+        LOG.error(error_msg)
+        return error_msg, 400
+
+    return send_file(abspath(image_path), mimetype='image/png')
+
+
+@app.route("/api/<data_source>/dr/embedding/mapping")
+def get_dr_embedding_mapping(data_source: str):
+    """Creates the image for lasso selection that decodes to which points in the embedding
+    the pixels of the elemental data cube are mapped. Uses the current embedding and indices
+    for the given data source to create the image.
+
+    :param data_source: data source to get the overlay from
+    :return: image that decodes to which points in the embedding the pixels of the elemental data cube are mapped
+    """
+
+    # Try to get the image
+    image_path: str = get_image_of_indices_to_embedding(data_source)
+    if not image_path:
+        error_msg: str = "Failed to create DR indices to embedding image"
+        LOG.error(error_msg)
+        return error_msg, 400
 
     return send_file(abspath(image_path), mimetype='image/png')
 
@@ -412,6 +439,7 @@ def contextual_image_recipe(data_source: str, name: str):
 @ app.route("/api/<data_source>/data/size")
 def data_cube_size(data_source: str):
     """Get the size of the data cubes.
+
 
     :param data_source: data source to get the size from
     :return: the size of the data cubes
@@ -649,7 +677,8 @@ def get_color_clusters(data_source: str):
     colors_per_elem: ndarray
     bitmasks_per_elem: ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, elem_threshold, nr_attempts_elem, k_elem)
+        data_source, rgb_image_name, elem_threshold, nr_attempts_elem, k_elem
+    )
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters

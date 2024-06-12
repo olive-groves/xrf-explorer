@@ -10,6 +10,7 @@ import { createElementalLayers } from "./elementalHelper";
 import { createColorClusterLayers } from "./colorClusterHelper";
 import { registerLayer } from "./registering";
 import { getImageSize, getRecipe, getTargetSize } from "./api";
+import { createDRSelectionLayer } from "./drSelectionHelper";
 
 const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
@@ -41,7 +42,8 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   // Create color segmentation layers
   createColorClusterLayers();
 
-  // Create dimensionality reduction layers
+  // Create selection layers
+  createDRSelectionLayer();
 }
 
 /**

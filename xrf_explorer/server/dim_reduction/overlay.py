@@ -3,14 +3,18 @@ import logging
 from os.path import join, abspath
 from pathlib import Path
 
+from json import dump
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from cv2 import cvtColor, COLOR_BGR2RGB
+from cv2.typing import MatLike
 
-from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
-from xrf_explorer.server.dim_reduction.general import valid_element, get_registered_image
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
+from xrf_explorer.server.dim_reduction.general import valid_element, get_path_to_dr_folder
 
 matplotlib.use('Agg')
 
@@ -27,11 +31,10 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
 
     LOG.info("Creating embedding image...")
 
-    # load backend config
-    backend_config: dict = get_config()
-    if not backend_config:  # config is empty
+    # Get the path to the DR folder
+    dr_folder: str = get_path_to_dr_folder(data_source)
+    if not dr_folder:
         return ""
-    dr_folder: str = join(backend_config['generated-folder'], backend_config['dim-reduction']['folder-name'])
 
     # Load the file embedding.npy
     try:
@@ -54,12 +57,15 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         image_type: str = overlay_type.removeprefix("contextual_")
 
         # Get the pixels of registered image
-        registered_image: np.ndarray = get_registered_image(data_source, image_type)
-        if len(registered_image) == 0:
+        registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_type)
+        if registered_image is None:
             return ""
+        
+        # Convert BGR to RGB
+        registered_rgb_image: np.ndarray = cvtColor(registered_image, COLOR_BGR2RGB)
 
         # Create the overlay
-        overlay = create_image_overlay(registered_image, indices)
+        overlay = create_image_overlay(registered_rgb_image, indices)
     elif overlay_type.startswith("elemental_"):
         # Show element overlay
         # Get the element
@@ -91,8 +97,8 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
 
 
 def create_image_overlay(registered_image: np.ndarray, indices: np.ndarray) -> np.ndarray:
-    """Creates the overlay based on the given image type. This is done
-    by getting the pixels out of the image at the given indices.
+    """Creates the overlay based on the given image type. This is done by getting the pixels out of the image at the
+    given indices.
 
     :param registered_image: The pixels of the registered image to create the overlay from.
     :param indices: The indices to get the pixels from.
@@ -133,8 +139,7 @@ def create_element_overlay(
 
 
 def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: str) -> str:
-    """Makes the image of the given embedding with the given overlay and 
-    saves it to the given path.
+    """Makes the image of the given embedding with the given overlay and saves it to the given path.
     
     :param embedding: The embedding data.
     :param overlay: The overlay data.
@@ -147,10 +152,23 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
 
     plt.axis('off')
     fig.patch.set_facecolor('black')
+    
+    # Get the minimum and maximum values of the embedding (values can possibly be NaN)
+    xmin, xmax = np.nanmin(embedding[:, 0]), np.nanmax(embedding[:, 0])
+    ymin, ymax = np.nanmin(embedding[:, 1]), np.nanmax(embedding[:, 1])
+
+    # Check if all min and max are not NaN
+    if np.isnan([xmin, xmax, ymin, ymax]).any():
+        LOG.error("Failed to create embedding image. The embedding data contains NaN values.")
+        return ""
+
+    # Set limits to match the data
+    plt.xlim(xmin, xmax)
+    plt.ylim(ymin, ymax)
 
     plt.scatter(embedding[:, 0], embedding[:, 1], c=overlay, alpha=0.5, s=15)
 
-    # Save the plot 
+    # Save the plot
     image_path = join(path, 'embedding.png')
 
     plt.savefig(image_path, bbox_inches='tight', transparent=True)

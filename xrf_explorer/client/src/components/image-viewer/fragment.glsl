@@ -128,8 +128,17 @@ void main() {
     // of current pixel in tImage/bitmask
     // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
     // if cluster i of element j is selected
-    float clusterIndex = texture(tImage, vUv).g * 8.0;
+    float clusterIndex = texture(tImage, uv.xy).g * 8.0;
     fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
+  } else if (iLayerType == TYPE_DR) {
+    // the BLUE value (z) in the middle image (0 or 255) denotes if this pixel is in the embedding
+    if (fragColor.z != 1.0) {
+      fragColor = transparent;
+      return;
+    } else {
+      vec4 bitmask = texture(tAuxiliary, vec2(fragColor.xy));
+      fragColor = bitmask;
+    }
   }
 
   // Apply contrast
