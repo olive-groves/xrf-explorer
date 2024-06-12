@@ -12,6 +12,8 @@ import { getTargetSize } from "./api";
 import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
+import { SelectionArea } from "../ui/selection-area";
+import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -26,6 +28,18 @@ const viewport: {
   zoom: 0,
 };
 
+const viewbox = ref<{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}>({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+});
+
 watch(datasource, resetViewport);
 
 const toolState = ref<ToolState>({
@@ -34,6 +48,12 @@ const toolState = ref<ToolState>({
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
   lensSize: [config.imageViewer.defaultLensSize],
 });
+
+const selection = ref<SelectionAreaSelection>({
+  type: undefined,
+  points: [],
+});
+const selectionToolActive = computed(() => ["lasso", "rectangle"].includes(toolState.value.tool));
 
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
@@ -72,6 +92,7 @@ function render() {
   const h = height.value * Math.exp(viewport.zoom);
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
+  viewbox.value = { x: x, y: y, w: w, h: h };
   const lensSize = toolState.value.tool == "lens" ? toolState.value.lensSize[0] : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
@@ -102,7 +123,9 @@ const dragging = ref(false);
  * Event handler for the onMouseDown event on the glcanvas.
  */
 function onMouseDown() {
-  dragging.value = true;
+  if (!selectionToolActive.value) {
+    dragging.value = true;
+  }
 }
 
 /**
@@ -187,15 +210,27 @@ const cursor = computed(() => {
       :style="{
         cursor: cursor,
       }"
+      @dblclick="resetViewport"
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mouseleave="onMouseLeave"
+      @mousemove="onMouseMove"
+      @wheel="onWheel"
     >
-      <canvas
-        ref="glcanvas"
-        @dblclick="resetViewport"
-        @mousedown="onMouseDown"
-        @mouseup="onMouseUp"
-        @mouseleave="onMouseLeave"
-        @mousemove="onMouseMove"
-        @wheel="onWheel"
+      <canvas ref="glcanvas" />
+      <SelectionArea
+        v-model="selection"
+        :type="
+          toolState.tool == 'lasso'
+            ? SelectionOption.Lasso
+            : toolState.tool == 'rectangle'
+              ? SelectionOption.Rectangle
+              : undefined
+        "
+        :x="viewbox.x"
+        :y="viewbox.y"
+        :w="viewbox.w"
+        :h="viewbox.h"
       />
       <Toolbar v-model:state="toolState" />
     </div>
