@@ -220,7 +220,7 @@ abstract class BaseSelectionTool {
    * @param dimensions.height - The desired height of the SVG overlay.
    * @returns The SVG object cleaned of all selection drawings and adjusted to the desired dimensions.
    */
-  protected resetSVGDrawing(
+  resetSVGDrawing(
     svg: d3.Selection<HTMLElement, unknown, null, undefined>,
     dimensions: { x: number; y: number; width: number; height: number },
   ): d3.Selection<HTMLElement, unknown, null, undefined> {
