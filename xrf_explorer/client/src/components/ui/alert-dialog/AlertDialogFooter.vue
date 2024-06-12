@@ -2,8 +2,9 @@
 import type { HTMLAttributes } from "vue";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line vue/require-prop-comment
+
 const props = defineProps<{
+// eslint-disable-next-line vue/require-prop-comment
   class?: HTMLAttributes["class"];
 }>();
 </script>
