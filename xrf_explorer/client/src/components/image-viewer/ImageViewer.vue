@@ -7,7 +7,7 @@ import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
 import * as THREE from "three";
 import { scene } from "./scene";
-import { datasource, initialRender } from "@/lib/appState";
+import { datasource, appState } from "@/lib/appState";
 import { getTargetSize } from "./api";
 import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
@@ -54,12 +54,9 @@ onMounted(setup);
  * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
-  if (initialRender.value) {
-    initialRender.value = false;
-  } else {
-    resetViewport();
-  }
-  
+  // First reset the viewport to a home position
+  resetViewport();
+
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
     alpha: true,
@@ -95,6 +92,10 @@ function render() {
  * Resets the viewport to a home position such that the entire painting is visible.
  */
 async function resetViewport() {
+  // If the workspace is not yet loaded, do not attempt resetting viewport.
+  // When workspace is loaded, the viewport will be reset automatically.
+  if (appState.workspace == null)
+    return;
   const size = await getTargetSize();
   const fill = 0.9;
   viewport.center.x = size.width / 2;

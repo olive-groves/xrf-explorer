@@ -25,7 +25,6 @@ export const elements = computed(
   () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
 );
 export const secondViewer = ref(false);
-export const initialRender = ref(true);
 
 /**
  * Type describing the state of the client.
