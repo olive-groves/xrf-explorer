@@ -1,7 +1,4 @@
-import * as d3 from "d3";
-import { toast } from "vue-sonner";
-import { config } from "@/main";
-import { hexToRgb, rgbToHex, Point2D } from "@/lib/utils";
+import { Point2D } from "@/lib/utils";
 
 /**
  * Type describing the current selection.
