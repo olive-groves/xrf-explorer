@@ -57,8 +57,7 @@ function setup() {
   // If the workspace is not yet loaded, do not attempt resetting viewport.
   // When workspace is loaded, the viewport will be reset automatically.
   // Otherwise, reset the viewport to a home position.
-  if (appState.workspace != null)
-    resetViewport();
+  if (appState.workspace != null) resetViewport();
 
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
