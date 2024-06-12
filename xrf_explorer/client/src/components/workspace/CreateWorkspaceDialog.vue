@@ -174,6 +174,7 @@ async function setupWorkspace(): Promise<boolean> {
 
 /**
  * Creates the workspace on the backend if setup is complete.
+ * @returns - Wether the update was successful.
  */
 async function updateWorkspace() {
   if (progress.value != Progress.Busy) {

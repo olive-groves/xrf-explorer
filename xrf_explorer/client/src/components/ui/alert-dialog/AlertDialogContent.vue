@@ -10,6 +10,7 @@ import {
 } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<AlertDialogContentProps & { class?: HTMLAttributes["class"] }>();
 const emits = defineEmits<AlertDialogContentEmits>();
 

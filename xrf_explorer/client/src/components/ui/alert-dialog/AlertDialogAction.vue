@@ -4,6 +4,7 @@ import { AlertDialogAction, type AlertDialogActionProps } from "radix-vue";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<AlertDialogActionProps & { class?: HTMLAttributes["class"] }>();
 
 const delegatedProps = computed(() => {

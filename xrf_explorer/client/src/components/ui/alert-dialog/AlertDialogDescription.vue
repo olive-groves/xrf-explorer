@@ -3,6 +3,7 @@ import { type HTMLAttributes, computed } from "vue";
 import { AlertDialogDescription, type AlertDialogDescriptionProps } from "radix-vue";
 import { cn } from "@/lib/utils";
 
+// eslint-disable-next-line vue/require-prop-comment
 const props = defineProps<AlertDialogDescriptionProps & { class?: HTMLAttributes["class"] }>();
 
 const delegatedProps = computed(() => {
