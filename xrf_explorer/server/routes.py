@@ -254,7 +254,6 @@ def bin_raw_data(data_source: str, bin_params: str):
         success = "False"
 
     response = jsonify({"binSuccess": success})
-    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 

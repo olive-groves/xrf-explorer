@@ -4,12 +4,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { toast } from "vue-sonner";
-import { ChannelSetupDialog, FileSetupDialog } from ".";
+import { ChannelSetupDialog, FileSetupDialog, WaitingDialog } from ".";
 import { TriangleAlert } from "lucide-vue-next";
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { deepClone } from "@/lib/utils";
 import { initializeChannels, validateWorkspace } from "./utils";
+import { AlertDialog } from "../ui/alert-dialog";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -61,6 +62,7 @@ const sourceName = ref("");
 // Dialogs for file and channel setup
 const fileDialog = ref(false);
 const channelDialog = ref(false);
+const waitingDialog = ref(false);
 
 /**
  * Creates the data source directory in the backend if it does not yet exist with a workspace.json inside.
@@ -196,43 +198,33 @@ async function updateWorkspace() {
       fileDialog.value = false;
       channelDialog.value = true;
     } else if (setup) {
+      // Open waiting dialog
+      waitingDialog.value = true;
+      const workspaceClone = deepClone(workspace.value);
+      // Validate the configured files
+      const validation = validateWorkspace(workspaceClone);
+      if (!validation[0]) {
+        toast.warning("Configured files are not valid", {
+          description: validation[1],
+        });
+        return false;
+      }
+      // Get binning parameters
+      const binParams = `{"low": ${workspace.value.spectralParams.low}, 
+                          "high": ${workspace.value.spectralParams.high}, 
+                          "binSize": ${workspace.value.spectralParams.binSize}}`;
+      // Bin raw data
+      await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
+        method: "GET",
+      })
+      //close dialog
+      waitingDialog.value = false;
       // Complete setup
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
       });
-
       resetProgress();
     }
-  }
-}
-
-/**
- * Update the workspace before binning the raw data.
- * @returns - Wether the setup was successful.
- */
-async function initWorkspace() {
-  updateWorkspace();
-  const workspaceClone = deepClone(workspace.value);
-  // Validate the configured files
-  const validation = validateWorkspace(workspaceClone);
-  if (!validation[0]) {
-    toast.warning("Configured files are not valid", {
-      description: validation[1],
-    });
-    return false;
-  }
-  // Get binning parameters
-  const binParams = `{"low": ${workspace.value.spectralParams.low}, 
-                      "high": ${workspace.value.spectralParams.high}, 
-                      "binSize": ${workspace.value.spectralParams.binSize}}`;
-  // Bin raw data
-  const binResponse: Response = await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
-    method: "GET",
-  });
-  const jsonBinResponse = await binResponse.json();
-  const binSuccess: string = jsonBinResponse["binSuccess"];
-  if (binSuccess == "False") {
-    alert("Something went wrong while binning raw file. Please try again later.");
   }
 }
 </script>
@@ -256,8 +248,11 @@ async function initWorkspace() {
       }}</Button>
     </div>
     <Dialog v-model:open="fileDialog">
-      <FileSetupDialog v-model="workspace" @save="initWorkspace" />
+      <FileSetupDialog v-model="workspace" @save="updateWorkspace" />
     </Dialog>
+    <AlertDialog v-model:open="waitingDialog">
+      <WaitingDialog/>
+    </AlertDialog>
     <Dialog v-model:open="channelDialog">
       <ChannelSetupDialog v-model="workspace" @save="updateWorkspace" />
     </Dialog>
