@@ -216,7 +216,7 @@ async function updateWorkspace() {
       // Bin raw data
       await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
         method: "GET",
-      })
+      });
       //close dialog
       waitingDialog.value = false;
       // Complete setup
@@ -251,7 +251,7 @@ async function updateWorkspace() {
       <FileSetupDialog v-model="workspace" @save="updateWorkspace" />
     </Dialog>
     <AlertDialog v-model:open="waitingDialog">
-      <WaitingDialog/>
+      <WaitingDialog />
     </AlertDialog>
     <Dialog v-model:open="channelDialog">
       <ChannelSetupDialog v-model="workspace" @save="updateWorkspace" />

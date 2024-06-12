@@ -4,6 +4,7 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { binSize, datasource, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
+import { LassoSelectionTool, RectangleSelectionTool } from "@/lib/selection";
 import {
   NumberField,
   NumberFieldContent,
@@ -113,6 +114,23 @@ async function plotAverageSpectrum() {
   }
 }
 
+if (false) {
+  const selection = null;
+  onSelectionUpdate(selection);
+}
+
+/**
+ * Perform any and all necessary updates to the chart when a new selection comes through.
+ * @param newSelection - Object containing all necessary information about the selection to update the chart.
+ */
+async function onSelectionUpdate(newSelection: RectangleSelectionTool | LassoSelectionTool | null) {
+  if (newSelection == null) return;
+  console.log(JSON.stringify(newSelection));
+  plotSelectionSpectrum(JSON.stringify(newSelection));
+
+  console.info("Updated the chart to display the selection in the DR window.");
+}
+
 /**
  * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
@@ -150,7 +168,7 @@ async function plotSelectionSpectrum(selection: string) {
       .style("opacity", 0);
 
     //modify visibility based on checkbox status
-    updateSelection();
+    updateSelectionSpectrum();
   } catch (e) {
     console.error("Error getting selection average spectrum", e);
   }
@@ -279,7 +297,7 @@ function updateElement() {
 /**
  * Updates visibility of selection average spectrum.
  */
-function updateSelection() {
+function updateSelectionSpectrum() {
   if (selectionChecked.value) {
     svg.select("#selectionLine").style("opacity", 1);
   } else {
@@ -292,12 +310,6 @@ function updateSelection() {
  */
 function updateElementSpectrum() {
   plotElementSpectrum(selectedElement.value, excitation.value);
-}
-
-//need to connect to selection tool
-if (false) {
-  const selection = "";
-  plotSelectionSpectrum(selection);
 }
 </script>
 
@@ -312,7 +324,7 @@ if (false) {
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelection" />
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelectionSpectrum" />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
@@ -339,7 +351,7 @@ if (false) {
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum()">
+      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum">
         <NumberFieldContent>
           <NumberFieldInput />
           <NumberFieldDecrement />

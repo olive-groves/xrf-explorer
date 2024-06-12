@@ -562,7 +562,7 @@ def get_selection_spectra(data_source: str, selection: str):
 
     # parse selection
     selection_dict = json.loads(selection)
-    match selection_dict["selection_type"]:
+    match selection_dict["selectionType"]:
         # rectangle selection case
         case "rectangle":
             x1 = selection_dict["bounding_points"][0]["x"]
@@ -573,6 +573,8 @@ def get_selection_spectra(data_source: str, selection: str):
             # TODO replace with get_selected_raw_data
             data = get_selected_data_cube(
                 data_source, "raw", tuple([x1, y1]), tuple([x2, y2]))
+        case "lasso":
+            data = {}
 
     if data is None:
         return "Error occurred while loading element spectrum", 404
