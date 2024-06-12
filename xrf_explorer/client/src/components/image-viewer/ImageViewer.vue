@@ -54,6 +54,8 @@ onMounted(setup);
  * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
+  resetViewport();
+
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
     alpha: true,
