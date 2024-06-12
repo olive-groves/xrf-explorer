@@ -17,7 +17,9 @@ const hasSlot = computed(() => {
   return "default" in slots;
 });
 
-// Function to enable/disable the second viewer
+/**
+ * Function to enable/disable the second viewer
+ */
 function enableSecondViewer() {
   secondViewer.value = !secondViewer.value;
   toast.info(`Updating viewer layour.`, {
