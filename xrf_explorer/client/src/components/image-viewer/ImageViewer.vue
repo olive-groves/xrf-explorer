@@ -54,8 +54,11 @@ onMounted(setup);
  * Sets up the very basic scene in THREE for rendering.
  */
 function setup() {
-  // First reset the viewport to a home position
-  resetViewport();
+  // If the workspace is not yet loaded, do not attempt resetting viewport.
+  // When workspace is loaded, the viewport will be reset automatically.
+  // Otherwise, reset the viewport to a home position.
+  if (appState.workspace != null)
+    resetViewport();
 
   camera = new THREE.OrthographicCamera();
   renderer = new THREE.WebGLRenderer({
@@ -92,10 +95,6 @@ function render() {
  * Resets the viewport to a home position such that the entire painting is visible.
  */
 async function resetViewport() {
-  // If the workspace is not yet loaded, do not attempt resetting viewport.
-  // When workspace is loaded, the viewport will be reset automatically.
-  if (appState.workspace == null)
-    return;
   const size = await getTargetSize();
   const fill = 0.9;
   viewport.center.x = size.width / 2;
