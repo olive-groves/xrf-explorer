@@ -5,6 +5,7 @@ import { WindowContainer } from "@/components/ui/window";
 import { ImageViewer } from "@/components/image-viewer";
 import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
+import { secondViewer } from "@/lib/appState";
 
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
@@ -20,6 +21,7 @@ const props = defineProps<{
 }>();
 provide("config", props.config);
 console.info("XRF-Explorer client created with configuration: ", props.config);
+
 </script>
 
 <template>
@@ -28,7 +30,10 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
     <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
       <Header />
       <WindowContainer>
-        <div class="flex w-full h-full">
+        <div v-if="!secondViewer" class="w-full h-full">
+          <ImageViewer />
+        </div>
+        <div v-else-if="secondViewer" class="flex w-full h-full">
           <div class="w-1/2 h-full">
             <ImageViewer />
           </div>
