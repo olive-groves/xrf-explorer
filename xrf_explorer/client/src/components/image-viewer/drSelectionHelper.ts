@@ -8,7 +8,7 @@ import { createLayer, layerGroups, updateLayerGroupLayers } from "@/components/i
 import { Layer, LayerType } from "@/components/image-viewer/types";
 import { layerGroupDefaults } from "@/components/image-viewer/workspace";
 import { appState, datasource } from "@/lib/appState";
-import { DimensionalityReductionSelection, SelectionOption } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
 import { hexToRgb, Point2D } from "@/lib/utils";
 import { config } from "@/main";
 
@@ -35,9 +35,11 @@ function setSelectionColor(color: [number, number, number]): void {
  * Perform any and all necessary updates to the DR Selection layer when a new selection comes through.
  * @param newSelection - Object containing all necessary information about the selection to update the layer.
  */
-async function onSelectionUpdate(newSelection: DimensionalityReductionSelection | null) {
+async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
   // ensure that the new selection is not undefined
-  if (newSelection == null) return;
+  if (newSelection.type == undefined) return;
+
+  console.log("DR SELECTION", newSelection.points);
 
   // remove current selection
   if (newSelection.points.length == 0) {
@@ -47,12 +49,12 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
   }
 
   // edge case: rectangle selection must have exactly 2 points
-  if (newSelection.selectionType == SelectionOption.Rectangle && newSelection.points.length != 2) {
+  if (newSelection.type == SelectionOption.Rectangle && newSelection.points.length != 2) {
     console.error("Invalid rectangle selection. Expected 2 points but got: ", newSelection);
     return;
   }
   // edge case: polygon selection must have at least 3 points
-  if (newSelection.selectionType == SelectionOption.Lasso && newSelection.points.length < 3) {
+  if (newSelection.type == SelectionOption.Lasso && newSelection.points.length < 3) {
     console.error("Invalid polygon selection. Expected at least 3 points but got: ", newSelection);
     return;
   }
@@ -69,36 +71,29 @@ async function onSelectionUpdate(newSelection: DimensionalityReductionSelection 
  * Update the bitmask of the embedding image to denote which pixels are in the new selection.
  * @param newSelection - Object containing all necessary information about the selection to update the layer.
  */
-function updateBitmask(newSelection: DimensionalityReductionSelection): void {
+function updateBitmask(newSelection: SelectionAreaSelection): void {
   // compute the indices of the bounding box in which the selection is contained for faster updates
-  const boundingBox: Point2D[] =
-    newSelection.selectionType == SelectionOption.Rectangle ? newSelection.points : getBoundingBox(newSelection.points);
+  const boundingBox: Point2D[] = getBoundingBox(newSelection.points);
   const topLeftPoint: Point2D = boundingBox[0];
   const bottomRightPoint: Point2D = boundingBox[1];
 
   // reset bitmask (through the opacity)
-  for (let i: number = 3; i < data.length; i += 4) data[i] = 0;
+  for (let i = 3; i < data.length; i += 4) data[i] = 0;
 
   // check which points are in the selection and update the bitmask accordingly
-  for (let x: number = topLeftPoint.x; x <= bottomRightPoint.x; x++) {
-    for (let y: number = topLeftPoint.y; y <= bottomRightPoint.y; y++) {
+  for (let x = Math.floor(topLeftPoint.x); x <= Math.ceil(bottomRightPoint.x); x++) {
+    for (let y = Math.floor(topLeftPoint.y); y <= Math.ceil(bottomRightPoint.y); y++) {
       // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
-      const point: Point2D = { x: x, y: y };
-      // point with correct origin
-      const convertedPoint: Point2D = { x: point.x, y: height - point.y };
-      // index in the 256x256 image version of the embedding with the correct coordinate system
-      const convertedIndex: number = coordinatesToIndex(convertedPoint.x, convertedPoint.y, width);
-      // index of the point in the 256x256x4 bitmask
-      const normalizedIndex: number = Math.floor(convertedIndex * 4);
+      const point: Point2D = { x: x + 0.5, y: y + 0.5 };
+      // index of pixel in bitmask
+      const index = x + y * 256;
 
       // we don't want to overwrite the selection
-      if (data[normalizedIndex + 3] != 0) continue;
-
-      const isInSelection: boolean = isPointInSelection(point, newSelection);
+      if (data[index * 4 + 3] != 0) continue;
 
       // update the layer's bitmask
       // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-      data[normalizedIndex + 3] = isInSelection ? 255 : 0;
+      data[index * 4 + 3] = isPointInSelection(point, newSelection) ? 255 : 0;
     }
   }
 }
@@ -129,8 +124,8 @@ function getBoundingBox(delimitingPoints: Point2D[]): Point2D[] {
  * @param selection - Object containing all necessary information about the selection to check against.
  * @returns True if the point lies in the selection, false otherwise.
  */
-function isPointInSelection(point: Point2D, selection: DimensionalityReductionSelection): boolean {
-  switch (selection.selectionType) {
+function isPointInSelection(point: Point2D, selection: SelectionAreaSelection): boolean {
+  switch (selection.type) {
     case SelectionOption.Rectangle:
       return isInRectangle(point, selection.points);
 
@@ -138,7 +133,7 @@ function isPointInSelection(point: Point2D, selection: DimensionalityReductionSe
       return isInPolygon(point, selection.points);
 
     default: {
-      console.error("Selection type", selection.selectionType, "not recognized");
+      console.error("Selection type", selection.type, "not recognized");
       return false;
     }
   }
@@ -264,15 +259,4 @@ export async function createDRSelectionLayer() {
   };
 
   updateLayerGroupLayers(layerGroups.value.selection);
-}
-
-/**
- * Convert a Point2D object into an index of a flattened matrix.
- * @param x - X component of the point to be converted.
- * @param y - Y component of the point to be converted.
- * @param imageWidth - Width of the image on which the array is based.
- * @returns Index in the array of the point at the given coordinates.
- */
-function coordinatesToIndex(x: number, y: number, imageWidth: number) {
-  return Math.floor(y * imageWidth + x);
 }

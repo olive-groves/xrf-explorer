@@ -28,9 +28,8 @@ export type Selection = {
   colorSegmentation: ColorSegmentationSelection[];
   /**
    * The selection made in the dimensionality reduction window.
-   * Will be null if there is no active dimensionality reduction selection.
    */
-  dimensionalityReduction: DimensionalityReductionSelection | null;
+  dimensionalityReduction: SelectionAreaSelection;
 };
 
 /**

@@ -12,7 +12,10 @@ export const appState = reactive<AppState>({
     rectangles: [],
     elements: [],
     colorSegmentation: [],
-    dimensionalityReduction: null,
+    dimensionalityReduction: {
+      type: undefined,
+      points: [],
+    },
   },
 });
 

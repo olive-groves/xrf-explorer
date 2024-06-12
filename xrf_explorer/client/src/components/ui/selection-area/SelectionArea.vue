@@ -2,8 +2,7 @@
 import { SelectionAreaSelection, SelectionOption } from "@/lib/selection";
 import { Point2D, deepClone } from "@/lib/utils";
 import { useElementBounding } from "@vueuse/core";
-import { LAST_KEYS } from "node_modules/radix-vue/dist/Menu/utils";
-import { computed, ref, toRef, watch } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps<{
   type?: SelectionOption;
