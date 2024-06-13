@@ -10,6 +10,10 @@ const props = defineProps<{
    */
   type?: SelectionAreaType;
   /**
+   * The size of a clickable margin in pixels.
+   */
+  clickMargin?: number;
+  /**
    * The x coordinate of the bottom left corner in the viewbox.
    */
   x: number;
@@ -160,71 +164,81 @@ function onMouseMove(event: MouseEvent) {
 </script>
 
 <template>
-  <svg
-    ref="element"
-    class="absolute left-0 top-0 size-full -scale-y-100"
-    :class="{
-      'cursor-default': props.type != undefined,
-    }"
-    :viewBox="`${props.x} ${props.y} ${props.w} ${props.h}`"
-    preserveAspectRatio="none"
-    fill="none"
-    @click="onClick"
-    @mousedown="onMouseDown"
-    @mouseup="onMouseUp"
-    @mousemove="onMouseMove"
-    @mouseleave="onMouseUp"
-  >
-    <!-- DISPLAY FINISHED SELECTION -->
-    <rect
-      v-if="model.type == SelectionAreaType.Rectangle"
-      :x="model.points[0].x"
-      :y="model.points[0].y"
-      :width="model.points[1].x - model.points[0].x"
-      :height="model.points[1].y - model.points[0].y"
-      stroke="red"
-      stroke-width="2"
-      vector-effect="non-scaling-stroke"
-      fill="red"
-      fill-opacity="0.5"
-    />
-    <path
-      v-if="model.type == SelectionAreaType.Lasso"
-      :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
-      stroke="red"
-      stroke-width="2"
-      vector-effect="non-scaling-stroke"
-      fill="red"
-      fill-opacity="0.5"
-    />
+  <div class="absolute left-0 top-0 size-full">
+    <svg
+      ref="element"
+      class="size-full -scale-y-100 overflow-visible"
+      :viewBox="`${props.x} ${props.y} ${props.w} ${props.h}`"
+      preserveAspectRatio="none"
+      fill="none"
+    >
+      <!-- DISPLAY FINISHED SELECTION -->
+      <rect
+        v-if="model.type == SelectionAreaType.Rectangle"
+        :x="model.points[0].x"
+        :y="model.points[0].y"
+        :width="model.points[1].x - model.points[0].x"
+        :height="model.points[1].y - model.points[0].y"
+        stroke="red"
+        stroke-width="2"
+        vector-effect="non-scaling-stroke"
+        fill="red"
+        fill-opacity="0.5"
+      />
+      <path
+        v-if="model.type == SelectionAreaType.Lasso"
+        :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
+        stroke="red"
+        stroke-width="2"
+        vector-effect="non-scaling-stroke"
+        fill="red"
+        fill-opacity="0.5"
+      />
 
-    <!-- DISPLAY CANDIDATE SELECTION -->
-    <rect
-      v-if="candidateType == SelectionAreaType.Rectangle"
-      :x="Math.min(candidatePoints[0].x, candidatePoints[1].x)"
-      :y="Math.min(candidatePoints[0].y, candidatePoints[1].y)"
-      :width="Math.abs(candidatePoints[0].x - candidatePoints[1].x)"
-      :height="Math.abs(candidatePoints[0].y - candidatePoints[1].y)"
-      stroke="green"
-      stroke-width="2"
-      vector-effect="non-scaling-stroke"
+      <!-- DISPLAY CANDIDATE SELECTION -->
+      <rect
+        v-if="candidateType == SelectionAreaType.Rectangle"
+        :x="Math.min(candidatePoints[0].x, candidatePoints[1].x)"
+        :y="Math.min(candidatePoints[0].y, candidatePoints[1].y)"
+        :width="Math.abs(candidatePoints[0].x - candidatePoints[1].x)"
+        :height="Math.abs(candidatePoints[0].y - candidatePoints[1].y)"
+        stroke="green"
+        stroke-width="2"
+        vector-effect="non-scaling-stroke"
+      />
+      <path
+        v-if="candidateType == SelectionAreaType.Lasso"
+        :d="`M${candidatePoints
+          .slice(0, -1)
+          .map((point) => `${point.x} ${point.y}`)
+          .join(' L')}`"
+        stroke="green"
+        stroke-width="2"
+        vector-effect="non-scaling-stroke"
+      />
+      <path
+        v-if="candidateType == SelectionAreaType.Lasso"
+        :d="lastLassoCandidateLine"
+        stroke="green"
+        stroke-width="2"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
+    <div
+      class="absolute left-0 top-0 size-full"
+      :class="{
+        'cursor-crosshair': props.type != undefined,
+      }"
+      :style="{
+        margin: `-${props.clickMargin}px`,
+        width: `calc(100% + 2 * ${props.clickMargin}px)`,
+        height: `calc(100% + 2 * ${props.clickMargin}px)`,
+      }"
+      @click="onClick"
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mousemove="onMouseMove"
+      @mouseleave="onMouseUp"
     />
-    <path
-      v-if="candidateType == SelectionAreaType.Lasso"
-      :d="`M${candidatePoints
-        .slice(0, -1)
-        .map((point) => `${point.x} ${point.y}`)
-        .join(' L')}`"
-      stroke="green"
-      stroke-width="2"
-      vector-effect="non-scaling-stroke"
-    />
-    <path
-      v-if="candidateType == SelectionAreaType.Lasso"
-      :d="lastLassoCandidateLine"
-      stroke="green"
-      stroke-width="2"
-      vector-effect="non-scaling-stroke"
-    />
-  </svg>
+  </div>
 </template>

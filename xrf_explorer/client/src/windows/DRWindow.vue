@@ -11,6 +11,7 @@ import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
+import { remToPx } from "@/lib/utils";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -201,11 +202,12 @@ async function updateEmbedding() {
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
-          <div class="relative" v-if="status == Status.SUCCESS">
+          <div class="relative m-8" v-if="status == Status.SUCCESS">
             <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
             <SelectionArea
               v-model="appState.selection.dimensionalityReduction"
               :type="SelectionAreaType.Lasso"
+              :click-margin="remToPx(2)"
               :x="0"
               :y="0"
               :w="256"
