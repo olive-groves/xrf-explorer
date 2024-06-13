@@ -6,6 +6,7 @@ from xrf_explorer.server.file_system.file_access import (
     get_raw_rpl_paths
 )
 from cv2 import imread
+from enum import Enum
 import numpy as np
 import logging
 
@@ -66,7 +67,7 @@ def get_scaled_cube_coordinates(
 
 def get_selected_data_cube(
     data_source_folder: str,
-    cube_type: str,
+    cube_type: CubeType,
     selection_coord_1: tuple[int, int],
     selection_coord_2: tuple[int, int],
 ) -> np.ndarray | None:
@@ -92,6 +93,9 @@ def get_selected_data_cube(
             cube_dir: str | None = get_elemental_cube_path(data_source_folder)
         case "raw":
             cube_dir: str | None = get_raw_rpl_paths(data_source_folder)[0]
+        case other:
+            LOG.error(...)
+            return None
 
     if cube_dir is None:
         LOG.error(f"Data source directory {
@@ -112,6 +116,9 @@ def get_selected_data_cube(
             data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
         case "raw":
             data_cube: np.ndarray = get_raw_data(data_source_folder)
+        case other:
+            LOG.error(...)
+            return None
 
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]

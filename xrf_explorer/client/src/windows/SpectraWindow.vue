@@ -2,7 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { binSize, datasource, high, low } from "@/lib/appState";
+import { binned, binSize, datasource, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 import { LassoSelectionTool, RectangleSelectionTool } from "@/lib/selection";
 import {
@@ -25,6 +25,7 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
+let ready: boolean;
 
 interface Point {
   index: number;
@@ -35,6 +36,12 @@ interface Point {
  * Setup the svg and axis of the graph.
  */
 function setup() {
+  ready = binned.value;
+  watch(binned, () => {
+    console.log("test");
+    ready = binned.value;
+    plotAverageSpectrum;
+  });
   // set the dimensions and margins of the graph
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -80,37 +87,40 @@ const excitation = ref(0);
  * Plots the average channel spectrum over the whole painting in the chart.
  */
 async function plotAverageSpectrum() {
-  try {
-    //make api call
-    const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await response.json();
+  if (ready) {
+    try {
+      //make api call
+      const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("test");
+      const data = await response.json();
 
-    //create line
-    const line = d3
-      .line<Point>()
-      .x((d: Point) => x(d.index))
-      .y((d: Point) => y(d.value));
+      //create line
+      const line = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
 
-    // Add the line to chart
-    svg
-      .append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 1)
-      .attr("id", "globalLine")
-      .attr("d", line)
-      .style("opacity", 0);
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1)
+        .attr("id", "globalLine")
+        .attr("d", line)
+        .style("opacity", 0);
 
-    //modify visibility based on checkbox status
-    updateGlobal();
-  } catch (e) {
-    console.error("Error getting global average spectrum", e);
+      //modify visibility based on checkbox status
+      updateGlobal();
+    } catch (e) {
+      console.error("Error getting global average spectrum", e);
+    }
   }
 }
 
@@ -137,40 +147,42 @@ async function onSelectionUpdate(newSelection: RectangleSelectionTool | LassoSel
  * @param selection Json object representing the selection.
  */
 async function plotSelectionSpectrum(selection: string) {
-  try {
-    //make api call
-    const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/${selection}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await response.json();
+  if (ready) {
+    try {
+      //make api call
+      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/${selection}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
 
-    //remove spectrum of previous selection
-    svg.select("#selectionLine").remove();
+      //remove spectrum of previous selection
+      svg.select("#selectionLine").remove();
 
-    //create line
-    const line = d3
-      .line<Point>()
-      .x((d: Point) => x(d.index))
-      .y((d: Point) => y(d.value));
+      //create line
+      const line = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
 
-    // Add the line to chart
-    svg
-      .append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", "green")
-      .attr("stroke-width", 1)
-      .attr("id", "selectionLine")
-      .attr("d", line)
-      .style("opacity", 0);
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "green")
+        .attr("stroke-width", 1)
+        .attr("id", "selectionLine")
+        .attr("d", line)
+        .style("opacity", 0);
 
-    //modify visibility based on checkbox status
-    updateSelectionSpectrum();
-  } catch (e) {
-    console.error("Error getting selection average spectrum", e);
+      //modify visibility based on checkbox status
+      updateSelectionSpectrum();
+    } catch (e) {
+      console.error("Error getting selection average spectrum", e);
+    }
   }
 }
 

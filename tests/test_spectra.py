@@ -4,7 +4,7 @@ import numpy as np
 
 class TestSpectra:
 
-    def test_get_average_global(self, caplog):
+    def test_get_average_global(self):
         data = np.array([[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
                         [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]])
 
@@ -15,7 +15,7 @@ class TestSpectra:
                            {"index": 3, "value": 4.0}]
         assert result == expected_result
 
-    def test_get_average_selection(self, caplog):
+    def test_get_average_selection(self):
         data = np.array([[3, 4, 3, 4], [1, 2, 3, 4], [2, 2, 3, 4],
                         [2, 0, 3, 4]])
 

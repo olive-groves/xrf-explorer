@@ -27,6 +27,7 @@ export const elements = computed(
 export const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
 export const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
 export const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
+export const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
 
 /**
  * Type describing the state of the client.

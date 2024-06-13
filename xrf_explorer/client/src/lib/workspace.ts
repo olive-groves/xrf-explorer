@@ -89,6 +89,10 @@ export type SpectralParams = {
    * The bin size to be used while reading the raw data.
    */
   binSize: number;
+  /**
+   * Indicating wether the data has already been binned.
+   */
+  binned: boolean;
 };
 
 /**

@@ -132,9 +132,6 @@ def create_data_source_dir(data_source: str):
     """Create a directory for a new data source.
 
     :param data_source: The name of the data source to create
-
-    :request form attributes:  **name** - the data source name
-
     :return: json with directory name
     """
     # Get config
@@ -204,9 +201,9 @@ def remove_data_source_dir(data_source: str):
 def upload_chunk(data_source: str, file_name: str, start: int):
     """Upload a chunk of bytes to a file in specified data source.
 
-    : param data_source: The name of the data source to upload the chunk to
-    : param file_name: The name of the file to upload the chunk to
-    : param start: The start index of the chunk in the specified file
+    :param data_source: The name of the data source to upload the chunk to
+    :param file_name: The name of the file to upload the chunk to
+    :param start: The start index of the chunk in the specified file
     """
 
     # get config
@@ -239,7 +236,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     return "Uploaded file chunk", 200
 
 
-@app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["GET"])
+@app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
 def bin_raw_data(data_source: str, bin_params: str):
     """Bins the raw data files channels to compress the file.
 
@@ -253,15 +250,12 @@ def bin_raw_data(data_source: str, bin_params: str):
     bin_size: int = params["binSize"]
 
     try:
-        success: str = "True"
         bin_data(data_source, low, high, bin_size)
         LOG.info("binned")
     except Exception as e:
         LOG.error("error while loading raw file: {%s}", e)
-        success = "False"
 
-    response = jsonify({"binSuccess": success})
-    return response
+    return "Binned data", 200
 
 
 @ app.route("/api/<data_source>/element_averages")
@@ -283,7 +277,7 @@ def list_element_averages(data_source: str):
         return "Error occurred while listing element averages", 500
 
 
-@ app.route("/api/<data_source>/element_names")
+@app.route("/api/<data_source>/element_names")
 def list_element_names(data_source: str):
     """Get the short names of the elements stored in the elemental data cube.
 
@@ -300,7 +294,7 @@ def list_element_names(data_source: str):
         return "Error occurred while listing element names", 500
 
 
-@ app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
+@app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
 
@@ -320,7 +314,7 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     return error_msg, 400
 
 
-@ app.route("/api/<data_source>/dr/overlay/<overlay_type>")
+@app.route("/api/<data_source>/dr/overlay/<overlay_type>")
 def get_dr_overlay(data_source: str, overlay_type: str):
     """Generate the dimensionality reduction overlay with a given type.
 
@@ -359,7 +353,7 @@ def get_dr_embedding_mapping(data_source: str):
     return send_file(abspath(image_path), mimetype='image/png')
 
 
-@ app.route("/api/<data_source>/image/<name>")
+@app.route("/api/<data_source>/image/<name>")
 def contextual_image(data_source: str, name: str):
     """Get a contextual image.
 
@@ -392,7 +386,7 @@ def contextual_image(data_source: str, name: str):
     return response
 
 
-@ app.route("/api/<data_source>/image/<name>/size")
+@app.route("/api/<data_source>/image/<name>/size")
 def contextual_image_size(data_source: str, name: str):
     """Get the size of a contextual image.
 
@@ -415,7 +409,7 @@ def contextual_image_size(data_source: str, name: str):
     }
 
 
-@ app.route("/api/<data_source>/image/<name>/recipe")
+@app.route("/api/<data_source>/image/<name>/recipe")
 def contextual_image_recipe(data_source: str, name: str):
     """Get the registering recipe of a contextual image.
 
@@ -436,7 +430,7 @@ def contextual_image_recipe(data_source: str, name: str):
     return points, 200
 
 
-@ app.route("/api/<data_source>/data/size")
+@app.route("/api/<data_source>/data/size")
 def data_cube_size(data_source: str):
     """Get the size of the data cubes.
 
@@ -458,7 +452,7 @@ def data_cube_size(data_source: str):
     }, 200
 
 
-@ app.route("/api/<data_source>/data/recipe")
+@app.route("/api/<data_source>/data/recipe")
 def data_cube_recipe(data_source: str):
     """Get the registering recipe for the data cubes.
 
@@ -479,7 +473,7 @@ def data_cube_recipe(data_source: str):
     return points, 200
 
 
-@ app.route("/api/<data_source>/data/elements/map/<int:channel>")
+@app.route("/api/<data_source>/data/elements/map/<int:channel>")
 def elemental_map(data_source: str, channel: int):
     """Get an elemental map.
 
@@ -509,7 +503,7 @@ def elemental_map(data_source: str, channel: int):
     return response
 
 
-@ app.route('/api/<data_source>/get_average_data', methods=['GET'])
+@app.route('/api/<data_source>/get_average_data', methods=['GET'])
 def get_average_data(data_source: str):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
@@ -523,7 +517,7 @@ def get_average_data(data_source: str):
     return response
 
 
-@ app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
+@app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
 def get_element_spectra(data_source: str, element: str, excitation: int):
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
@@ -534,7 +528,7 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     """
     try:
         params: dict[str, int] = get_spectra_params(data_source)
-    except FileNotFoundError as err:
+    except FileNotFoundError:
         return "error while loading workspace to retrieve spectra params: {%s}", 404
 
     if params is None:
@@ -551,7 +545,7 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     return response
 
 
-@ app.route('/api/<data_source>/get_selection_spectrum/<selection>', methods=['GET'])
+@app.route('/api/<data_source>/get_selection_spectrum/<selection>', methods=['GET'])
 def get_selection_spectra(data_source: str, selection: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
@@ -562,6 +556,7 @@ def get_selection_spectra(data_source: str, selection: str):
 
     # parse selection
     selection_dict = json.loads(selection)
+    data = None
     match selection_dict["selectionType"]:
         # rectangle selection case
         case "rectangle":
@@ -581,12 +576,8 @@ def get_selection_spectra(data_source: str, selection: str):
 
     try:
         params: dict[str, int] = get_spectra_params(data_source)
-    except FileNotFoundError as err:
+    except FileNotFoundError:
         return "error while loading workspace to retrieve spectra params: {%s}", 404
-
-    low: int = params["low"]
-    high: int = params["high"]
-    bin_size: int = params["binSize"]
 
     # data is not None so we can parse it as array
     data = np.array(data)
@@ -596,7 +587,7 @@ def get_selection_spectra(data_source: str, selection: str):
     return response
 
 
-@ app.route('/api/<data_source>/cs/clusters', methods=['GET'])
+@app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
     """Gets the colors corresponding to the image-wide color clusters, and saves the
     corresponding bitmasks.
@@ -660,7 +651,7 @@ def get_color_clusters(data_source: str):
     colors: ndarray
     bitmasks: ndarray
     colors, bitmasks = get_clusters_using_k_means(
-        path_to_image, path_to_data_cube, path_to_reg_image, nr_attempts, k)
+        data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one

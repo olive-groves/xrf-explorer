@@ -9,6 +9,7 @@ from matplotlib.font_manager import json_dump
 
 
 from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -45,7 +46,8 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
         return None
 
     if not exists(join(backend_config["uploads-folder"], data_source_folder)):
-        LOG.error(f"Data source folder at {join(backend_config["uploads-folder"], data_source_folder)} does not exist.")
+        LOG.error(f"Data source folder at {
+                  join(backend_config["uploads-folder"], data_source_folder)} does not exist.")
         return None
 
     filename: str | None = get_elemental_cube_name(data_source_folder)
@@ -135,11 +137,11 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     raw_name, rpl_name = get_raw_rpl_names(data_source)
     # get the path to the raw data in the server
     path_to_raw: str = join(
-        Path(backend_config["uploads-folder"]), data_source, raw_name)
+        backend_config["uploads-folder"], data_source, raw_name)
 
     # get the path to the rpl file in the server
     path_to_rpl: str = join(
-        Path(backend_config["uploads-folder"]), data_source, rpl_name)
+        backend_config["uploads-folder"], data_source, rpl_name)
 
     return path_to_raw, path_to_rpl
 
@@ -178,6 +180,26 @@ def parse_rpl(path: str) -> dict:
         LOG.error("Error while parsing rpl file: file empty")
 
     return parsed_rpl
+
+
+def set_binned(data_source: str, binned: bool):
+    """
+    Sets the binned boolean attribute of a workspace
+
+    :param binned: Boolean to set binned to.
+    """
+    workspace_dict: dict | None = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        raise FileNotFoundError
+    if binned:
+        workspace_dict["spectralParams"]["binned"] = True
+    else:
+        workspace_dict["spectralParams"]["binned"] = False
+
+    workspace_path = get_path_to_workspace(data_source)
+
+    with open(workspace_path, 'w') as f:
+        json.dump(workspace_dict, f)
 
 
 def get_spectra_params(data_source: str) -> dict[str, int]:
