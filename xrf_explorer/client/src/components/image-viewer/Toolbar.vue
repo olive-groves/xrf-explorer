@@ -3,7 +3,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 import { Hand, Search, SquareMousePointer, Settings, LassoSelect } from "lucide-vue-next";
-import { ToolState } from "./types";
+import { Tool, ToolState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { inject } from "vue";
 
@@ -18,16 +18,16 @@ const state = defineModel<ToolState>("state", { required: true });
       bg-background p-1 shadow-sm"
   >
     <ToggleGroup type="single" v-model:model-value="state.tool">
-      <ToggleGroupItem value="grab" class="size-8 p-2" title="Grab">
+      <ToggleGroupItem :value="Tool.Grab" class="size-8 p-2" title="Grab">
         <Hand />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lens" class="size-8 p-2" title="Lens">
+      <ToggleGroupItem :value="Tool.Lens" class="size-8 p-2" title="Lens">
         <Search />
       </ToggleGroupItem>
-      <ToggleGroupItem value="rectangle" class="size-8 p-2" title="Rectangle selection">
+      <ToggleGroupItem :value="Tool.Rectangle" class="size-8 p-2" title="Rectangle selection">
         <SquareMousePointer />
       </ToggleGroupItem>
-      <ToggleGroupItem value="lasso" class="size-8 p-2" title="Lasso selection">
+      <ToggleGroupItem :value="Tool.Lasso" class="size-8 p-2" title="Lasso selection">
         <LassoSelect />
       </ToggleGroupItem>
     </ToggleGroup>

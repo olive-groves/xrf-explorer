@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
 import { computed, inject, onMounted, ref, watch } from "vue";
-import { ToolState } from "./types";
+import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
@@ -46,13 +46,13 @@ const viewbox = ref<{
 watch(datasource, resetViewport);
 
 const toolState = ref<ToolState>({
-  tool: "grab",
+  tool: Tool.Grab,
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
   lensSize: [config.imageViewer.defaultLensSize],
 });
 
-const selectionToolActive = computed(() => ["lasso", "rectangle"].includes(toolState.value.tool));
+const selectionToolActive = computed(() => [Tool.Lasso, Tool.Rectangle].includes(toolState.value.tool));
 
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
@@ -97,7 +97,7 @@ function render() {
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
   viewbox.value = { x: x, y: y, w: w, h: h };
-  const lensSize = toolState.value.tool == "lens" ? toolState.value.lensSize[0] : Number.MAX_VALUE;
+  const lensSize = toolState.value.tool == Tool.Lens ? toolState.value.lensSize[0] : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
@@ -198,7 +198,7 @@ function onWheel(event: WheelEvent) {
  * Determines the current cursor that should be used in the image viewer.
  */
 const cursor = computed(() => {
-  if (toolState.value.tool == "lens") {
+  if (toolState.value.tool == Tool.Lens) {
     return "crosshair";
   } else {
     return dragging.value ? "grabbing" : "grab";
