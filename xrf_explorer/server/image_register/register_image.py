@@ -49,11 +49,11 @@ def load_image_toregister(path_image_toregister: str) -> MatLike | None:
 
 
 def compute_fitting_dimensions_by_aspect(
-    image_to_resize_height,
-    image_to_resize_width,
-    image_reference_height,
-    image_reference_width,
-):
+    image_to_resize_height: int,
+    image_to_resize_width: int,
+    image_reference_height: int,
+    image_reference_width: int,
+) -> tuple[int, int]:
     """
     Computes the dimensions to which an image (specified by its dimensions image_to_resize_height image_to_resize_width)
     should be resized to fit the aspect ratio of a reference image.
@@ -64,13 +64,15 @@ def compute_fitting_dimensions_by_aspect(
     :param image_to_resize_width: The width of the reference image.
     :return: A tuple (height, width) specifying the computed dimensions.
     """
-    aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
-    aspect_toregister = (
+    aspect_reference: float = (
+        image_reference_width / image_reference_height
+    )  # W/H (e.g., 4:3)
+    aspect_toregister: float = (
         image_to_resize_width / image_to_resize_height
     )  # w/h (e.g., 16:9)
 
-    image_resized_height = None
-    image_resized_width = None
+    image_resized_height: int = 0
+    image_resized_width: int = 0
 
     if aspect_toregister > aspect_reference:
         # If the toregister is wider than the reference, resize toregister to match widths
