@@ -24,7 +24,6 @@ function save() {
  * @param model The workspace configuration.
  */
 function toggleAllChannels(model: WorkspaceConfig) {
-  console.log(model);
   const allEnabled = model.elementalChannels.filter((channel) => !channel.enabled).length == 0;
   model.elementalChannels.forEach((channel) => {
     // Enable everything, unless everything is enabled, then disable everything
