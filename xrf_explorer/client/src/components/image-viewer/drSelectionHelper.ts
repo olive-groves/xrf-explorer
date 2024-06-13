@@ -84,16 +84,17 @@ function updateBitmask(newSelection: SelectionAreaSelection): void {
   for (let x = Math.floor(topLeftPoint.x); x <= Math.ceil(bottomRightPoint.x); x++) {
     for (let y = Math.floor(topLeftPoint.y); y <= Math.ceil(bottomRightPoint.y); y++) {
       // the middle image's coordinate system has its origin at the bottom left, embedding has it at the top left
+      // location of the point, 0.5 is added to represent the center of the pixel
       const point: Point2D = { x: x + 0.5, y: y + 0.5 };
-      // index of pixel in bitmask
-      const index = x + y * 256;
+      // index of pixel in bitmask data
+      const index = 4 * (x + y * width);
 
       // we don't want to overwrite the selection
-      if (data[index * 4 + 3] != 0) continue;
+      if (data[index + 3] != 0) continue;
 
       // update the layer's bitmask
       // opacity is 0 if the point is not in the selection, otherwise the opacity is set to the config default
-      data[index * 4 + 3] = isPointInSelection(point, newSelection) ? 255 : 0;
+      data[index + 3] = isPointInSelection(point, newSelection) ? 255 : 0;
     }
   }
 }
