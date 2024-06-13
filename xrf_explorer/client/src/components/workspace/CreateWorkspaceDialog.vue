@@ -6,7 +6,7 @@ import { WorkspaceConfig } from "@/lib/workspace";
 import { toast } from "vue-sonner";
 import { ChannelSetupDialog, FileSetupDialog } from ".";
 import { TriangleAlert } from "lucide-vue-next";
-import { inject, ref, watch } from "vue";
+import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { deepClone } from "@/lib/utils";
 import { initializeChannels, validateWorkspace } from "./utils";
@@ -37,7 +37,6 @@ function createEmptyWorkspace(): WorkspaceConfig {
 const workspace = ref(createEmptyWorkspace());
 
 const dialog = ref<HTMLElement>();
-watch(dialog, console.log);
 
 // Progress state of the setup process
 enum Progress {
@@ -119,7 +118,7 @@ async function removeDataSource() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`Data source directory removed: ${data.dataSourceDir}`);
+      console.info(`Data source directory removed: ${data.dataSourceDir}`);
     } else {
       const error = await response.text();
       console.error(`Error removing data source directory: ${error}`);

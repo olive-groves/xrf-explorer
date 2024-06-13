@@ -39,8 +39,6 @@ async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
   // ensure that the new selection is not undefined
   if (newSelection.type == undefined) return;
 
-  console.log("DR SELECTION", newSelection.points);
-
   // remove current selection
   if (newSelection.points.length == 0) {
     updateLayer(0);
