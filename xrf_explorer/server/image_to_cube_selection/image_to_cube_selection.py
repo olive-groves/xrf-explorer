@@ -97,8 +97,8 @@ def deregister_coord(
 def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
-
     :param data_cube: The 3D data cube from which data will be extracted.
+
     :param mask: A 2D boolean array where True indicates the position to be extracted
     from the last 2 dimensions of data_cube.
     :return: A 2D array where the rows represent pixels in the data cube image
@@ -134,11 +134,11 @@ def get_scaled_cube_coordinates(
 
     scaled_coord_1: tuple[int, int] = (
         round(selection_coord_1[0] * ratio_cube_img_width),
-        round(selection_coord_1[1] * ratio_cube_img_height),
+        round(selection_coord_1[1] * ratio_cube_img_height)
     )
     scaled_coord_2: tuple[int, int] = (
         round(selection_coord_2[0] * ratio_cube_img_width),
-        round(selection_coord_2[1] * ratio_cube_img_height),
+        round(selection_coord_2[1] * ratio_cube_img_height)
     )
 
     return scaled_coord_1, scaled_coord_2
