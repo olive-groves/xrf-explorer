@@ -52,7 +52,9 @@ const toolState = ref<ToolState>({
   lensSize: [config.imageViewer.defaultLensSize],
 });
 
-const selectionToolActive = computed(() => [Tool.Lasso, Tool.Rectangle].includes(toolState.value.tool));
+const selectionToolActive = computed(() =>
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(toolState.value.tool as string),
+);
 
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
