@@ -4,18 +4,101 @@ from xrf_explorer.server.file_system.file_access import (
     get_base_image_path,
     get_cube_recipe_path,
 )
-from cv2 import imread
+from cv2 import (
+    imread,
+    perspectiveTransform,
+    getPerspectiveTransform,
+    convexHull,
+    fillConvexPoly,
+)
+from xrf_explorer.server.image_register.register_image import (
+    load_points,
+    compute_fitting_dimensions_by_aspect,
+)
 import numpy as np
 import logging
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
+def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.ndarray) -> tuple[float, float]:
+    """
+    Transforms the perspective of a coordinate (x, y) to (x', y') based on a transformation
+    matrix.
+
+    :param coord: The (x, y) coordinate to be transformed.
+    :param transform_matrix: The transformation matrix.
+    :return: A (x', y') perspective transformed coordinate.
+    """
+    coord_correct_format: np.ndarray = np.array([[[coord[0], coord[1]]]], dtype="float32")
+
+    perspective_transformed_point: np.ndarray = perspectiveTransform(coord_correct_format, transform_matrix)
+    return (
+        (perspective_transformed_point[0][0][0]),
+        (perspective_transformed_point[0][0][1]),
+    )
+
+
+def deregister_coord(
+    coord: tuple[int, int],
+    cube_recipe_path: str,
+    base_img_height: int,
+    base_img_width: int,
+    cube_height: int,
+    cube_width: int,
+) -> tuple[int, int]:
+    """
+    Translates an (x, y) coordinate to its (x', y') counterpart in the cube coordinate system.
+    The function assumes that the cube recipe maps cube coordinates to the base image coordinates.
+
+    :param coord: The (x, y) coordinate to be translated.
+    :param cube_recipe_path: The path to the cube recipe.
+    :param base_img_height: The height of the base image in pixels.
+    :param base_img_width: The width of the base image in pixels.
+    :param cube_height: The height of the cube.
+    :param cube_width: The width of the cube.
+    :return: A (x', y') tuple representing the translated coordinate to the cube's coordinates.
+    """
+    # Note: Reversing padding is not needed, since the images are padded
+    #       on their right and bottom sides. Since (0, 0) is at the top
+    #       left corner of the image, padding does not affect the coordinate
+    #       system.
+
+    # First step: Reverse perspective transformation
+    src_points: np.ndarray
+    base_points: np.ndarray
+    src_points, base_points = load_points(cube_recipe_path)
+
+    transform_matrix: np.ndarray = getPerspectiveTransform(base_points, src_points)
+    
+    x_perspective_reversed: float
+    y_perspective_reversed:float
+    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(coord, transform_matrix)
+    
+    cube_height_scaled_before_pad: int
+    cube_width_scaled_before_pad: int
+    cube_height_scaled_before_pad, cube_width_scaled_before_pad = compute_fitting_dimensions_by_aspect(
+        cube_height, cube_width, base_img_height, base_img_width
+    )
+
+    # Second step: Reverse scaling
+    x_reversed_scaling: float
+    y_reversed_scaling: float
+
+    ratio_x = cube_width / cube_width_scaled_before_pad
+    ratio_y = cube_height / cube_height_scaled_before_pad
+
+    x_reversed_scaling = x_perspective_reversed * ratio_x
+    y_reversed_scaling = y_perspective_reversed * ratio_y
+
+    return round(x_reversed_scaling), round(y_reversed_scaling)
+
+
 def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
-
     :param data_cube: The 3D data cube from which data will be extracted.
+
     :param mask: A 2D boolean array where True indicates the position to be extracted
     from the last 2 dimensions of data_cube.
     :return: A 2D array where the rows represent pixels in the data cube image
@@ -90,13 +173,15 @@ def get_selected_data_cube(
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(
-            f"Error occured while retrieving the path fo the base image of {data_source_folder}"
-        )
+        LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
         return None
 
     data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
-
+    
+    img_h: int
+    img_w: int
+    cube_h: int
+    cube_w: int
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
 
@@ -104,10 +189,16 @@ def get_selected_data_cube(
 
     if cube_recipe_path is None:
         # If the data cube has no recipe, simply scale the selection coordinates to match the dimensions of the cube.
+        selection_coord_1_cube: tuple[int, int]
+        selection_coord_2_cube: tuple[int, int]
         selection_coord_1_cube, selection_coord_2_cube = get_scaled_cube_coordinates(
             selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
         )
-
+        
+        x1: int
+        x2: int
+        y1: int
+        y2: int
         x1, y1 = selection_coord_1_cube
         x2, y2 = selection_coord_2_cube
 
@@ -115,12 +206,44 @@ def get_selected_data_cube(
         mask[y1 : y2 + 1, x1 : x2 + 1] = True
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
-        #       the best choice for performance, but the mask simplifies things, since it can be 
+        #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also the performance decrease should be less than tenth of a second in most cases.
         return extract_selected_data(data_cube, mask)
     else:
-        # If the data cube has recipe, deregister the selection coordinates so they correctly represent 
+        # If the data cube has recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
-        LOG.warn("Deregistration logic not yet implemented!")
-        return np.array([])
+        x1: int
+        x2: int
+        y1: int
+        y2: int
+        x1, y1 = selection_coord_1
+        x2, y2 = selection_coord_2
+
+        # Get all 4 points of the selection rectangle
+        p1: tuple[int, int] = (x1, y1)
+        p2: tuple[int, int] = (x1, y2)
+        p3: tuple[int, int] = (x2, y1)
+        p4: tuple[int, int] = (x2, y2)
+
+        # Deregister to cube coordinates
+        args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
+        p1_cube: tuple[int, int] = deregister_coord(p1, *args)
+        p2_cube: tuple[int, int] = deregister_coord(p2, *args)
+        p3_cube: tuple[int, int] = deregister_coord(p3, *args)
+        p4_cube: tuple[int, int] = deregister_coord(p4, *args)
+
+        cube_points: np.ndarray = np.array([p1_cube, p2_cube, p3_cube, p4_cube])
+        mask: np.ndarray = np.zeros((cube_h, cube_w), dtype=np.uint8)
+
+        # Calculate the smallest convex set that contains all the points
+        # The purpose of this is to order the points so they construct a polygon instead
+        # of an hourglass figure
+        convex_hull: np.ndarray = convexHull(cube_points)
+
+        # Write 1's in the polygon area
+        fillConvexPoly(mask, convex_hull, (1,))
+
+        mask: np.ndarray = mask.astype(bool)
+
+        return extract_selected_data(data_cube, mask)
