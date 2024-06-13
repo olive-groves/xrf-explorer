@@ -54,6 +54,16 @@ def compute_fitting_dimensions_by_aspect(
     image_reference_height,
     image_reference_width,
 ):
+    """
+    Computes the dimensions to which an image (specified by its dimensions image_to_resize_height image_to_resize_width)
+    should be resized to fit the aspect ratio of a reference image.
+
+    :param image_to_resize_height: The height of the image for which the dimensions are computed.
+    :param image_to_resize_width: The width of the image for which the dimensions are computed.
+    :param image_reference_height: The height of the reference image.
+    :param image_to_resize_width: The width of the reference image.
+    :return: A tuple (height, width) specifying the computed dimensions.
+    """
     aspect_reference = image_reference_width / image_reference_height  # W/H (e.g., 4:3)
     aspect_toregister = (
         image_to_resize_width / image_to_resize_height
