@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive } from "vue";
 import { WorkspaceConfig } from "./workspace";
 import { Selection } from "./selection";
 
@@ -14,6 +14,7 @@ export const appState = reactive<AppState>({
     colorSegmentation: [],
     dimensionalityReduction: null,
   },
+  secondViewer: false,
 });
 
 /**
@@ -24,7 +25,6 @@ export const datasource = computed(() => appState.workspace?.name ?? "");
 export const elements = computed(
   () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
 );
-export const secondViewer = ref(false);
 
 /**
  * Type describing the state of the client.
@@ -39,4 +39,8 @@ export type AppState = {
    * The active selection.
    */
   selection: Selection;
+  /**
+   * Whether the second viewer is enabled.
+   */
+  secondViewer: boolean;
 };

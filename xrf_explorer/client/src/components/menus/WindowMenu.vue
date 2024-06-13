@@ -2,13 +2,12 @@
 import {
   MenubarCheckboxItem,
   MenubarContent,
-  MenubarItem,
   MenubarMenu,
   MenubarTrigger,
   MenubarSeparator,
 } from "@/components/ui/menubar";
 import { windowState } from "@/components/ui/window/state";
-import { secondViewer } from "@/lib/appState";
+import { appState } from "@/lib/appState";
 import { computed, useSlots } from "vue";
 import { toast } from "vue-sonner";
 
@@ -20,8 +19,8 @@ const hasSlot = computed(() => {
 /**
  * Function to enable/disable the second viewer.
  */
-function enableSecondViewer() {
-  secondViewer.value = !secondViewer.value;
+function toggleSecondViewer() {
+  appState.secondViewer = !appState.secondViewer;
   toast.info("Viewer layout updated");
 }
 </script>
@@ -36,7 +35,7 @@ function enableSecondViewer() {
       <MenubarSeparator v-if="hasSlot" />
       <slot />
       <MenubarSeparator />
-      <MenubarItem @click="enableSecondViewer">Second main viewer</MenubarItem>
+      <MenubarCheckboxItem @click="toggleSecondViewer">Second main viewer</MenubarCheckboxItem>
     </MenubarContent>
   </MenubarMenu>
 </template>
