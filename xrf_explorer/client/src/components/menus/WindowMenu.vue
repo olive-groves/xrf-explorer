@@ -35,7 +35,9 @@ function toggleSecondViewer() {
       <MenubarSeparator v-if="hasSlot" />
       <slot />
       <MenubarSeparator />
-      <MenubarCheckboxItem @click="toggleSecondViewer">Second main viewer</MenubarCheckboxItem>
+      <MenubarCheckboxItem @click="toggleSecondViewer" :checked="appState.secondViewer"
+        >Second main viewer</MenubarCheckboxItem
+      >
     </MenubarContent>
   </MenubarMenu>
 </template>
