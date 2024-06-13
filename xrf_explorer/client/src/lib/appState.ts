@@ -15,6 +15,7 @@ export const appState = reactive<AppState>({
       points: [],
     },
   },
+  secondViewer: false,
 });
 
 /**
@@ -39,4 +40,8 @@ export type AppState = {
    * The active selection.
    */
   selection: Selection;
+  /**
+   * Whether the second viewer is enabled.
+   */
+  secondViewer: boolean;
 };
