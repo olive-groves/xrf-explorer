@@ -2,7 +2,7 @@
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { Point2D, deepClone } from "@/lib/utils";
 import { useElementBounding } from "@vueuse/core";
-import { computed, ref } from "vue";
+import { computed, ref, toRef, watch } from "vue";
 
 const props = defineProps<{
   /**
@@ -26,6 +26,13 @@ const props = defineProps<{
    */
   h: number;
 }>();
+
+const type = toRef(props, "type");
+watch(type, () => {
+  // Reset selection upon changing tool
+  candidateType.value = undefined;
+  candidatePoints.value = [];
+});
 
 /**
  * The selection object that is updated by the selection area when a selection is made.
