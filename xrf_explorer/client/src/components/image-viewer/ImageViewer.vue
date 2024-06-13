@@ -28,6 +28,9 @@ const viewport: {
   zoom: 0,
 };
 
+/**
+ * The viewbox of the image viewer as calculated from the viewport in render().
+ */
 const viewbox = ref<{
   x: number;
   y: number;
