@@ -156,6 +156,9 @@ function onMouseMove(event: MouseEvent) {
   <svg
     ref="element"
     class="absolute left-0 top-0 size-full -scale-y-100"
+    :class="{
+      'cursor-default': props.type != undefined,
+    }"
     :viewBox="`${props.x} ${props.y} ${props.w} ${props.h}`"
     preserveAspectRatio="none"
     fill="none"
