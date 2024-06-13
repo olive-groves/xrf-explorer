@@ -4,13 +4,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { toast } from "vue-sonner";
-import { ChannelSetupDialog, FileSetupDialog, WaitingDialog } from ".";
+import { ChannelSetupDialog, FileSetupDialog } from ".";
 import { TriangleAlert } from "lucide-vue-next";
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { deepClone } from "@/lib/utils";
 import { initializeChannels, validateWorkspace } from "./utils";
-import { AlertDialog } from "../ui/alert-dialog";
+import { appState } from "@/lib/appState";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -36,6 +36,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
       low: 0,
       high: 4096,
       binSize: 1,
+      binned: false,
     },
   };
 }
@@ -62,7 +63,6 @@ const sourceName = ref("");
 // Dialogs for file and channel setup
 const fileDialog = ref(false);
 const channelDialog = ref(false);
-const waitingDialog = ref(false);
 
 /**
  * Creates the data source directory in the backend if it does not yet exist with a workspace.json inside.
@@ -89,7 +89,6 @@ async function initializeDataSource() {
       });
       return;
     }
-
     // Set name in workspace
     workspace.value.name = name;
 
@@ -174,7 +173,7 @@ async function setupWorkspace(): Promise<boolean> {
 
 /**
  * Creates the workspace on the backend if setup is complete.
- * @returns - Wether the update was successful.
+ * @returns - Whether the update was successful.
  */
 async function updateWorkspace() {
   if (progress.value != Progress.Busy) {
@@ -193,33 +192,12 @@ async function updateWorkspace() {
         });
         return;
       }
-
       // Move to the next step
       progress.value = Progress.Channels;
       fileDialog.value = false;
       channelDialog.value = true;
     } else if (setup) {
-      // Open waiting dialog
-      waitingDialog.value = true;
-      const workspaceClone = deepClone(workspace.value);
-      // Validate the configured files
-      const validation = validateWorkspace(workspaceClone);
-      if (!validation[0]) {
-        toast.warning("Configured files are not valid", {
-          description: validation[1],
-        });
-        return false;
-      }
-      // Get binning parameters
-      const binParams = `{"low": ${workspace.value.spectralParams.low}, 
-                          "high": ${workspace.value.spectralParams.high}, 
-                          "binSize": ${workspace.value.spectralParams.binSize}}`;
-      // Bin raw data
-      await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
-        method: "GET",
-      });
-      //close dialog
-      waitingDialog.value = false;
+      binData();
       // Complete setup
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
@@ -227,6 +205,30 @@ async function updateWorkspace() {
       resetProgress();
     }
   }
+}
+
+/**
+ * Bins the updated raw data.
+ */
+async function binData() {
+  // Get binning parameters
+  const binParams = `{"low": ${workspace.value.spectralParams.low}, 
+                          "high": ${workspace.value.spectralParams.high}, 
+                          "binSize": ${workspace.value.spectralParams.binSize}}`;
+  // Bin raw data
+  await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
+    method: "POST",
+  }).then((response) => {
+    // If the response is successful (status code 200), update the progress
+    console.log("responsed");
+    if (response.ok) {
+      if (typeof appState.workspace !== "undefined") {
+        appState.workspace.spectralParams.binned = true;
+        console.log(appState.workspace.spectralParams.binned);
+      }
+      workspace.value.spectralParams.binned = true;
+    } else throw new Error("Binning failed");
+  });
 }
 </script>
 
@@ -251,9 +253,6 @@ async function updateWorkspace() {
     <Dialog v-model:open="fileDialog">
       <FileSetupDialog v-model="workspace" @save="updateWorkspace" />
     </Dialog>
-    <AlertDialog v-model:open="waitingDialog">
-      <WaitingDialog />
-    </AlertDialog>
     <Dialog v-model:open="channelDialog">
       <ChannelSetupDialog v-model="workspace" @save="updateWorkspace" />
     </Dialog>
