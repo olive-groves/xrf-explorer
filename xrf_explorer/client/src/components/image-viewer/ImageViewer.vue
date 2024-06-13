@@ -226,13 +226,7 @@ const cursor = computed(() => {
       <canvas ref="glcanvas" />
       <SelectionArea
         v-model="appState.selection.imageViewer"
-        :type="
-          toolState.tool == 'lasso'
-            ? SelectionAreaType.Lasso
-            : toolState.tool == 'rectangle'
-              ? SelectionAreaType.Rectangle
-              : undefined
-        "
+        :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
         :x="viewbox.x"
         :y="viewbox.y"
         :w="viewbox.w"
