@@ -6,6 +6,10 @@ import { Point2D } from "@/lib/utils";
  */
 export type Selection = {
   /**
+   * The selection made in the image viewer.
+   */
+  imageViewer: SelectionAreaSelection;
+  /**
    * The selection of elements made.
    */
   elements: ElementSelection[];

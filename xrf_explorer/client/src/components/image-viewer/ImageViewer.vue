@@ -13,7 +13,7 @@ import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
-import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { SelectionAreaType } from "@/lib/selection";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -49,10 +49,6 @@ const toolState = ref<ToolState>({
   lensSize: [config.imageViewer.defaultLensSize],
 });
 
-const selection = ref<SelectionAreaSelection>({
-  type: undefined,
-  points: [],
-});
 const selectionToolActive = computed(() => ["lasso", "rectangle"].includes(toolState.value.tool));
 
 let camera: THREE.OrthographicCamera;
@@ -224,7 +220,7 @@ const cursor = computed(() => {
     >
       <canvas ref="glcanvas" />
       <SelectionArea
-        v-model="selection"
+        v-model="appState.selection.imageViewer"
         :type="
           toolState.tool == 'lasso'
             ? SelectionAreaType.Lasso

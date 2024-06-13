@@ -8,6 +8,10 @@ import { Selection } from "./selection";
  */
 export const appState = reactive<AppState>({
   selection: {
+    imageViewer: {
+      type: undefined,
+      points: [],
+    },
     elements: [],
     colorSegmentation: [],
     dimensionalityReduction: {
