@@ -180,13 +180,15 @@ function onMouseMove(event: MouseEvent) {
         :width="model.points[1].x - model.points[0].x"
         :height="model.points[1].y - model.points[0].y"
         vector-effect="non-scaling-stroke"
-        class="fill-selection/20 stroke-selection-foreground stroke-2"
+        fill-opacity="var(--selection-opacity)"
+        class="fill-selection stroke-selection-foreground stroke-2"
       />
       <path
         v-if="model.type == SelectionAreaType.Lasso"
         :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
         vector-effect="non-scaling-stroke"
-        class="fill-selection/20 stroke-selection-foreground stroke-2"
+        fill-opacity="var(--selection-opacity)"
+        class="fill-selection stroke-selection-foreground stroke-2"
       />
 
       <!-- DISPLAY CANDIDATE SELECTION -->
