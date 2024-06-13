@@ -179,20 +179,14 @@ function onMouseMove(event: MouseEvent) {
         :y="model.points[0].y"
         :width="model.points[1].x - model.points[0].x"
         :height="model.points[1].y - model.points[0].y"
-        stroke="red"
-        stroke-width="2"
         vector-effect="non-scaling-stroke"
-        fill="red"
-        fill-opacity="0.5"
+        class="fill-selection/20 stroke-selection-foreground stroke-2"
       />
       <path
         v-if="model.type == SelectionAreaType.Lasso"
         :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
-        stroke="red"
-        stroke-width="2"
         vector-effect="non-scaling-stroke"
-        fill="red"
-        fill-opacity="0.5"
+        class="fill-selection/20 stroke-selection-foreground stroke-2"
       />
 
       <!-- DISPLAY CANDIDATE SELECTION -->
@@ -202,9 +196,8 @@ function onMouseMove(event: MouseEvent) {
         :y="Math.min(candidatePoints[0].y, candidatePoints[1].y)"
         :width="Math.abs(candidatePoints[0].x - candidatePoints[1].x)"
         :height="Math.abs(candidatePoints[0].y - candidatePoints[1].y)"
-        stroke="green"
-        stroke-width="2"
         vector-effect="non-scaling-stroke"
+        class="stroke-primary stroke-2"
       />
       <path
         v-if="candidateType == SelectionAreaType.Lasso"
@@ -212,16 +205,14 @@ function onMouseMove(event: MouseEvent) {
           .slice(0, -1)
           .map((point) => `${point.x} ${point.y}`)
           .join(' L')}`"
-        stroke="green"
-        stroke-width="2"
         vector-effect="non-scaling-stroke"
+        class="stroke-primary stroke-2"
       />
       <path
         v-if="candidateType == SelectionAreaType.Lasso"
         :d="lastLassoCandidateLine"
-        stroke="green"
-        stroke-width="2"
         vector-effect="non-scaling-stroke"
+        class="stroke-primary stroke-2"
       />
     </svg>
     <div
