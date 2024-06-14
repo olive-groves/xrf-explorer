@@ -150,25 +150,23 @@ async function updateEmbedding() {
       <!-- PARAMETERS SECTIONS -->
       <div class="space-y-1">
         <p class="font-bold">Embedding</p>
-        <div class="flex items-center space-x-2">
-          <Select v-model="selectedElement">
-            <SelectTrigger>
-              <SelectValue placeholder="Select an element" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
-                {{ element.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button class="w-24 shrink-0" @click="updateEmbedding">Generate</Button>
-        </div>
+        <Select v-model="selectedElement">
+          <SelectTrigger>
+            <SelectValue placeholder="Select an element" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
+              {{ element.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
         <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
+        <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
       </div>
 
       <!-- OVERLAY SECTION -->
       <div class="space-y-1">
-        <p class="font-bold">Overlay</p>
+        <p class="mt-4 font-bold">Overlay</p>
         <div class="flex items-center space-x-2">
           <Select v-model="selectedOverlay">
             <SelectTrigger>
@@ -189,7 +187,7 @@ async function updateEmbedding() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button class="w-24 shrink-0" @click="fetchDRImage">Show</Button>
+          <Button variant="outline" class="shrink-0" @click="fetchDRImage">Show</Button>
         </div>
       </div>
 
