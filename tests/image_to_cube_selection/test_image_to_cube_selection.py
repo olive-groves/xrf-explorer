@@ -1,10 +1,14 @@
 import numpy as np
 
 import sys
+import pytest
+from cv2 import imread
 
 from os.path import join
 
 sys.path.append(".")
+
+from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import perspective_transform_coord
 
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
@@ -18,8 +22,6 @@ from xrf_explorer.server.image_to_cube_selection import (
     SelectionType
 )
 from xrf_explorer.server.file_system.config_handler import set_config
-from cv2 import imread
-import pytest
 
 RESOURCES_PATH: str = join("tests", "resources")
 
@@ -27,7 +29,7 @@ RESOURCES_PATH: str = join("tests", "resources")
 class TestImageToCubeSelection:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    SAMPLE_BASE_IMAGE_PATH: str= join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
+    SAMPLE_BASE_IMAGE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
     SAMPLE_CUBE_IMG_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
     SAMPLE_CUBE_RECIPE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
 
@@ -37,33 +39,43 @@ class TestImageToCubeSelection:
         yield
 
     def test_get_selected_data_cube_dir_not_found(self, caplog):
-        RGB_POINT_1: tuple[int, int] = (0, 0)
-        RGB_POINT_2: tuple[int, int] = (1, 1)
+        # setup
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (1, 1)
+        ]
 
         data_source_folder_name: str = "made_up_name"
         expected_output: str = f"Data source directory {data_source_folder_name} does not exist."
 
+        # execute
         result: np.ndarray | None = get_selection(
-            data_source_folder_name, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
+            data_source_folder_name, rgb_points, SelectionType.Rectangle
         )
 
         assert result is None
         assert expected_output in caplog.text
 
     def test_get_selected_data_cube_dir_found(self):
-        RGB_POINT_1: tuple[int, int] = (0, 0)
-        RGB_POINT_2: tuple[int, int] = (1, 1)
+        # setup
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (1, 1)
+        ]
 
+        # execute
         result: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, rgb_points, SelectionType.Rectangle
         )
 
         assert result is not None
 
     def test_get_cube_coordinates(self):
         # setup
-        RGB_POINT_1: tuple[int, int] = (2, 6)
-        RGB_POINT_2: tuple[int, int] = (4, 10)
+        rgb_points: list[tuple[int, int]] = [
+            (2, 6),
+            (4, 10)
+        ]
 
         data_cube_point_1_expected: tuple[int, int] = (1, 3)
         data_cube_point_2_expected: tuple[int, int] = (2, 5)
@@ -77,7 +89,7 @@ class TestImageToCubeSelection:
         data_cube_output_1_actual: tuple[int, int]
         data_cube_output_2_actual: tuple[int, int]
         data_cube_output_1_actual, data_cube_output_2_actual = get_scaled_cube_coordinates(
-            [RGB_POINT_1, RGB_POINT_2],
+            rgb_points,
             base_image_width,
             base_image_height,
             cube_image_width,
@@ -90,11 +102,12 @@ class TestImageToCubeSelection:
 
     def test_get_selected_data_cube_output_size(self):
         # setup
-        RGB_POINT_1: tuple[int, int] = (0, 0)
-        RGB_POINT_2: tuple[int, int] = (345, 678)
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (345, 678)
+        ]
 
         cube_dir: str | None = get_elemental_cube_path(self.DATA_SOURCE_FOLDER_NAME)
-        print(cube_dir)
 
         if cube_dir is None:
             pytest.fail("Cube directory is None.")
@@ -115,15 +128,15 @@ class TestImageToCubeSelection:
         cube_img_h_ratio: float = cube_h / img_h
         cube_img_selection_area_ratio: float = cube_img_w_ratio * cube_img_h_ratio
 
-        selection_rgb_w: int = abs(RGB_POINT_2[0] - RGB_POINT_1[0]) + 1
-        selection_rgb_h: int = abs(RGB_POINT_2[1] - RGB_POINT_1[1]) + 1
+        selection_rgb_w: int = abs(rgb_points[1][0] - rgb_points[0][0]) + 1
+        selection_rgb_h: int = abs(rgb_points[1][1] - rgb_points[0][1]) + 1
         selection_rgb_area_size: int = selection_rgb_w * selection_rgb_h
 
         expected_size: int = round(selection_rgb_area_size * cube_img_selection_area_ratio)
 
         # execute
         selection_data: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, rgb_points, SelectionType.Rectangle
         )
 
         if selection_data is None:
@@ -140,13 +153,13 @@ class TestImageToCubeSelection:
 
     def test_selections_equivalent(self):
         # setup
-        TOP_LEFT: tuple[int, int] = (0, 0)
-        TOP_RIGHT: tuple[int, int] = (345, 0)
-        BOTTOM_LEFT: tuple[int, int] = (0, 678)
-        BOTTOM_RIGHT: tuple[int, int] = (345, 678)
+        top_left: tuple[int, int] = (0, 0)
+        top_right: tuple[int, int] = (345, 0)
+        bottom_left: tuple[int, int] = (0, 678)
+        bottom_right: tuple[int, int] = (345, 678)
 
-        coords_rect: list[tuple[int, int]] = [TOP_LEFT, BOTTOM_RIGHT]
-        coords_lasso: list[tuple[int, int]] = [TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT]
+        coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
+        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
@@ -157,7 +170,51 @@ class TestImageToCubeSelection:
         )
 
         # verify
+        assert selection_data_rect is not None
+        assert selection_data_lasso is not None
         assert np.array_equal(selection_data_rect, selection_data_lasso)
+
+    def test_negative_coordinates(self):
+        # setup
+        img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
+
+        top_left: tuple[int, int] = (0, 0)
+        top_right: tuple[int, int] = (img_w, 0)
+        bottom_left: tuple[int, int] = (0, img_h)
+        bottom_right: tuple[int, int] = (img_w, img_h)
+
+        top_left_outside: tuple[int, int] = (-100, 0)
+        bottom_left_outside: tuple[int, int] = (0, img_h + 10)
+
+        coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
+        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
+        coords_rect_outside: list[tuple[int, int]] = [top_left_outside, bottom_right]
+        coords_lasso_outside: list[tuple[int, int]] = [top_left_outside, top_right, bottom_right, bottom_left_outside]
+
+        # execute
+        selection_data_rect: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+        )
+        selection_data_lasso: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+        )
+        selection_data_rect_outside: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect_outside, SelectionType.Rectangle
+        )
+        selection_data_lasso_outside: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso_outside, SelectionType.Lasso
+        )
+
+        # verify
+        assert selection_data_rect is not None
+        assert selection_data_lasso is not None
+        assert selection_data_rect_outside is not None
+        assert selection_data_lasso_outside is not None
+
+        assert np.array_equal(selection_data_rect, selection_data_lasso)
+        assert np.array_equal(selection_data_rect_outside, selection_data_lasso_outside)
+        assert np.array_equal(selection_data_rect_outside, selection_data_rect)
+        
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.

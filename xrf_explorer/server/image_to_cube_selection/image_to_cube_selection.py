@@ -1,3 +1,8 @@
+from enum import Enum
+import logging
+
+import numpy as np
+
 from xrf_explorer.server.file_system.elemental_cube import (
     get_elemental_data_cube, normalize_ndarray_to_grayscale
 )
@@ -9,17 +14,12 @@ from xrf_explorer.server.file_system.file_access import (
 from cv2 import (
     imread,
     perspectiveTransform,
-    getPerspectiveTransform,
-    convexHull,
-    fillConvexPoly,
+    getPerspectiveTransform
 )
 from xrf_explorer.server.image_register.register_image import (
     load_points,
     compute_fitting_dimensions_by_aspect,
 )
-import numpy as np
-import logging
-from enum import Enum
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -48,10 +48,7 @@ def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.nda
     coord_correct_format: np.ndarray = np.array([[[coord[0], coord[1]]]], dtype="float32")
 
     perspective_transformed_point: np.ndarray = perspectiveTransform(coord_correct_format, transform_matrix)
-    return (
-        (perspective_transformed_point[0][0][0]),
-        (perspective_transformed_point[0][0][1]),
-    )
+    return float(perspective_transformed_point[0][0][0]), float(perspective_transformed_point[0][0][1])
 
 
 def deregister_coord(
@@ -133,10 +130,7 @@ def get_scaled_cube_coordinates(
     """
     Calculates and returns the coordinates of a list of points within the data cube, scaled from the coordinates of a base image.
 
-    :param selection_coord_1: The first coordinate tuple (x1, y1), representing
-    one corner of the rectangular region in the base image.
-    :param selection_coord_2: The second coordinate tuple (x2, y2), representing
-    the opposite corner of the rectangular region in the base image.
+    :param coords:  List of points/coordinates within the data cube.
     :param base_img_width: The width of the base image in pixels.
     :param base_img_height: The height of the base image in pixels.
     :param cube_width: The width of the cube.
@@ -202,6 +196,25 @@ def is_point_in_polygon(point: tuple[int, int], polygon_vertices: list[tuple[int
     return inside
 
 
+def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int) -> list[tuple[int, int]]:
+    """
+    Clip a list of points to the bounds of the datacube.
+
+    :param points: A list of points where each point is a tuple (x, y).
+    :param datacube_width: The width of the datacube corresponding to the painting.
+    :param datacube_height: The height of the datacube corresponding to the painting.
+    :return: The list of clipped points, in the same order as the input.
+    """
+    clipped_points = []
+
+    for x, y in points:
+        clipped_x = max(0, min(x, cube_width - 1))   # -1 for 0 based indexing
+        clipped_y = max(0, min(y, cube_height - 1))
+        clipped_points.append((clipped_x, clipped_y))
+
+    return clipped_points
+
+
 def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int,
                            cube_height: int) -> np.ndarray:
     """
@@ -216,9 +229,12 @@ def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[
     """
     mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=bool)
 
+    selection = clip_points(selection, cube_width, cube_height)
+
     if selection_type == SelectionType.Rectangle:
         x1, y1 = selection[0]
         x2, y2 = selection[1]
+
         mask[y1: y2, x1: x2] = True
 
     elif selection_type == SelectionType.Lasso:
@@ -246,6 +262,7 @@ def get_selection(
 
     :param data_source_folder: The data source folder name.
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
+    :param selection_type: The type of selection being performed.
     selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso
     selection, the list must contain the points in the order in which they form the selection area.
     :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns
@@ -297,7 +314,7 @@ def get_selection(
         #       Also, the performance decrease should be less than tenth of a second in most cases.
         return extract_selected_data(data_cube, mask)
     else:
-        # If the data cube has recipe, deregister the selection coordinates so they correctly represent
+        # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
         args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
         selection_coords_deregistered: list[tuple[int, int]] = []

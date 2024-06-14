@@ -198,8 +198,7 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
 
 def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in (a subarea of) the painting.
-    :param selection: A 2D array where the rows represent the selected pixels from the data cube image and the columns
-    represent their elemental map values.
+    :param selection: A 2D array where the rows represent the selected pixels from the data cube image and the columns represent their elemental map values.
     :param names: The names of the elements present in the painting.
     :return: List of the names and average composition of the elements.
     """
@@ -213,6 +212,7 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     LOG.info("Calculated the average composition of the elements within selection.")
 
     return composition
+
 
 def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     """"Saves a numpy array and list of elements to a DMS file.

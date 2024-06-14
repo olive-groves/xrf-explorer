@@ -19,7 +19,7 @@ from xrf_explorer.server.file_system.file_access import get_elemental_cube_recip
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.elemental_cube import (
-    get_short_element_names, get_element_averages,
+    get_short_element_names, get_element_averages, get_element_names,
     get_elemental_map, normalize_ndarray_to_grayscale,
     get_element_averages_selection
 )
@@ -242,7 +242,10 @@ def list_element_averages(data_source: str):
     is of the form {name: element name, average: element abundance}
     """
 
-    path: str = get_elemental_cube_path(data_source)
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error occurred while getting elemental datacube path", 500
 
     composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
@@ -262,10 +265,13 @@ def list_element_averages_selection(data_source: str):
     is of the form {name: element name, average: element abundance}
     """
     # path to elemental cube
-    path: str = get_elemental_cube_path(data_source)
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error getting elemental datacube path", 500
 
     # parse JSON payload
-    data: dict[str, any] | None = request.get_json()
+    data: dict[str, str] | None = request.get_json()
     if data is None:
         return "Error parsing request body", 400
 
@@ -288,7 +294,7 @@ def list_element_averages_selection(data_source: str):
 
     try:
         points_parsed: list[tuple[int, int]] = [
-            (point['x'], point['y']) for point in points
+            (int(point['x']), int(point['y'])) for point in points
         ]
     except ValueError:
         return "Error parsing points", 400
@@ -305,15 +311,14 @@ def list_element_averages_selection(data_source: str):
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(
-        selection, names
-    )
+    composition: list[dict[str, str | float]] = get_element_averages_selection(selection, names)
 
     try:
         return json.dumps(composition)
     except Exception as e:
         LOG.error(f"Failed to serialize element averages: {str(e)}")
         return "Error occurred while listing element averages", 500
+
 
 @app.route("/api/<data_source>/data/elements/names")
 def list_element_names(data_source: str):
@@ -322,7 +327,10 @@ def list_element_names(data_source: str):
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
-    path: str = get_elemental_cube_path(data_source)
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error getting elemental datacube path", 500
 
     names: list[str] = get_element_names(path)
     try:
@@ -400,14 +408,14 @@ def contextual_image(data_source: str, name: str):
     :return: the contextual image converted to png
     """
 
-    path: str = get_contextual_image_path(data_source, name)
-    if not path:
+    path: str | None = get_contextual_image_path(data_source, name)
+    if path is None:
         return f"Image {name} not found in source {data_source}", 404
 
     LOG.info("Opening contextual image")
 
-    image: Image = get_contextual_image(path)
-    if not image:
+    image: Image | None = get_contextual_image(path)
+    if image is None:
         return f"Failed to open image {name} from source {data_source}", 500
 
     LOG.info("Converting contextual image")
@@ -520,8 +528,8 @@ def elemental_map(data_source: str, channel: int):
     """
 
     # As XRF-Explorer only supports a single data cube, we do not have to do any wizardry to stitch maps together
-    path: str = get_elemental_cube_path(data_source)
-    if not path:
+    path: str | None = get_elemental_cube_path(data_source)
+    if path is None:
         return f"Could not find elemental data cube in source {data_source}", 404
 
     # Get the elemental map

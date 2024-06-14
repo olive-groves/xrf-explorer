@@ -25,8 +25,8 @@ type Element = {
 /**
  * Used to fetch averages from the backend when using a selection
  * Points are the points of the selection. In case of rectangle selection,
- * those are two opposite corners of the rectangle. In case of lasso selection,
- * those are the points in the order in which they form the selection area.
+ * these are two opposite corners of the rectangle. In case of lasso selection,
+ * these are the points in the order in which they form the selection area.
  */
 interface RequestBody {
   type: SelectionAreaType | undefined;
@@ -68,11 +68,11 @@ const displayGrey = ref(true);
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
  * @param url URL to the server API endpoint which provides the elemental data.
- * @param selecting Whether to fetch averages for a selection.
+ * @param selectionRequest Whether to fetch averages for a selection.
  * @param selection The selection made in the image viewer.
  * @returns True if the averages were fetched successfully, false otherwise.
  */
-async function fetchAverages(url: string, selecting: boolean, selection: SelectionAreaSelection) {
+async function fetchAverages(url: string, selectionRequest: boolean, selection: SelectionAreaSelection) {
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
@@ -83,7 +83,7 @@ async function fetchAverages(url: string, selecting: boolean, selection: Selecti
   };
 
   // If the request is for a selection, change the request accordingly
-  if (selecting) request_url += `_selection`;
+  if (selectionRequest) request_url += `_selection`;
 
   // Make API call
   const response: Response = await fetch(request_url, {
@@ -163,7 +163,7 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
       updateWorkspaceElements();
 
       // Update the charts with the fetched data
-      updateCharts();
+      await updateCharts();
     }
   } catch (e) {
     console.error("Error fetching average data", e);
@@ -334,7 +334,7 @@ async function setupWindow() {
       updateWorkspaceElements();
 
       // Update the charts with the fetched data
-      updateCharts();
+      await updateCharts();
     }
   } catch (e) {
     console.error("Error fetching average data", e);
@@ -345,7 +345,7 @@ watch(
   elementSelection,
   (selection) => {
     maskData(selection);
-    updateCharts();
+    await updateCharts();
   },
   { deep: true, immediate: true },
 );
