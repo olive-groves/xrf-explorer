@@ -161,7 +161,7 @@ async function updateEmbedding() {
           </SelectContent>
         </Select>
         <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
-        <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
+        <Button class="!mt-2 w-full" @click="updateEmbedding">Generate embedding</Button>
       </div>
 
       <!-- OVERLAY SECTION -->
