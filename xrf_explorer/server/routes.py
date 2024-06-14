@@ -244,7 +244,7 @@ def list_element_averages(data_source: str):
         return "Error occurred while listing element averages", 500
 
 
-@app.route("/api/<data_source>/element_names")
+@app.route("/api/<data_source>/data/elements/names")
 def list_element_names(data_source: str):
     """Get the short names of the elements stored in the elemental data cube.
     
