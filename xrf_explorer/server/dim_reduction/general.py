@@ -1,15 +1,18 @@
 import logging 
 
 from os import makedirs
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 
 import numpy as np
+from scipy.interpolate import NearestNDInterpolator
 from cv2 import imwrite
 
 from xrf_explorer.server.file_system import get_elemental_cube_path, get_elemental_data_cube
 from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
+
+MAPPING_IMAGE_NAME: str = 'image_index_to_embedding.png'
 
 
 def valid_element(element: int, data_cube: np.ndarray) -> bool:
@@ -71,7 +74,7 @@ def get_path_to_dr_folder(data_source: str) -> str:
     return path_to_dr_folder
 
 
-def get_image_of_indices_to_embedding(data_source: str) -> str:
+def create_image_of_indices_to_embedding(data_source: str) -> str:
     """Creates the image for lasso selection that decodes to which points in the embedding
     the pixels of the elemental data cube are mapped. Uses the current embedding and indices
     to create the image.
@@ -79,24 +82,26 @@ def get_image_of_indices_to_embedding(data_source: str) -> str:
     :param data_source: Name of the data source.
     :return: True if the image was created successfully, otherwise False.
     """
+
     # Get the path to the dimensionality reduction folder
     dr_folder: str = get_path_to_dr_folder(data_source)
     if not dr_folder:
-        return ""
+        return False
 
     # Load the elemental data cube
     path_to_cube = get_elemental_cube_path(data_source)
     elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
     if elemental_cube is None:
-        return ""
+        return False
 
     # Load the file embedding.npy
     try:
         indices: np.ndarray = np.load(join(dr_folder, 'indices.npy'))
+        all_indices: np.ndarray = np.load(join(dr_folder, 'all_indices.npy'))
         embedding: np.ndarray = np.load(join(dr_folder, 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
-        return ""
+        return False
 
     # Get min and max values
     xmin, ymin = np.min(embedding, axis=0)
@@ -106,18 +111,45 @@ def get_image_of_indices_to_embedding(data_source: str) -> str:
     embedding[:, 0] = np.interp(embedding[:, 0], (xmin, xmax), (0, +255))
     embedding[:, 1] = np.interp(embedding[:, 1], (ymin, ymax), (0, +255))
 
+    LOG.info(f"Creating the interpolator with the data of size: {indices.shape[0]}")
+    interp = NearestNDInterpolator(elemental_cube[:, indices[:, 0], indices[:, 1]].T, embedding)
+    
+    LOG.info(f"Interpolating the data of size: {all_indices.shape[0]}")
+    interpolated = interp(elemental_cube[:, all_indices[:, 0], all_indices[:, 1]].T)
+
     # Initialize new image
+    LOG.info("Creating the mapping image")
     newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
     
     # Fill pixels (in BGR format)
-    newimage[indices[:, 0], indices[:, 1], 0] = 255
-    newimage[indices[:, 0], indices[:, 1], 1] = embedding[:, 1]
-    newimage[indices[:, 0], indices[:, 1], 2] = embedding[:, 0]
+    newimage[all_indices[:, 0], all_indices[:, 1], 0] = 255
+    newimage[all_indices[:, 0], all_indices[:, 1], 1] = interpolated[:, 1]
+    newimage[all_indices[:, 0], all_indices[:, 1], 2] = interpolated[:, 0]
 
     # Create and save the image
-    path_image: str = join(dr_folder, 'image_index_to_embedding.png')
+    path_image: str = join(dr_folder, MAPPING_IMAGE_NAME)
     imwrite(path_image, newimage)
 
     LOG.info("Created DR image index to embedding.")
 
-    return path_image
+    return True
+
+
+def get_image_of_indices_to_embedding(data_source: str) -> str:
+    """Returns the path to the image that maps the indices of the elemental data cube to the embedding.
+
+    :param data_source: Name of the data source.
+    :return: Path the the image. If the image is not found, an empty string is returned.
+    """
+    # Get the path to the dimensionality reduction folder
+    dr_folder: str = get_path_to_dr_folder(data_source)
+    if not dr_folder:
+        return ""
+    
+    # Check if the image exists
+    file_path: str = join(dr_folder, MAPPING_IMAGE_NAME)
+    if not isfile(file_path):
+        LOG.error(f"File {MAPPING_IMAGE_NAME} not found.")
+        return ""
+
+    return join(dr_folder, MAPPING_IMAGE_NAME)
