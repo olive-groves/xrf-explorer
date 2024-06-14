@@ -222,6 +222,8 @@ export function updateMiddleImage(): void {
   const layer: Layer = getDRSelectionLayer();
   const isLoaded: boolean = layer.mesh != undefined; // define current state of the layer
 
+  layer.image = layer.image.split("?")[0] + "?" + Math.floor(Math.random() * 2 ** 32);
+
   if (isLoaded) disposeLayer(layer); // remove the layer so we can update it
   loadLayer(layer, false); // update the middle image
   if (!isLoaded) disposeLayer(layer); // reset to previous state
