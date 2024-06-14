@@ -5,7 +5,6 @@ import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
-import { LabeledSlider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -23,6 +22,13 @@ import { Separator } from "@/components/ui/separator";
 import { SelectionAreaType } from "@/lib/selection";
 import { remToPx } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@/components/ui/number-field";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -61,7 +67,7 @@ const status = ref(Status.WELCOME);
 const currentError = ref("Unknown error");
 
 // Dimensionality reduction parameters
-const threshold = ref([100]);
+const threshold = ref(100);
 const selectedElement = ref();
 const selectedOverlay = ref();
 
@@ -153,21 +159,43 @@ async function updateEmbedding() {
   <Window title="Dimensionality reduction" location="left">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
-      <div class="space-y-2">
-        <p class="font-bold">Embedding</p>
-        <Select v-model="selectedElement">
-          <SelectTrigger>
-            <SelectValue placeholder="Select an element" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel.toString()">
-              {{ element.name }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
-        <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
+      <p class="-mb-2 font-bold">Embedding</p>
+      <div class="flex space-x-2">
+        <div class="grow space-y-1">
+          <Label for="embedding_element">Element</Label>
+          <Select v-model="selectedElement" id="embedding_element" class="w-full">
+            <SelectTrigger>
+              <SelectValue placeholder="Select an element" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel.toString()">
+                {{ element.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="w-28 shrink-0 space-y-1">
+          <Label for="embedding_threshold">Threshold</Label>
+          <NumberField
+            v-model="threshold"
+            :min="0"
+            :max="255"
+            :step="1"
+            id="embedding_threshold"
+            :format-options="{
+              minimumIntegerDigits: 1,
+              maximumFractionDigits: 0,
+            }"
+          >
+            <NumberFieldContent>
+              <NumberFieldDecrement />
+              <NumberFieldInput />
+              <NumberFieldIncrement />
+            </NumberFieldContent>
+          </NumberField>
+        </div>
       </div>
+      <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
 
       <!-- OVERLAY SECTION -->
       <div class="space-y-1">
