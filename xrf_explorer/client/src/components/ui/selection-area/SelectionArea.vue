@@ -98,7 +98,7 @@ function onClick(event: MouseEvent) {
       // If selection is already started, end it if the clicked point is close to the starting position.
       // Add a new point to the selection otherwise.
       if (nearInitial.value) {
-        if (candidatePoints.value.length > 2) {
+        if (candidatePoints.value.length > 3) {
           model.value = {
             type: SelectionAreaType.Lasso,
             points: candidatePoints.value.slice(0, -1),
