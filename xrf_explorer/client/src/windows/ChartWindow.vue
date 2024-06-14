@@ -3,10 +3,11 @@ import { ComputedRef, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { ElementSelection } from "@/lib/selection";
+import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
 import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
+import { round } from "mathjs";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
@@ -39,6 +40,10 @@ let workspaceElements: Element[] = [];
 // Whole element selection
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
+// Area selection
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+watch(areaSelection, onSelectionAreaUpdate, { deep: true, immediate: true });
+
 // Element selection of only selected elements
 let displayedSelection: ElementSelection[] = [];
 
@@ -52,20 +57,30 @@ const displayGrey = ref(true);
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
  * @param url URL to the server API endpoint which provides the elemental data.
- * @param rectangle_selection Whether to fetch averages for a rectangle selection.
+ * @param selecting Whether to fetch averages for a selection.
+ * @param selection The selection made in the image viewer.
  * @returns True if the averages were fetched successfully, false otherwise.
  */
-async function fetchAverages(url: string, rectangle_selection: boolean) {
+async function fetchAverages(url: string, selecting: boolean, selection: SelectionAreaSelection) {
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
-  if (rectangle_selection) {
-    const params: URLSearchParams = new URLSearchParams({
-      x1: "0",
-      y1: "0",
-      x2: "924",
-      y2: "1479"
-    });
-    request_url += `_selection?${params}`;
+  if (selecting) {
+    switch (selection.type) {
+      case SelectionAreaType.Rectangle: {
+        const params: URLSearchParams = new URLSearchParams({
+          x1: round(selection.points[0].x).toString(),
+          y1: round(selection.points[0].y).toString(),
+          x2: round(selection.points[1].x).toString(),
+          y2: round(selection.points[1].y).toString(),
+        });
+        request_url += `_selection?${params}`;
+        break;
+      }
+      case SelectionAreaType.Lasso: {
+        console.log("hi");
+        break;
+      }
+    }
   }
 
   // Make API call
@@ -128,6 +143,28 @@ function maskData(selection: ElementSelection[]) {
   selectedData = dataAverages.filter((_, index) =>
     displayedSelection.some((elementVis) => elementVis.channel == index),
   );
+}
+
+/**
+ * Callback for when the selection in the main viewer is changed.
+ * @param selection New area selection in the main viewer.
+ */
+async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
+  try {
+    // If the selection was not cancelled
+    const selecting: boolean = selection != undefined;
+    // Whether the elemental data was fetched properly
+    const fetched: boolean = await fetchAverages(config.api.endpoint, selecting, selection);
+    if (fetched) {
+      // After having fetched the data, update the workspace elements
+      updateWorkspaceElements();
+
+      // Update the charts with the fetched data
+      updateCharts();
+    }
+  } catch (e) {
+    console.error("Error fetching average data", e);
+  }
 }
 
 /**
@@ -288,7 +325,7 @@ async function updateCharts() {
 async function setupWindow() {
   try {
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint, false);
+    const fetched: boolean = await fetchAverages(config.api.endpoint, false, areaSelection.value);
     if (fetched) {
       // After having fetched the data, update the workspace elements
       updateWorkspaceElements();
@@ -307,7 +344,7 @@ watch(
     maskData(selection);
     updateCharts();
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 </script>
 
