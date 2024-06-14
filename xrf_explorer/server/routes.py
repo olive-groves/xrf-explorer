@@ -15,8 +15,7 @@ from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl, get_base_image_name, \
-    get_raw_rpl_paths
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.elemental_cube import (
@@ -316,7 +315,7 @@ def list_element_averages_selection(data_source: str):
         LOG.error(f"Failed to serialize element averages: {str(e)}")
         return "Error occurred while listing element averages", 500
 
-@app.route("/api/<data_source>/element_names")
+@app.route("/api/<data_source>/data/elements/names")
 def list_element_names(data_source: str):
     """Get the short names of the elements stored in the elemental data cube.
     
@@ -325,7 +324,7 @@ def list_element_names(data_source: str):
     """
     path: str = get_elemental_cube_path(data_source)
 
-    names: list[str] = get_short_element_names(path)
+    names: list[str] = get_element_names(path)
     try:
         return json.dumps(names)
     except Exception as e:

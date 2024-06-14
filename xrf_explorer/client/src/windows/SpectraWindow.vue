@@ -2,7 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { datasource } from "@/lib/appState";
+import { datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -68,7 +68,6 @@ function setup() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
 
-  getElements();
   plotAverageSpectrum(low, high, binSize);
 }
 
@@ -258,41 +257,6 @@ async function plotElementSpectrum(element: string, excitation: number, low: num
   updateElement();
 }
 
-// Reference element names for dropdown
-const elementRef = ref([]);
-
-/**
- * Gets the list of all the elements and plots the one selected in the dropdown.
- */
-async function getElements() {
-  try {
-    //make api call
-    const response = await fetch(`${url}/${datasource.value}/element_names?`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const elements = await response.json();
-    elements.unshift("No element");
-    elements.splice(elements.indexOf("Continuum"), 1);
-    elements.splice(elements.indexOf("chisq"), 1);
-    elementRef.value = elements;
-
-    //add dropdown menu
-    const elementDropdown = document.getElementById("element-dropdown") as HTMLSelectElement;
-    elements.forEach(
-      (
-        element: string, // create dropdown items
-      ) => {
-        elementDropdown.add(new Option(element));
-      },
-    );
-  } catch (e) {
-    console.error("Error getting elements", e);
-  }
-}
-
 /**
  * Updates visibility of global average spectrum.
  */
@@ -363,14 +327,16 @@ if (false) {
       <Separator class="mt-2" />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
       <div class="mt-1 flex items-center">
-        <Select id="element-dropdown" v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
+        <Select v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
           <SelectTrigger class="ml-1 w-32">
             <SelectValue placeholder="Select an element" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem :value="element" v-for="element in elementRef" :key="element"> {{ element }} </SelectItem>
+              <SelectItem :value="element.name" v-for="element in elements" :key="element.name">
+                {{ element.name }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>

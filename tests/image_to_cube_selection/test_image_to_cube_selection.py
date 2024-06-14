@@ -14,6 +14,7 @@ from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cu
 from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,
+    deregister_coord,
     SelectionType
 )
 from xrf_explorer.server.file_system.config_handler import set_config
@@ -24,10 +25,11 @@ RESOURCES_PATH: str = join("tests", "resources")
 
 
 class TestImageToCubeSelection:
-    CUSTOM_CONFIG_PATH: str = join(
-        RESOURCES_PATH, "configs", "image_to_cube_selection.yml"
-    )
-    DATA_SOURCE_FOLDER_NAME = "Data_source"
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
+    DATA_SOURCE_FOLDER_NAME: str = "Data_source"
+    SAMPLE_BASE_IMAGE_PATH: str= join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
+    SAMPLE_CUBE_IMG_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
+    SAMPLE_CUBE_RECIPE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
 
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -39,9 +41,7 @@ class TestImageToCubeSelection:
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
         data_source_folder_name: str = "made_up_name"
-        expected_output: str = (
-            f"Data source directory {data_source_folder_name} does not exist."
-        )
+        expected_output: str = f"Data source directory {data_source_folder_name} does not exist."
 
         result: np.ndarray | None = get_selection(
             data_source_folder_name, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
@@ -74,14 +74,14 @@ class TestImageToCubeSelection:
         cube_image_width: int = 5
 
         # execute
-        data_cube_output_1_actual, data_cube_output_2_actual = (
-            get_scaled_cube_coordinates(
-                [RGB_POINT_1, RGB_POINT_2],
-                base_image_width,
-                base_image_height,
-                cube_image_width,
-                cube_image_height,
-            )
+        data_cube_output_1_actual: tuple[int, int]
+        data_cube_output_2_actual: tuple[int, int]
+        data_cube_output_1_actual, data_cube_output_2_actual = get_scaled_cube_coordinates(
+            [RGB_POINT_1, RGB_POINT_2],
+            base_image_width,
+            base_image_height,
+            cube_image_width,
+            cube_image_height,
         )
 
         # verify
@@ -106,7 +106,9 @@ class TestImageToCubeSelection:
 
         if base_img_dir is None:
             pytest.fail("Base image directory is None")
-
+        
+        img_h: int
+        img_w: int
         img_h, img_w, _ = imread(base_img_dir).shape
 
         cube_img_w_ratio: float = cube_w / img_w
@@ -156,3 +158,47 @@ class TestImageToCubeSelection:
 
         # verify
         assert np.array_equal(selection_data_rect, selection_data_lasso)
+
+    # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
+    # deregister_coord.
+    def is_deregistration_correct(
+        self,
+        base_img_coord: tuple[int, int],
+        cube_coord_expected: tuple[int, int],
+        tolerance_pixels: int,
+    ) -> bool:
+        base_img: np.ndarray = imread(self.SAMPLE_BASE_IMAGE_PATH)
+        cube_img: np.ndarray = imread(self.SAMPLE_CUBE_IMG_PATH)
+
+        base_h: int
+        base_w: int
+        cube_h: int
+        cube_w: int
+        base_h, base_w, _ = base_img.shape
+        cube_h, cube_w, _ = cube_img.shape
+
+        args = (self.SAMPLE_CUBE_RECIPE_PATH, base_h, base_w, cube_h, cube_w)
+        cube_coord_actual = deregister_coord(base_img_coord, *args)
+
+        euclidean_dist: int = (
+        (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
+        (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
+        )
+
+        return euclidean_dist <= tolerance_pixels
+
+    def test_deregister_coord(self):
+        BASE_IMG_COORD_1: tuple[int, int] = (2046, 2691)
+        CUBE_COORD_EXPECTED_1: tuple[int, int] = (438, 522)
+
+        BASE_IMG_COORD_2: tuple[int, int] = (2531, 1773)
+        CUBE_COORD_EXPECTED_2: tuple[int, int] = (540, 327)
+
+        BASE_IMG_COORD_3: tuple[int, int] = (1020, 1933)
+        CUBE_COORD_EXPECTED_3: tuple[int, int] = (218, 360)
+
+        TOLERANCE_PIXELS: int = 20
+
+        assert self.is_deregistration_correct(BASE_IMG_COORD_1, CUBE_COORD_EXPECTED_1, TOLERANCE_PIXELS)
+        assert self.is_deregistration_correct(BASE_IMG_COORD_2, CUBE_COORD_EXPECTED_2, TOLERANCE_PIXELS)
+        assert self.is_deregistration_correct(BASE_IMG_COORD_3, CUBE_COORD_EXPECTED_3, TOLERANCE_PIXELS)

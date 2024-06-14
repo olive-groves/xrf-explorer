@@ -22,6 +22,8 @@ import { getTargetSize } from "./api";
  * @param interpolated - Whether the sampler should interpolate between pixels.
  */
 export function loadLayer(layer: Layer, interpolated: boolean = true) {
+  THREE.Cache.enabled = false;
+
   new THREE.TextureLoader().loadAsync(layer.image).then(
     async (texture) => {
       texture.colorSpace = THREE.NoColorSpace;
