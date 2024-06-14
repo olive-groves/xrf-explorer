@@ -149,6 +149,8 @@ export function createDataTexture(data: ArrayBufferView, width: number, height: 
  * @param group - The group to update.
  */
 export function updateDataTexture(group: LayerGroup) {
+  if (group == undefined) return;
+
   console.debug(`Updating data texture for group ${group.name}`);
   group.layers.forEach((layer) => {
     if (layer.mesh != undefined) {
