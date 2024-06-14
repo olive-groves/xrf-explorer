@@ -28,12 +28,12 @@ def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray
 
 
 def get_scaled_cube_coordinates(
-    selection_coord_1: tuple[int, int],
-    selection_coord_2: tuple[int, int],
-    base_img_width: int,
-    base_img_height: int,
-    cube_width: int,
-    cube_height: int,
+        selection_coord_1: tuple[int, int],
+        selection_coord_2: tuple[int, int],
+        base_img_width: int,
+        base_img_height: int,
+        cube_width: int,
+        cube_height: int,
 ) -> tuple[tuple[int, int], tuple[int, int]]:
     """
     Calculates and returns the coordinates of a rectangular region within the data cube, scaled from the coordinates of a base image.
@@ -63,10 +63,74 @@ def get_scaled_cube_coordinates(
     return scaled_coord_1, scaled_coord_2
 
 
+def compute_bounding_box(polygon_vertices: list[tuple[int, int]]) -> tuple[tuple[int, int], tuple[int, int]]:
+    """
+    Compute the smallest rectangle encapsulating every point in a polygon.
+
+    :param polygon_vertices: List of points that make up the polygon (vertices).
+    :return: The top-left and bottom-right points of the computed bounding box, in that order.
+    """
+    x_coords: list[int] = [point[0] for point in polygon_vertices]
+    y_coords: list[int] = [point[1] for point in polygon_vertices]
+
+    return (min(x_coords), min(y_coords)), (max(x_coords), max(y_coords))
+
+
+def is_point_in_polygon(point: tuple[int, int], polygon_vertices: list[tuple[int, int]]) -> bool:
+    """
+    Compute whether a given point lies in a given polygon.
+    Adapted from https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/ .
+
+    :param point: The point to check.
+    :param polygon_vertices: The list of points that make up the polygon to check against.
+    :return: True if the point lies in the polygon, false otherwise.
+    """
+    inside: bool = False
+
+    poly_point_1: tuple[int, int] = polygon_vertices[0]
+
+    for i in range(1, len(polygon_vertices) + 1):
+        poly_point_2: tuple[int, int] = polygon_vertices[i % len(polygon_vertices)]
+
+        if point[1] > min(poly_point_1[1], poly_point_2[1]) and (
+                point[1] <= max(poly_point_1[1], poly_point_2[1])) and (
+                point[0] <= max(poly_point_1[0], poly_point_2[0])):
+
+            x_intersection: float = ((point[1] - poly_point_1[1]) * (poly_point_2[0] - poly_point_1[0])) / (
+                    poly_point_2[1] - poly_point_1[1]) + poly_point_1[0]
+
+            if poly_point_1[0] == poly_point_2[0] or point[0] <= x_intersection:
+                inside = not inside
+
+        poly_point_1 = poly_point_2
+
+    return inside
+
+
+def compute_selection_mask(selection_type: str, selection: list[tuple[int, int]], cube_width: int,
+                           cube_height: int) -> np.ndarray:
+    mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=bool)
+
+    if selection_type == "rectangle":
+        x1, y1 = selection[0]
+        x2, y2 = selection[1]
+        mask[y1: y2 + 1, x1: x2 + 1] = True
+
+    elif selection_type == "lasso":
+        top_left, bottom_right = compute_bounding_box(selection)
+
+        for x in range(top_left[0], bottom_right[0] + 1):
+            for y in range(top_left[1], bottom_right[1] + 1):
+                point: tuple[int, int] = (x, y)
+                mask[y, x] = is_point_in_polygon(point, selection)
+
+    return mask
+
+
 def get_selected_data_cube(
-    data_source_folder: str,
-    selection_coord_1: tuple[int, int],
-    selection_coord_2: tuple[int, int],
+        data_source_folder: str,
+        selection_coord_1: tuple[int, int],
+        selection_coord_2: tuple[int, int],
 ) -> np.ndarray | None:
     """
     Extracts and returns a 2D representation of a data cube region, based on the rectangular selection coordinates
@@ -115,15 +179,15 @@ def get_selected_data_cube(
         x2, y2 = selection_coord_2_cube
 
         mask: np.ndarray = np.zeros((cube_h, cube_w), dtype=bool)
-        mask[y1 : y2 + 1, x1 : x2 + 1] = True
+        mask[y1: y2 + 1, x1: x2 + 1] = True
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
         #       the best choice for performance, but the mask simplifies things, since it can be 
         #       used for all kinds of selections to be implemented in the future.
-        #       Also the performance decrease should be less than tenth of a second in most cases.
+        #       Also, the performance decrease should be less than tenth of a second in most cases.
         return extract_selected_data(data_cube, mask)
     else:
         # If the data cube has recipe, deregister the selection coordinates so they correctly represent 
         # the selected area on the data cube
-        LOG.warn("Deregistration logic not yet implemented!")
+        LOG.warning("Deregistration logic not yet implemented!")
         return np.array([])
