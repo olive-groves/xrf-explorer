@@ -67,37 +67,9 @@ export type ImageViewerConfig = {
  */
 export type SelectionToolConfig = {
   /**
-   * Mouse button that will add the current location point to the current selection.
-   */
-  addPointButton: number;
-  /**
-   * Mouse button that will cancel the current selection.
-   */
-  cancelButton?: number;
-  /**
-   * Keyboard key that will cancel the current selection.
-   */
-  cancelKey?: string;
-  /**
-   * Mouse button that will consolidate the current selection (not applicable to rectangle selection).
-   */
-  confirmButton?: number;
-  /**
-   * Keyboard key that will consolidate the current selection (not applicable to rectangle selection).
-   */
-  confirmKey?: string;
-  /**
    * Color in which the selected area should be displayed.
    */
-  fill_color: string;
-  /**
-   * Color of the outline of the selected area.
-   */
-  stroke_color: string;
-  /**
-   * Set the opacity of the selection overlay.
-   */
-  opacity: number;
+  fillColor: string;
 };
 
 /**
@@ -117,14 +89,7 @@ export const DefaultConfig: FrontendConfig = {
     chunkSize: 50000000, // 50 MB
   },
   selectionTool: {
-    addPointButton: 0, // left mouse button
-    cancelButton: undefined,
-    cancelKey: "Escape",
-    confirmButton: undefined,
-    confirmKey: "Enter",
-    fill_color: "#FFEF00", // shoutout to the canary islands
-    stroke_color: "#000000", // black
-    opacity: 0.5,
+    fillColor: "#FFFFFF",
   },
 };
 

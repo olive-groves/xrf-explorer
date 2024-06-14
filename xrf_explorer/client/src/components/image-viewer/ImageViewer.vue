@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
 import { computed, inject, onMounted, ref, watch } from "vue";
-import { ToolState } from "./types";
+import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { layers } from "./state";
@@ -12,6 +12,8 @@ import { getTargetSize } from "./api";
 import { BaseContextMenu } from "../menus";
 import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
+import { SelectionArea } from "../ui/selection-area";
+import { SelectionAreaType } from "@/lib/selection";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -26,14 +28,33 @@ const viewport: {
   zoom: 0,
 };
 
+/**
+ * The viewbox of the image viewer as calculated from the viewport in render().
+ */
+const viewbox = ref<{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}>({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+});
+
 watch(datasource, resetViewport);
 
 const toolState = ref<ToolState>({
-  tool: "grab",
+  tool: Tool.Grab,
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
   scrollSpeed: [config.imageViewer.defaultScrollSpeed],
   lensSize: [config.imageViewer.defaultLensSize],
 });
+
+const selectionToolActive = computed(() =>
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(toolState.value.tool as string),
+);
 
 let camera: THREE.OrthographicCamera;
 let renderer: THREE.WebGLRenderer;
@@ -77,7 +98,8 @@ function render() {
   const h = height.value * Math.exp(viewport.zoom);
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
-  const lensSize = toolState.value.tool == "lens" ? toolState.value.lensSize[0] : Number.MAX_VALUE;
+  viewbox.value = { x: x, y: y, w: w, h: h };
+  const lensSize = toolState.value.tool == Tool.Lens ? toolState.value.lensSize[0] : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
@@ -107,7 +129,9 @@ const dragging = ref(false);
  * Event handler for the onMouseDown event on the glcanvas.
  */
 function onMouseDown() {
-  dragging.value = true;
+  if (!selectionToolActive.value) {
+    dragging.value = true;
+  }
 }
 
 /**
@@ -176,7 +200,7 @@ function onWheel(event: WheelEvent) {
  * Determines the current cursor that should be used in the image viewer.
  */
 const cursor = computed(() => {
-  if (toolState.value.tool == "lens") {
+  if (toolState.value.tool == Tool.Lens) {
     return "crosshair";
   } else {
     return dragging.value ? "grabbing" : "grab";
@@ -192,15 +216,21 @@ const cursor = computed(() => {
       :style="{
         cursor: cursor,
       }"
+      @dblclick="resetViewport"
+      @mousedown="onMouseDown"
+      @mouseup="onMouseUp"
+      @mouseleave="onMouseLeave"
+      @mousemove="onMouseMove"
+      @wheel="onWheel"
     >
-      <canvas
-        ref="glcanvas"
-        @dblclick="resetViewport"
-        @mousedown="onMouseDown"
-        @mouseup="onMouseUp"
-        @mouseleave="onMouseLeave"
-        @mousemove="onMouseMove"
-        @wheel="onWheel"
+      <canvas ref="glcanvas" />
+      <SelectionArea
+        v-model="appState.selection.imageViewer"
+        :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
+        :x="viewbox.x"
+        :y="viewbox.y"
+        :w="viewbox.w"
+        :h="viewbox.h"
       />
       <Toolbar v-model:state="toolState" />
     </div>

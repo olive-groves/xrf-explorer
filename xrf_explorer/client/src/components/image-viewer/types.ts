@@ -1,3 +1,4 @@
+import { SelectionAreaType } from "@/lib/selection";
 import * as THREE from "three";
 
 /**
@@ -113,7 +114,12 @@ export type ToolState = {
 /**
  * The different tools in the image viewer.
  */
-export type Tool = "grab" | "lens" | "rectangle" | "lasso";
+export enum Tool {
+  Grab = "grab",
+  Lens = "lens",
+  Rectangle = SelectionAreaType.Rectangle,
+  Lasso = SelectionAreaType.Lasso,
+}
 
 /**
  * Type describing a group of layers as used in the LayerSystem.

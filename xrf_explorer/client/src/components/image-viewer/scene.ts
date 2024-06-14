@@ -22,6 +22,8 @@ import { getTargetSize } from "./api";
  * @param interpolated - Whether the sampler should interpolate between pixels.
  */
 export function loadLayer(layer: Layer, interpolated: boolean = true) {
+  THREE.Cache.enabled = false;
+
   new THREE.TextureLoader().loadAsync(layer.image).then(
     async (texture) => {
       texture.colorSpace = THREE.NoColorSpace;
@@ -77,6 +79,7 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
 
       layer.mesh = mesh;
 
+      console.debug(`Adding layer ${layer.id} to scene`);
       scene.scene.add(mesh);
     },
     (reason) => {
@@ -121,6 +124,7 @@ export function disposeLayer(layer: Layer) {
  * @returns The datatexture.
  */
 export function createDataTexture(data: ArrayBufferView, width: number, height: number): THREE.DataTexture {
+  console.debug(`Creating new ${width}x${height} data texture`);
   const texture = new THREE.DataTexture(
     data,
     width,
@@ -145,6 +149,7 @@ export function createDataTexture(data: ArrayBufferView, width: number, height: 
  * @param group - The group to update.
  */
 export function updateDataTexture(group: LayerGroup) {
+  console.debug(`Updating data texture for group ${group.name}`);
   group.layers.forEach((layer) => {
     if (layer.mesh != undefined) {
       (layer.mesh!.material as THREE.Material).needsUpdate = true;
