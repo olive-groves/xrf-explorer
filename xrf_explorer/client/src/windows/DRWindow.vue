@@ -153,7 +153,7 @@ async function updateEmbedding() {
   <Window title="Dimensionality reduction" location="left">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
-      <div class="space-y-1">
+      <div class="space-y-2">
         <p class="font-bold">Embedding</p>
         <Select v-model="selectedElement">
           <SelectTrigger>
@@ -166,7 +166,7 @@ async function updateEmbedding() {
           </SelectContent>
         </Select>
         <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
-        <Button class="!mt-2 w-full" @click="updateEmbedding">Generate embedding</Button>
+        <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
       </div>
 
       <!-- OVERLAY SECTION -->
