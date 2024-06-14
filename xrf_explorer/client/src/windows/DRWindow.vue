@@ -6,6 +6,15 @@ import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
@@ -49,7 +58,7 @@ enum Status {
 }
 
 const status = ref(Status.WELCOME);
-const currentError = ref("Unknown error.");
+const currentError = ref("Unknown error");
 
 // Dimensionality reduction parameters
 const threshold = ref([100]);
@@ -70,7 +79,7 @@ const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
 async function fetchDRImage() {
   // Check if the user specified an overlay
   if (selectedOverlay.value == null) {
-    currentError.value = "Please select an overlay.";
+    currentError.value = "Please select an overlay";
     status.value = Status.ERROR;
     return;
   }
@@ -94,7 +103,7 @@ async function fetchDRImage() {
     // Update status
     status.value = Status.SUCCESS;
   } else {
-    currentError.value = "Loading overlay failed.";
+    currentError.value = "Failed to load overlay, make sure embedding has been generated";
     status.value = Status.ERROR;
   }
 }
@@ -107,7 +116,7 @@ async function fetchDRImage() {
 async function updateEmbedding() {
   // Check if an element was selected, if not return message to user.
   if (selectedElement.value == null) {
-    currentError.value = "Please select an element.";
+    currentError.value = "Please select an element";
     status.value = Status.ERROR;
     return;
   }
@@ -135,7 +144,7 @@ async function updateEmbedding() {
   }
 
   // Set status to error
-  currentError.value = "Generating embedding failed.";
+  currentError.value = "Generating embedding failed";
   status.value = Status.ERROR;
 }
 </script>
@@ -143,7 +152,7 @@ async function updateEmbedding() {
 <template>
   <Window title="Dimensionality reduction" location="left">
     <div class="space-y-2 p-2">
-      <!-- PARAMETERS SECTIONS -->
+      <!-- EMBEDDING GENERATION -->
       <div class="space-y-1">
         <p class="font-bold">Embedding</p>
         <Select v-model="selectedElement">
@@ -151,7 +160,7 @@ async function updateEmbedding() {
             <SelectValue placeholder="Select an element" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
+            <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel.toString()">
               {{ element.name }}
             </SelectItem>
           </SelectContent>
@@ -162,34 +171,31 @@ async function updateEmbedding() {
 
       <!-- OVERLAY SECTION -->
       <div class="space-y-1">
-        <p class="mt-4 font-bold">Overlay</p>
-        <div class="flex items-center space-x-2">
-          <Select v-model="selectedOverlay">
-            <SelectTrigger>
-              <SelectValue placeholder="Select an overlay" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Contextual images</SelectLabel>
-                <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
-                  {{ image.name }}
-                </SelectItem>
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Elements</SelectLabel>
-                <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
-                  {{ element.name }}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" class="shrink-0" @click="fetchDRImage">Show</Button>
-        </div>
+        <p class="font-bold">Overlay</p>
+        <Select v-model="selectedOverlay" @update:model-value="fetchDRImage">
+          <SelectTrigger>
+            <SelectValue placeholder="Select an overlay" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Contextual images</SelectLabel>
+              <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
+                {{ image.name }}
+              </SelectItem>
+            </SelectGroup>
+            <SelectGroup>
+              <SelectLabel>Elements</SelectLabel>
+              <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
+                {{ element.name }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- GENERATION OF THE IMAGE -->
       <div class="flex flex-col items-center justify-center space-y-2 rounded-md border p-8 text-center" ref="output">
-        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
+        <span v-if="status == Status.WELCOME">Generate an embedding and choose an overlay</span>
         <span v-if="status == Status.LOADING">Loading</span>
         <span v-if="status == Status.GENERATING">Generating</span>
         <span v-if="status == Status.ERROR">{{ currentError }}</span>
