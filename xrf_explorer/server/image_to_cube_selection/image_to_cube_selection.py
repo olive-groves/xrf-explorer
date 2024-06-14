@@ -299,37 +299,12 @@ def get_selection(
     else:
         # If the data cube has recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
-        x1: int
-        x2: int
-        y1: int
-        y2: int
-        x1, y1 = selection_coord_1
-        x2, y2 = selection_coord_2
-
-        # Get all 4 points of the selection rectangle
-        p1: tuple[int, int] = (x1, y1)
-        p2: tuple[int, int] = (x1, y2)
-        p3: tuple[int, int] = (x2, y1)
-        p4: tuple[int, int] = (x2, y2)
-
-        # Deregister to cube coordinates
         args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
-        p1_cube: tuple[int, int] = deregister_coord(p1, *args)
-        p2_cube: tuple[int, int] = deregister_coord(p2, *args)
-        p3_cube: tuple[int, int] = deregister_coord(p3, *args)
-        p4_cube: tuple[int, int] = deregister_coord(p4, *args)
+        selection_coords_deregistered: list[tuple[int, int]] = []
+        for coord in selection_coords:
+            coord_deregistered: tuple[int, int] = deregister_coord(coord, *args)
+            selection_coords_deregistered.append(coord_deregistered)
 
-        cube_points: np.ndarray = np.array([p1_cube, p2_cube, p3_cube, p4_cube])
-        mask: np.ndarray = np.zeros((cube_h, cube_w), dtype=np.uint8)
-
-        # Calculate the smallest convex set that contains all the points
-        # The purpose of this is to order the points so they construct a polygon instead
-        # of an hourglass figure
-        convex_hull: np.ndarray = convexHull(cube_points)
-
-        # Write 1's in the polygon area
-        fillConvexPoly(mask, convex_hull, (1,))
-
-        mask: np.ndarray = mask.astype(bool)
+        mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_deregistered, cube_w, cube_h)
 
         return extract_selected_data(data_cube, mask)
