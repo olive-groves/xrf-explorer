@@ -20,17 +20,19 @@ from xrf_explorer.server.file_system.file_access import get_elemental_cube_recip
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.elemental_cube import (
-    get_short_element_names, get_element_averages, get_elemental_cube_path,
+    get_short_element_names, get_element_averages,
     get_elemental_map, normalize_ndarray_to_grayscale,
     get_element_averages_selection
 )
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
+from xrf_explorer.server.file_system.file_access import (
+    get_elemental_cube_path,
+    get_raw_rpl_paths,
+    get_base_image_name
+)
 from xrf_explorer.server.image_register.register_image import load_points_dict
-from xrf_explorer.server.file_system.file_access import *
 from xrf_explorer.server.dim_reduction import (
     generate_embedding,
     create_embedding_image,
-    get_path_to_dr_folder,
     get_image_of_indices_to_embedding
 )
 from xrf_explorer.server.color_seg import (
