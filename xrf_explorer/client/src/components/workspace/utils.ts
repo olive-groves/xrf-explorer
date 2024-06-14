@@ -53,7 +53,7 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
  * @returns Whether the initialization was successfull.
  */
 export async function initializeChannels(workspace: WorkspaceConfig): Promise<boolean> {
-  const response = await fetch(`${config.api.endpoint}/${workspace.name}/element_names`);
+  const response = await fetch(`${config.api.endpoint}/${workspace.name}/data/elements/names`);
 
   if (!response.ok) {
     return false;
