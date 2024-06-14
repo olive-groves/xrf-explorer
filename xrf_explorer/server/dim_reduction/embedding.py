@@ -10,7 +10,9 @@ from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system import (
     get_elemental_data_cube, get_elemental_cube_path, normalize_ndarray_to_grayscale
 )
-from xrf_explorer.server.dim_reduction.general import valid_element, get_path_to_dr_folder
+from xrf_explorer.server.dim_reduction.general import (
+    valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
+)
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -49,7 +51,7 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     :param element: The element to filter on.
     :param threshold: The threshold to filter by.
     :param max_indices: The maximum number of indices to return.
-    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; boolean whether the indices were downsampled.
+    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; the reduced list of indices.
     """
 
     # normalize the elemental map to [0, 255]
@@ -57,21 +59,21 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     normalized_elemental_map: np.ndarray = normalize_ndarray_to_grayscale(elemental_cube[element])
     
     # get all indices for which the intensity of the given element is above the threshold
-    indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
+    all_indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
 
     # check if the number of indices is higher than the configured limit
     # if so, the indices are randomly downsampled
-    down_sampled: bool = False
-    if indices.shape[0] > max_indices:
+    if all_indices.shape[0] > max_indices:
         LOG.info("Number of data points for dimensionality reduction is higher than the configured limit. "
-                 "Points will be randomly downsampled, (%i -> %i)", indices.shape[0], max_indices)
+                 "Points will be randomly downsampled, (%i -> %i)", all_indices.shape[0], max_indices)
         
         # Use default rng to ensure random selection every time
-        indices = indices[np.random.default_rng().choice(indices.shape[0], size=max_indices)]
-        down_sampled = True
+        reduced_indices = all_indices[np.random.default_rng().choice(all_indices.shape[0], size=max_indices)]
+        
+        return all_indices, reduced_indices
 
     # return the filtered indices
-    return indices, down_sampled
+    return all_indices, all_indices
 
 
 def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {}) -> str:
@@ -113,8 +115,8 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
 
     # filter data
     max_samples: int = int(backend_config['dim-reduction']['max-samples'])
-    indices, down_sampled = filter_elemental_cube(data_cube, element, threshold, max_samples)
-    filtered_data: np.ndarray = data_cube[:, indices[:, 0], indices[:, 1]].transpose()
+    all_indices, reduced_indices = filter_elemental_cube(data_cube, element, threshold, max_samples)
+    filtered_data: np.ndarray = data_cube[:, reduced_indices[:, 0], reduced_indices[:, 1]].transpose()
 
     # compute embedding
     LOG.info(f"Generating embedding with: {{element: {element}, threshold: {threshold}, size: {filtered_data.shape}}}")
@@ -140,10 +142,14 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
         mkdir(dr_folder)
 
     # save indices and embedded data
-    np.save(join(dr_folder, 'indices.npy'), indices)
+    np.save(join(dr_folder, 'indices.npy'), reduced_indices)
+    np.save(join(dr_folder, 'all_indices.npy'), all_indices)
     np.save(join(dr_folder, 'embedded_data.npy'), embedded_data)
 
+    # create image of indices to embedding
+    create_image_of_indices_to_embedding(data_source)
+
     LOG.info("Generated embedding successfully")
-    if down_sampled:
+    if len(all_indices) != len(reduced_indices):
         return "downsampled"
     return "success"

@@ -6,3 +6,4 @@ windows
 
    spectra_chart
    bar_chart
+   dim_reduction
