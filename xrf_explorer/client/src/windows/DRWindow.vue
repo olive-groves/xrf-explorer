@@ -141,79 +141,75 @@ async function updateEmbedding() {
 
 <template>
   <Window title="Dimensionality reduction" location="left">
-    <!-- OVERLAY SECTION -->
-    <div class="p-2">
-      <p class="font-bold">Overlay:</p>
-      <div class="mt-1 flex items-center">
-        <Select v-model="selectedOverlay">
-          <SelectTrigger>
-            <SelectValue placeholder="Select an overlay" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Contextual images:</SelectLabel>
-              <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
-                {{ image.name }}
-              </SelectItem>
-            </SelectGroup>
-            <SelectGroup>
-              <SelectLabel>Elements:</SelectLabel>
-              <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
-                {{ element.name }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button class="ml-2 w-40" @click="fetchDRImage">Show overlay</Button>
-      </div>
+    <div class="space-y-2 p-2">
       <!-- PARAMETERS SECTIONS -->
-      <p class="mt-4 font-bold">Embedding:</p>
-      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
-      <div class="mt-1 flex items-center">
-        <Select v-model="selectedElement">
-          <SelectTrigger>
-            <SelectValue placeholder="Select an element" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Elements</SelectLabel>
+      <div class="space-y-1">
+        <p class="font-bold">Embedding</p>
+        <div class="flex items-center space-x-2">
+          <Select v-model="selectedElement">
+            <SelectTrigger>
+              <SelectValue placeholder="Select an element" />
+            </SelectTrigger>
+            <SelectContent>
               <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
                 {{ element.name }}
               </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button class="ml-2 w-40" @click="updateEmbedding">Generate</Button>
+            </SelectContent>
+          </Select>
+          <Button class="w-24 shrink-0" @click="updateEmbedding">Generate</Button>
+        </div>
+        <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
       </div>
+
+      <!-- OVERLAY SECTION -->
+      <div class="space-y-1">
+        <p class="font-bold">Overlay</p>
+        <div class="flex items-center space-x-2">
+          <Select v-model="selectedOverlay">
+            <SelectTrigger>
+              <SelectValue placeholder="Select an overlay" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Contextual images</SelectLabel>
+                <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
+                  {{ image.name }}
+                </SelectItem>
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Elements</SelectLabel>
+                <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
+                  {{ element.name }}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Button class="w-24 shrink-0" @click="fetchDRImage">Show</Button>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+
       <!-- GENERATION OF THE IMAGE -->
-      <p class="mt-4 font-bold">Generated image:</p>
-      <div
-        class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
-        style="position: relative"
-        tabindex="0"
-        id="imageContainer"
-        ref="output"
-      >
-        <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
-          <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
-          <span v-if="status == Status.LOADING">Loading</span>
-          <span v-if="status == Status.GENERATING">Generating</span>
-          <span v-if="status == Status.ERROR">{{ currentError }}</span>
-          <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
-            <LoaderPinwheel class="size-full animate-spin" />
-          </div>
-          <div class="relative m-8" v-if="status == Status.SUCCESS">
-            <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
-            <SelectionArea
-              v-model="appState.selection.dimensionalityReduction"
-              :type="SelectionAreaType.Lasso"
-              :click-margin="remToPx(2)"
-              :x="0"
-              :y="0"
-              :w="256"
-              :h="256"
-            />
-          </div>
+      <div class="flex flex-col items-center justify-center space-y-2 rounded-md border p-8 text-center" ref="output">
+        <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
+        <span v-if="status == Status.LOADING">Loading</span>
+        <span v-if="status == Status.GENERATING">Generating</span>
+        <span v-if="status == Status.ERROR">{{ currentError }}</span>
+        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
+          <LoaderPinwheel class="size-full animate-spin" />
+        </div>
+        <div class="relative" v-if="status == Status.SUCCESS">
+          <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
+          <SelectionArea
+            v-model="appState.selection.dimensionalityReduction"
+            :type="SelectionAreaType.Lasso"
+            :click-margin="remToPx(2)"
+            :x="0"
+            :y="0"
+            :w="256"
+            :h="256"
+          />
         </div>
       </div>
     </div>
