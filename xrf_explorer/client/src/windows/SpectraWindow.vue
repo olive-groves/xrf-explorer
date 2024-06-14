@@ -38,9 +38,8 @@ interface Point {
 function setup() {
   ready = binned.value;
   watch(binned, () => {
-    console.log("test");
     ready = binned.value;
-    plotAverageSpectrum;
+    plotAverageSpectrum();
   });
   // set the dimensions and margins of the graph
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
@@ -96,7 +95,6 @@ async function plotAverageSpectrum() {
           "Content-Type": "application/json",
         },
       });
-      console.log("test");
       const data = await response.json();
 
       //create line

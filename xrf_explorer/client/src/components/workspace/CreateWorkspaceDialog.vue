@@ -220,11 +220,11 @@ async function binData() {
     method: "POST",
   }).then((response) => {
     // If the response is successful (status code 200), update the progress
-    console.log("responsed");
     if (response.ok) {
+      // If a workspace is already loaded, update binned in the app state
       if (typeof appState.workspace !== "undefined") {
         appState.workspace.spectralParams.binned = true;
-        console.log(appState.workspace.spectralParams.binned);
+
       }
       workspace.value.spectralParams.binned = true;
     } else throw new Error("Binning failed");
