@@ -25,15 +25,6 @@ watch(color, onColorUpdate, { immediate: true, deep: true });
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
 /**
- * Set the color of the selection layer.
- * @param color - Color to be used for highlighting the selection.
- */
-function setSelectionColor(color: [number, number, number]): void {
-  color.push(0); // opacity set to 0 (used for bitmask)
-  for (let i: number = 0; i < data.length; i++) data[i] = color[i % 4];
-}
-
-/**
  * Updates the color used by the shader for the highlighted areas.
  * @param newColor - The new color for the highlighted area.
  */
@@ -253,8 +244,6 @@ export function updateMiddleImage(): void {
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
-  setSelectionColor(hexToRgb(config.selectionTool.fillColor));
-
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
