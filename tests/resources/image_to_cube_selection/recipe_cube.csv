@@ -1,0 +1,13 @@
+Butterfly Registrator
+1.0
+control points
+Assumes moving image(s) resized and padded to match target image dimensions
+target
+196_1989_RGB.tif
+moving
+196_1989_area image_1069_1187.tif
+x|y|x|y
+299.82462|694.6813|294.5463|453.40106
+4604.955|437.0067|4598.1274|240.4067
+582.73035|4826.8154|599.2073|4587.2363
+4713.3477|4840.8037|4738.756|4640.4604

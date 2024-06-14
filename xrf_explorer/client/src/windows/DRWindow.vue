@@ -7,11 +7,11 @@ import { ContextualImage } from "@/lib/workspace";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
-import { Point2D } from "@/lib/utils";
-import { LassoSelectionTool } from "@/lib/selection";
-import * as d3 from "d3";
 import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
+import { SelectionArea } from "@/components/ui/selection-area";
+import { SelectionAreaType } from "@/lib/selection";
+import { remToPx } from "@/lib/utils";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -56,11 +56,6 @@ const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
-
-// Selection
-const svgOverlay = ref<HTMLElement>();
-const embeddingImage = ref<HTMLElement>();
-const selectionTool: LassoSelectionTool = new LassoSelectionTool();
 
 /**
  * Fetch the dimensionality reduction image
@@ -142,134 +137,10 @@ async function updateEmbedding() {
   currentError.value = "Generating embedding failed.";
   status.value = Status.ERROR;
 }
-
-/**
- * Handle the event where the user cancels the current selection.
- */
-function cancelSelection() {
-  selectionTool.cancelSelection();
-}
-
-/**
- * Handle the event where the user confirms the current selection.
- */
-function confirmSelection() {
-  selectionTool.confirmSelection();
-}
-
-/**
- * Handle mouse events when the mouse is clicked.
- * @param event - The mouse event.
- */
-function onMouseDown(event: MouseEvent) {
-  if (event.button == config.selectionTool.cancelButton) cancelSelection();
-  else if (event.button == config.selectionTool.addPointButton) {
-    const svg: HTMLElement | undefined = svgOverlay.value;
-    if (svg != undefined) {
-      // compute the position of the click relative to the SVG based on the client coordinates
-      const clickedPos = {
-        x: event.clientX - svg.getBoundingClientRect().left,
-        y: event.clientY - svg.getBoundingClientRect().top,
-      };
-      selectionTool.addPointToSelection(clickedPos);
-    }
-  } else if (event.button == config.selectionTool.confirmButton) confirmSelection();
-
-  updateSelectionVisuals();
-}
-
-/**
- * Handle keyboard events when the user presses a key.
- * @param event - The keyboard event.
- */
-function onKeyDown(event: KeyboardEvent) {
-  if (event.key == config.selectionTool.cancelKey) cancelSelection();
-  else if (event.key == config.selectionTool.confirmKey) confirmSelection();
-
-  updateSelectionVisuals();
-}
-
-/**
- * Update the visual representation of the selection in the embedding image and in the main viewer.
- */
-function updateSelectionVisuals() {
-  // update the embedding's SVG overlay
-  drawSelection();
-
-  // relay information to the image viewer
-  if (!selectionTool.activeSelection) {
-    console.info("Confirmed selection with " + selectionTool.selectedPoints.length + " points.");
-    communicateSelectionWithImageViewer();
-  }
-}
-
-/**
- * Returns the dimensions of the embedding image element.
- * @returns The dimensions of the embedding image element.
- */
-function getImageSize() {
-  // if the image is not found, drawing on an SVG of dimensions 0 will simply clear the SVG.
-  const imageDimensions: { x: number; y: number; width: number; height: number } = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  };
-
-  const image: HTMLElement | undefined = embeddingImage.value;
-
-  if (image == undefined) console.warn("Tried to draw selection but could not find image element in DR window.");
-  else {
-    // update dimensions with image element values to fit the SVG to the image
-    const rect = image.getBoundingClientRect();
-    imageDimensions.x = rect.left;
-    imageDimensions.y = rect.top;
-    imageDimensions.width = rect.width;
-    imageDimensions.height = rect.height;
-  }
-
-  return imageDimensions;
-}
-
-/**
- * Reset the SVG overlay.
- */
-function resetSelection() {
-  selectionTool.resetSVGDrawing(d3.select(svgOverlay.value!), getImageSize());
-  selectionTool.cancelSelection();
-}
-
-/**
- * Draw the shape of the selection on the SVG overlay.
- */
-function drawSelection() {
-  selectionTool.draw(d3.select(svgOverlay.value!), getImageSize());
-}
-
-/**
- * Send the relevant information about the selection to the image viewer.
- */
-async function communicateSelectionWithImageViewer() {
-  const image: HTMLElement | undefined = embeddingImage.value;
-  if (image == undefined) {
-    console.warn("Tried to get the image bounds but could not find image element in DR window.");
-    return;
-  }
-  const rect = image.getBoundingClientRect(); // get the dimensions of the current window on the client
-
-  // communicate the information to the image viewer using the app's state (selection is scaled down to a 256x256 image)
-  appState.selection.dimensionalityReduction = {
-    selectionType: selectionTool.type(),
-    points: selectionTool.selectedPoints.map((point: Point2D) => ({
-      x: Math.round((point.x * 255) / rect.width),
-      y: Math.round((point.y * 255) / rect.height),
-    })),
-  };
-}
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" location="left" @window-mounted="drawSelection">
+  <Window title="Dimensionality reduction" location="left">
     <!-- OVERLAY SECTION -->
     <div class="p-2">
       <p class="font-bold">Overlay:</p>
@@ -319,9 +190,7 @@ async function communicateSelectionWithImageViewer() {
       <div
         class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
         style="position: relative"
-        @mousedown="onMouseDown"
         tabindex="0"
-        @keydown="onKeyDown"
         id="imageContainer"
         ref="output"
       >
@@ -333,19 +202,18 @@ async function communicateSelectionWithImageViewer() {
           <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
-          <img
-            v-if="status == Status.SUCCESS"
-            :src="imageSourceUrl"
-            ref="embeddingImage"
-            @error="status = Status.ERROR"
-            @load="resetSelection()"
-          />
-          <svg
-            v-if="status == Status.SUCCESS"
-            ref="svgOverlay"
-            @error="status = Status.ERROR"
-            style="position: absolute; cursor: crosshair"
-          ></svg>
+          <div class="relative m-8" v-if="status == Status.SUCCESS">
+            <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
+            <SelectionArea
+              v-model="appState.selection.dimensionalityReduction"
+              :type="SelectionAreaType.Lasso"
+              :click-margin="remToPx(2)"
+              :x="0"
+              :y="0"
+              :w="256"
+              :h="256"
+            />
+          </div>
         </div>
       </div>
     </div>
