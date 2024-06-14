@@ -105,12 +105,8 @@ async function fetchDRImage() {
  * If embedding was generated successfully, it fetches the new image.
  */
 async function updateEmbedding() {
-  // Check if an element and overlay were selected, if not return message to user.
-  if (selectedOverlay.value == null) {
-    currentError.value = "Please select an overlay.";
-    status.value = Status.ERROR;
-    return;
-  } else if (selectedElement.value == null) {
+  // Check if an element was selected, if not return message to user.
+  if (selectedElement.value == null) {
     currentError.value = "Please select an element.";
     status.value = Status.ERROR;
     return;
