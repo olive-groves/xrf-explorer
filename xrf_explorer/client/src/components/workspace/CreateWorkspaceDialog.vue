@@ -223,7 +223,6 @@ async function binData() {
       // If a workspace is already loaded, update binned in the app state
       if (typeof appState.workspace !== "undefined") {
         appState.workspace.spectralParams.binned = true;
-
       }
       workspace.value.spectralParams.binned = true;
     } else throw new Error("Binning failed");

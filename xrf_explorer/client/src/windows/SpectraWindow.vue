@@ -120,8 +120,8 @@ async function plotAverageSpectrum() {
 }
 
 if (false) {
-  const selection = ""
-  plotSelectionSpectrum(selection)
+  const selection = "";
+  plotSelectionSpectrum(selection);
 }
 
 /**
