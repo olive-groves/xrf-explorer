@@ -12,7 +12,8 @@ import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { hexToRgb, Point2D } from "@/lib/utils";
 import { config } from "@/main";
 
-const selection = computed(() => appState.selection.dimensionalityReduction);
+const color = computed(() => appState.selection.dimensionalityReduction.color);
+const selection = computed(() => appState.selection.dimensionalityReduction.area);
 
 const width: number = 256; // arbitrary amount to compress embedding data
 const height: number = 256; // arbitrary amount to compress embedding data
@@ -20,6 +21,7 @@ const height: number = 256; // arbitrary amount to compress embedding data
 const data: Uint8Array = new Uint8Array(width * height * 4);
 const dataTexture: DataTexture = createDataTexture(data, width, height);
 
+watch(color, onColorUpdate, { immediate: true, deep: true });
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
 /**
@@ -29,6 +31,25 @@ watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 function setSelectionColor(color: [number, number, number]): void {
   color.push(0); // opacity set to 0 (used for bitmask)
   for (let i: number = 0; i < data.length; i++) data[i] = color[i % 4];
+}
+
+/**
+ * Updates the color used by the shader for the highlighted areas.
+ * @param newColor - The new color for the highlighted area.
+ */
+function onColorUpdate(newColor: string) {
+  // Get the color as RGB values
+  const color = hexToRgb(newColor);
+
+  // Set the color in every pixel of the bitmask
+  for (let i = 0; i < width * height * 4; i += 4) {
+    data[i + 0] = color[0];
+    data[i + 1] = color[1];
+    data[i + 2] = color[2];
+  }
+
+  // Update the data texture on the GPU
+  updateDataTexture(layerGroups.value.selection);
 }
 
 /**

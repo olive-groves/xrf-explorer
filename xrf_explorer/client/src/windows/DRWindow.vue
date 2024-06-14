@@ -4,14 +4,16 @@ import { appState, datasource, elements } from "@/lib/appState";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
-import { LoaderPinwheel } from "lucide-vue-next";
+import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
+import { Separator } from "@/components/ui/separator";
 import { SelectionAreaType } from "@/lib/selection";
 import { remToPx } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -56,6 +58,9 @@ const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
+
+// Selection
+const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
 
 /**
  * Fetch the dimensionality reduction image
@@ -188,8 +193,6 @@ async function updateEmbedding() {
         </div>
       </div>
 
-      <!-- TOOLBAR -->
-
       <!-- GENERATION OF THE IMAGE -->
       <div class="flex flex-col items-center justify-center space-y-2 rounded-md border p-8 text-center" ref="output">
         <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
@@ -202,8 +205,8 @@ async function updateEmbedding() {
         <div class="relative" v-if="status == Status.SUCCESS">
           <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
           <SelectionArea
-            v-model="appState.selection.dimensionalityReduction"
-            :type="SelectionAreaType.Lasso"
+            v-model="appState.selection.dimensionalityReduction.area"
+            :type="selectionAreaType"
             :click-margin="remToPx(2)"
             :x="0"
             :y="0"
@@ -211,6 +214,35 @@ async function updateEmbedding() {
             :h="256"
           />
         </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="flex w-min rounded-md border p-1">
+        <ToggleGroup v-model:model-value="selectionAreaType">
+          <ToggleGroupItem class="size-8 p-2" title="Rectangle selection" :value="SelectionAreaType.Rectangle">
+            <SquareMousePointer />
+          </ToggleGroupItem>
+          <ToggleGroupItem class="size-8 p-2" title="Lasso selection" :value="SelectionAreaType.Lasso">
+            <LassoSelect />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Separator orientation="vertical" class="mx-1 h-8" />
+        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2 hover:bg-accent">
+          <div
+            for="color_dr"
+            class="size-4 rounded-md border border-border"
+            :style="{
+              'background-color': appState.selection.dimensionalityReduction.color,
+            }"
+          />
+        </Label>
+        <Input
+          class="hidden"
+          :id="`color_dr`"
+          default-value="#FFFFFF"
+          @update:model-value="(value: string) => (appState.selection.dimensionalityReduction.color = value)"
+          type="color"
+        />
       </div>
     </div>
   </Window>
