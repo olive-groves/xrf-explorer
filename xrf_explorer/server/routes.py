@@ -20,7 +20,7 @@ from xrf_explorer.server.file_system.file_access import get_elemental_cube_recip
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system import get_short_element_names, get_element_averages, get_elemental_cube_path, \
-    get_elemental_map, normalize_ndarray_to_grayscale
+    get_elemental_map, normalize_ndarray_to_grayscale, get_element_names
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.file_system.file_access import *
@@ -256,7 +256,7 @@ def list_element_names(data_source: str):
     """
     path: str = get_elemental_cube_path(data_source)
 
-    names: list[str] = get_short_element_names(path)
+    names: list[str] = get_element_names(path)
     try:
         return json.dumps(names)
     except Exception as e:
