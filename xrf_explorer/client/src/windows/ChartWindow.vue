@@ -7,7 +7,6 @@ import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/l
 import { ElementalChannel } from "@/lib/workspace";
 import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
-import { round } from "mathjs";
 import { Point2D } from "@/lib/utils";
 
 const chart = ref<HTMLElement>();
@@ -32,7 +31,7 @@ type Element = {
 interface RequestBody {
   type: SelectionAreaType | undefined;
   points: Point2D[];
-};
+}
 
 // Chart type checkboxes
 const barChecked = ref(true);
@@ -80,12 +79,11 @@ async function fetchAverages(url: string, selecting: boolean, selection: Selecti
   // Request body for selection
   const request_body: RequestBody = {
     type: selection.type,
-    points: selection.points
+    points: selection.points,
   };
 
   // If the request is for a selection, change the request accordingly
-  if (selecting)
-    request_url += `_selection`;
+  if (selecting) request_url += `_selection`;
 
   // Make API call
   const response: Response = await fetch(request_url, {
@@ -93,7 +91,7 @@ async function fetchAverages(url: string, selecting: boolean, selection: Selecti
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(request_body)
+    body: JSON.stringify(request_body),
   });
   let fetchSuccessful: boolean = false;
 
