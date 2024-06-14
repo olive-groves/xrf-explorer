@@ -82,7 +82,6 @@ async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
 
   // update the layer to display the selection
   updateLayer(newSelection.points.length);
-  toast.info("Now displaying the dimensionality reduction selection.");
   console.info("Updated the image viewer to display the selection in the DR window.");
 }
 
