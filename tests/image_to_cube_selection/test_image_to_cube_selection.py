@@ -4,6 +4,7 @@ from xrf_explorer.server.file_system.config_handler import set_config
 from xrf_explorer.server.image_to_cube_selection import (
     get_selected_data_cube,
     get_scaled_cube_coordinates,
+    deregister_coord
 )
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import (
@@ -49,7 +50,7 @@ class TestImageToCubeSelection:
             data_source_folder_name} does not exist."
 
         result: np.ndarray | None = get_selected_data_cube(
-            data_source_folder_name, RGB_POINT_1, RGB_POINT_2)
+            data_source_folder_name, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2)
 
         assert result is None
         assert expected_output in caplog.text
@@ -59,7 +60,7 @@ class TestImageToCubeSelection:
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
         result: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, RGB_POINT_1, RGB_POINT_2)
+            self.DATA_SOURCE_FOLDER_NAME, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2)
 
         assert result is not None
 
