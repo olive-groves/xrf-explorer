@@ -1,24 +1,27 @@
-from xrf_explorer.server.spectra import *
+from xrf_explorer.server.spectra import get_average_global, get_average_selection
+import numpy as np
+
 
 class TestSpectra:
-    
-    def test_get_average_global(self, caplog):
+
+    def test_get_average_global(self):
         data = np.array([[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
                         [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]])
-        low = 1
-        high = 3
-        bin_size = 1
-        result = get_average_global(data, low, high, bin_size)
-        expected_result = [{"index": 1, "value": 2.0}, {"index": 2, "value": 3.0}]
-        assert result==expected_result
-        
-    def test_get_average_selection(self, caplog):
-        data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
-                        [[1, 2, 3, 4], [1, 2, 1, 2], [1, 2, 3, 4]]])
-        low = 1
-        high = 3
-        bin_size = 1
-        pixels = [[0,0], [1,1]]
-        result = get_average_selection(data, pixels, low, high, bin_size)
-        expected_result = [{"index": 1, "value": 3.0}, {"index": 2, "value": 2.0}]
-        assert result==expected_result
+
+        result = get_average_global(data)
+        expected_result = [{"index": 0, "value": 1.0},
+                           {"index": 1, "value": 2.0},
+                           {"index": 2, "value": 3.0},
+                           {"index": 3, "value": 4.0}]
+        assert result == expected_result
+
+    def test_get_average_selection(self):
+        data = np.array([[3, 4, 3, 4], [1, 2, 3, 4], [2, 2, 3, 4],
+                        [2, 0, 3, 4]])
+
+        result = get_average_selection(data)
+        expected_result = [{"index": 0, "value": 2.0},
+                           {"index": 1, "value": 2.0},
+                           {"index": 2, "value": 3.0},
+                           {"index": 3, "value": 4.0}]
+        assert result == expected_result

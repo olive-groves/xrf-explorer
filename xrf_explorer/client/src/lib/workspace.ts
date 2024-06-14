@@ -26,6 +26,10 @@ export type WorkspaceConfig = {
    * All elemental channels present in the elemental cubes.
    */
   elementalChannels: ElementalChannel[];
+  /**
+   * The parameters to read the spectral data.
+   */
+  spectralParams: SpectralParams;
 };
 
 /**
@@ -67,6 +71,28 @@ export type SpectralCube = {
    * The location of the registering recipe, used by the backend.
    */
   recipeLocation: string;
+};
+
+/**
+ * Parameters to read the data cube.
+ */
+export type SpectralParams = {
+  /**
+   * The lower channel boundary to be used.
+   */
+  low: number;
+  /**
+   * The higher channel boundary to be used.
+   */
+  high: number;
+  /**
+   * The bin size to be used while reading the raw data.
+   */
+  binSize: number;
+  /**
+   * Indicating wether the data has already been binned.
+   */
+  binned: boolean;
 };
 
 /**

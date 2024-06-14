@@ -10,6 +10,7 @@ import { inject, ref } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { deepClone } from "@/lib/utils";
 import { initializeChannels, validateWorkspace } from "./utils";
+import { appState } from "@/lib/appState";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -31,6 +32,12 @@ function createEmptyWorkspace(): WorkspaceConfig {
     spectralCubes: [],
     elementalCubes: [],
     elementalChannels: [],
+    spectralParams: {
+      low: 0,
+      high: 4096,
+      binSize: 1,
+      binned: false,
+    },
   };
 }
 
@@ -70,7 +77,6 @@ async function initializeDataSource() {
       toast.warning("Data source name must not be empty");
       return;
     }
-
     // Create the data source directory
     const response = await fetch(`${config.api.endpoint}/${name}/create`, { method: "POST" });
 
@@ -82,7 +88,6 @@ async function initializeDataSource() {
       });
       return;
     }
-
     // Set name in workspace
     workspace.value.name = name;
 
@@ -112,7 +117,6 @@ function resetProgress() {
  */
 async function removeDataSource() {
   const name = workspace.value.name;
-
   try {
     const response = await fetch(`${config.api.endpoint}/${name}/abort`, { method: "GET" });
 
@@ -132,7 +136,7 @@ async function removeDataSource() {
 
 /**
  * Completes setup by saving the initialized workspace.json to the backend.
- * @returns - Whether setup was successfull.
+ * @returns - Whether setup was successful.
  */
 async function setupWorkspace(): Promise<boolean> {
   fileDialog.value = false;
@@ -168,11 +172,11 @@ async function setupWorkspace(): Promise<boolean> {
 
 /**
  * Creates the workspace on the backend if setup is complete.
+ * @returns - Whether the update was successful.
  */
 async function updateWorkspace() {
   if (progress.value != Progress.Busy) {
     progress.value = Progress.Busy;
-
     const setup = await setupWorkspace();
 
     if (workspace.value.elementalCubes.length > 0 && workspace.value.elementalChannels.length == 0) {
@@ -187,20 +191,42 @@ async function updateWorkspace() {
         });
         return;
       }
-
       // Move to the next step
       progress.value = Progress.Channels;
       fileDialog.value = false;
       channelDialog.value = true;
     } else if (setup) {
+      binData();
       // Complete setup
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
       });
-
       resetProgress();
     }
   }
+}
+
+/**
+ * Bins the updated raw data.
+ */
+async function binData() {
+  // Get binning parameters
+  const binParams = `{"low": ${workspace.value.spectralParams.low}, 
+                          "high": ${workspace.value.spectralParams.high}, 
+                          "binSize": ${workspace.value.spectralParams.binSize}}`;
+  // Bin raw data
+  await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
+    method: "POST",
+  }).then((response) => {
+    // If the response is successful (status code 200), update the progress
+    if (response.ok) {
+      // If a workspace is already loaded, update binned in the app state
+      if (typeof appState.workspace !== "undefined") {
+        appState.workspace.spectralParams.binned = true;
+      }
+      workspace.value.spectralParams.binned = true;
+    } else throw new Error("Binning failed");
+  });
 }
 </script>
 

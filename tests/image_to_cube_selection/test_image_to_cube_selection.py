@@ -1,34 +1,40 @@
+import pytest
+from cv2 import imread
+from xrf_explorer.server.file_system.config_handler import set_config
+from xrf_explorer.server.image_to_cube_selection import (
+    get_selected_data_cube,
+    get_scaled_cube_coordinates,
+    deregister_coord
+)
+from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+from xrf_explorer.server.file_system.file_access import (
+    get_elemental_cube_path,
+    get_base_image_path,
+)
 import numpy as np
 
 import sys
 
 from os.path import join
 
+from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import CubeType
+
 sys.path.append(".")
 
-from xrf_explorer.server.file_system.file_access import (
-    get_elemental_cube_path,
-    get_base_image_path,
-)
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
-from xrf_explorer.server.image_to_cube_selection import (
-    get_selected_data_cube,
-    get_scaled_cube_coordinates,
-    deregister_coord,
-)
-from xrf_explorer.server.file_system.config_handler import set_config
-from cv2 import imread
-import pytest
 
 RESOURCES_PATH: str = join("tests", "resources")
 
 
 class TestImageToCubeSelection:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
+    CUSTOM_CONFIG_PATH: str = join(
+        RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    SAMPLE_BASE_IMAGE_PATH: str= join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
-    SAMPLE_CUBE_IMG_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
-    SAMPLE_CUBE_RECIPE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
+    SAMPLE_BASE_IMAGE_PATH: str = join(
+        RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
+    SAMPLE_CUBE_IMG_PATH: str = join(
+        RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
+    SAMPLE_CUBE_RECIPE_PATH: str = join(
+        RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
 
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -40,9 +46,11 @@ class TestImageToCubeSelection:
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
         data_source_folder_name: str = "made_up_name"
-        expected_output: str = f"Data source directory {data_source_folder_name} does not exist."
+        expected_output: str = f"Data source directory {
+            data_source_folder_name} does not exist."
 
-        result: np.ndarray | None = get_selected_data_cube(data_source_folder_name, RGB_POINT_1, RGB_POINT_2)
+        result: np.ndarray | None = get_selected_data_cube(
+            data_source_folder_name, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2)
 
         assert result is None
         assert expected_output in caplog.text
@@ -51,7 +59,8 @@ class TestImageToCubeSelection:
         RGB_POINT_1: tuple[int, int] = (0, 0)
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
-        result: np.ndarray | None = get_selected_data_cube(self.DATA_SOURCE_FOLDER_NAME, RGB_POINT_1, RGB_POINT_2)
+        result: np.ndarray | None = get_selected_data_cube(
+            self.DATA_SOURCE_FOLDER_NAME, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2)
 
         assert result is not None
 
@@ -89,7 +98,8 @@ class TestImageToCubeSelection:
         RGB_POINT_1: tuple[int, int] = (0, 0)
         RGB_POINT_2: tuple[int, int] = (345, 678)
 
-        cube_dir: str | None = get_elemental_cube_path(self.DATA_SOURCE_FOLDER_NAME)
+        cube_dir: str | None = get_elemental_cube_path(
+            self.DATA_SOURCE_FOLDER_NAME)
         print(cube_dir)
 
         if cube_dir is None:
@@ -98,11 +108,12 @@ class TestImageToCubeSelection:
         cube: np.ndarray = get_elemental_data_cube(cube_dir)
         _, cube_h, cube_w = cube.shape
 
-        base_img_dir: str | None = get_base_image_path(self.DATA_SOURCE_FOLDER_NAME)
+        base_img_dir: str | None = get_base_image_path(
+            self.DATA_SOURCE_FOLDER_NAME)
 
         if base_img_dir is None:
             pytest.fail("Base image directory is None")
-        
+
         img_h: int
         img_w: int
         img_h, img_w, _ = imread(base_img_dir).shape
@@ -115,15 +126,17 @@ class TestImageToCubeSelection:
         selection_rgb_h: int = abs(RGB_POINT_2[1] - RGB_POINT_1[1]) + 1
         selection_rgb_area_size: int = selection_rgb_w * selection_rgb_h
 
-        expected_size: int = round(selection_rgb_area_size * cube_img_selection_area_ratio)
+        expected_size: int = round(
+            selection_rgb_area_size * cube_img_selection_area_ratio)
 
         # execute
         selection_data: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, RGB_POINT_1, RGB_POINT_2
+            self.DATA_SOURCE_FOLDER_NAME, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2
         )
 
         if selection_data is None:
-            pytest.fail("An error occured while extracting data cube selected region.")
+            pytest.fail(
+                "An error occured while extracting data cube selected region.")
 
         # verify
         actual_size: int = selection_data.shape[1]
@@ -156,8 +169,8 @@ class TestImageToCubeSelection:
         cube_coord_actual = deregister_coord(base_img_coord, *args)
 
         euclidean_dist: int = (
-        (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
-        (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
+            (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
+            (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
         )
 
         return euclidean_dist <= tolerance_pixels
@@ -174,6 +187,9 @@ class TestImageToCubeSelection:
 
         TOLERANCE_PIXELS: int = 20
 
-        assert self.is_deregistration_correct(BASE_IMG_COORD_1, CUBE_COORD_EXPECTED_1, TOLERANCE_PIXELS)
-        assert self.is_deregistration_correct(BASE_IMG_COORD_2, CUBE_COORD_EXPECTED_2, TOLERANCE_PIXELS)
-        assert self.is_deregistration_correct(BASE_IMG_COORD_3, CUBE_COORD_EXPECTED_3, TOLERANCE_PIXELS)
+        assert self.is_deregistration_correct(
+            BASE_IMG_COORD_1, CUBE_COORD_EXPECTED_1, TOLERANCE_PIXELS)
+        assert self.is_deregistration_correct(
+            BASE_IMG_COORD_2, CUBE_COORD_EXPECTED_2, TOLERANCE_PIXELS)
+        assert self.is_deregistration_correct(
+            BASE_IMG_COORD_3, CUBE_COORD_EXPECTED_3, TOLERANCE_PIXELS)
