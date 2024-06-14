@@ -1,0 +1,13 @@
+Butterfly Registrator
+1.0
+control points
+Assumes moving image(s) resized and padded to match target image dimensions
+target
+s0039V1962_b_crop.png
+moving
+s0039V1962_Zn_MAXRF.png
+x|y|x|y
+0.0|0.0|0.0|0.0
+1.0|0.0|1.0|0.0
+0.0|1.0|0.0|1.0
+1.0|1.0|1.0|1.0

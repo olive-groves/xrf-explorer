@@ -82,7 +82,7 @@ function checkedOutsideLens(group: LayerGroup) {
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
     <!-- CREATES A CARD FOR EACH LAYER -->
-    <Card v-for="group in groups" :key="group.name" class="space-y-2 p-2">
+    <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">
         <div>
           <div>
@@ -132,8 +132,8 @@ function checkedOutsideLens(group: LayerGroup) {
       <div v-if="group.visible" class="space-y-2">
         <!-- VISIBILITY CHECKBOX -->
         <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
-          <Checkbox :checked="group.visibility == LayerVisibility.InsideLens" />
-          <div class="whitespace-nowrap">Only visible inside of lens</div>
+          <Checkbox :id="`visibility_${group.name}`" :checked="group.visibility == LayerVisibility.InsideLens" />
+          <Label :for="`visibility_${group.name}`" class="whitespace-nowrap">Only visible inside of lens</Label>
         </div>
 
         <!-- SLIDERS FOR ALL MAIN PROPERTIES -->

@@ -1,18 +1,14 @@
+import { Point2D } from "@/lib/utils";
+
 /**
  * Type describing the current selection.
  * This is intended to be used to describe all the simultaneous selections.
  */
 export type Selection = {
   /**
-   * The selection made by the lens tool.
-   * Will be null if the lens tool is not active.
+   * The selection made in the image viewer.
    */
-  lens: CircleSelection | null;
-  /**
-   * The selection of rectangles made in the image viewer.
-   * Will be an empty array if no rectangle selection is active.
-   */
-  rectangles: RectangleSelection[];
+  imageViewer: SelectionAreaSelection;
   /**
    * The selection of elements made.
    */
@@ -23,45 +19,8 @@ export type Selection = {
   colorSegmentation: ColorSegmentationSelection[];
   /**
    * The selection made in the dimensionality reduction window.
-   * Will be null if there is no active dimensionality reduction selection.
    */
-  dimensionalityReduction: DimensionalityReductionSelection | null;
-};
-
-/**
- * Describes a circle by center and radius.
- */
-export type CircleSelection = {
-  /**
-   * The center coordinates of the selection.
-   */
-  center: number;
-  /**
-   * The radius of the selection.
-   */
-  radius: number;
-};
-
-/**
- * Describes a selected rectangle using two opposite corners.
- */
-export type RectangleSelection = {
-  /**
-   * The x coordinate of the first corner.
-   */
-  x1: number;
-  /**
-   * The y coordinate of the first corner.
-   */
-  y1: number;
-  /**
-   * The x coordinate of the second corner.
-   */
-  x2: number;
-  /**
-   * The y coordinate of the second corner.
-   */
-  y2: number;
+  dimensionalityReduction: SelectionAreaSelection;
 };
 
 /**
@@ -110,6 +69,24 @@ export type ColorSegmentationSelection = {
 };
 
 /**
- * Describes the dimensionality reduction selection.
+ * Describes a selection made by a selection area.
  */
-export type DimensionalityReductionSelection = null;
+export type SelectionAreaSelection = {
+  /**
+   * The type of selection.
+   * Undefined if there is no finalized selection.
+   */
+  type?: SelectionAreaType;
+  /**
+   * The points in the selection.
+   */
+  points: Point2D[];
+};
+
+/**
+ * Supported types of selection by the selection tool.
+ */
+export enum SelectionAreaType {
+  Lasso = "lasso",
+  Rectangle = "rectangle",
+}

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { appState, datasource, elements } from "@/lib/appState";
-import { inject } from "vue";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
@@ -9,6 +8,10 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { LabeledSlider } from "@/components/ui/slider";
 import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
+import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
+import { SelectionArea } from "@/components/ui/selection-area";
+import { SelectionAreaType } from "@/lib/selection";
+import { remToPx } from "@/lib/utils";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -42,6 +45,7 @@ enum Status {
   SUCCESS,
   WELCOME,
 }
+
 const status = ref(Status.WELCOME);
 const currentError = ref("Unknown error.");
 
@@ -78,6 +82,9 @@ async function fetchDRImage() {
   if (response.value?.ok && data.value != null) {
     // Create URL for image and set it globally
     imageSourceUrl.value = URL.createObjectURL(data.value).toString();
+
+    // the middle image used for conversion from embedding to main viewer image needs to be updated
+    updateMiddleImage();
 
     // Update status
     status.value = Status.SUCCESS;
@@ -180,15 +187,34 @@ async function updateEmbedding() {
       </div>
       <!-- GENERATION OF THE IMAGE -->
       <p class="mt-4 font-bold">Generated image:</p>
-      <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
-        <span v-if="status == Status.WELCOME">Choose your overlay and paramaters and start the generation.</span>
-        <span v-if="status == Status.LOADING">Loading</span>
-        <span v-if="status == Status.GENERATING">Generating</span>
-        <span v-if="status == Status.ERROR">{{ currentError }}</span>
-        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
-          <LoaderPinwheel class="size-full animate-spin" />
+      <div
+        class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
+        style="position: relative"
+        tabindex="0"
+        id="imageContainer"
+        ref="output"
+      >
+        <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
+          <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
+          <span v-if="status == Status.LOADING">Loading</span>
+          <span v-if="status == Status.GENERATING">Generating</span>
+          <span v-if="status == Status.ERROR">{{ currentError }}</span>
+          <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
+            <LoaderPinwheel class="size-full animate-spin" />
+          </div>
+          <div class="relative m-8" v-if="status == Status.SUCCESS">
+            <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
+            <SelectionArea
+              v-model="appState.selection.dimensionalityReduction"
+              :type="SelectionAreaType.Lasso"
+              :click-margin="remToPx(2)"
+              :x="0"
+              :y="0"
+              :w="256"
+              :h="256"
+            />
+          </div>
         </div>
-        <img v-if="status == Status.SUCCESS" :src="imageSourceUrl" @error="status = Status.ERROR" />
       </div>
     </div>
   </Window>

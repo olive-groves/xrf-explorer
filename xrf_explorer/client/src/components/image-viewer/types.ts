@@ -1,3 +1,4 @@
+import { SelectionAreaType } from "@/lib/selection";
 import * as THREE from "three";
 
 /**
@@ -113,7 +114,12 @@ export type ToolState = {
 /**
  * The different tools in the image viewer.
  */
-export type Tool = "grab" | "lens" | "rectangle" | "lasso";
+export enum Tool {
+  Grab = "grab",
+  Lens = "lens",
+  Rectangle = SelectionAreaType.Rectangle,
+  Lasso = SelectionAreaType.Lasso,
+}
 
 /**
  * Type describing a group of layers as used in the LayerSystem.
@@ -182,19 +188,5 @@ export enum LayerType {
   Image = 0,
   Elemental = 1,
   ColorSegmentation = 2,
-  DimensionalityReduction = 3,
+  DimensionalityReductionSelection = 3,
 }
-
-/**
- * Represent a point in 2D space.
- */
-export type Point2D = {
-  /**
-   * Represents the X coordinate of the point.
-   */
-  x: number;
-  /**
-   * Represents the Y coordinate of the point.
-   */
-  y: number;
-};

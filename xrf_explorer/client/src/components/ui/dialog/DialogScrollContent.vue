@@ -9,6 +9,7 @@ import {
   DialogPortal,
   useForwardPropsEmits,
 } from "radix-vue";
+import { Cross2Icon } from "@radix-icons/vue";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<
@@ -35,9 +36,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
         data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     >
       <DialogContent
+        :aria-describedby="undefined"
         :class="
           cn(
-            `relative z-50 grid w-full max-w-lg my-8 gap-4 border border-border bg-background p-6 shadow-lg duration-200
+            `relative z-50 grid w-full max-w-lg my-8 gap-2 border border-border bg-background p-4 shadow-lg duration-200
             sm:rounded-lg md:w-full`,
             props.class,
           )

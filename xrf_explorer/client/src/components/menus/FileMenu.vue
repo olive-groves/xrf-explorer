@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, h, inject, markRaw } from "vue";
+import { computed, h, inject, markRaw, ref } from "vue";
 import { useFetch } from "@vueuse/core";
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarItem } from "@/components/ui/menubar";
-import { DialogMenuItem } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
-import { titleCase } from "title-case";
 import { toast } from "vue-sonner";
+import { CreateWorkspaceDialog } from "@/components/workspace";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -15,6 +15,8 @@ const request = useFetch(`${config.api.endpoint}/datasources`);
 const sources = computed(() => {
   return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });
+
+const dialogOpen = ref(false);
 
 /**
  * Loads a workspace from the backend.
@@ -25,20 +27,20 @@ function loadWorkspace(source: string) {
     async (value) => {
       value.json().then(
         (workspace) => {
-          toast.info(`Loading workspace ${titleCase(source)}`, {
+          toast.info(`Loading workspace ${source}`, {
             description: "This should take less than a minute",
           });
           console.info(`Loading workspace ${source}`);
           appState.workspace = workspace;
         },
         () =>
-          toast.error(`Failed to load workspace ${titleCase(source)}`, {
+          toast.error(`Failed to load workspace ${source}`, {
             description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
           }),
       );
     },
     () =>
-      toast.error(`Failed to load workspace ${titleCase(source)}`, {
+      toast.error(`Failed to load workspace ${source}`, {
         description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
       }),
   );
@@ -46,15 +48,18 @@ function loadWorkspace(source: string) {
 </script>
 
 <template>
-  <MenubarMenu>
-    <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
-    <MenubarContent>
-      <DialogMenuItem id="upload_file"> Upload files </DialogMenuItem>
-      <MenubarSeparator />
-      <MenubarItem disabled v-if="sources.length <= 0">No data sources available</MenubarItem>
-      <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
-        {{ titleCase(source) }}
-      </MenubarItem>
-    </MenubarContent>
-  </MenubarMenu>
+  <Dialog v-model:open="dialogOpen">
+    <MenubarMenu>
+      <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
+      <MenubarContent>
+        <DialogTrigger class="w-full"><MenubarItem>New data source</MenubarItem></DialogTrigger>
+        <MenubarSeparator />
+        <MenubarItem disabled v-if="sources.length <= 0">No data sources available</MenubarItem>
+        <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
+          {{ source }}
+        </MenubarItem>
+      </MenubarContent>
+    </MenubarMenu>
+    <CreateWorkspaceDialog @close="dialogOpen = false" />
+  </Dialog>
 </template>
