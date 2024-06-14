@@ -3,7 +3,7 @@ import logging
 import sys
 
 from os import remove
-from os.path import isfile, join
+from os.path import isfile, join, normpath
 from pathlib import Path
 
 from xrf_explorer.server.file_system.config_handler import set_config
@@ -13,6 +13,7 @@ sys.path.append('.')
 from xrf_explorer.server.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
+from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
 
 RESOURCES_PATH: Path = Path('tests', 'resources')
 
@@ -122,6 +123,8 @@ class TestDimReduction:
         )
         path_embedding: str = join(path_generated, 'embedded_data.npy')
         path_indices: str = join(path_generated, 'indices.npy')
+        path_all_indices: str = join(path_generated, 'all_indices.npy')
+        path_mapping_image: str = join(path_generated, 'image_index_to_embedding.png')
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
@@ -131,11 +134,15 @@ class TestDimReduction:
         assert result == 'success'
         assert isfile(path_embedding)
         assert isfile(path_indices)
+        assert isfile(path_all_indices)
+        assert isfile(path_mapping_image)
         assert 'Generated embedding successfully' in caplog.text
 
         # cleanup
         remove(path_embedding)
         remove(path_indices)
+        remove(path_all_indices)
+        remove(path_mapping_image)
 
     def test_high_threshold(self, caplog):
         # setup
@@ -185,11 +192,14 @@ class TestDimReduction:
         path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
 
         # execute
-        result: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+        result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+        path: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
 
         # verify
         assert result
         assert isfile(path_image)
+
+        assert normpath(path) == normpath(path_image)
         assert 'Created DR image index to embedding.' in caplog.text
 
         # cleanup
