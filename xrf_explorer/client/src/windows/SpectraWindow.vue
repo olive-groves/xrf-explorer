@@ -4,7 +4,6 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { binned, binSize, datasource, elements, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
-import { LassoSelectionTool, RectangleSelectionTool } from "@/lib/selection";
 import {
   NumberField,
   NumberFieldContent,
@@ -71,8 +70,6 @@ function setup() {
     .call(d3.axisBottom(x));
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
-
-  getElements();
   plotAverageSpectrum();
 }
 
@@ -123,20 +120,8 @@ async function plotAverageSpectrum() {
 }
 
 if (false) {
-  const selection = null;
-  onSelectionUpdate(selection);
-}
-
-/**
- * Perform any and all necessary updates to the chart when a new selection comes through.
- * @param newSelection - Object containing all necessary information about the selection to update the chart.
- */
-async function onSelectionUpdate(newSelection: RectangleSelectionTool | LassoSelectionTool | null) {
-  if (newSelection == null) return;
-  console.log(JSON.stringify(newSelection));
-  plotSelectionSpectrum(JSON.stringify(newSelection));
-
-  console.info("Updated the chart to display the selection in the DR window.");
+  const selection = ""
+  plotSelectionSpectrum(selection)
 }
 
 /**
