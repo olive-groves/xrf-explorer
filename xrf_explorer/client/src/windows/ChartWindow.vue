@@ -8,6 +8,7 @@ import { ElementalChannel } from "@/lib/workspace";
 import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 import { round } from "mathjs";
+import { Point2D } from "@/lib/utils";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
@@ -20,6 +21,17 @@ watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: t
 type Element = {
   name: string;
   average: number;
+};
+
+/**
+ * Used to fetch averages from the backend when using a selection
+ * Points are the points of the selection. In case of rectangle selection,
+ * those are two opposite corners of the rectangle. In case of lasso selection,
+ * those are the points in the order in which they form the selection area.
+ */
+interface RequestBody {
+  type: SelectionAreaType | undefined;
+  points: Point2D[];
 };
 
 // Chart type checkboxes
@@ -64,31 +76,24 @@ const displayGrey = ref(true);
 async function fetchAverages(url: string, selecting: boolean, selection: SelectionAreaSelection) {
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
-  if (selecting) {
-    switch (selection.type) {
-      case SelectionAreaType.Rectangle: {
-        const params: URLSearchParams = new URLSearchParams({
-          x1: round(selection.points[0].x).toString(),
-          y1: round(selection.points[0].y).toString(),
-          x2: round(selection.points[1].x).toString(),
-          y2: round(selection.points[1].y).toString(),
-        });
-        request_url += `_selection?${params}`;
-        break;
-      }
-      case SelectionAreaType.Lasso: {
-        console.log("hi");
-        break;
-      }
-    }
-  }
+
+  // Request body for selection
+  const request_body: RequestBody = {
+    type: selection.type,
+    points: selection.points
+  };
+
+  // If the request is for a selection, change the request accordingly
+  if (selecting)
+    request_url += `_selection`;
 
   // Make API call
   const response: Response = await fetch(request_url, {
-    method: "GET",
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify(request_body)
   });
   let fetchSuccessful: boolean = false;
 

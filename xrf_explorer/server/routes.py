@@ -41,9 +41,7 @@ from xrf_explorer.server.color_seg import (
     save_bitmask_as_png, convert_to_hex
 )
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
-from xrf_explorer.server.image_to_cube_selection import (
-    get_selected_data_cube
-)
+from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -236,7 +234,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     return "Uploaded file chunk", 200
 
 
-@app.route("/api/<data_source>/element_averages")
+@app.route("/api/<data_source>/element_averages", methods=["GET", "POST"])
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
     
@@ -255,7 +253,7 @@ def list_element_averages(data_source: str):
         return "Error occurred while listing element averages", 500
 
 
-@app.route("/api/<data_source>/element_averages_selection")
+@app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
 def list_element_averages_selection(data_source: str):
     """Get the names and averages of the elements present in a rectangular selection
     of the painting.
@@ -267,21 +265,38 @@ def list_element_averages_selection(data_source: str):
     # path to elemental cube
     path: str = get_elemental_cube_path(data_source)
 
-    # top left point
-    top_left: tuple[int, int] = (
-        int(request.args.get('x1')),
-        int(request.args.get('y1'))
-    )
+    # parse JSON payload
+    data: dict[str, any] | None = request.get_json()
+    if data is None:
+        return "Error parsing request body", 400
 
-    # bottom right point
-    bottom_right: tuple[int, int] = (
-        int(request.args.get('x2')),
-        int(request.args.get('y2'))
-    )
+    # get selection type and points
+    selection_type: str | None = data.get('type')
+    points: list[dict[str, float]] | None = data.get('points')
+
+    if selection_type is None or points is None:
+        return "Error occurred while getting selection type or points from request body", 400
+
+    # validate and parse selection type
+    try:
+        selection_type_parsed: SelectionType = SelectionType(selection_type)
+    except ValueError:
+        return "Error parsing selection type", 400
+
+    # validate and parse points
+    if not isinstance(points, list):
+        return "Error parsing points; expected a list of points", 400
+
+    try:
+        points_parsed: list[tuple[int, int]] = [
+            (point['x'], point['y']) for point in points
+        ]
+    except ValueError:
+        return "Error parsing points", 400
 
     # get selection
-    selection: np.ndarray | None = get_selected_data_cube(
-        data_source, top_left, bottom_right
+    selection: np.ndarray | None = get_selection(
+        data_source, points_parsed, selection_type_parsed
     )
 
     if selection is None:

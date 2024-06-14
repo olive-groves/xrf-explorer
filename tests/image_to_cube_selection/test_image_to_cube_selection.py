@@ -12,8 +12,9 @@ from xrf_explorer.server.file_system.file_access import (
 )
 from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 from xrf_explorer.server.image_to_cube_selection import (
-    get_selected_data_cube,
+    get_selection,
     get_scaled_cube_coordinates,
+    SelectionType
 )
 from xrf_explorer.server.file_system.config_handler import set_config
 from cv2 import imread
@@ -42,8 +43,8 @@ class TestImageToCubeSelection:
             f"Data source directory {data_source_folder_name} does not exist."
         )
 
-        result: np.ndarray | None = get_selected_data_cube(
-            data_source_folder_name, RGB_POINT_1, RGB_POINT_2
+        result: np.ndarray | None = get_selection(
+            data_source_folder_name, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
         )
 
         assert result is None
@@ -53,8 +54,8 @@ class TestImageToCubeSelection:
         RGB_POINT_1: tuple[int, int] = (0, 0)
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
-        result: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, RGB_POINT_1, RGB_POINT_2
+        result: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
         )
 
         assert result is not None
@@ -75,8 +76,7 @@ class TestImageToCubeSelection:
         # execute
         data_cube_output_1_actual, data_cube_output_2_actual = (
             get_scaled_cube_coordinates(
-                RGB_POINT_1,
-                RGB_POINT_2,
+                [RGB_POINT_1, RGB_POINT_2],
                 base_image_width,
                 base_image_height,
                 cube_image_width,
@@ -120,8 +120,8 @@ class TestImageToCubeSelection:
         expected_size: int = round(selection_rgb_area_size * cube_img_selection_area_ratio)
 
         # execute
-        selection_data: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, RGB_POINT_1, RGB_POINT_2
+        selection_data: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, [RGB_POINT_1, RGB_POINT_2], SelectionType.Rectangle
         )
 
         if selection_data is None:
@@ -135,3 +135,24 @@ class TestImageToCubeSelection:
         tolerance: float = expected_size * tolerance_percentage
 
         assert abs(actual_size - expected_size) <= tolerance
+
+    def test_selections_equivalent(self):
+        # setup
+        TOP_LEFT: tuple[int, int] = (0, 0)
+        TOP_RIGHT: tuple[int, int] = (345, 0)
+        BOTTOM_LEFT: tuple[int, int] = (0, 678)
+        BOTTOM_RIGHT: tuple[int, int] = (345, 678)
+
+        coords_rect: list[tuple[int, int]] = [TOP_LEFT, BOTTOM_RIGHT]
+        coords_lasso: list[tuple[int, int]] = [TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT]
+
+        # execute
+        selection_data_rect: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+        )
+        selection_data_lasso: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+        )
+
+        # verify
+        assert np.array_equal(selection_data_rect, selection_data_lasso)

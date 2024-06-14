@@ -190,6 +190,8 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
         [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+    
+    LOG.info("Calculated the average composition of the elements.")
 
     return composition
 
@@ -207,6 +209,8 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
         [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+
+    LOG.info("Calculated the average composition of the elements within selection.")
 
     return composition
 
