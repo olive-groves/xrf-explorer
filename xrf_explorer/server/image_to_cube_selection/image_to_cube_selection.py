@@ -116,7 +116,7 @@ def get_selected_data_cube(
         )
         return None
 
-    match cube_type:
+    match cube_type.value:
         case "elemental":
             data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
         case "raw":
