@@ -14,10 +14,6 @@ export type FrontendConfig = {
    * Configuration related to uploading.
    */
   upload: UploadConfig;
-  /**
-   * Configuration related to the selection tool.
-   */
-  selectionTool: SelectionToolConfig;
 };
 
 /**
@@ -63,16 +59,6 @@ export type ImageViewerConfig = {
 };
 
 /**
- * Type declaration for the selection tool configuration.
- */
-export type SelectionToolConfig = {
-  /**
-   * Color in which the selected area should be displayed.
-   */
-  fillColor: string;
-};
-
-/**
  * The default configuration for the client.
  */
 export const DefaultConfig: FrontendConfig = {
@@ -87,9 +73,6 @@ export const DefaultConfig: FrontendConfig = {
   },
   upload: {
     chunkSize: 50000000, // 50 MB
-  },
-  selectionTool: {
-    fillColor: "#FFFFFF",
   },
 };
 
