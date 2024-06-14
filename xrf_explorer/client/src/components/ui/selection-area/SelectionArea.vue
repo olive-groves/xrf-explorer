@@ -91,16 +91,21 @@ function mapLocation(client: Point2D): Point2D {
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
+  console.log("click", event);
   if (props.type == SelectionAreaType.Lasso) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
     if (candidateType.value == SelectionAreaType.Lasso) {
       // If selection is already started, end it if the clicked point is close to the starting position.
       // Add a new point to the selection otherwise.
       if (nearInitial.value) {
-        model.value = {
-          type: SelectionAreaType.Lasso,
-          points: candidatePoints.value.slice(0, -1),
-        };
+        if (candidatePoints.value.length > 2) {
+          model.value = {
+            type: SelectionAreaType.Lasso,
+            points: candidatePoints.value.slice(0, -1),
+          };
+        } else {
+          model.value.type = undefined;
+        }
         candidateType.value = undefined;
         candidatePoints.value = [];
       } else {
@@ -131,19 +136,26 @@ function onMouseDown(event: MouseEvent) {
  */
 function onMouseUp() {
   if (candidateType.value == SelectionAreaType.Rectangle) {
-    model.value = {
-      type: SelectionAreaType.Rectangle,
-      points: [
-        {
-          x: Math.min(candidatePoints.value[0].x, candidatePoints.value[1].x),
-          y: Math.min(candidatePoints.value[0].y, candidatePoints.value[1].y),
-        },
-        {
-          x: Math.max(candidatePoints.value[0].x, candidatePoints.value[1].x),
-          y: Math.max(candidatePoints.value[0].y, candidatePoints.value[1].y),
-        },
-      ],
-    };
+    if (
+      candidatePoints.value[0].x != candidatePoints.value[1].x &&
+      candidatePoints.value[0].y != candidatePoints.value[1].y
+    ) {
+      model.value = {
+        type: SelectionAreaType.Rectangle,
+        points: [
+          {
+            x: Math.min(candidatePoints.value[0].x, candidatePoints.value[1].x),
+            y: Math.min(candidatePoints.value[0].y, candidatePoints.value[1].y),
+          },
+          {
+            x: Math.max(candidatePoints.value[0].x, candidatePoints.value[1].x),
+            y: Math.max(candidatePoints.value[0].y, candidatePoints.value[1].y),
+          },
+        ],
+      };
+    } else {
+      model.value.type = undefined;
+    }
     candidateType.value = undefined;
     candidatePoints.value = [];
   }
