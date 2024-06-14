@@ -16,6 +16,8 @@ import sys
 
 from os.path import join
 
+from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import CubeType
+
 sys.path.append(".")
 
 
@@ -43,7 +45,7 @@ class TestImageToCubeSelection:
         )
 
         result: np.ndarray | None = get_selected_data_cube(
-            data_source_folder_name, "elemental", RGB_POINT_1, RGB_POINT_2
+            data_source_folder_name, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2
         )
 
         assert result is None
@@ -54,7 +56,7 @@ class TestImageToCubeSelection:
         RGB_POINT_2: tuple[int, int] = (1, 1)
 
         result: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, "elemental", RGB_POINT_1, RGB_POINT_2
+            self.DATA_SOURCE_FOLDER_NAME, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2
         )
 
         assert result is not None
@@ -124,7 +126,7 @@ class TestImageToCubeSelection:
 
         # execute
         selection_data: np.ndarray | None = get_selected_data_cube(
-            self.DATA_SOURCE_FOLDER_NAME, "elemental", RGB_POINT_1, RGB_POINT_2
+            self.DATA_SOURCE_FOLDER_NAME, CubeType.ELEMENTAL, RGB_POINT_1, RGB_POINT_2
         )
 
         if selection_data is None:

@@ -44,7 +44,7 @@ from xrf_explorer.server.file_system.from_dms import (
     get_elemental_datacube_dimensions_from_dms,
 )
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
-from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import get_selected_data_cube
+from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import get_selected_data_cube, CubeType
 LOG: logging.Logger = logging.getLogger(__name__)
 
 TEMP_RGB_IMAGE: str = 'rgb.tif'
@@ -567,7 +567,7 @@ def get_selection_spectra(data_source: str, selection: str):
 
             # TODO replace with get_selected_raw_data
             data = get_selected_data_cube(
-                data_source, "raw", tuple([x1, y1]), tuple([x2, y2]))
+                data_source, CubeType.RAW, tuple([x1, y1]), tuple([x2, y2]))
         case "lasso":
             data = {}
 
@@ -723,7 +723,7 @@ def get_color_cluster_bitmask(data_source: str):
     return send_file(abspath(full_path), mimetype='image/png')
 
 
-@ app.route('/api/<data_source>/cs/element/<int:element>/bitmask', methods=['GET'])
+@app.route('/api/<data_source>/cs/element/<int:element>/bitmask', methods=['GET'])
 def get_element_color_cluster_bitmask(data_source: str, element: int):
     """
     Returns, for the requested element, the png bitmask for the color clusters.

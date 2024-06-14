@@ -53,7 +53,7 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
     filename: str | None = get_elemental_cube_name(data_source_folder)
 
     if filename is None:
-        LOG.error("An error occured while trying to find elemental cube name.")
+        LOG.error("An error occurred while trying to find elemental cube name.")
         return None
 
     path: str = join(
@@ -184,8 +184,9 @@ def parse_rpl(path: str) -> dict:
 
 def set_binned(data_source: str, binned: bool):
     """
-    Sets the binned boolean attribute of a workspace
+    Sets the binned boolean attribute of a workspace.
 
+    :param data_source: Name of the data source.
     :param binned: Boolean to set binned to.
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
