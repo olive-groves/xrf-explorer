@@ -10,6 +10,7 @@ from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
     get_cube_recipe_path,
+    get_raw_rpl_paths
 )
 from cv2 import (
     fillPoly,
@@ -23,6 +24,12 @@ from xrf_explorer.server.image_register.register_image import (
     load_points,
     compute_fitting_dimensions_by_aspect,
 )
+from cv2 import imread
+from enum import Enum
+import numpy as np
+import logging
+
+from xrf_explorer.server.spectra import get_raw_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -39,6 +46,18 @@ class SelectionType(str, Enum):
     Lasso = "lasso"             # The lasso selection tool
 
 
+class CubeType(Enum):
+    """
+    An enumeration to represent different types of datacubes.
+    
+    Attributes:
+        Raw: Represents the raw datacube (i.e. the .raw or .rpl file)
+        Elemental: Represents the elemental datacube (i.e. the .dms file)
+    """
+    Raw = "raw"
+    Elemental = "elemental"
+
+
 def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.ndarray) -> tuple[float, float]:
     """
     Transforms the perspective of a coordinate (x, y) to (x', y') based on a transformation
@@ -48,7 +67,8 @@ def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.nda
     :param transform_matrix: The transformation matrix.
     :return: A (x', y') perspective transformed coordinate.
     """
-    coord_correct_format: np.ndarray = np.array([[[coord[0], coord[1]]]], dtype="float32")
+    coord_correct_format: np.ndarray = np.array(
+        [[[coord[0], coord[1]]]], dtype="float32")
 
     perspective_transformed_point: np.ndarray = perspectiveTransform(coord_correct_format, transform_matrix)
     return float(perspective_transformed_point[0][0][0]), float(perspective_transformed_point[0][0][1])
@@ -84,12 +104,14 @@ def deregister_coord(
     base_points: np.ndarray
     src_points, base_points = load_points(cube_recipe_path)
 
-    transform_matrix: np.ndarray = getPerspectiveTransform(base_points, src_points)
-    
+    transform_matrix: np.ndarray = getPerspectiveTransform(
+        base_points, src_points)
+
     x_perspective_reversed: float
-    y_perspective_reversed:float
-    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(coord, transform_matrix)
-    
+    y_perspective_reversed: float
+    x_perspective_reversed, y_perspective_reversed = perspective_transform_coord(
+        coord, transform_matrix)
+
     cube_height_scaled_before_pad: int
     cube_width_scaled_before_pad: int
     cube_height_scaled_before_pad, cube_width_scaled_before_pad = compute_fitting_dimensions_by_aspect(
@@ -230,7 +252,8 @@ def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[
 def get_selection(
         data_source_folder: str,
         selection_coords: list[tuple[int, int]],
-        selection_type: SelectionType
+        selection_type: SelectionType,
+        cube_type: CubeType
 ) -> np.ndarray | None:
     """
     Extracts and returns a 2D representation of a data cube region, based on the selection coordinates
@@ -244,8 +267,9 @@ def get_selection(
     :param selection_type: The type of selection being performed.
     selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso
     selection, the list must contain the points in the order in which they form the selection area.
+    :param cube_type: The type of the cube the selection is made on.
     :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns
-    represent their elemental map values.
+    represent their elemental map values. Note that values from the elemental datacube are normalized to [0, 255]
     """
     if selection_type == SelectionType.Rectangle and len(selection_coords) != 2:
         LOG.error(f"Expected 2 points for rectangle selection but got {len(selection_coords)}")
@@ -255,25 +279,41 @@ def get_selection(
         LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
         return None
 
-    cube_dir: str | None = get_elemental_cube_path(data_source_folder)
+    cube_dir: str | None
+    if cube_type == CubeType.Elemental:
+        cube_dir = get_elemental_cube_path(data_source_folder)
+        
+    if cube_type == CubeType.Raw:
+        cube_dir = get_raw_rpl_paths(data_source_folder)[0]
 
     if cube_dir is None:
-        LOG.error(f"Data source directory {data_source_folder} does not exist.")
+        LOG.error(f"Data source directory {
+                  data_source_folder} does not exist.")
         return None
 
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
+        LOG.error(f"Error occurred while retrieving the path of the base image of {
+                  data_source_folder}")
+        LOG.error(
+            f"Error occured while retrieving the path of the base image of {
+                data_source_folder}"
+        )
         return None
-
-    raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
-    data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
 
     img_h: int
     img_w: int
     cube_h: int
     cube_w: int
+    
+    if cube_type == CubeType.Elemental:
+        raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
+        data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+        
+    if cube_type == CubeType.Raw:
+        data_cube: np.ndarray = get_raw_data(data_source_folder)
+
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
 
@@ -288,6 +328,7 @@ def get_selection(
         mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_scaled, cube_w, cube_h)
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
+        #       the best choice for performance, but the mask simplifies things, since it can be
         #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also, the performance decrease should be less than tenth of a second in most cases.

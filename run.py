@@ -3,7 +3,8 @@ import argparse
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-parser: argparse.ArgumentParser = argparse.ArgumentParser(prog="python run.py", description="XRF-Explorer")
+parser: argparse.ArgumentParser = argparse.ArgumentParser(
+    prog="python run.py", description="XRF-Explorer")
 parser.add_argument("-c", "--config", dest="config", default="config/backend.yml", metavar="PATH",
                     help="path to the XRF-Explorer configuration file")
 parser.add_argument("-l", "--log", dest="loglevel", default="INFO", metavar="LEVEL",
@@ -20,12 +21,11 @@ if __name__ == '__main__':
     logging.basicConfig(
         level=loglevel,  # lowest logging level used
         # filename="logs/log.log",        # path to log file to output instead of console
-        # filemode="w",                   # access mdoe to file specified in `filename`
+        # filemode="w",                   # access mode to file specified in `filename`
         format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s"
     )
 
     LOG.info("Starting XRF-Explorer")
-
     # import app dependencies only after showing initial log message
     from waitress import serve
     from xrf_explorer import app
@@ -35,7 +35,8 @@ if __name__ == '__main__':
 
     # set up configuration
     if not set_config(args.config):
-        LOG.critical("Could not find config specified at %s, exiting", args.config)
+        LOG.critical(
+            "Could not find config specified at %s, exiting", args.config)
         exit(-1)
 
     # serve XRF-Explorer

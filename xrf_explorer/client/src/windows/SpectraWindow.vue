@@ -2,7 +2,7 @@
 import { inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { datasource, elements } from "@/lib/appState";
+import { binned, binSize, datasource, elements, high, low } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -24,9 +24,7 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
-const low = 50;
-const high = 2000;
-const binSize = 32;
+let ready: boolean;
 
 interface Point {
   index: number;
@@ -37,6 +35,11 @@ interface Point {
  * Setup the svg and axis of the graph.
  */
 function setup() {
+  ready = binned.value;
+  watch(binned, () => {
+    ready = binned.value;
+    plotAverageSpectrum();
+  });
   // set the dimensions and margins of the graph
   const margin = { top: 30, right: 30, bottom: 70, left: 60 },
     width = 860 - margin.left - margin.right,
@@ -46,7 +49,7 @@ function setup() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([low, high]);
+    .domain([0, (high.value - low.value) / binSize.value]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
@@ -67,8 +70,7 @@ function setup() {
     .call(d3.axisBottom(x));
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
-
-  plotAverageSpectrum(low, high, binSize);
+  plotAverageSpectrum();
 }
 
 const globalChecked = ref(false);
@@ -79,105 +81,91 @@ const excitation = ref(0);
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
  */
-async function plotAverageSpectrum(low: number, high: number, binSize: number) {
-  try {
-    //make api call
-    const response = await fetch(
-      `${url}/${datasource.value}/get_average_data?` +
-        new URLSearchParams({
-          low: low as unknown as string,
-          high: high as unknown as string,
-          binSize: binSize as unknown as string,
-        }),
-      {
+async function plotAverageSpectrum() {
+  if (ready) {
+    try {
+      //make api call
+      const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      },
-    );
-    const data = await response.json();
+      });
+      const data = await response.json();
 
-    //create line
-    const line = d3
-      .line<Point>()
-      .x((d: Point) => x(d.index))
-      .y((d: Point) => y(d.value));
+      //create line
+      const line = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
 
-    // Add the line to chart
-    svg
-      .append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 1)
-      .attr("id", "globalLine")
-      .attr("d", line)
-      .style("opacity", 0);
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1)
+        .attr("id", "globalLine")
+        .attr("d", line)
+        .style("opacity", 0);
 
-    //modify visibility based on checkbox status
-    updateGlobal();
-  } catch (e) {
-    console.error("Error getting global average spectrum", e);
+      //modify visibility based on checkbox status
+      updateGlobal();
+    } catch (e) {
+      console.error("Error getting global average spectrum", e);
+    }
   }
+}
+
+if (false) {
+  const selection = "";
+  plotSelectionSpectrum(selection);
 }
 
 /**
  * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
- * @param pixels Array of selected pixels.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
+ * @param selection Json object representing the selection.
  */
-async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: number, high: number, binSize: number) {
-  try {
-    //make api call
-    const response = await fetch(
-      `${url}/${datasource.value}/get_selection_spectrum?` +
-        new URLSearchParams({
-          pixels: pixels as unknown as string,
-          low: low as unknown as string,
-          high: high as unknown as string,
-          binSize: binSize as unknown as string,
-        }),
-      {
+async function plotSelectionSpectrum(selection: string) {
+  if (ready) {
+    try {
+      //make api call
+      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/${selection}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      },
-    );
-    const data = await response.json();
+      });
+      const data = await response.json();
 
-    //remove spectrum of previous selection
-    svg.select("#selectionLine").remove();
+      //remove spectrum of previous selection
+      svg.select("#selectionLine").remove();
 
-    //create line
-    const line = d3
-      .line<Point>()
-      .x((d: Point) => x(d.index))
-      .y((d: Point) => y(d.value));
+      //create line
+      const line = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
 
-    // Add the line to chart
-    svg
-      .append("path")
-      .datum(data)
-      .attr("fill", "none")
-      .attr("stroke", "green")
-      .attr("stroke-width", 1)
-      .attr("id", "selectionLine")
-      .attr("d", line)
-      .style("opacity", 0);
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "green")
+        .attr("stroke-width", 1)
+        .attr("id", "selectionLine")
+        .attr("d", line)
+        .style("opacity", 0);
 
-    //modify visibility based on checkbox status
-    updateSelection();
-  } catch (e) {
-    console.error("Error getting selection average spectrum", e);
+      //modify visibility based on checkbox status
+      updateSelectionSpectrum();
+    } catch (e) {
+      console.error("Error getting selection average spectrum", e);
+    }
   }
 }
 
@@ -185,30 +173,17 @@ async function plotSelectionSpectrum(pixels: Array<[number, number]>, low: numbe
  * Plots the theoretical spectrum and peaks of an element.
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
- * @param low Lower channel boundary.
- * @param high Higher channel boundary.
- * @param binSize Number of channels per bin.
  */
-async function plotElementSpectrum(element: string, excitation: number, low: number, high: number, binSize: number) {
+async function plotElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
-      const response = await fetch(
-        `${url}/get_element_spectrum?` +
-          new URLSearchParams({
-            element: element as string,
-            excitation: excitation as unknown as string,
-            low: low as unknown as string,
-            high: high as unknown as string,
-            binSize: binSize as unknown as string,
-          }),
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      const response = await fetch(`${url}/${datasource.value}/get_element_spectrum/${element}/${excitation}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+      });
       const data = await response.json();
       const spectrum = data[0];
 
@@ -282,7 +257,7 @@ function updateElement() {
 /**
  * Updates visibility of selection average spectrum.
  */
-function updateSelection() {
+function updateSelectionSpectrum() {
   if (selectionChecked.value) {
     svg.select("#selectionLine").style("opacity", 1);
   } else {
@@ -291,16 +266,10 @@ function updateSelection() {
 }
 
 /**
- * Plots element spectrum when an elemented is selected in the dropdown.
+ * Plots element spectrum when an element is selected in the dropdown.
  */
 function updateElementSpectrum() {
-  plotElementSpectrum(selectedElement.value, excitation.value, low, high, binSize);
-}
-
-//need to connect to selection tool
-if (false) {
-  const pixels = [];
-  plotSelectionSpectrum(pixels, low, high, binSize);
+  plotElementSpectrum(selectedElement.value, excitation.value);
 }
 </script>
 
@@ -315,7 +284,7 @@ if (false) {
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelection" />
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelectionSpectrum" />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
@@ -344,7 +313,7 @@ if (false) {
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum()">
+      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum">
         <NumberFieldContent>
           <NumberFieldInput />
           <NumberFieldDecrement />
