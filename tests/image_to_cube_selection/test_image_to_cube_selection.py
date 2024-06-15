@@ -1,15 +1,5 @@
 import pytest
 from cv2 import imread
-from xrf_explorer.server.file_system.config_handler import set_config
-from xrf_explorer.server.image_to_cube_selection import (
-    get_scaled_cube_coordinates,
-    deregister_coord
-)
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
-from xrf_explorer.server.file_system.file_access import (
-    get_elemental_cube_path,
-    get_base_image_path,
-)
 import numpy as np
 
 import sys
@@ -20,6 +10,7 @@ from os.path import join
 
 sys.path.append(".")
 
+from xrf_explorer.server.file_system.config_handler import set_config
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
@@ -32,7 +23,6 @@ from xrf_explorer.server.image_to_cube_selection import (
     SelectionType,
     CubeType
 )
-from xrf_explorer.server.file_system.config_handler import set_config
 
 RESOURCES_PATH: str = join("tests", "resources")
 
