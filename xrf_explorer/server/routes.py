@@ -46,8 +46,6 @@ from xrf_explorer.server.image_to_cube_selection import get_selection, Selection
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-TEMP_RGB_IMAGE: str = 'rgb.tif'
-
 
 @app.route("/api")
 def api():
