@@ -46,8 +46,6 @@ from xrf_explorer.server.image_to_cube_selection import get_selection, Selection
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
-TEMP_RGB_IMAGE: str = 'rgb.tif'
-
 
 @app.route("/api")
 def api():
@@ -257,7 +255,7 @@ def bin_raw_data(data_source: str, bin_params: str):
     return "Binned data", 200
 
 
-@ app.route("/api/<data_source>/element_averages")
+@ app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
 
