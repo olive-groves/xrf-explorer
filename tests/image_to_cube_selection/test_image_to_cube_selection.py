@@ -296,20 +296,22 @@ class TestImageToCubeSelection:
         return euclidean_dist <= tolerance_pixels
 
     def test_deregister_coord(self):
-        BASE_IMG_COORD_1: tuple[int, int] = (2046, 2691)
-        CUBE_COORD_EXPECTED_1: tuple[int, int] = (438, 522)
+        # setup
+        base_img_coord_1: tuple[int, int] = (2046, 2691)
+        cube_coord_expected_1: tuple[int, int] = (438, 522)
 
-        BASE_IMG_COORD_2: tuple[int, int] = (2531, 1773)
-        CUBE_COORD_EXPECTED_2: tuple[int, int] = (540, 327)
+        base_img_coord_2: tuple[int, int] = (2531, 1773)
+        cube_coord_expected_2: tuple[int, int] = (540, 327)
 
         BASE_IMG_COORD_3: tuple[int, int] = (1020, 1933)
-        CUBE_COORD_EXPECTED_3: tuple[int, int] = (218, 360)
+        cube_coord_expected_3: tuple[int, int] = (218, 360)
 
-        TOLERANCE_PIXELS: int = 20
+        tolerance_pixels: int = 20
 
+        # verify
         assert self.is_deregistration_correct(
-            BASE_IMG_COORD_1, CUBE_COORD_EXPECTED_1, TOLERANCE_PIXELS)
+            base_img_coord_1, cube_coord_expected_1, tolerance_pixels)
         assert self.is_deregistration_correct(
-            BASE_IMG_COORD_2, CUBE_COORD_EXPECTED_2, TOLERANCE_PIXELS)
+            base_img_coord_2, cube_coord_expected_2, tolerance_pixels)
         assert self.is_deregistration_correct(
-            BASE_IMG_COORD_3, CUBE_COORD_EXPECTED_3, TOLERANCE_PIXELS)
+            BASE_IMG_COORD_3, cube_coord_expected_3, tolerance_pixels)
