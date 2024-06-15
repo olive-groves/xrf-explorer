@@ -136,8 +136,7 @@ def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
     :param data_cube: The 3D data cube from which data will be extracted.
 
-    :param mask: A 2D boolean array where True indicates the position to be extracted
-    from the last 2 dimensions of data_cube.
+    :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
     :return: A 2D array where the rows represent pixels in the data cube image
     and the columns represent their elemental map values.
     """
@@ -264,9 +263,7 @@ def get_selection(
 
     :param data_source_folder: The data source folder name.
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
-    :param selection_type: The type of selection being performed.
-    selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso
-    selection, the list must contain the points in the order in which they form the selection area.
+    :param selection_type: The type of selection being performed. selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso selection, the list must contain the points in the order in which they form the selection area.
     :param cube_type: The type of the cube the selection is made on.
     :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns
     represent their elemental map values. Note that values from the elemental datacube are normalized to [0, 255]

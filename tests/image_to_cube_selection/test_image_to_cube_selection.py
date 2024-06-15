@@ -1,3 +1,8 @@
+from xrf_explorer.server.file_system.config_handler import set_config
+import pytest
+from cv2 import imread
+import numpy as np
+from os.path import join
 from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,
@@ -10,18 +15,6 @@ from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
 )
-from xrf_explorer.server.file_system.config_handler import set_config
-import pytest
-from cv2 import imread
-import numpy as np
-
-import sys
-import pytest
-
-from os.path import join
-
-sys.path.append(".")
-
 
 RESOURCES_PATH: str = join("tests", "resources")
 
@@ -30,12 +23,9 @@ class TestImageToCubeSelection:
     CUSTOM_CONFIG_PATH: str = join(
         RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    SAMPLE_BASE_IMAGE_PATH: str = join(
-        RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
-    SAMPLE_CUBE_IMG_PATH: str = join(
-        RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
-    SAMPLE_CUBE_RECIPE_PATH: str = join(
-        RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
+    SAMPLE_BASE_IMAGE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
+    SAMPLE_CUBE_IMG_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
+    SAMPLE_CUBE_RECIPE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
 
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -50,8 +40,7 @@ class TestImageToCubeSelection:
         ]
 
         data_source_folder_name: str = "made_up_name"
-        expected_output: str = f"Data source directory {
-            data_source_folder_name} does not exist."
+        expected_output: str = f"Data source directory {data_source_folder_name} does not exist."
 
         # execute
         result: np.ndarray | None = get_selection(
@@ -112,8 +101,7 @@ class TestImageToCubeSelection:
             (345, 678)
         ]
 
-        cube_dir: str | None = get_elemental_cube_path(
-            self.DATA_SOURCE_FOLDER_NAME)
+        cube_dir: str | None = get_elemental_cube_path(self.DATA_SOURCE_FOLDER_NAME)
 
         if cube_dir is None:
             pytest.fail("Cube directory is None.")
@@ -168,8 +156,7 @@ class TestImageToCubeSelection:
         bottom_right: tuple[int, int] = (345, 678)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [
-            top_left, top_right, bottom_right, bottom_left]
+        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
@@ -197,12 +184,9 @@ class TestImageToCubeSelection:
         bottom_left_outside: tuple[int, int] = (0, img_h + 10)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [
-            top_left, top_right, bottom_right, bottom_left]
-        coords_rect_outside: list[tuple[int, int]] = [
-            top_left_outside, bottom_right]
-        coords_lasso_outside: list[tuple[int, int]] = [
-            top_left_outside, top_right, bottom_right, bottom_left_outside]
+        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
+        coords_rect_outside: list[tuple[int, int]] = [top_left_outside, bottom_right]
+        coords_lasso_outside: list[tuple[int, int]] = [top_left_outside, top_right, bottom_right, bottom_left_outside]
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
@@ -225,8 +209,7 @@ class TestImageToCubeSelection:
         assert selection_data_lasso_outside is not None
 
         assert np.array_equal(selection_data_rect, selection_data_lasso)
-        assert np.array_equal(selection_data_rect_outside,
-                              selection_data_lasso_outside)
+        assert np.array_equal(selection_data_rect_outside, selection_data_lasso_outside)
         assert np.array_equal(selection_data_rect_outside, selection_data_rect)
 
     def test_ribbon_selection(self):
@@ -239,8 +222,7 @@ class TestImageToCubeSelection:
         bottom_right: tuple[int, int] = (img_w - 1, img_h - 1)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [
-            top_left, bottom_right, top_right, bottom_left]
+        coords_lasso: list[tuple[int, int]] = [top_left, bottom_right, top_right, bottom_left]
 
         tolerance_percentage: float = 0.01  # 1% tolerance
 
@@ -258,8 +240,7 @@ class TestImageToCubeSelection:
         assert selection_data_lasso is not None
 
         # ribbon selection must be about half of the rect selection
-        assert abs(
-            selection_data_rect.shape[1] - selection_data_lasso.shape[1] * 2) <= tolerance
+        assert abs(selection_data_rect.shape[1] - selection_data_lasso.shape[1] * 2) <= tolerance
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.

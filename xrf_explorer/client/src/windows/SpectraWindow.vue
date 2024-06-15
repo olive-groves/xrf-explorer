@@ -3,7 +3,7 @@ import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
-import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { SelectionAreaSelection } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -12,28 +12,17 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { RequestBody } from "./selection"
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
 
-import { Point2D } from "@/lib/utils";
-
-/**
- * Used to fetch averages from the backend when using a selection
- * Points are the points of the selection. In case of rectangle selection,
- * those are two opposite corners of the rectangle. In case of lasso selection,
- * those are the points in the order in which they form the selection area.
- */
-interface RequestBody {
-  type: SelectionAreaType | undefined;
-  points: Point2D[];
-}
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
-watch(areaSelection, onSelectionAreaUpdate, { deep: true, immediate: true });
+watch(areaSelection, plotSelectionSpectrum, { deep: true, immediate: true });
 
 /**
  * Sets up export of chart.
@@ -44,6 +33,11 @@ const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 let ready: boolean;
 
+/**
+ * Represents a point in the chart coordinate system.
+ * Index is the x-coordinate, value the y-coordinate.
+ * Used to plot each point of the line.
+ */
 interface Point {
   index: number;
   value: number;
@@ -89,18 +83,6 @@ function setup() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
   plotAverageSpectrum();
-}
-
-/**
- * Callback for when the selection in the main viewer is changed.
- * @param selection New area selection in the main viewer.
- */
-async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
-  try {
-    plotSelectionSpectrum(selection);
-  } catch (e) {
-    console.error("Error fetching average data", e);
-  }
 }
 
 const globalChecked = ref(false);

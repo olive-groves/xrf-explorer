@@ -82,7 +82,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
     # if we just need to crop
     if bin_size == 1:
-        new_cube = datacube[:, :, low:high]
+        new_cube: np.ndarray = datacube[:, :, low:high]
     else:
         # compute number of bins
         nr_bins: int = ceil((high-low)/bin_size)
@@ -93,9 +93,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
             start_channel = low + i*bin_size
-            bin = np.mean(
+            bin_average = np.mean(
                 datacube[:, :, start_channel:start_channel+bin_size], axis=2)
-            new_cube[:, :, i] = bin
+            new_cube[:, :, i] = bin_average
 
     # overwrite file
     try:
