@@ -14,8 +14,10 @@ from xrf_explorer.server.file_system.file_access import (
 from cv2 import (
     imread,
     perspectiveTransform,
-    getPerspectiveTransform
+    getPerspectiveTransform, 
+    convexHull, fillConvexPoly
 )
+
 from xrf_explorer.server.image_register.register_image import (
     load_points,
     compute_fitting_dimensions_by_aspect,
@@ -165,37 +167,6 @@ def compute_bounding_box(polygon_vertices: list[tuple[int, int]]) -> tuple[tuple
     return (min(x_coords), min(y_coords)), (max(x_coords), max(y_coords))
 
 
-def is_point_in_polygon(point: tuple[int, int], polygon_vertices: list[tuple[int, int]]) -> bool:
-    """
-    Compute whether a given point lies in a given polygon.
-    Adapted from https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/ .
-
-    :param point: The point to check.
-    :param polygon_vertices: The list of points that make up the polygon to check against.
-    :return: True if the point lies in the polygon, false otherwise.
-    """
-    inside: bool = False
-
-    poly_point_1: tuple[int, int] = polygon_vertices[0]
-
-    for i in range(1, len(polygon_vertices) + 1):
-        poly_point_2: tuple[int, int] = polygon_vertices[i % len(polygon_vertices)]
-
-        if point[1] > min(poly_point_1[1], poly_point_2[1]) and (
-                point[1] <= max(poly_point_1[1], poly_point_2[1])) and (
-                point[0] <= max(poly_point_1[0], poly_point_2[0])):
-
-            x_intersection: float = ((point[1] - poly_point_1[1]) * (poly_point_2[0] - poly_point_1[0])) / (
-                    poly_point_2[1] - poly_point_1[1]) + poly_point_1[0]
-
-            if poly_point_1[0] == poly_point_2[0] or point[0] <= x_intersection:
-                inside = not inside
-
-        poly_point_1 = poly_point_2
-
-    return inside
-
-
 def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int) -> list[tuple[int, int]]:
     """
     Clip a list of points to the bounds of the datacube.
@@ -215,8 +186,7 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     return clipped_points
 
 
-def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int,
-                           cube_height: int) -> np.ndarray:
+def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int, cube_height: int):
     """
     Compute the selection mask of a given selection.
     
@@ -227,25 +197,34 @@ def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[
     :return: 2D mask of the datacube, where mask[y, x]==True means the point at (x, y) is in the selection,
     False means it is not.
     """
-    mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=bool)
+    mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=np.uint8)
+
 
     selection = clip_points(selection, cube_width, cube_height)
-
+    np_selection: np.ndarray = np.array(selection)
+    
+    # If the selection is Rectangle selection, the polygon cannot self intersect,
+    # so find the convex hull of the selection
     if selection_type == SelectionType.Rectangle:
-        x1, y1 = selection[0]
-        x2, y2 = selection[1]
+        # Calculate the smallest convex set that contains all the points
+        # The purpose of this is to order the points so they construct a polygon instead
+        # of an hourglass figure
+        x1, y1 = np_selection[0]
+        x2, y2 = np_selection[1]
+        
+        p1 = (x1, y1)
+        p2 = (x1, y2)
+        p3 = (x2, y1)
+        p4 = (x2, y2)
 
-        mask[y1: y2, x1: x2] = True
+        np_selection = convexHull(np.array([p1, p2, p3, p4]))
 
-    elif selection_type == SelectionType.Lasso:
-        top_left, bottom_right = compute_bounding_box(selection)
+    # Write 1's in the polygon area
+    # Takes into account the weird shapes that can occur if the points are
+    # in different order
+    fillConvexPoly(mask, np_selection, (1,))
 
-        for x in range(top_left[0], bottom_right[0] + 1):
-            for y in range(top_left[1], bottom_right[1] + 1):
-                point: tuple[int, int] = (x, y)
-                mask[y, x] = is_point_in_polygon(point, selection)
-
-    return mask
+    return mask.astype(bool)
 
 
 def get_selection(
