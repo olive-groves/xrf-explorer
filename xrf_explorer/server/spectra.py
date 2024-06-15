@@ -99,9 +99,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     # overwrite file
     try:
         new_cube.flatten().tofile(path_to_raw)
-        set_binned(data_source, True)
     except Exception as e:
         LOG.error("Failed to write binned data: {%s}", e)
+    set_binned(data_source, True)
 
 
 def get_average_global(data: np.ndarray) -> list:
