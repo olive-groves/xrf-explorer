@@ -6,6 +6,10 @@ from flask import request, jsonify, abort, send_file
 import numpy as np
 from os.path import exists, abspath, join, isfile, isdir
 from os import mkdir, rmdir
+from pytest import param
+from werkzeug.utils import secure_filename
+from os.path import exists, abspath, join
+from os import mkdir
 import json
 from markupsafe import escape
 from numpy import ndarray
@@ -15,7 +19,9 @@ from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl, get_base_image_name, \
+    get_raw_rpl_paths
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, get_spectra_params, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.elemental_cube import (
@@ -39,8 +45,8 @@ from xrf_explorer.server.color_seg import (
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
-from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data
-from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType
+from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
+from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -233,10 +239,32 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     return "Uploaded file chunk", 200
 
 
-@app.route("/api/<data_source>/element_averages", methods=["GET", "POST"])
+@app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
+def bin_raw_data(data_source: str, bin_params: str):
+    """Bins the raw data files channels to compress the file.
+
+    :param data_source: the data source containing the raw data to bin.
+    :param bin_params: the JSON list of parameters: low, high, binSize.
+    :return: A boolean indicating if the binning was successful.
+    """
+    params: dict = json.loads(bin_params)
+    low: int = params["low"]
+    high: int = params["high"]
+    bin_size: int = params["binSize"]
+
+    try:
+        bin_data(data_source, low, high, bin_size)
+        LOG.info("binned")
+    except Exception as e:
+        LOG.error("error while loading raw file: {%s}", e)
+
+    return "Binned data", 200
+
+
+@ app.route("/api/<data_source>/element_averages")
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
-    
+
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object
     is of the form {name: element name, average: element abundance}
@@ -323,7 +351,7 @@ def list_element_averages_selection(data_source: str):
 @app.route("/api/<data_source>/data/elements/names")
 def list_element_names(data_source: str):
     """Get the short names of the elements stored in the elemental data cube.
-    
+
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
@@ -343,7 +371,7 @@ def list_element_names(data_source: str):
 @app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """Generate the dimensionality reduction embedding of an element, given a threshold.
-    
+
     :param data_source: data source to generate the embedding from
     :param element: element to generate the embedding for
     :param threshold: threshold from which a pixel is selected
@@ -363,7 +391,7 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
 @app.route("/api/<data_source>/dr/overlay/<overlay_type>")
 def get_dr_overlay(data_source: str, overlay_type: str):
     """Generate the dimensionality reduction overlay with a given type.
-    
+
     :param data_source: data source to get the overlay from
     :param overlay_type: the overlay type. Images are prefixed with contextual_ and elements by elemental_
     :return: overlay image file
@@ -480,6 +508,7 @@ def contextual_image_recipe(data_source: str, name: str):
 def data_cube_size(data_source: str):
     """Get the size of the data cubes.
 
+
     :param data_source: data source to get the size from
     :return: the size of the data cubes
     """
@@ -549,73 +578,84 @@ def elemental_map(data_source: str, channel: int):
 
 
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
-def get_average_data(data_source):
+def get_average_data(data_source: str):
     """Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
 
-    :param data_source: data_source to get the average raw data from
-    :request args: 
-        **low** - the spectrum lower boundary \n 
-        **high** - the spectrum higher boundary \n 
-        **binSize** - the size of each bin
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
-    low = int(request.args.get('low'))
-    high = int(request.args.get('high'))
-    bin_size = int(request.args.get('binSize'))
     datacube: np.ndarray = get_raw_data(data_source)
 
-    if datacube.size == 0:
-        return "Error occurred while loading data", 404
-
-    average_values: list = get_average_global(datacube, low, high, bin_size)
+    average_values: list = get_average_global(datacube)
     response = json.dumps(average_values)
 
     return response
 
 
-@app.route('/api/get_element_spectrum', methods=['GET'])
-def get_element_spectra():
+@app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
+def get_element_spectra(data_source: str, element: str, excitation: int):
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
 
-    :request args: 
-        **low** - the spectrum lower boundary \n 
-        **high** - the spectrum higher boundary \n 
-        **binSize** - the size of each bin \n 
-        **element** - element to be plotted \n 
-        **excitation** - excitation energy
-    :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
+    :param data_source: the name of the data source, used for getting the spectrum boundaries and bin size.
+    :param element: the chemical element to get the theoretical spectra of.
+    :param excitation: the excitation energy.
+    :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities.
     """
-    element: str = request.args.get('element')
-    excitation_energy_keV = int(request.args.get('excitation'))
-    low = int(request.args.get('low'))
-    high = int(request.args.get('high'))
-    bin_size = int(request.args.get('binSize'))
+    try:
+        params: dict[str, int] = get_spectra_params(data_source)
+    except FileNotFoundError:
+        return "error while loading workspace to retrieve spectra params: {%s}", 404
 
-    response: list = get_theoretical_data(element, excitation_energy_keV, low, high, bin_size)
+    if params is None:
+        return "Error occurred while loading element spectrum", 404
+
+    low: int = params["low"]
+    high: int = params["high"]
+    bin_size: int = params["binSize"]
+    response = get_theoretical_data(
+        element, int(excitation), low, high, bin_size)
 
     response = json.dumps(response)
 
     return response
 
 
-@app.route('/api/<data_source>/get_selection_spectrum', methods=['GET'])
-def get_selection_spectra(data_source):
-    """Get the average spectrum of the selected pixels.
+@app.route('/api/<data_source>/get_selection_spectrum/<selection>', methods=['GET'])
+def get_selection_spectra(data_source: str, selection: str):
+    """Get the average spectrum of the selected pixels of a rectangle selection.
 
-    :request args: 
-        **low** - the spectrum lower boundary \n
-        **high** - the spectrum higher boundary \n
-        **binSize** - the size of each bin \n
-        **pixels** - the array of corrdinates of selected pixels in the raw data coordinate system
-    :return: json list of tuples containing the channel number and the average intensity of this channel
+    :param data_source: the name of the data source
+    :param selection: the json object representing the selection
+    :return: json list of tuples containing the channel number and the average intensity of this channel.
     """
-    # selection to be retrieived from seletion tool
-    pixels: list[tuple[int, int]] = []
-    low = int(request.args.get('low'))
-    high = int(request.args.get('high'))
-    bin_size = int(request.args.get('binSize'))
-    datacube: list = get_raw_data(data_source)
-    result: list = get_average_selection(datacube, pixels, low, high, bin_size)
+
+    # parse selection
+    selection_dict = json.loads(selection)
+    data = None
+    match selection_dict["selectionType"]:
+        # rectangle selection case
+        case "rectangle":
+            x1 = selection_dict["bounding_points"][0]["x"]
+            y1 = selection_dict["bounding_points"][0]["y"]
+            x2 = selection_dict["bounding_points"][1]["x"]
+            y2 = selection_dict["bounding_points"][1]["y"]
+
+            # TODO replace with get_selected_raw_data
+            data = get_selected_data_cube(
+                data_source, CubeType.RAW, tuple([x1, y1]), tuple([x2, y2]))
+        case "lasso":
+            data = {}
+
+    if data is None:
+        return "Error occurred while loading element spectrum", 404
+
+    try:
+        params: dict[str, int] = get_spectra_params(data_source)
+    except FileNotFoundError:
+        return "error while loading workspace to retrieve spectra params: {%s}", 404
+
+    # data is not None so we can parse it as array
+    data = np.array(data)
+    result: list = get_average_selection(data)
 
     response = json.dumps(result)
     return response
@@ -642,28 +682,29 @@ def get_color_clusters(data_source: str):
         return 'Error occurred while getting backend config', 500
     uploads_folder: str = str(config['uploads-folder'])
     cs_folder: str = str(config['color-segmentation']['folder-name'])
-    reg_image_name: str = str(config['color-segmentation']['registered-image'])
 
     # Paths
-    path_to_reg_image: str = join(uploads_folder, data_source, cs_folder, reg_image_name)
     path_to_data_cube: str = get_elemental_cube_path(data_source)
     if not path_to_data_cube:
         return f"Could not find elemental data cube in source {data_source}", 500
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
 
     # get default dim reduction config for image clusters
-    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str,
+                             str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # get default dim reduction config for elemental clusters
-    k_means_parameters_elem: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters_elem: dict[str,
+                                  str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters_elem['elem-threshold'])
     nr_attempts_elem: int = int(k_means_parameters_elem['nr-attempts'])
     k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
-    full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
+    full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{
+        elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
@@ -680,7 +721,8 @@ def get_color_clusters(data_source: str):
     # Compute colors and bitmasks
     colors: ndarray
     bitmasks: ndarray
-    colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, nr_attempts, k)
+    colors, bitmasks = get_clusters_using_k_means(
+        data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
@@ -704,14 +746,16 @@ def get_color_clusters(data_source: str):
 
     for i in range(len(colors_per_elem)):
         # Merge similar clusters
-        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(colors_per_elem[i], bitmasks_per_elem[i])
+        colors_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(
+            colors_per_elem[i], bitmasks_per_elem[i])
         color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
-        full_path: str = join(path_to_save, f'elementCluster_{i}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
+        full_path: str = join(path_to_save, f'elementCluster_{i}_{
+            elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if not image_saved:
             return f'Error occurred while saving bitmask for element {i} as png', 500
@@ -723,7 +767,7 @@ def get_color_clusters(data_source: str):
     return json.dumps(color_data)
 
 
-@app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
+@ app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
     """
     Returns the png bitmask for the color clusters over the whole painting.
@@ -738,7 +782,8 @@ def get_color_cluster_bitmask(data_source: str):
     cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Get parameters
-    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str,
+                             str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
@@ -766,14 +811,16 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
     cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Get parameters
-    k_means_parameters: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters: dict[str,
+                             str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem-threshold'])
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # Path to bitmask
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
-    full_path: str = join(path_to_save, f'elementCluster_{element}_{elem_threshold}_{k}_{nr_attempts}.png')
+    full_path: str = join(path_to_save, f'elementCluster_{element}_{
+        elem_threshold}_{k}_{nr_attempts}.png')
     if not exists(full_path):
         get_color_clusters(data_source)
 
