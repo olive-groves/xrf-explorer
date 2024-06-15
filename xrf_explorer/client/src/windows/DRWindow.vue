@@ -4,14 +4,31 @@ import { appState, datasource, elements } from "@/lib/appState";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
-import { LoaderPinwheel } from "lucide-vue-next";
-import { LabeledSlider } from "@/components/ui/slider";
+import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "vue-sonner";
 import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
+import { Separator } from "@/components/ui/separator";
 import { SelectionAreaType } from "@/lib/selection";
 import { remToPx } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@/components/ui/number-field";
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -47,15 +64,18 @@ enum Status {
 }
 
 const status = ref(Status.WELCOME);
-const currentError = ref("Unknown error.");
+const currentError = ref("Unknown error");
 
 // Dimensionality reduction parameters
-const threshold = ref([100]);
+const threshold = ref(100);
 const selectedElement = ref();
 const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
+
+// Selection
+const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
 
 /**
  * Fetch the dimensionality reduction image
@@ -65,7 +85,7 @@ const imageSourceUrl = ref();
 async function fetchDRImage() {
   // Check if the user specified an overlay
   if (selectedOverlay.value == null) {
-    currentError.value = "Please select an overlay.";
+    currentError.value = "Please select an overlay";
     status.value = Status.ERROR;
     return;
   }
@@ -89,7 +109,7 @@ async function fetchDRImage() {
     // Update status
     status.value = Status.SUCCESS;
   } else {
-    currentError.value = "Loading overlay failed.";
+    currentError.value = "Failed to load overlay, make sure embedding has been generated";
     status.value = Status.ERROR;
   }
 }
@@ -100,13 +120,9 @@ async function fetchDRImage() {
  * If embedding was generated successfully, it fetches the new image.
  */
 async function updateEmbedding() {
-  // Check if an element and overlay were selected, if not return message to user.
-  if (selectedOverlay.value == null) {
-    currentError.value = "Please select an overlay.";
-    status.value = Status.ERROR;
-    return;
-  } else if (selectedElement.value == null) {
-    currentError.value = "Please select an element.";
+  // Check if an element was selected, if not return message to user.
+  if (selectedElement.value == null) {
+    currentError.value = "Please select an element";
     status.value = Status.ERROR;
     return;
   }
@@ -134,87 +150,127 @@ async function updateEmbedding() {
   }
 
   // Set status to error
-  currentError.value = "Generating embedding failed.";
+  currentError.value = "Generating embedding failed";
   status.value = Status.ERROR;
 }
 </script>
 
 <template>
   <Window title="Dimensionality reduction" location="left">
-    <!-- OVERLAY SECTION -->
-    <div class="p-2">
-      <p class="font-bold">Overlay:</p>
-      <div class="mt-1 flex items-center">
-        <Select v-model="selectedOverlay">
+    <div class="space-y-2 p-2">
+      <!-- EMBEDDING GENERATION -->
+      <p class="-mb-2 font-bold">Embedding</p>
+      <div class="flex space-x-2">
+        <div class="grow space-y-1">
+          <Label for="embedding_element">Element</Label>
+          <Select v-model="selectedElement" id="embedding_element" class="w-full">
+            <SelectTrigger>
+              <SelectValue placeholder="Select an element" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel.toString()">
+                {{ element.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="w-28 shrink-0 space-y-1">
+          <Label for="embedding_threshold">Threshold</Label>
+          <NumberField
+            v-model="threshold"
+            :min="0"
+            :max="255"
+            :step="1"
+            id="embedding_threshold"
+            :format-options="{
+              minimumIntegerDigits: 1,
+              maximumFractionDigits: 0,
+            }"
+          >
+            <NumberFieldContent>
+              <NumberFieldDecrement />
+              <NumberFieldInput />
+              <NumberFieldIncrement />
+            </NumberFieldContent>
+          </NumberField>
+        </div>
+      </div>
+      <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
+
+      <!-- OVERLAY SECTION -->
+      <div class="space-y-1">
+        <p class="font-bold">Overlay</p>
+        <Select v-model="selectedOverlay" @update:model-value="fetchDRImage">
           <SelectTrigger>
             <SelectValue placeholder="Select an overlay" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Contextual images:</SelectLabel>
+              <SelectLabel>Contextual images</SelectLabel>
               <SelectItem v-for="image in contextualImages" :key="image.name" :value="'contextual_' + image.name">
                 {{ image.name }}
               </SelectItem>
             </SelectGroup>
             <SelectGroup>
-              <SelectLabel>Elements:</SelectLabel>
+              <SelectLabel>Elements</SelectLabel>
               <SelectItem v-for="element in elements" :key="element.channel" :value="'elemental_' + element.channel">
                 {{ element.name }}
               </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button class="ml-2 w-40" @click="fetchDRImage">Show overlay</Button>
       </div>
-      <!-- PARAMETERS SECTIONS -->
-      <p class="mt-4 font-bold">Embedding:</p>
-      <LabeledSlider label="Threshold" v-model="threshold" :min="0" :max="255" :step="1" :default="[100]" />
-      <div class="mt-1 flex items-center">
-        <Select v-model="selectedElement">
-          <SelectTrigger>
-            <SelectValue placeholder="Select an element" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Elements</SelectLabel>
-              <SelectItem v-for="element in elements" :key="element.channel" :value="element.channel">
-                {{ element.name }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        <Button class="ml-2 w-40" @click="updateEmbedding">Generate</Button>
-      </div>
+
       <!-- GENERATION OF THE IMAGE -->
-      <p class="mt-4 font-bold">Generated image:</p>
-      <div
-        class="pointer-events-auto mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center"
-        style="position: relative"
-        tabindex="0"
-        id="imageContainer"
-        ref="output"
-      >
-        <div class="mt-1 flex aspect-square flex-col items-center justify-center space-y-2 text-center" ref="output">
-          <span v-if="status == Status.WELCOME">Choose your overlay and parameters and start the generation.</span>
-          <span v-if="status == Status.LOADING">Loading</span>
-          <span v-if="status == Status.GENERATING">Generating</span>
-          <span v-if="status == Status.ERROR">{{ currentError }}</span>
-          <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
-            <LoaderPinwheel class="size-full animate-spin" />
-          </div>
-          <div class="relative m-8" v-if="status == Status.SUCCESS">
-            <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
-            <SelectionArea
-              v-model="appState.selection.dimensionalityReduction"
-              :type="SelectionAreaType.Lasso"
-              :click-margin="remToPx(2)"
-              :x="0"
-              :y="0"
-              :w="256"
-              :h="256"
-            />
-          </div>
+      <div class="flex flex-col items-center justify-center space-y-2 rounded-md border p-8 text-center" ref="output">
+        <span v-if="status == Status.WELCOME">Generate an embedding and choose an overlay</span>
+        <span v-if="status == Status.LOADING">Loading</span>
+        <span v-if="status == Status.GENERATING">Generating</span>
+        <span v-if="status == Status.ERROR">{{ currentError }}</span>
+        <div v-if="status == Status.LOADING || status == Status.GENERATING" class="size-6">
+          <LoaderPinwheel class="size-full animate-spin" />
         </div>
+        <div class="relative" v-if="status == Status.SUCCESS">
+          <img :src="imageSourceUrl" ref="embeddingImage" @error="status = Status.ERROR" />
+          <SelectionArea
+            v-model="appState.selection.dimensionalityReduction.area"
+            :type="selectionAreaType"
+            :click-margin="remToPx(2)"
+            :x="0"
+            :y="0"
+            :w="256"
+            :h="256"
+          />
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="flex w-min rounded-md border p-1">
+        <ToggleGroup v-model:model-value="selectionAreaType">
+          <ToggleGroupItem class="size-8 p-2" title="Rectangle selection" :value="SelectionAreaType.Rectangle">
+            <SquareMousePointer />
+          </ToggleGroupItem>
+          <ToggleGroupItem class="size-8 p-2" title="Lasso selection" :value="SelectionAreaType.Lasso">
+            <LassoSelect />
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <Separator orientation="vertical" class="mx-1 h-8" />
+        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2 hover:bg-accent">
+          <div
+            for="color_dr"
+            class="size-4 rounded-md border border-border"
+            :style="{
+              'background-color': appState.selection.dimensionalityReduction.color,
+            }"
+          />
+        </Label>
+        <Input
+          class="hidden"
+          :id="`color_dr`"
+          default-value="#FFFFFF"
+          @update:model-value="(value: string) => (appState.selection.dimensionalityReduction.color = value)"
+          type="color"
+        />
       </div>
     </div>
   </Window>

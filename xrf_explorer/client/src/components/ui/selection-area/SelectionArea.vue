@@ -91,7 +91,6 @@ function mapLocation(client: Point2D): Point2D {
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  console.log("click", event);
   if (props.type == SelectionAreaType.Lasso) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
     if (candidateType.value == SelectionAreaType.Lasso) {

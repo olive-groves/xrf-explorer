@@ -15,8 +15,11 @@ export const appState = reactive<AppState>({
     elements: [],
     colorSegmentation: [],
     dimensionalityReduction: {
-      type: undefined,
-      points: [],
+      color: "#ffffff",
+      area: {
+        type: undefined,
+        points: [],
+      },
     },
   },
   secondViewer: false,

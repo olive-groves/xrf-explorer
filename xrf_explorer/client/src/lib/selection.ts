@@ -20,7 +20,7 @@ export type Selection = {
   /**
    * The selection made in the dimensionality reduction window.
    */
-  dimensionalityReduction: SelectionAreaSelection;
+  dimensionalityReduction: DimensionalityReductionSelection;
 };
 
 /**
@@ -66,6 +66,20 @@ export type ColorSegmentationSelection = {
    * The color associated with each cluster.
    */
   colors: string[];
+};
+
+/**
+ * Describes a selection made in the DR Window.
+ */
+export type DimensionalityReductionSelection = {
+  /**
+   * The color of the highlighted points.
+   */
+  color: string;
+  /**
+   * The selected area.
+   */
+  area: SelectionAreaSelection;
 };
 
 /**

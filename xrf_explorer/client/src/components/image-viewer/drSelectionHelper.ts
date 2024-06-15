@@ -1,6 +1,5 @@
 import { DataTexture } from "three";
 import { computed, watch } from "vue";
-import { toast } from "vue-sonner";
 import { getDataSize, getRecipe, getTargetSize } from "@/components/image-viewer/api";
 import { registerLayer } from "@/components/image-viewer/registering";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "@/components/image-viewer/scene";
@@ -12,7 +11,8 @@ import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { hexToRgb, Point2D } from "@/lib/utils";
 import { config } from "@/main";
 
-const selection = computed(() => appState.selection.dimensionalityReduction);
+const color = computed(() => appState.selection.dimensionalityReduction.color);
+const selection = computed(() => appState.selection.dimensionalityReduction.area);
 
 const width: number = 256; // arbitrary amount to compress embedding data
 const height: number = 256; // arbitrary amount to compress embedding data
@@ -20,15 +20,26 @@ const height: number = 256; // arbitrary amount to compress embedding data
 const data: Uint8Array = new Uint8Array(width * height * 4);
 const dataTexture: DataTexture = createDataTexture(data, width, height);
 
+watch(color, onColorUpdate, { immediate: true, deep: true });
 watch(selection, onSelectionUpdate, { immediate: true, deep: true });
 
 /**
- * Set the color of the selection layer.
- * @param color - Color to be used for highlighting the selection.
+ * Updates the color used by the shader for the highlighted areas.
+ * @param newColor - The new color for the highlighted area.
  */
-function setSelectionColor(color: [number, number, number]): void {
-  color.push(0); // opacity set to 0 (used for bitmask)
-  for (let i: number = 0; i < data.length; i++) data[i] = color[i % 4];
+function onColorUpdate(newColor: string) {
+  // Get the color as RGB values
+  const color = hexToRgb(newColor);
+
+  // Set the color in every pixel of the bitmask
+  for (let i = 0; i < width * height * 4; i += 4) {
+    data[i + 0] = color[0];
+    data[i + 1] = color[1];
+    data[i + 2] = color[2];
+  }
+
+  // Update the data texture on the GPU
+  updateDataTexture(layerGroups.value.selection);
 }
 
 /**
@@ -61,7 +72,6 @@ async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
 
   // update the layer to display the selection
   updateLayer(newSelection.points.length);
-  toast.info("Now displaying the dimensionality reduction selection.");
   console.info("Updated the image viewer to display the selection in the DR window.");
 }
 
@@ -233,8 +243,6 @@ export function updateMiddleImage(): void {
  * Create the first instance of the DR Selection layer and add it to the global group of layers.
  */
 export async function createDRSelectionLayer() {
-  setSelectionColor(hexToRgb(config.selectionTool.fillColor));
-
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
