@@ -215,7 +215,7 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
 
 
 def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
-    """"Saves a numpy array and list of elements to a DMS file.
+    """Saves a numpy array and list of elements to a DMS file.
 
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
     :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
