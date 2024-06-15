@@ -279,7 +279,8 @@ def get_selection(
         LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
         return None
 
-    cube_dir: str | None
+    cube_dir: str | None = None
+
     if cube_type == CubeType.Elemental:
         cube_dir = get_elemental_cube_path(data_source_folder)
         
@@ -307,6 +308,8 @@ def get_selection(
     cube_h: int
     cube_w: int
     
+    data_cube: np.ndarray = np.array([])
+
     if cube_type == CubeType.Elemental:
         raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
         data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
