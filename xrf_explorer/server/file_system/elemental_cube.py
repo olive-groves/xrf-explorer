@@ -50,6 +50,7 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
 
     return normalized_cube
 
+
 def get_elemental_data_cube(path: str) -> np.ndarray:
     """Get the elemental data cube at the given path.
 
@@ -186,18 +187,36 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
-    
+
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
-        [{"name": names[i], "average": averages[i]} for i in range(averages.size)]
-
+        [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+    
     LOG.info("Calculated the average composition of the elements.")
 
     return composition
 
 
+def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
+    """Get the names and averages of the elements present in (a subarea of) the painting.
+    :param selection: A 2D array where the rows represent the selected pixels from the data cube image and the columns represent their elemental map values.
+    :param names: The names of the elements present in the painting.
+    :return: List of the names and average composition of the elements.
+    """
+    # Calculate the average composition of each element in the selection
+    averages: np.ndarray = np.mean(selection, axis=1)
+
+    # Create a list of dictionaries with the name and average composition of the elements
+    composition: list[dict[str,  str | float]] = \
+        [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+
+    LOG.info("Calculated the average composition of the elements within selection.")
+
+    return composition
+
+
 def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
-    """"Saves a numpy array and list of elements to a DMS file.
+    """Saves a numpy array and list of elements to a DMS file.
 
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
     :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.

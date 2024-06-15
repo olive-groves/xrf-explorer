@@ -4,10 +4,8 @@ import logging
 from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 import numpy as np
-from os.path import exists, abspath, join, isfile, isdir
-from os import mkdir, rmdir
-from pytest import param
-from werkzeug.utils import secure_filename
+from os.path import isfile, isdir
+from os import rmdir
 from os.path import exists, abspath, join
 from os import mkdir
 import json
@@ -19,14 +17,19 @@ from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, parse_rpl, get_base_image_name, \
-    get_raw_rpl_paths
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_raw_rpl_paths, get_spectra_params, parse_rpl
+from xrf_explorer.server.file_system.file_access import get_elemental_cube_recipe_path, get_spectra_params, parse_rpl
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names, get_data_source_files
-from xrf_explorer.server.file_system import get_element_averages, get_elemental_map, normalize_ndarray_to_grayscale, \
-    get_element_names
-from xrf_explorer.server.file_system.file_access import get_elemental_cube_path, get_raw_rpl_paths, get_base_image_name
+from xrf_explorer.server.file_system.elemental_cube import (
+    get_short_element_names, get_element_averages, get_element_names,
+    get_elemental_map, normalize_ndarray_to_grayscale,
+    get_element_averages_selection
+)
+from xrf_explorer.server.file_system.file_access import (
+    get_elemental_cube_path,
+    get_raw_rpl_paths,
+    get_base_image_name
+)
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import (
     generate_embedding,
@@ -38,14 +41,10 @@ from xrf_explorer.server.color_seg import (
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
 from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
-from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import get_selected_data_cube, CubeType
-LOG: logging.Logger = logging.getLogger(__name__)
+from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
 
-TEMP_RGB_IMAGE: str = 'rgb.tif'
+LOG: logging.Logger = logging.getLogger(__name__)
 
 
 @app.route("/api")
@@ -256,7 +255,7 @@ def bin_raw_data(data_source: str, bin_params: str):
     return "Binned data", 200
 
 
-@ app.route("/api/<data_source>/element_averages")
+@ app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
 
@@ -265,9 +264,77 @@ def list_element_averages(data_source: str):
     is of the form {name: element name, average: element abundance}
     """
 
-    path: str = get_elemental_cube_path(data_source)
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error occurred while getting elemental datacube path", 500
 
     composition: list[dict[str, str | float]] = get_element_averages(path)
+    try:
+        return json.dumps(composition)
+    except Exception as e:
+        LOG.error(f"Failed to serialize element averages: {str(e)}")
+        return "Error occurred while listing element averages", 500
+
+
+@app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
+def list_element_averages_selection(data_source: str):
+    """Get the names and averages of the elements present in a rectangular selection
+    of the painting.
+    
+    :param data_source: data_source to get the element averages from
+    :return: JSON list of objects indicating average abundance for every element. Each object
+    is of the form {name: element name, average: element abundance}
+    """
+    # path to elemental cube
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error getting elemental datacube path", 500
+
+    # parse JSON payload
+    data: dict[str, str] | None = request.get_json()
+    if data is None:
+        return "Error parsing request body", 400
+
+    # get selection type and points
+    selection_type: str | None = data.get('type')
+    points: list[dict[str, float]] | None = data.get('points')
+
+    if selection_type is None or points is None:
+        return "Error occurred while getting selection type or points from request body", 400
+
+    # validate and parse selection type
+    try:
+        selection_type_parsed: SelectionType = SelectionType(selection_type)
+    except ValueError:
+        return "Error parsing selection type", 400
+
+    # validate and parse points
+    if not isinstance(points, list):
+        return "Error parsing points; expected a list of points", 400
+
+    try:
+        points_parsed: list[tuple[int, int]] = [
+            (round(point['x']), round(point['y'])) for point in points
+        ]
+    except ValueError:
+        return "Error parsing points", 400
+
+    # get selection
+    selection: np.ndarray | None = get_selection(
+        data_source, points_parsed, selection_type_parsed, CubeType.Elemental
+    )
+
+    if selection is None:
+        return "Error occurred while getting selection from datacube", 500
+
+    # get names
+    names: list[str] = get_short_element_names(path)
+
+    # get averages
+    composition: list[dict[str, str | float]] = get_element_averages_selection(selection, names)
+
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -282,7 +349,10 @@ def list_element_names(data_source: str):
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
-    path: str = get_elemental_cube_path(data_source)
+    path: str | None = get_elemental_cube_path(data_source)
+
+    if path is None:
+        return "Error getting elemental datacube path", 500
 
     names: list[str] = get_element_names(path)
     try:
@@ -360,14 +430,14 @@ def contextual_image(data_source: str, name: str):
     :return: the contextual image converted to png
     """
 
-    path: str = get_contextual_image_path(data_source, name)
-    if not path:
+    path: str | None = get_contextual_image_path(data_source, name)
+    if path is None:
         return f"Image {name} not found in source {data_source}", 404
 
     LOG.info("Opening contextual image")
 
-    image: Image = get_contextual_image(path)
-    if not image:
+    image: Image | None = get_contextual_image(path)
+    if image is None:
         return f"Failed to open image {name} from source {data_source}", 500
 
     LOG.info("Converting contextual image")
@@ -481,8 +551,8 @@ def elemental_map(data_source: str, channel: int):
     """
 
     # As XRF-Explorer only supports a single data cube, we do not have to do any wizardry to stitch maps together
-    path: str = get_elemental_cube_path(data_source)
-    if not path:
+    path: str | None = get_elemental_cube_path(data_source)
+    if path is None:
         return f"Could not find elemental data cube in source {data_source}", 404
 
     # Get the elemental map
