@@ -2,7 +2,6 @@ import pytest
 from cv2 import imread
 from xrf_explorer.server.file_system.config_handler import set_config
 from xrf_explorer.server.image_to_cube_selection import (
-    get_selected_data_cube,
     get_scaled_cube_coordinates,
     deregister_coord
 )
@@ -15,15 +14,11 @@ import numpy as np
 
 import sys
 import pytest
-from cv2 import imread, fillPoly
+from cv2 import imread
 
 from os.path import join
 
-from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import CubeType
-
 sys.path.append(".")
-
-from xrf_explorer.server.image_to_cube_selection.image_to_cube_selection import perspective_transform_coord
 
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
@@ -34,7 +29,8 @@ from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,
     deregister_coord,
-    SelectionType
+    SelectionType,
+    CubeType
 )
 from xrf_explorer.server.file_system.config_handler import set_config
 
