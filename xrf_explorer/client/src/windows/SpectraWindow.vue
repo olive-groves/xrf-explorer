@@ -3,7 +3,7 @@ import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
-import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -26,13 +26,14 @@ import { Point2D } from "@/lib/utils";
  * those are two opposite corners of the rectangle. In case of lasso selection,
  * those are the points in the order in which they form the selection area.
  */
- interface RequestBody {
+interface RequestBody {
   type: SelectionAreaType | undefined;
   points: Point2D[];
-};
+}
 
+// Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
-  watch(areaSelection, plotSelectionSpectrum, { deep: true, immediate: true });
+watch(areaSelection, onSelectionAreaUpdate, { deep: true, immediate: true });
 
 /**
  * Sets up export of chart.
@@ -90,6 +91,18 @@ function setup() {
   plotAverageSpectrum();
 }
 
+/**
+ * Callback for when the selection in the main viewer is changed.
+ * @param selection New area selection in the main viewer.
+ */
+async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
+  try {
+    plotSelectionSpectrum(selection);
+  } catch (e) {
+    console.error("Error fetching average data", e);
+  }
+}
+
 const globalChecked = ref(false);
 const elementChecked = ref(false);
 const selectionChecked = ref(false);
@@ -143,17 +156,19 @@ async function plotAverageSpectrum() {
  */
 async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
   if (ready && selection != undefined) {
+    // Request body for selection
     const request_body: RequestBody = {
-    type: selection.type,
-    points: selection.points}
+      type: selection.type,
+      points: selection.points,
+    };
     try {
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/`, {
-        method: "GET",
+      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-        body: JSON.stringify(request_body)
         },
+        body: JSON.stringify(request_body),
       });
       const data = await response.json();
 
