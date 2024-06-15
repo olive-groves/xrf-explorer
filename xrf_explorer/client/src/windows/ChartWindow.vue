@@ -10,7 +10,7 @@ import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
-import { RequestBody } from "./selection"
+import { RequestBody } from "./selection";
 
 /**
  * Sets up export of chart.

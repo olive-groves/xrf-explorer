@@ -8,6 +8,12 @@ import { Point2D } from "@/lib/utils";
  * those are the points in the order in which they form the selection area.
  */
 export interface RequestBody {
-    type: SelectionAreaType | undefined;
-    points: Point2D[];
-  }
+  /**
+   *The type of the selection.
+   */
+  type: SelectionAreaType | undefined;
+  /**
+   *The list of points defining the selected area
+   */
+  points: Point2D[];
+}

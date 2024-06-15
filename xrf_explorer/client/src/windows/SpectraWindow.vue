@@ -12,13 +12,12 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-import { RequestBody } from "./selection"
+import { RequestBody } from "./selection";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
-
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
