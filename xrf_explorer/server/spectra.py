@@ -78,6 +78,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     # if default settings, don't do anything
     if low == 0 and high == 4096 and bin_size == 1:
+        set_binned(data_source, True)
         return
     # if we just need to crop
     elif bin_size == 1:
