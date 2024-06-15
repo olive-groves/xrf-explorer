@@ -12,10 +12,11 @@ from xrf_explorer.server.file_system.file_access import (
     get_cube_recipe_path,
 )
 from cv2 import (
+    fillPoly,
     imread,
     perspectiveTransform,
     getPerspectiveTransform, 
-    convexHull, fillConvexPoly
+    convexHull
 )
 
 from xrf_explorer.server.image_register.register_image import (
@@ -222,7 +223,7 @@ def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[
     # Write 1's in the polygon area
     # Takes into account the weird shapes that can occur if the points are
     # in different order
-    fillConvexPoly(mask, np_selection, (1,))
+    fillPoly(mask, [np_selection], (1,))
 
     return mask.astype(bool)
 
