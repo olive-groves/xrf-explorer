@@ -50,6 +50,7 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
 
     return normalized_cube
 
+
 def get_elemental_data_cube(path: str) -> np.ndarray:
     """Get the elemental data cube at the given path.
 
