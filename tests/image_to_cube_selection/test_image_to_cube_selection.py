@@ -58,8 +58,7 @@ class TestImageToCubeSelection:
         ]
 
         data_source_folder_name: str = "made_up_name"
-        expected_output: str = f"Data source directory {
-            data_source_folder_name} does not exist."
+        expected_output: str = f"Data source directory {data_source_folder_name} does not exist."
 
         # execute
         result: np.ndarray | None = get_selection(
@@ -231,7 +230,6 @@ class TestImageToCubeSelection:
         assert np.array_equal(selection_data_rect_outside, selection_data_lasso_outside)
         assert np.array_equal(selection_data_rect_outside, selection_data_rect)
 
-
     def test_ribbon_selection(self):
         # setup
         img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
@@ -261,15 +259,14 @@ class TestImageToCubeSelection:
 
         # ribbon selection must be about half of the rect selection
         assert abs(selection_data_rect.shape[1] - selection_data_lasso.shape[1] * 2) <= tolerance
-        
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.
     def is_deregistration_correct(
-        self,
-        base_img_coord: tuple[int, int],
-        cube_coord_expected: tuple[int, int],
-        tolerance_pixels: int,
+            self,
+            base_img_coord: tuple[int, int],
+            cube_coord_expected: tuple[int, int],
+            tolerance_pixels: int,
     ) -> bool:
         base_img: np.ndarray = imread(self.SAMPLE_BASE_IMAGE_PATH)
         cube_img: np.ndarray = imread(self.SAMPLE_CUBE_IMG_PATH)
@@ -285,8 +282,8 @@ class TestImageToCubeSelection:
         cube_coord_actual = deregister_coord(base_img_coord, *args)
 
         euclidean_dist: int = (
-            (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
-            (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
+                (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
+                (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
         )
 
         return euclidean_dist <= tolerance_pixels
@@ -299,7 +296,7 @@ class TestImageToCubeSelection:
         base_img_coord_2: tuple[int, int] = (2531, 1773)
         cube_coord_expected_2: tuple[int, int] = (540, 327)
 
-        BASE_IMG_COORD_3: tuple[int, int] = (1020, 1933)
+        base_img_coord_3: tuple[int, int] = (1020, 1933)
         cube_coord_expected_3: tuple[int, int] = (218, 360)
 
         tolerance_pixels: int = 20
@@ -310,4 +307,4 @@ class TestImageToCubeSelection:
         assert self.is_deregistration_correct(
             base_img_coord_2, cube_coord_expected_2, tolerance_pixels)
         assert self.is_deregistration_correct(
-            BASE_IMG_COORD_3, cube_coord_expected_3, tolerance_pixels)
+            base_img_coord_3, cube_coord_expected_3, tolerance_pixels)
