@@ -179,10 +179,10 @@ class TestImageToCubeSelection:
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
         selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso, CubeType.Elemental
         )
 
         # verify
@@ -209,16 +209,16 @@ class TestImageToCubeSelection:
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
         selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso, CubeType.Elemental
         )
         selection_data_rect_outside: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_rect_outside, SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect_outside, SelectionType.Rectangle, CubeType.Elemental
         )
         selection_data_lasso_outside: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso_outside, SelectionType.Lasso
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso_outside, SelectionType.Lasso, CubeType.Elemental
         )
 
         # verify
@@ -248,10 +248,10 @@ class TestImageToCubeSelection:
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
         selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso, CubeType.Elemental
         )
         tolerance: float = selection_data_rect.shape[1] * tolerance_percentage
 
