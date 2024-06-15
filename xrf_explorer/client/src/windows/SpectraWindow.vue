@@ -53,7 +53,6 @@ interface Point {
  * Setup the svg and axis of the graph.
  */
 function setup() {
-  console.log(binned.value)
   ready = binned.value;
   watch(binned, () => {
     ready = binned.value;

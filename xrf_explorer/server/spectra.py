@@ -68,6 +68,11 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     height: int = int(info['height'])
     channels: int = int(info['depth'])
 
+    # if default settings, don't do anything
+    if low == 0 and high == 4096 and bin_size == 1:
+        set_binned(data_source, True)
+        return
+
     try:
         # load raw file and parse it as 3d array with correct dimensions
         datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
@@ -75,13 +80,8 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         LOG.error("error while loading raw file for binning: {%s}", err)
         raise
     datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
-
-    # if default settings, don't do anything
-    if low == 0 and high == 4096 and bin_size == 1:
-        set_binned(data_source, True)
-        return
     # if we just need to crop
-    elif bin_size == 1:
+    if bin_size == 1:
         new_cube = datacube[:, :, low:high]
     else:
         # compute number of bins
