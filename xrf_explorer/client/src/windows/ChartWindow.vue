@@ -3,10 +3,11 @@ import { ComputedRef, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { ElementSelection } from "@/lib/selection";
+import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
 import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
+import { Point2D } from "@/lib/utils";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
@@ -20,6 +21,17 @@ type Element = {
   name: string;
   average: number;
 };
+
+/**
+ * Used to fetch averages from the backend when using a selection
+ * Points are the points of the selection. In case of rectangle selection,
+ * these are two opposite corners of the rectangle. In case of lasso selection,
+ * these are the points in the order in which they form the selection area.
+ */
+interface RequestBody {
+  type: SelectionAreaType | undefined;
+  points: Point2D[];
+}
 
 // Chart type checkboxes
 const barChecked = ref(true);
@@ -39,6 +51,10 @@ let workspaceElements: Element[] = [];
 // Whole element selection
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
 
+// Area selection
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+watch(areaSelection, onSelectionAreaUpdate, { deep: true, immediate: true });
+
 // Element selection of only selected elements
 let displayedSelection: ElementSelection[] = [];
 
@@ -52,15 +68,30 @@ const displayGrey = ref(true);
  * Fetch the average elemental data for each of the elements, and store it
  * in the `dataAverages` array.
  * @param url URL to the server API endpoint which provides the elemental data.
+ * @param selectionRequest Whether to fetch averages for a selection.
+ * @param selection The selection made in the image viewer.
  * @returns True if the averages were fetched successfully, false otherwise.
  */
-async function fetchAverages(url: string) {
+async function fetchAverages(url: string, selectionRequest: boolean, selection: SelectionAreaSelection) {
+  // Build the URL
+  let request_url: string = `${url}/${datasource.value}/element_averages`;
+
+  // Request body for selection
+  const request_body: RequestBody = {
+    type: selection.type,
+    points: selection.points,
+  };
+
+  // If the request is for a selection, change the request accordingly
+  if (selectionRequest) request_url += `_selection`;
+
   // Make API call
-  const response: Response = await fetch(`${url}/${datasource.value}/element_averages`, {
-    method: "GET",
+  const response: Response = await fetch(request_url, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify(request_body),
   });
   let fetchSuccessful: boolean = false;
 
@@ -115,6 +146,28 @@ function maskData(selection: ElementSelection[]) {
   selectedData = dataAverages.filter((_, index) =>
     displayedSelection.some((elementVis) => elementVis.channel == index),
   );
+}
+
+/**
+ * Callback for when the selection in the main viewer is changed.
+ * @param selection New area selection in the main viewer.
+ */
+async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
+  try {
+    // If the selection was not cancelled
+    const selecting: boolean = selection != undefined;
+    // Whether the elemental data was fetched properly
+    const fetched: boolean = await fetchAverages(config.api.endpoint, selecting, selection);
+    if (fetched) {
+      // After having fetched the data, update the workspace elements
+      updateWorkspaceElements();
+
+      // Update the charts with the fetched data
+      await updateCharts();
+    }
+  } catch (e) {
+    console.error("Error fetching average data", e);
+  }
 }
 
 /**
@@ -275,13 +328,13 @@ async function updateCharts() {
 async function setupWindow() {
   try {
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint);
+    const fetched: boolean = await fetchAverages(config.api.endpoint, false, areaSelection.value);
     if (fetched) {
       // After having fetched the data, update the workspace elements
       updateWorkspaceElements();
 
       // Update the charts with the fetched data
-      updateCharts();
+      await updateCharts();
     }
   } catch (e) {
     console.error("Error fetching average data", e);
@@ -294,7 +347,7 @@ watch(
     maskData(selection);
     updateCharts();
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 </script>
 

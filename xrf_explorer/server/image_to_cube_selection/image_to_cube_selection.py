@@ -1,4 +1,11 @@
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+from enum import Enum
+import logging
+
+import numpy as np
+
+from xrf_explorer.server.file_system.elemental_cube import (
+    get_elemental_data_cube, normalize_ndarray_to_grayscale
+)
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
@@ -6,12 +13,13 @@ from xrf_explorer.server.file_system.file_access import (
     get_raw_rpl_paths
 )
 from cv2 import (
+    fillPoly,
     imread,
     perspectiveTransform,
-    getPerspectiveTransform,
-    convexHull,
-    fillConvexPoly,
+    getPerspectiveTransform, 
+    convexHull
 )
+
 from xrf_explorer.server.image_register.register_image import (
     load_points,
     compute_fitting_dimensions_by_aspect,
@@ -26,6 +34,30 @@ from xrf_explorer.server.spectra import get_raw_data
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
+class SelectionType(str, Enum):
+    """
+    An enumeration to represent different selection tools.
+    
+    Attributes:
+        Rectangle: Represents the rectangle selection tool.
+        Lasso: Represents the lasso selection tool.
+    """
+    Rectangle = "rectangle"     # The rectangle selection tool
+    Lasso = "lasso"             # The lasso selection tool
+
+
+class CubeType(Enum):
+    """
+    An enumeration to represent different types of datacubes.
+    
+    Attributes:
+        Raw: Represents the raw datacube (i.e. the .raw or .rpl file)
+        Elemental: Represents the elemental datacube (i.e. the .dms file)
+    """
+    Raw = "raw"
+    Elemental = "elemental"
+
+
 def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.ndarray) -> tuple[float, float]:
     """
     Transforms the perspective of a coordinate (x, y) to (x', y') based on a transformation
@@ -38,12 +70,8 @@ def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.nda
     coord_correct_format: np.ndarray = np.array(
         [[[coord[0], coord[1]]]], dtype="float32")
 
-    perspective_transformed_point: np.ndarray = perspectiveTransform(
-        coord_correct_format, transform_matrix)
-    return (
-        (perspective_transformed_point[0][0][0]),
-        (perspective_transformed_point[0][0][1]),
-    )
+    perspective_transformed_point: np.ndarray = perspectiveTransform(coord_correct_format, transform_matrix)
+    return float(perspective_transformed_point[0][0][0]), float(perspective_transformed_point[0][0][1])
 
 
 def deregister_coord(
@@ -103,11 +131,6 @@ def deregister_coord(
     return round(x_reversed_scaling), round(y_reversed_scaling)
 
 
-class CubeType(Enum):
-    RAW = "raw"
-    ELEMENTAL = "elemental"
-
-
 def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
@@ -123,72 +146,145 @@ def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray
 
 
 def get_scaled_cube_coordinates(
-    selection_coord_1: tuple[int, int],
-    selection_coord_2: tuple[int, int],
-    base_img_width: int,
-    base_img_height: int,
-    cube_width: int,
-    cube_height: int,
-) -> tuple[tuple[int, int], tuple[int, int]]:
+        coords: list[tuple[int, int]],
+        base_img_width: int,
+        base_img_height: int,
+        cube_width: int,
+        cube_height: int,
+) -> list[tuple[int, int]]:
     """
-    Calculates and returns the coordinates of a rectangular region within the data cube, scaled from the coordinates of a base image.
+    Calculates and returns the coordinates of a list of points within the data cube, scaled from the coordinates of a base image.
 
-    :param selection_coord_1: The first coordinate tuple (x1, y1), representing
-    one corner of the rectangular region in the base image.
-    :param selection_coord_2: The second coordinate tuple (x2, y2), representing
-    the opposite corner of the rectangular region in the base image.
+    :param coords:  List of points/coordinates within the data cube.
     :param base_img_width: The width of the base image in pixels.
     :param base_img_height: The height of the base image in pixels.
     :param cube_width: The width of the cube.
     :param cube_height: The height of the cube.
-    :return: A tuple containing two tuples, representing the scaled coordinates.
+    :return: A list of all the scaled coordinates, in the same order as they were input.
     """
     ratio_cube_img_width: float = cube_width / base_img_width
     ratio_cube_img_height: float = cube_height / base_img_height
 
-    scaled_coord_1: tuple[int, int] = (
-        round(selection_coord_1[0] * ratio_cube_img_width),
-        round(selection_coord_1[1] * ratio_cube_img_height)
-    )
-    scaled_coord_2: tuple[int, int] = (
-        round(selection_coord_2[0] * ratio_cube_img_width),
-        round(selection_coord_2[1] * ratio_cube_img_height)
-    )
+    scaled_coords: list[tuple[int, int]] = []
 
-    return scaled_coord_1, scaled_coord_2
+    for coord in coords:
+        scaled_coord: tuple[int, int] = (
+            round(coord[0] * ratio_cube_img_width),
+            round(coord[1] * ratio_cube_img_height)
+        )
+        scaled_coords.append(scaled_coord)
+
+    return scaled_coords
 
 
-def get_selected_data_cube(
-    data_source_folder: str,
-    cube_type: CubeType,
-    selection_coord_1: tuple[int, int],
-    selection_coord_2: tuple[int, int],
+def compute_bounding_box(polygon_vertices: list[tuple[int, int]]) -> tuple[tuple[int, int], tuple[int, int]]:
+    """
+    Compute the smallest rectangle encapsulating every point in a polygon.
+
+    :param polygon_vertices: List of points that make up the polygon (vertices).
+    :return: The top-left and bottom-right points of the computed bounding box, in that order.
+    """
+    x_coords: list[int] = [point[0] for point in polygon_vertices]
+    y_coords: list[int] = [point[1] for point in polygon_vertices]
+
+    return (min(x_coords), min(y_coords)), (max(x_coords), max(y_coords))
+
+
+def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int) -> list[tuple[int, int]]:
+    """
+    Clip a list of points to the bounds of the datacube.
+
+    :param points: A list of points where each point is a tuple (x, y).
+    :param datacube_width: The width of the datacube corresponding to the painting.
+    :param datacube_height: The height of the datacube corresponding to the painting.
+    :return: The list of clipped points, in the same order as the input.
+    """
+    clipped_points = []
+
+    for x, y in points:
+        clipped_x = max(0, min(x, cube_width - 1))   # -1 for 0 based indexing
+        clipped_y = max(0, min(y, cube_height - 1))
+        clipped_points.append((clipped_x, clipped_y))
+
+    return clipped_points
+
+
+def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int, cube_height: int):
+    """
+    Compute the selection mask of a given selection.
+    
+    :param selection_type: The type of selection the mask being computed is for.
+    :param selection: List of points that define the selection.
+    :param cube_width: Width of the elemental datacube.
+    :param cube_height: Height of the elemental datacube.
+    :return: 2D mask of the datacube, where mask[y, x]==True means the point at (x, y) is in the selection,
+    False means it is not.
+    """
+    mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=np.uint8)
+
+    selection = clip_points(selection, cube_width, cube_height)
+    np_selection: np.ndarray = np.array(selection)
+    
+    # If the selection is Rectangle selection, the polygon cannot self intersect,
+    # so find the convex hull of the selection
+    if selection_type == SelectionType.Rectangle:
+        # Calculate the smallest convex set that contains all the points
+        # The purpose of this is to order the points so they construct a polygon instead
+        # of an hourglass figure
+        x1, y1 = np_selection[0]
+        x2, y2 = np_selection[1]
+        
+        p1 = (x1, y1)
+        p2 = (x1, y2)
+        p3 = (x2, y1)
+        p4 = (x2, y2)
+
+        np_selection = convexHull(np.array([p1, p2, p3, p4]))
+
+    # Write 1's in the polygon area
+    # Takes into account the weird shapes that can occur if the points are
+    # in different order
+    fillPoly(mask, [np_selection], (1,))
+
+    return mask.astype(bool)
+
+
+def get_selection(
+        data_source_folder: str,
+        selection_coords: list[tuple[int, int]],
+        selection_type: SelectionType,
+        cube_type: CubeType
 ) -> np.ndarray | None:
     """
-    Extracts and returns a 2D representation of a data cube region, based on the rectangular selection coordinates
+    Extracts and returns a 2D representation of a data cube region, based on the selection coordinates
     on the base image. If the specified data source contains a recipe for the data cube, the selection made on the
     base image is "deregistered" so that the returned data from the function correctly represents the selected
     pixels on the image. If the data cube does not have a recipe, the selection made on the base image is simply
     scaled to match the data cube's dimensions.
 
     :param data_source_folder: The data source folder name.
-    :param cube_type: The type of the cube the selection is made on. "elemental" for the elemental cube, "raw" for the raw data cube.
-    :param selection_coord_1: The first coordinate tuple (x1, y1), representing one corner of the rectangular
-    region in the base image.
-    :param selection_coord_2: The second coordinate tuple (x2, y2), representing the opposite corner of the
-    rectangular region in the base image.
+    :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
+    :param selection_type: The type of selection being performed.
+    selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso
+    selection, the list must contain the points in the order in which they form the selection area.
+    :param cube_type: The type of the cube the selection is made on.
     :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns
-    represent their elemental map values.
+    represent their elemental map values. Note that values from the elemental datacube are normalized to [0, 255]
     """
+    if selection_type == SelectionType.Rectangle and len(selection_coords) != 2:
+        LOG.error(f"Expected 2 points for rectangle selection but got {len(selection_coords)}")
+        return None
 
-    match cube_type.value:
-        case "elemental":
-            cube_dir: str | None = get_elemental_cube_path(data_source_folder)
-        case "raw":
-            cube_dir: str | None = get_raw_rpl_paths(data_source_folder)[0]
-        case other:
-            LOG.error(...)
-            return None
+    if selection_type == SelectionType.Lasso and len(selection_coords) < 3:
+        LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
+        return None
+
+    cube_dir: str | None
+    if cube_type == CubeType.Elemental:
+        cube_dir = get_elemental_cube_path(data_source_folder)
+        
+    if cube_type == CubeType.Raw:
+        cube_dir = get_raw_rpl_paths(data_source_folder)[0]
 
     if cube_dir is None:
         LOG.error(f"Data source directory {
@@ -206,20 +302,17 @@ def get_selected_data_cube(
         )
         return None
 
-    data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
-
     img_h: int
     img_w: int
     cube_h: int
     cube_w: int
-    match cube_type.value:
-        case "elemental":
-            data_cube: np.ndarray = get_elemental_data_cube(cube_dir)
-        case "raw":
-            data_cube: np.ndarray = get_raw_data(data_source_folder)
-        case other:
-            LOG.error(...)
-            return None
+    
+    if cube_type == CubeType.Elemental:
+        raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
+        data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+        
+    if cube_type == CubeType.Raw:
+        data_cube: np.ndarray = get_raw_data(data_source_folder)
 
     img_h, img_w, _ = imread(base_img_dir).shape
     cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
@@ -228,64 +321,27 @@ def get_selected_data_cube(
 
     if cube_recipe_path is None:
         # If the data cube has no recipe, simply scale the selection coordinates to match the dimensions of the cube.
-        selection_coord_1_cube: tuple[int, int]
-        selection_coord_2_cube: tuple[int, int]
-        selection_coord_1_cube, selection_coord_2_cube = get_scaled_cube_coordinates(
-            selection_coord_1, selection_coord_2, img_w, img_h, cube_w, cube_h
+        selection_coords_scaled: list[tuple[int, int]] = get_scaled_cube_coordinates(
+            selection_coords, img_w, img_h, cube_w, cube_h
         )
 
-        x1: int
-        x2: int
-        y1: int
-        y2: int
-        x1, y1 = selection_coord_1_cube
-        x2, y2 = selection_coord_2_cube
-
-        mask: np.ndarray = np.zeros((cube_h, cube_w), dtype=bool)
-        mask[y1: y2 + 1, x1: x2 + 1] = True
+        mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_scaled, cube_w, cube_h)
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
         #       the best choice for performance, but the mask simplifies things, since it can be
         #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
-        #       Also the performance decrease should be less than tenth of a second in most cases.
+        #       Also, the performance decrease should be less than tenth of a second in most cases.
         return extract_selected_data(data_cube, mask)
     else:
-        # If the data cube has recipe, deregister the selection coordinates so they correctly represent
-        # If the data cube has recipe, deregister the selection coordinates so they correctly represent
+        # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
-        x1: int
-        x2: int
-        y1: int
-        y2: int
-        x1, y1 = selection_coord_1
-        x2, y2 = selection_coord_2
-
-        # Get all 4 points of the selection rectangle
-        p1: tuple[int, int] = (x1, y1)
-        p2: tuple[int, int] = (x1, y2)
-        p3: tuple[int, int] = (x2, y1)
-        p4: tuple[int, int] = (x2, y2)
-
-        # Deregister to cube coordinates
         args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
-        p1_cube: tuple[int, int] = deregister_coord(p1, *args)
-        p2_cube: tuple[int, int] = deregister_coord(p2, *args)
-        p3_cube: tuple[int, int] = deregister_coord(p3, *args)
-        p4_cube: tuple[int, int] = deregister_coord(p4, *args)
+        selection_coords_deregistered: list[tuple[int, int]] = []
+        for coord in selection_coords:
+            coord_deregistered: tuple[int, int] = deregister_coord(coord, *args)
+            selection_coords_deregistered.append(coord_deregistered)
 
-        cube_points: np.ndarray = np.array(
-            [p1_cube, p2_cube, p3_cube, p4_cube])
-        mask: np.ndarray = np.zeros((cube_h, cube_w), dtype=np.uint8)
-
-        # Calculate the smallest convex set that contains all the points
-        # The purpose of this is to order the points so they construct a polygon instead
-        # of an hourglass figure
-        convex_hull: np.ndarray = convexHull(cube_points)
-
-        # Write 1's in the polygon area
-        fillConvexPoly(mask, convex_hull, (1,))
-
-        mask: np.ndarray = mask.astype(bool)
+        mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_deregistered, cube_w, cube_h)
 
         return extract_selected_data(data_cube, mask)
