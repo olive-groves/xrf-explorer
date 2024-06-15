@@ -255,7 +255,7 @@ def bin_raw_data(data_source: str, bin_params: str):
     return "Binned data", 200
 
 
-@ app.route("/api/<data_source>/element_averages")
+@ app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
 
@@ -323,7 +323,7 @@ def list_element_averages_selection(data_source: str):
 
     # get selection
     selection: np.ndarray | None = get_selection(
-        data_source, points_parsed, selection_type_parsed
+        data_source, points_parsed, selection_type_parsed, CubeType.Elemental
     )
 
     if selection is None:
