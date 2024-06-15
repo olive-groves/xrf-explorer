@@ -2,7 +2,7 @@ import numpy as np
 
 import sys
 import pytest
-from cv2 import imread
+from cv2 import imread, fillPoly
 
 from os.path import join
 
@@ -179,9 +179,9 @@ class TestImageToCubeSelection:
         img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
 
         top_left: tuple[int, int] = (0, 0)
-        top_right: tuple[int, int] = (img_w, 0)
-        bottom_left: tuple[int, int] = (0, img_h)
-        bottom_right: tuple[int, int] = (img_w, img_h)
+        top_right: tuple[int, int] = (img_w - 1, 0)
+        bottom_left: tuple[int, int] = (0, img_h - 1)
+        bottom_right: tuple[int, int] = (img_w - 1, img_h - 1)
 
         top_left_outside: tuple[int, int] = (-100, 0)
         bottom_left_outside: tuple[int, int] = (0, img_h + 10)
@@ -214,6 +214,37 @@ class TestImageToCubeSelection:
         assert np.array_equal(selection_data_rect, selection_data_lasso)
         assert np.array_equal(selection_data_rect_outside, selection_data_lasso_outside)
         assert np.array_equal(selection_data_rect_outside, selection_data_rect)
+
+
+    def test_ribbon_selection(self):
+        # setup
+        img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
+
+        top_left: tuple[int, int] = (0, 0)
+        top_right: tuple[int, int] = (img_w - 1, 0)
+        bottom_left: tuple[int, int] = (0, img_h - 1)
+        bottom_right: tuple[int, int] = (img_w - 1, img_h - 1)
+
+        coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
+        coords_lasso: list[tuple[int, int]] = [top_left, bottom_right, top_right, bottom_left]
+
+        tolerance_percentage: float = 0.01  # 1% tolerance
+
+        # execute
+        selection_data_rect: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle
+        )
+        selection_data_lasso: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso
+        )
+        tolerance: float = selection_data_rect.shape[1] * tolerance_percentage
+
+        # verify
+        assert selection_data_rect is not None
+        assert selection_data_lasso is not None
+
+        # ribbon selection must be about half of the rect selection
+        assert abs(selection_data_rect.shape[1] - selection_data_lasso.shape[1] * 2) <= tolerance
         
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
