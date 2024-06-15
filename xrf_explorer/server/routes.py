@@ -294,7 +294,7 @@ def list_element_averages_selection(data_source: str):
 
     try:
         points_parsed: list[tuple[int, int]] = [
-            (int(point['x']), int(point['y'])) for point in points
+            (round(point['x']), round(point['y'])) for point in points
         ]
     except ValueError:
         return "Error parsing points", 400
