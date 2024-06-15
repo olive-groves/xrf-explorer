@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { inject, ref, watch } from "vue";
+import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { binned, binSize, datasource, elements, high, low } from "@/lib/appState";
+import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
+import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -16,6 +17,22 @@ const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+
+import { Point2D } from "@/lib/utils";
+
+/**
+ * Used to fetch averages from the backend when using a selection
+ * Points are the points of the selection. In case of rectangle selection,
+ * those are two opposite corners of the rectangle. In case of lasso selection,
+ * those are the points in the order in which they form the selection area.
+ */
+ interface RequestBody {
+  type: SelectionAreaType | undefined;
+  points: Point2D[];
+};
+
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+  watch(areaSelection, plotSelectionSpectrum, { deep: true, immediate: true });
 
 /**
  * Sets up export of chart.
@@ -119,24 +136,23 @@ async function plotAverageSpectrum() {
   }
 }
 
-if (false) {
-  const selection = "";
-  plotSelectionSpectrum(selection);
-}
-
 /**
  * Plots the average graph of the given pixels.
  * For now assumes that the pixels are given in the raw data coordinate system.
  * @param selection Json object representing the selection.
  */
-async function plotSelectionSpectrum(selection: string) {
-  if (ready) {
+async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
+  if (ready && selection != undefined) {
+    const request_body: RequestBody = {
+    type: selection.type,
+    points: selection.points}
     try {
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/${selection}`, {
+      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum/`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+        body: JSON.stringify(request_body)
         },
       });
       const data = await response.json();
