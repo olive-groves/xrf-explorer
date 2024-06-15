@@ -345,7 +345,7 @@ watch(
   elementSelection,
   (selection) => {
     maskData(selection);
-    await updateCharts();
+    updateCharts();
   },
   { deep: true, immediate: true },
 );
