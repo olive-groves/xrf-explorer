@@ -260,8 +260,7 @@ def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
 
     :param data_source: data_source to get the element averages from
-    :return: JSON list of objects indicating average abundance for every element. Each object
-    is of the form {name: element name, average: element abundance}
+    :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
 
     path: str | None = get_elemental_cube_path(data_source)
@@ -281,10 +280,9 @@ def list_element_averages(data_source: str):
 def list_element_averages_selection(data_source: str):
     """Get the names and averages of the elements present in a rectangular selection
     of the painting.
-    
+
     :param data_source: data_source to get the element averages from
-    :return: JSON list of objects indicating average abundance for every element. Each object
-    is of the form {name: element name, average: element abundance}
+    :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
     # path to elemental cube
     path: str | None = get_elemental_cube_path(data_source)
@@ -613,46 +611,49 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     return response
 
 
-@app.route('/api/<data_source>/get_selection_spectrum/<selection>', methods=['GET'])
-def get_selection_spectra(data_source: str, selection: str):
+@app.route('/api/<data_source>/get_selection_spectrum', methods=['POST'])
+def get_selection_spectra(data_source: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
     :param data_source: the name of the data source
-    :param selection: the json object representing the selection
     :return: json list of tuples containing the channel number and the average intensity of this channel.
     """
-
-    # parse selection
-    selection_dict = json.loads(selection)
-    data = None
-    match selection_dict["selectionType"]:
-        # rectangle selection case
-        case "rectangle":
-            x1 = selection_dict["bounding_points"][0]["x"]
-            y1 = selection_dict["bounding_points"][0]["y"]
-            x2 = selection_dict["bounding_points"][1]["x"]
-            y2 = selection_dict["bounding_points"][1]["y"]
-
-            # TODO replace with get_selected_raw_data
-            data = get_selected_data_cube(
-                data_source, CubeType.RAW, tuple([x1, y1]), tuple([x2, y2]))
-        case "lasso":
-            data = {}
-
-    if data is None:
-        return "Error occurred while loading element spectrum", 404
-
+    selection: dict[str, any] | None = request.get_json()
+    if selection is None:
+        return "Error parsing request body", 400
+    
+    # get selection type and points
+    selection_type: str | None = selection.get('type')
+    points: list[dict[str, float]] | None = selection.get('points')
+    if selection_type is None or points is None:
+        return "Error occurred while getting selection type or points from request body", 400
+    
+    # validate and parse selection type
     try:
-        params: dict[str, int] = get_spectra_params(data_source)
-    except FileNotFoundError:
-        return "error while loading workspace to retrieve spectra params: {%s}", 404
-
-    # data is not None so we can parse it as array
-    data = np.array(data)
-    result: list = get_average_selection(data)
-
-    response = json.dumps(result)
-    return response
+        selection_type_parsed: SelectionType = SelectionType(selection_type)
+    except ValueError:
+        return "Error parsing selection type", 400
+    
+    # validate and parse points
+    if not isinstance(points, list):
+        return "Error parsing points; expected a list of points", 400
+    try:
+        points_parsed: list[tuple[int, int]] = [(round(point['x']), round(point['y'])) for point in points]
+    except ValueError:
+        return "Error parsing points", 400
+    
+    # get selection
+    data: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
+    if data is None:
+        return "Error occurred while getting selection from datacube", 500
+    
+    # get average
+    result = get_average_selection(data)
+    try:
+        return json.dumps(result)
+    except Exception as e:
+        LOG.error(f"Failed to serialize element averages: {str(e)}")
+        return "Error occurred while listing element averages", 500
 
 
 @app.route('/api/<data_source>/cs/clusters', methods=['GET'])

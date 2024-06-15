@@ -1,27 +1,19 @@
+from xrf_explorer.server.file_system.config_handler import set_config
 import pytest
 from cv2 import imread
 import numpy as np
-
-import sys
-import pytest
-from cv2 import imread
-
 from os.path import join
-
-sys.path.append(".")
-
-from xrf_explorer.server.file_system.config_handler import set_config
-from xrf_explorer.server.file_system.file_access import (
-    get_elemental_cube_path,
-    get_base_image_path,
-)
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,
     deregister_coord,
     SelectionType,
     CubeType
+)
+from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
+from xrf_explorer.server.file_system.file_access import (
+    get_elemental_cube_path,
+    get_base_image_path,
 )
 
 RESOURCES_PATH: str = join("tests", "resources")
@@ -252,6 +244,7 @@ class TestImageToCubeSelection:
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.
+
     def is_deregistration_correct(
             self,
             base_img_coord: tuple[int, int],
@@ -272,8 +265,8 @@ class TestImageToCubeSelection:
         cube_coord_actual = deregister_coord(base_img_coord, *args)
 
         euclidean_dist: int = (
-                (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
-                (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
+            (cube_coord_expected[0] - cube_coord_actual[0]) ** 2 +
+            (cube_coord_expected[1] - cube_coord_actual[1]) ** 2
         )
 
         return euclidean_dist <= tolerance_pixels

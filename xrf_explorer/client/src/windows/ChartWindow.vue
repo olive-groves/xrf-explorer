@@ -3,14 +3,14 @@ import { ComputedRef, inject, ref, computed, watch } from "vue";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { ElementSelection, SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { ElementSelection, SelectionAreaSelection } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
 import { appState, datasource, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
-import { Point2D } from "@/lib/utils";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
+import { RequestBody } from "./selection";
 
 /**
  * Sets up export of chart.
@@ -21,17 +21,6 @@ type Element = {
   name: string;
   average: number;
 };
-
-/**
- * Used to fetch averages from the backend when using a selection
- * Points are the points of the selection. In case of rectangle selection,
- * these are two opposite corners of the rectangle. In case of lasso selection,
- * these are the points in the order in which they form the selection area.
- */
-interface RequestBody {
-  type: SelectionAreaType | undefined;
-  points: Point2D[];
-}
 
 // Chart type checkboxes
 const barChecked = ref(true);

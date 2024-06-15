@@ -68,6 +68,11 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     height: int = int(info['height'])
     channels: int = int(info['depth'])
 
+    # if default settings, don't do anything
+    if low == 0 and high == 4096 and bin_size == 1:
+        set_binned(data_source, True)
+        return
+
     try:
         # load raw file and parse it as 3d array with correct dimensions
         datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
@@ -75,13 +80,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         LOG.error("error while loading raw file for binning: {%s}", err)
         raise
     datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
-
-    # if default settings, don't do anything
-    if low == 0 and high == 4096 and bin_size == 1:
-        return
     # if we just need to crop
-    elif bin_size == 1:
-        new_cube = datacube[:, :, low:high]
+    if bin_size == 1:
+        new_cube: np.ndarray = datacube[:, :, low:high]
     else:
         # compute number of bins
         nr_bins: int = ceil((high-low)/bin_size)
@@ -92,16 +93,16 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
             start_channel = low + i*bin_size
-            bin = np.mean(
+            bin_average = np.mean(
                 datacube[:, :, start_channel:start_channel+bin_size], axis=2)
-            new_cube[:, :, i] = bin
+            new_cube[:, :, i] = bin_average
 
     # overwrite file
     try:
         new_cube.flatten().tofile(path_to_raw)
-        set_binned(data_source, True)
     except Exception as e:
         LOG.error("Failed to write binned data: {%s}", e)
+    set_binned(data_source, True)
 
 
 def get_average_global(data: np.ndarray) -> list:
@@ -138,7 +139,7 @@ def get_average_selection(data: np.ndarray) -> list:
     # create list of dictionaries
     for i in range(np.size(result)):
         response.append({"index": i, "value": result[i]})
-
+    LOG.info("Calculated the average composition of the elements within selection.")
     return response
 
 
