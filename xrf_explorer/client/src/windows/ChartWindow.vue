@@ -62,6 +62,12 @@ const displayGrey = ref(true);
  * @returns True if the averages were fetched successfully, false otherwise.
  */
 async function fetchAverages(url: string, selectionRequest: boolean, selection: SelectionAreaSelection) {
+  // Don't make the request if there's no datasource selected
+  if (datasource.value == "") {
+    console.debug("No workspace selected; not fetching elemental averages");
+    return false;
+  }
+
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
