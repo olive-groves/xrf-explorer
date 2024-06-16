@@ -120,6 +120,15 @@ async function fetchDRImage() {
  * If embedding was generated successfully, it fetches the new image.
  */
 async function updateEmbedding() {
+  // Check if the DR Window is in the correct state
+  if (status.value == Status.GENERATING) {
+    toast.warning("Embedding is currently already being generated");
+    return;
+  } else if (status.value == Status.LOADING) {
+    toast.warning("Embedding generation can not be started while overlay is being loaded");
+    return;
+  }
+
   // Check if an element was selected, if not return message to user.
   if (selectedElement.value == null) {
     currentError.value = "Please select an element";
