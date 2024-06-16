@@ -19,9 +19,7 @@ from xrf_explorer.server.file_system import (
     get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size, 
     get_path_to_base_image, is_base_image
 )
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
+from xrf_explorer.server.file_system.from_dms import get_elemental_datacube_dimensions_from_dms
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

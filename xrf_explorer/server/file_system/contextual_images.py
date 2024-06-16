@@ -11,6 +11,10 @@ from xrf_explorer.server.file_system.config_handler import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+# Remove the safety limit on max pixels, since some contextual images 
+# are above the limit
+PIL.Image.MAX_IMAGE_PIXELS = None
+
 
 def get_contextual_image_data(data_source: str, name: str) -> dict | None:
     """
