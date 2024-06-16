@@ -180,15 +180,20 @@ async function updateWorkspace() {
     const setup = await setupWorkspace();
 
     // Convert elemental data cube to .dms format if necessary
-    if (workspace.value.elementalCubes.length > 0) {
-      const fileName = workspace.value.elementalCubes[0].dataLocation;
-      if (!fileName.endsWith(".dms")) {
-        // Convert elemental data cube to .dms format
-        await convertData();
-
-        // Update workspace with the new data location
-        workspace.value.elementalCubes[0].dataLocation = fileName.split(".")[0] + ".dms";
+    const aNonDmsFile = workspace.value.elementalCubes.some((cubeInfo) => {
+      if (!cubeInfo.dataLocation.endsWith(".dms")) {
+        return true;
       }
+    });
+
+    if (aNonDmsFile) {
+      // Convert elemental data cube to .dms format
+      await convertCubeToDms();
+
+      // Update workspace with the new data location
+      workspace.value.elementalCubes.forEach((cubeInfo) => {
+        cubeInfo.dataLocation = cubeInfo.dataLocation.split(".").slice(0, -1).join(".") + ".dms";
+      });
     }
 
     if (workspace.value.elementalCubes.length > 0 && workspace.value.elementalChannels.length == 0) {
@@ -219,9 +224,9 @@ async function updateWorkspace() {
 }
 
 /**
- * Converts the elemetal data cube to .dms format.
+ * Converts the elemental data cube to .dms format.
  */
-async function convertData() {
+async function convertCubeToDms() {
   console.info(`Converting elemental data cube.`);
   // Convert elemental data cube
   await fetch(`${config.api.endpoint}/${workspace.value.name}/data/convert`).then((response) => {

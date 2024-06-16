@@ -39,6 +39,12 @@ To automatically generate the code's documentation we use [sphinx](https://www.s
 If you're using Linux, this should already be pre-installed.
 If you're using Windows, you can install Make with the Chocolatey package manager, which is installed alongside [Node.js](#dependencies-1). Once you have Chocolatey installed, simply run `choco install make` from the CMD or PowerShell.
 
+##### Environment Variables
+
+During development, we want the backend to log to the console, but in production, we want the server to logs to be sent to a log file. For this reason, you can set up the following environment variable:
+- `XRF_EXPLORER_LOG_MODE`: when set to "PROD", it will output the logs to a log file instead of the console
+Note that if the environment variable is not set, the logging will be sent to standard output.
+
 #### Development Process
 
 To start the backend, you can simply run `python run.py` from the root directory.
