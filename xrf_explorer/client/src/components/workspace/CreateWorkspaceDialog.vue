@@ -161,7 +161,7 @@ async function setupWorkspace(): Promise<boolean> {
     },
   });
 
-  // Inform  the user if the request was not successful
+  // Inform the user if the request was not successful
   if (!response.ok) {
     toast.error("Failed to set up workspace");
     return false;
