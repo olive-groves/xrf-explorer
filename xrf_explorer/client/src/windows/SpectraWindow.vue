@@ -42,11 +42,13 @@ interface Point {
   value: number;
 }
 
-const trimmedList: ComputedRef<{
+const trimmedList: ComputedRef<
+  {
     name: string;
     channel: number;
     enabled: boolean;
-}[]> = computed(() => (elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq")));
+  }[]
+> = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
 
 /**
  * Setup the svg and axis of the graph.
