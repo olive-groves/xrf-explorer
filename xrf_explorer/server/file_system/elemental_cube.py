@@ -231,9 +231,12 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     cube: np.ndarray
     element_names: list[str]
 
+    # If the file is already in .dms format, return True
     if cube_path.endswith(".dms"):
         return True
-    elif cube_path.endswith(".csv"):
+    
+    # Check other file types
+    if cube_path.endswith(".csv"):
         # Convert elemental data cube to .dms format
         cube = get_elemental_data_cube(cube_path)
         element_names = get_element_names(cube_path)
@@ -247,8 +250,8 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     
     # Save the elemental data cube with elements to a .dms file
     file_name: str = splitext(basename(cube_path))[0]
-    sucess: bool = to_dms(dirname(cube_path), file_name, cube, element_names)
-    if not sucess:
+    success: bool = to_dms(dirname(cube_path), file_name, cube, element_names)
+    if not success:
         return False
     
     # Update workspace
@@ -276,6 +279,7 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     # Remove the old elemental data cube
     remove(cube_path)
 
+    LOG.info(f"Converted {cube_path} to .dms format.")
     return True
 
 
