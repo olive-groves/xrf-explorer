@@ -155,7 +155,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
         :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks.
     """
     # remove last character to get periodic table symbol
-    element = element[:len(element)-1]
+    element = element[:len(element)-1].strip()
     if element == 'yAl':
         element = 'Al'
 
