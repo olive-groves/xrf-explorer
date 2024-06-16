@@ -40,13 +40,17 @@ onBeforeUnmount(() => {
  * Set height equal to the areaHeight prop, unless disallowShrink is true and areaHeight is smaller than height.
  */
 const height = ref(0);
-watch(props, (value) => {
-  if (value.disallowShrink) {
-    height.value = Math.max(height.value, value.areaHeight);
-  } else {
-    height.value = value.areaHeight;
-  }
-});
+watch(
+  props,
+  (value) => {
+    if (value.disallowShrink) {
+      height.value = Math.max(height.value, value.areaHeight);
+    } else {
+      height.value = value.areaHeight;
+    }
+  },
+  { deep: true, immediate: true },
+);
 </script>
 
 <template>
