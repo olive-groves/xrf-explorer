@@ -642,6 +642,7 @@ def get_selection_spectra(data_source: str):
     :param data_source: the name of the data source
     :return: json list of tuples containing the channel number and the average intensity of this channel.
     """
+
     selection: dict[str, any] | None = request.get_json()
     if selection is None:
         return "Error parsing request body", 400
@@ -670,7 +671,7 @@ def get_selection_spectra(data_source: str):
     data: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
     if data is None:
         return "Error occurred while getting selection from datacube", 500
-    
+
     # get average
     result = get_average_selection(data)
     try:
