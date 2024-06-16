@@ -28,7 +28,7 @@ function loadWorkspace(source: string) {
       value.json().then(
         (workspace) => {
           toast.info(`Loading workspace ${source}`, {
-            description: "This should take less than a minute",
+            description: "This may take a couple of minutes",
           });
           console.info(`Loading workspace ${source}`);
           appState.workspace = workspace;
