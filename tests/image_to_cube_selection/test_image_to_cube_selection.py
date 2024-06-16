@@ -24,6 +24,7 @@ class TestImageToCubeSelection:
         RESOURCES_PATH, "configs", "image_to_cube_selection.yml")
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
     SAMPLE_BASE_IMAGE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "rgb.tif")
+    WORKSPACE_BASE_IMAGE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "data", "Data_source", "image.png")
     SAMPLE_CUBE_IMG_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "cube.tif")
     SAMPLE_CUBE_RECIPE_PATH: str = join(RESOURCES_PATH, "image_to_cube_selection", "recipe_cube.csv")
 
@@ -173,7 +174,7 @@ class TestImageToCubeSelection:
 
     def test_negative_coordinates(self):
         # setup
-        img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
+        img_h, img_w, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
 
         top_left: tuple[int, int] = (0, 0)
         top_right: tuple[int, int] = (img_w - 1, 0)
@@ -214,7 +215,7 @@ class TestImageToCubeSelection:
 
     def test_ribbon_selection(self):
         # setup
-        img_w, img_h, _ = imread(self.SAMPLE_BASE_IMAGE_PATH).shape
+        img_h, img_w, _ = imread(self.WORKSPACE_BASE_IMAGE_PATH).shape
 
         top_left: tuple[int, int] = (0, 0)
         top_right: tuple[int, int] = (img_w - 1, 0)

@@ -221,7 +221,6 @@ def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[
     """
     mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=np.uint8)
 
-    # selection = clip_points(selection, cube_width, cube_height)
     np_selection: np.ndarray = np.array(selection)
     
     # If the selection is Rectangle selection, the polygon cannot self intersect,
