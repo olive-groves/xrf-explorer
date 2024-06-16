@@ -179,6 +179,18 @@ async function updateWorkspace() {
     progress.value = Progress.Busy;
     const setup = await setupWorkspace();
 
+    // Convert elemental data cube to .dms format if necessary
+    if (workspace.value.elementalCubes.length > 0) {
+      const fileName = workspace.value.elementalCubes[0].dataLocation;
+      if (!fileName.endsWith(".dms")) {
+        // Convert elemental data cube to .dms format
+        await convertData();
+
+        // Update workspace with the new data location
+        workspace.value.elementalCubes[0].dataLocation = fileName.split(".")[0] + ".dms";
+      }
+    }
+
     if (workspace.value.elementalCubes.length > 0 && workspace.value.elementalChannels.length == 0) {
       // Elemental channels need to get set up
       const initialized = initializeChannels(workspace.value);
@@ -204,6 +216,19 @@ async function updateWorkspace() {
       resetProgress();
     }
   }
+}
+
+/**
+ * Converts the elemetal data cube to .dms format.
+ */
+async function convertData() {
+  console.info(`Converting elemental data cube.`);
+  // Convert elemental data cube
+  await fetch(`${config.api.endpoint}/${workspace.value.name}/data/convert`).then((response) => {
+    if (!response.ok) {
+      throw new Error("Conversion failed");
+    }
+  });
 }
 
 /**
