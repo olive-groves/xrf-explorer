@@ -73,6 +73,7 @@ const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
+const abortController = new AbortController();
 
 // Selection
 const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
@@ -90,10 +91,35 @@ async function fetchDRImage() {
     return;
   }
 
+  // Check if the embedding is not currently being generated.
+  // In that case the image will be loaded once generation is finished.
+  if (status.value == Status.GENERATING) return;
+
+  // If an overlay is already being loaded, cancel that fetch
+  if (status.value == Status.LOADING) abortController.abort();
+
   status.value = Status.LOADING;
 
   // Set the overlay type
   const apiURL = `${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`;
+
+  // Fetch the image
+  fetch(apiURL, { signal: abortController.signal }).then(
+    async (response) => {
+      if (!response.ok) throw new Error("Failed to fetch overlay image");
+      const blob = await response.blob();
+
+      // Create url for the image
+      imageSourceUrl.value = URL.createObjectURL(blob).toString();
+
+      // the middle image used for conversion from embedding to main viewer image needs to be updated
+      updateMiddleImage();
+
+      // Update status
+      status.value = Status.SUCCESS;
+    },
+    (error) => {},
+  );
 
   // Fetch the image
   const { response, data } = await useFetch(apiURL).get().blob();
@@ -115,8 +141,8 @@ async function fetchDRImage() {
 }
 
 /**
- * Compute the embedding
- * Sets status to corresponding value
+ * Compute the embedding.
+ * Sets status to corresponding value.
  * If embedding was generated successfully, it fetches the new image.
  */
 async function updateEmbedding() {
@@ -125,7 +151,7 @@ async function updateEmbedding() {
     toast.warning("Embedding is currently already being generated");
     return;
   } else if (status.value == Status.LOADING) {
-    toast.warning("Embedding generation can not be started while overlay is being loaded");
+    toast.warning("Embedding generation can not be started while overlay is loading");
     return;
   }
 
@@ -154,6 +180,7 @@ async function updateEmbedding() {
     }
 
     // Load the new embedding
+    status.value = Status.LOADING;
     await fetchDRImage();
     return;
   }
