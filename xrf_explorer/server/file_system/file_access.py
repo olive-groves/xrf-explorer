@@ -5,9 +5,6 @@ import json
 from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
-from matplotlib.font_manager import json_dump
-
-
 from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace
 
@@ -28,7 +25,7 @@ def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
     return [cube_info["dataLocation"] for cube_info in workspace_dict["elementalCubes"]]
 
 
-def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> list[str] | None:
+def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str | None:
     """Get the path to the elemental data cube of the given cube and data source.
 
     :param data_source: Name of the data source folder.
@@ -50,8 +47,9 @@ def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> list[
     # Find the file name with the given name
     for cube_info in workspace_dict['elementalCubes']:
         if cube_info['name'] == cube_name:
-            return join(backend_config["uploads-folder"], data_source, cube_info['dataLocation'])
+            return str(join(backend_config["uploads-folder"], data_source, cube_info['dataLocation']))
     
+    LOG.error(f"Elemental cube with name {cube_name} not found in data source {data_source}")
     return None
 
 
@@ -72,11 +70,14 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
                   join(backend_config["uploads-folder"], data_source_folder)} does not exist.")
         return None
 
-    filename: str | None = get_elemental_cube_file_names(data_source_folder)[0]
-
-    if filename is None:
+    # Get the filenames of the elemental cube files
+    filenames: list[str] | None = get_elemental_cube_file_names(data_source_folder)
+    if filenames is None or len(filenames) == 0:
         LOG.error("An error occurred while trying to find elemental cube name.")
         return None
+    
+    # Assuming there is only one elemental cube file
+    filename = filenames[0]
 
     path: str = join(
         Path(backend_config["uploads-folder"]), data_source_folder, filename)

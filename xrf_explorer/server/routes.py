@@ -236,7 +236,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
 
 @app.route("/api/<data_source>/data/convert")
 def convert_elemental_cube(data_source: str):
-    """Convert the elemental data cube to .dms format.
+    """Converts all elemental data cubes of a data source to .dms format.
 
     :param data_source: The name of the data source to convert the elemental data cube
     """

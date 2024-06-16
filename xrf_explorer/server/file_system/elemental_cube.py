@@ -225,7 +225,9 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     """
 
     # Get the path to the elemental data cube
-    cube_path: str = get_elemental_cube_path_from_name(data_source, cube_name)
+    cube_path: str | None = get_elemental_cube_path_from_name(data_source, cube_name)
+    if cube_path is None:
+        return False
 
     # Get the elemental data cube and the names of the elements from the file of the given type
     cube: np.ndarray
