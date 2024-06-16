@@ -2,8 +2,7 @@ import logging
 
 import numpy as np
 
-from os.path import join
-from pathlib import Path
+from os.path import join, isdir
 
 from xrf_explorer.server.file_system.config_handler import get_config
 from xrf_explorer.server.file_system.from_csv import (
@@ -215,27 +214,25 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     return composition
 
 
-def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
+def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     """Saves a numpy array and list of elements to a DMS file.
 
+    :param folder_path: Path to the folder where the DMS file will be saved.
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
     :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     :param elements: List of the names of the elements.
     :return: True if the cube was saved successfully, False otherwise.
     """
 
+    if not isdir(folder_path):
+        LOG.error(f"Folder {folder_path} does not exist.")
+        return False
+
     if "." in name_cube:
         LOG.error("Name of the cube should not contain a file extension.")
         return False
     
-    # load backend config
-    backend_config: dict = get_config()
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return False
-    
-    # path to cube 
-    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube + '.dms')
+    path_cube: str = join(folder_path, name_cube + '.dms')
     
     # Get the shape of the elemental data cube
     c, w, h = cube.shape

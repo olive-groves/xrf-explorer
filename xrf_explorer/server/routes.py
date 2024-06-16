@@ -6,7 +6,7 @@ from flask import request, jsonify, abort, send_file
 import numpy as np
 from os.path import isfile, isdir
 from os import rmdir
-from os.path import exists, abspath, join, splitext, basename
+from os.path import exists, abspath, join, splitext, basename, dirname
 from os import mkdir, remove
 import json
 from markupsafe import escape
@@ -233,7 +233,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     return "Uploaded file chunk", 200
 
 
-@app.route("/api/<data_source>/data/convert", methods=["POST"])
+@app.route("/api/<data_source>/data/convert")
 def convert_elemental_cube(data_source: str):
     """Convert the elemental data cube to .dms format.
 
@@ -263,7 +263,7 @@ def convert_elemental_cube(data_source: str):
             return "Could not load elemental data cube", 500
 
         file_name: str = splitext(basename(cube_path))[0]
-        sucess: bool = to_dms(file_name, cube, element_names)
+        sucess: bool = to_dms(dirname(cube_path), file_name, cube, element_names)
 
         if not sucess:
             return "Error converting elemental data cube to .dms format", 500
@@ -274,14 +274,18 @@ def convert_elemental_cube(data_source: str):
             return "Error getting workspace path", 500
 
         try:
-            with open(workspace_path, "r") as file:
+            with open(workspace_path, "r+") as file:
                 workspace: dict = json.load(file)
 
-                workspace["elementalCubes"]["dataLocation"] = f"{file_name}.dms"
-                workspace["elementalCubes"]["fileType"] = "dms"
+                # Find the correct elemental data cube
+                for cube_info in workspace["elementalCubes"]:
+                    if cube_info["dataLocation"] == basename(cube_path):
+                        cube_info["dataLocation"] = f"{file_name}.dms"
+                        break
 
                 file.seek(0)
                 file.write(json.dumps(workspace))
+                file.truncate()
         except Exception as e:
             LOG.error(f"Failed to update workspace: {str(e)}")
             return "Error updating workspace", 500
