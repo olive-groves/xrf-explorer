@@ -32,6 +32,11 @@ function createEmptyWorkspace(): WorkspaceConfig {
     spectralCubes: [],
     elementalCubes: [],
     elementalChannels: [],
+    drParams: {
+      embeddingPresent: false,
+      threshold: 100,
+      element: "",
+    },
     spectralParams: {
       low: 0,
       high: 4096,

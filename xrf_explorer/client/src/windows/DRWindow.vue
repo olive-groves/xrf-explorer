@@ -129,8 +129,11 @@ async function updateEmbedding() {
 
   status.value = Status.GENERATING;
 
+  const usedElement = selectedElement.value;
+  const usedThreshold = threshold.value;
+
   // Create URL for embedding
-  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
+  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${usedElement}/${usedThreshold}`;
 
   // Create the embedding
   const { response, data } = await useFetch(apiURL).get().text();
@@ -142,6 +145,13 @@ async function updateEmbedding() {
         description:
           "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
       });
+    }
+
+    // Update workspace
+    if (appState.workspace != undefined) {
+      appState.workspace.drParams.embeddingPresent = true;
+      appState.workspace.drParams.element = usedElement;
+      appState.workspace.drParams.threshold = usedThreshold;
     }
 
     // Load the new embedding

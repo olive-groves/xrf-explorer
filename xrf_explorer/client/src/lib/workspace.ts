@@ -27,6 +27,14 @@ export type WorkspaceConfig = {
    */
   elementalChannels: ElementalChannel[];
   /**
+   * All parameters used for dimensioanlity reduction.
+   */
+
+  /**
+   *
+   */
+  drParams: DRParams;
+  /**
    * The parameters to read the spectral data.
    */
   spectralParams: SpectralParams;
@@ -71,6 +79,24 @@ export type SpectralCube = {
    * The location of the registering recipe, used by the backend.
    */
   recipeLocation: string;
+};
+
+/**
+ * Parameters used for dimensionality reduction.
+ */
+export type DRParams = {
+  /**
+   * Boolean indicating if an embedding is present.
+   */
+  embeddingPresent: boolean;
+  /**
+   * The threshold value used to create the embedding.
+   */
+  threshold: number;
+  /**
+   * The element used to create the embedding.
+   */
+  element: string;
 };
 
 /**

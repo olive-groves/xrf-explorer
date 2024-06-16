@@ -13,7 +13,7 @@ export interface RequestBody {
    */
   type: SelectionAreaType | undefined;
   /**
-   *The list of points defining the selected area
+   *The list of points defining the selected area.
    */
   points: Point2D[];
 }
