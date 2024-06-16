@@ -333,7 +333,12 @@ function updateElementSpectrum() {
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @update:model-value="updateElementSpectrum">
+      <NumberField
+        id="excitation-input"
+        class="ml-1 mt-1 w-64"
+        v-model="excitation"
+        @update:model-value="updateElementSpectrum"
+      >
         <NumberFieldContent>
           <NumberFieldInput />
           <NumberFieldDecrement />
