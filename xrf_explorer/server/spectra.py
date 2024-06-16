@@ -130,9 +130,6 @@ def get_average_selection(data: np.ndarray) -> list:
     represent their energy channel value.
     :return: list with the average raw data for each bin in the range.
     """
-    # return zeroes if no data selected
-    
-
     # compute average
     result = np.mean(data, axis=0)
 
