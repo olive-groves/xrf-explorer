@@ -42,6 +42,14 @@ interface Point {
   value: number;
 }
 
+const trimmedList: ComputedRef<
+  {
+    name: string;
+    channel: number;
+    enabled: boolean;
+  }[]
+> = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
+
 /**
  * Setup the svg and axis of the graph.
  */
@@ -315,7 +323,7 @@ function updateElementSpectrum() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Elements</SelectLabel>
-              <SelectItem :value="element.name" v-for="element in elements" :key="element.name">
+              <SelectItem :value="element.name" v-for="element in trimmedList" :key="element.name">
                 {{ element.name }}
               </SelectItem>
             </SelectGroup>
@@ -325,7 +333,12 @@ function updateElementSpectrum() {
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField id="excitation-input" class="ml-1 mt-1 w-64" v-model="excitation" @change="updateElementSpectrum">
+      <NumberField
+        id="excitation-input"
+        class="ml-1 mt-1 w-64"
+        v-model="excitation"
+        @update:model-value="updateElementSpectrum"
+      >
         <NumberFieldContent>
           <NumberFieldInput />
           <NumberFieldDecrement />
