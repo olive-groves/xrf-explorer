@@ -6,8 +6,8 @@ from flask import request, jsonify, abort, send_file
 import numpy as np
 from os.path import isfile, isdir
 from os import rmdir
-from os.path import exists, abspath, join
-from os import mkdir
+from os.path import exists, abspath, join, splitext, basename
+from os import mkdir, remove
 import json
 from markupsafe import escape
 from numpy import ndarray
@@ -23,7 +23,7 @@ from xrf_explorer.server.file_system.data_listing import get_data_sources_names,
 from xrf_explorer.server.file_system.elemental_cube import (
     get_short_element_names, get_element_averages, get_element_names,
     get_elemental_map, normalize_ndarray_to_grayscale,
-    get_element_averages_selection
+    get_element_averages_selection, get_elemental_data_cube, to_dms
 )
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
@@ -231,6 +231,69 @@ def upload_chunk(data_source: str, file_name: str, start: int):
         LOG.info("Wrote chunk from %i into %s", start, path)
 
     return "Uploaded file chunk", 200
+
+
+@app.route("/api/<data_source>/data/convert", methods=["POST"])
+def convert_elemental_cube(data_source: str):
+    """Convert the elemental data cube to .dms format.
+
+    :param data_source: The name of the data source to convert the elemental data cube
+    """
+
+    # get config
+    config: dict | None = get_config()
+
+    if not config:
+        error_msg: str = "Error occurred while uploading file chunk"
+        LOG.error(error_msg)
+        return error_msg, 500
+    
+    cube_path: str | None = get_elemental_cube_path(data_source)
+    if cube_path is None:
+        return "Error getting elemental datacube path", 500
+    
+    if cube_path.endswith(".dms"):
+        return "Elemental datacube already in .dms format", 200
+    elif cube_path.endswith(".csv"):
+        # Convert elemental data cube to .dms format
+        cube: np.ndarray = get_elemental_data_cube(cube_path)
+        element_names: list[str] = get_element_names(cube_path)
+
+        if cube is np.empty(0) or len(element_names) == 0:
+            return "Could not load elemental data cube", 500
+
+        file_name: str = splitext(basename(cube_path))[0]
+        sucess: bool = to_dms(file_name, cube, element_names)
+
+        if not sucess:
+            return "Error converting elemental data cube to .dms format", 500
+    
+        # Update workspace
+        workspace_path: str = get_path_to_workspace(data_source)
+        if not workspace_path:
+            return "Error getting workspace path", 500
+
+        try:
+            with open(workspace_path, "r") as file:
+                workspace: dict = json.load(file)
+
+                workspace["elementalCubes"]["dataLocation"] = f"{file_name}.dms"
+                workspace["elementalCubes"]["fileType"] = "dms"
+
+                file.seek(0)
+                file.write(json.dumps(workspace))
+        except Exception as e:
+            LOG.error(f"Failed to update workspace: {str(e)}")
+            return "Error updating workspace", 500
+
+        # Remove old elemental data cube
+        remove(cube_path)
+            
+        return "Elemental data cube converted to .dms format", 200
+    else:
+        error_msg: str = f"Cannot convert {cube_path} to .dms format."
+        LOG.error(error_msg)
+        return error_msg, 500
 
 
 @app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
