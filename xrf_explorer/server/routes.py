@@ -292,7 +292,7 @@ def convert_elemental_cube(data_source: str):
 
         # Remove old elemental data cube
         remove(cube_path)
-            
+        
         return "Elemental data cube converted to .dms format", 200
     else:
         error_msg: str = f"Cannot convert {cube_path} to .dms format."
