@@ -17,8 +17,9 @@ from cv2.typing import MatLike
 from xrf_explorer.server.file_system import (
     get_elemental_cube_path, get_elemental_cube_recipe_path, 
     get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size, 
-    get_path_to_base_image, is_base_image, get_elemental_data_cube
+    get_path_to_base_image, is_base_image
 )
+from xrf_explorer.server.file_system.from_dms import get_elemental_datacube_dimensions_from_dms
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -357,8 +358,7 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
         return None
     
     # Load the data cube dimensions
-    cube = get_elemental_data_cube(path_data_cube)
-    cube_h, cube_w = cube.shape[1], cube.shape[2]
+    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
     
     # Get the path to the image to be registered
     path_image_register: str | None = get_contextual_image_path(data_source, image_name)
