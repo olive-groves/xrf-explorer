@@ -131,7 +131,7 @@ def deregister_coord(
     return round(x_reversed_scaling), round(y_reversed_scaling)
 
 
-def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
     :param data_cube: The 3D data cube from which data will be extracted.
@@ -140,8 +140,12 @@ def extract_selected_data(data_cube: np.ndarray, mask: np.ndarray) -> np.ndarray
     :return: A 2D array where the rows represent pixels in the data cube image
     and the columns represent their elemental map values.
     """
-    indices = np.nonzero(mask)
-    return data_cube[:, indices[0], indices[1]]
+    if cube_type == CubeType.Elemental:
+        indices = np.nonzero(mask)
+        return data_cube[:, indices[0], indices[1]]
+    if cube_type == CubeType.Raw:
+        indices = np.nonzero(mask)
+        return data_cube[indices[0], indices[1] , :]
 
 
 def get_scaled_cube_coordinates(
@@ -310,13 +314,15 @@ def get_selection(
     if cube_type == CubeType.Elemental:
         raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
         data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+        img_h, img_w, _ = imread(base_img_dir).shape
+        cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
         
     if cube_type == CubeType.Raw:
         data_cube: np.ndarray = get_raw_data(data_source_folder)
-
-    img_h, img_w, _ = imread(base_img_dir).shape
-    cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
-
+        #data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+        img_h, img_w, _ = imread(base_img_dir).shape
+        cube_h, cube_w = data_cube.shape[0], data_cube.shape[1] 
+        
     cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
 
     if cube_recipe_path is None:
@@ -329,10 +335,9 @@ def get_selection(
 
         # Note: Using selection with a boolean mask for a simple rectangular selection is not
         #       the best choice for performance, but the mask simplifies things, since it can be
-        #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also, the performance decrease should be less than tenth of a second in most cases.
-        return extract_selected_data(data_cube, mask)
+        return extract_selected_data(data_cube, mask, cube_type)
     else:
         # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
@@ -344,4 +349,4 @@ def get_selection(
 
         mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_deregistered, cube_w, cube_h)
 
-        return extract_selected_data(data_cube, mask)
+        return extract_selected_data(data_cube, mask, cube_type)
