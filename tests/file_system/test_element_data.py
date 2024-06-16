@@ -126,9 +126,10 @@ class TestElementalData:
     def test_csv_to_dms(self, caplog):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
+        folder_path: str = join(RESOURCES_PATH, "file_system", "test_elemental_data")
 
         # execute
-        result: bool = to_dms(self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
+        result: bool = to_dms(folder_path, self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
 
         # verify
         assert result
@@ -136,4 +137,4 @@ class TestElementalData:
         self.do_test_get_elemental_cube(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
 
         # cleanup
-        remove(join(RESOURCES_PATH, "file_system", "test_elemental_data", self.NAME_CUBE_FROM_CSV + '.dms'))
+        remove(join(folder_path, self.NAME_CUBE_FROM_CSV + '.dms'))

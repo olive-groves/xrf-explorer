@@ -1,11 +1,12 @@
 import logging
 
+from os import remove
+from os.path import join, isdir, basename, splitext, dirname
+
+import json
 import numpy as np
 
-from os.path import join
-from pathlib import Path
-
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.file_access import get_path_to_workspace, get_elemental_cube_path_from_name
 from xrf_explorer.server.file_system.from_csv import (
     get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
     get_elements_from_csv)
@@ -215,27 +216,94 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     return composition
 
 
-def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
+def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
+    """Converts an elemental data cube to .dms format. Updates the workspace accordingly and removes the old elemental data cube.
+
+    :param data_source: Name of the data source.
+    :param cube_name: Name of the elemental data cube. Should be present in the workspace.
+    :return: True if the cube was converted successfully, False otherwise.
+    """
+
+    # Get the path to the elemental data cube
+    cube_path: str | None = get_elemental_cube_path_from_name(data_source, cube_name)
+    if cube_path is None:
+        return False
+
+    # Get the elemental data cube and the names of the elements from the file of the given type
+    cube: np.ndarray
+    element_names: list[str]
+
+    # If the file is already in .dms format, return True
+    if cube_path.endswith(".dms"):
+        return True
+    
+    # Check other file types
+    if cube_path.endswith(".csv"):
+        # Convert elemental data cube to .dms format
+        cube = get_elemental_data_cube(cube_path)
+        element_names = get_element_names(cube_path)
+    else:
+        LOG.error(f"Cannot convert {cube_path} to .dms format.")
+        return False
+    
+    # Check if the data was loaded correctly
+    if cube is np.empty(0) or len(element_names) == 0:
+        return False
+    
+    # Save the elemental data cube with elements to a .dms file
+    file_name: str = splitext(basename(cube_path))[0]
+    success: bool = to_dms(dirname(cube_path), file_name, cube, element_names)
+    if not success:
+        return False
+    
+    # Update workspace
+    workspace_path: str = get_path_to_workspace(data_source)
+    if not workspace_path:
+        return False
+
+    try:
+        with open(workspace_path, "r+") as file:
+            workspace: dict = json.load(file)
+
+            # Find the correct elemental data cube
+            for cube_info in workspace["elementalCubes"]:
+                if cube_info["name"] == cube_name:
+                    cube_info["dataLocation"] = f"{file_name}.dms"
+                    break
+
+            file.seek(0)
+            file.write(json.dumps(workspace))
+            file.truncate()
+    except Exception as e:
+        LOG.error(f"Failed to update workspace: {str(e)}")
+        return False
+
+    # Remove the old elemental data cube
+    remove(cube_path)
+
+    LOG.info(f"Converted {cube_path} to .dms format.")
+    return True
+
+
+def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     """Saves a numpy array and list of elements to a DMS file.
 
+    :param folder_path: Path to the folder where the DMS file will be saved.
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
     :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     :param elements: List of the names of the elements.
     :return: True if the cube was saved successfully, False otherwise.
     """
 
+    if not isdir(folder_path):
+        LOG.error(f"Folder {folder_path} does not exist.")
+        return False
+
     if "." in name_cube:
         LOG.error("Name of the cube should not contain a file extension.")
         return False
     
-    # load backend config
-    backend_config: dict = get_config()
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return False
-    
-    # path to cube 
-    path_cube: str = join(Path(backend_config['uploads-folder']), name_cube + '.dms')
+    path_cube: str = join(folder_path, name_cube + '.dms')
     
     # Get the shape of the elemental data cube
     c, w, h = cube.shape

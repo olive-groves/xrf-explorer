@@ -9,11 +9,11 @@ import { Point2D } from "@/lib/utils";
  */
 export interface RequestBody {
   /**
-   *The type of the selection.
+   * The type of the selection.
    */
   type: SelectionAreaType | undefined;
   /**
-   *The list of points defining the selected area.
+   * The list of points defining the selected area.
    */
   points: Point2D[];
 }
