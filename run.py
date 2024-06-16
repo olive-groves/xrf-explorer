@@ -2,6 +2,8 @@ import logging
 import argparse
 
 from datetime import datetime
+from os import environ
+from sys import stdout
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -16,17 +18,21 @@ if __name__ == '__main__':
     # read commandline arguments
     args = parser.parse_args()
 
-    # get logging level
+    # set logging level
     loglevel = logging.getLevelName(args.loglevel)
 
-    currentTime: str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    # set logging output handler
+    outputHandler: logging.Handler = logging.StreamHandler(stdout)  # if environment variable is not set, use stdout
+    mode: str | None = environ.get("XRF_EXPLORER_LOG_MODE")
+    if mode == "PROD":
+        currentTime: str = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        outputHandler = logging.FileHandler(f"logs/log_{currentTime}.log")
 
     # set up logger
     logging.basicConfig(
         level=loglevel,  # lowest logging level used
-        # filename=f"logs/log_{currentTime}.log",        # path to log file to output instead of console
-        # filemode="w",                   # access mode to file specified in `filename`
-        format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+        handlers=[outputHandler]  # set output handler
     )
 
     LOG.info("Starting XRF-Explorer")
