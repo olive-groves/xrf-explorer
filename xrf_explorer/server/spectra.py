@@ -138,6 +138,7 @@ def get_average_selection(data: np.ndarray) -> list:
     # create list of dictionaries
     for i in range(np.size(result)):
         response.append({"index": i, "value": result[i]})
+
     LOG.info("Calculated the average composition of the elements within selection.")
     return response
 

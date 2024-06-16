@@ -145,9 +145,10 @@ async function plotAverageSpectrum() {
  * @param selection Json object representing the selection.
  */
 async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
-  if (ready && selection != undefined) {
+  if (ready && selection.type != undefined) {
     // Request body for selection
     const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
+
     try {
       //make api call
       const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
