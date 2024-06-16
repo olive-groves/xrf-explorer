@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { SelectionAreaSelection, SelectionAreaType } from "./selection";
 
 /**
  * Represent a point in 2D space.
@@ -101,5 +102,67 @@ export function removeValue<Type>(array: Type[], value: Type) {
   const index = array.indexOf(value);
   if (index > -1) {
     array.splice(index);
+  }
+}
+
+/**
+ * Sorts the points of a rectangle selection, putting the minimal coordinates in the first point.
+ * @param points - The points to sort.
+ * @returns The sorted point coordinates.
+ */
+export function sortRectanglePoints(points: Point2D[]): Point2D[] {
+  return [
+    {
+      x: Math.min(points[0].x, points[1].x),
+      y: Math.min(points[0].y, points[1].y),
+    },
+    {
+      x: Math.max(points[0].x, points[1].x),
+      y: Math.max(points[0].y, points[1].y),
+    },
+  ];
+}
+
+/**
+ * Flips the y coordinates of a list of points.
+ * @param points - The points to flip.
+ * @param height - The height of the area to flip, 0 -> height and height -> 0.
+ * @returns The list of flipped points.
+ */
+function flipPoints(points: Point2D[], height: number): Point2D[] {
+  return points.map<Point2D>((point) => {
+    return {
+      x: point.x,
+      y: (height ?? 0) - point.y,
+    };
+  });
+}
+
+/**
+ * Flips a selection.
+ * @param selection - The selection to flip.
+ * @param height - The height of the area to flip, 0 -> height and height -> 0.
+ * @returns The flipped selection.
+ */
+export function flipSelectionAreaSelection(selection: SelectionAreaSelection, height: number): SelectionAreaSelection {
+  switch (selection.type) {
+    case SelectionAreaType.Lasso: {
+      return {
+        type: SelectionAreaType.Lasso,
+        points: flipPoints(selection.points, height),
+      };
+    }
+    case SelectionAreaType.Rectangle: {
+      return {
+        type: SelectionAreaType.Rectangle,
+        points: sortRectanglePoints(flipPoints(selection.points, height)),
+      };
+    }
+    default: {
+      return {
+        type: undefined,
+        points: [],
+      };
+    }
   }
 }
