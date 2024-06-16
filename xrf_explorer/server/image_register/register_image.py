@@ -1,3 +1,4 @@
+from sys import path
 import numpy as np
 from os.path import exists, dirname
 import logging
@@ -15,13 +16,15 @@ from cv2 import (
 from numpy.typing import NDArray
 from cv2.typing import MatLike
 from xrf_explorer.server.file_system import (
-    get_elemental_cube_path, get_elemental_cube_recipe_path, 
-    get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size, 
-    get_path_to_base_image, is_base_image
+    get_elemental_cube_path,
+    get_elemental_cube_recipe_path,
+    get_contextual_image_path,
+    get_contextual_image_recipe_path,
+    get_contextual_image_size,
+    get_path_to_base_image,
+    is_base_image,
 )
-from xrf_explorer.server.file_system.from_dms import (
-    get_elemental_datacube_dimensions_from_dms,
-)
+from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -137,12 +140,12 @@ def pad_image_to_match_size(
 
     if col_difference < 0:
         LOG.info(f"Removing columns: {-col_difference}")
-        
+
         image_without_padding = image_to_pad[:, :image_reference_width]
     if row_difference < 0:
         LOG.info(f"Removing rows: {-row_difference}")
 
-        image_without_padding = image_to_pad[:image_reference_height, :] 
+        image_without_padding = image_to_pad[:image_reference_height, :]
 
     # Add padding to the image
     add_rows = max(0, row_difference)
@@ -161,7 +164,7 @@ def pad_image_to_match_size(
 
 
 def apply_perspective_transformation(
-        image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
+    image_to_transform: MatLike, points_src: MatLike, points_dest: MatLike
 ) -> MatLike:
     """Applies a perspective transformation on an image based on source and destination points.
     :param image_to_transform: A MatLike representation of the image to be transformed.
@@ -224,9 +227,11 @@ def load_points_dict(path_points_csv_file: str) -> dict[str, list[np.float32]] |
 
 
 def register_image(
-        image: MatLike, 
-        new_width: int, new_height: int, 
-        points_source: np.ndarray, points_destination: np.ndarray
+    image: MatLike,
+    new_width: int,
+    new_height: int,
+    points_source: np.ndarray,
+    points_destination: np.ndarray,
 ) -> MatLike:
     """Register the given image to match the new width and height with transformation given by the source and destination points.
 
@@ -240,15 +245,21 @@ def register_image(
 
     resized_image: MatLike = resize_image_fit_aspect_ratio(image, new_height, new_width)
 
-    padded_image: MatLike = pad_image_to_match_size(resized_image, new_height, new_width)
+    padded_image: MatLike = pad_image_to_match_size(
+        resized_image, new_height, new_width
+    )
 
-    return apply_perspective_transformation(padded_image, points_source, points_destination)
+    return apply_perspective_transformation(
+        padded_image, points_source, points_destination
+    )
 
 
 def inverse_register_image(
-        image: MatLike, 
-        new_width: int, new_height: int, 
-        points_source: np.ndarray, points_destination: np.ndarray
+    image: MatLike,
+    new_width: int,
+    new_height: int,
+    points_source: np.ndarray,
+    points_destination: np.ndarray,
 ) -> MatLike:
     """Inverse register the given image to match the new width and height with transformation given by the source and destination points.
 
@@ -261,8 +272,10 @@ def inverse_register_image(
     """
 
     # Inverse transform the image, this is done by swapping the source and destination points in the method
-    image_transformed: MatLike = apply_perspective_transformation(image, points_destination, points_source)
-    
+    image_transformed: MatLike = apply_perspective_transformation(
+        image, points_destination, points_source
+    )
+
     # Get the dimensions of the image
     image_height, image_width = image_transformed.shape[:2]
 
@@ -277,13 +290,17 @@ def inverse_register_image(
         # Height is scaled to match the cube
         # So columns are added to match the width, which we have to remove
         scaled_width: int = int(new_width * image_height / new_height)
-        image_without_padding = pad_image_to_match_size(image_transformed, image_height, scaled_width)
+        image_without_padding = pad_image_to_match_size(
+            image_transformed, image_height, scaled_width
+        )
 
     else:
         # Width is scaled to match the cube
         # So rows are added to match the height, which we have to remove
         scaled_height: int = int(new_height * image_width / new_width)
-        image_without_padding = pad_image_to_match_size(image_transformed, scaled_height, image_width)
+        image_without_padding = pad_image_to_match_size(
+            image_transformed, scaled_height, image_width
+        )
 
     # Scale image down to match the cube
     return resize(
@@ -334,17 +351,23 @@ def register_image_to_image(
         return False
 
     image_reference_height, image_reference_width = image_reference.shape[:2]
-    
+
     points_source, points_destination = load_points(path_csv_points)
-    
+
     registered_image: MatLike = register_image(
-        image_register, image_reference_width, image_reference_height, points_source, points_destination
+        image_register,
+        image_reference_width,
+        image_reference_height,
+        points_source,
+        points_destination,
     )
 
     return imwrite(path_result_registered_image, registered_image)
 
 
-def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatLike | None:
+def get_image_registered_to_data_cube(
+    data_source: str, image_name: str
+) -> MatLike | None:
     """
     Registers an image to align with the dimensions of the data cube.
 
@@ -358,22 +381,23 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
     if path_data_cube is None:
         LOG.error(f"Data cube not found at {path_data_cube}")
         return None
-    
+
     # Load the data cube dimensions
-    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
-    
+    cube = get_elemental_data_cube(path_data_cube)
+    cube_h, cube_w = cube.shape[1], cube.shape[2]
+
     # Get the path to the image to be registered
     path_image_register: str | None = get_contextual_image_path(data_source, image_name)
     if path_image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
         return None
-    
+
     # Load the image to be registered
     image_register: MatLike = imread(path_image_register)
     if image_register is None:
         LOG.error(f"Image for registering not found at {path_image_register}")
         return None
-    
+
     # Check if the image is the base image
     is_image_base_image: bool | None = is_base_image(data_source, image_name)
     if is_image_base_image is None:
@@ -382,10 +406,12 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
     # If not base image, register image to base image first
     if not is_image_base_image:
         # Get recipe to base image
-        base_recipe_path: str | None = get_contextual_image_recipe_path(data_source, image_name)
+        base_recipe_path: str | None = get_contextual_image_recipe_path(
+            data_source, image_name
+        )
         if base_recipe_path is None:
-            return None 
-        
+            return None
+
         # Load the control points and apply the perspective transformation
         points_source, points_destination = load_points(base_recipe_path)
 
@@ -395,28 +421,36 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
             return None
 
         # Get the size of the base image
-        base_image_size: tuple[int, int] | None = get_contextual_image_size(path_to_base_image)
+        base_image_size: tuple[int, int] | None = get_contextual_image_size(
+            path_to_base_image
+        )
         if base_image_size is None:
             return None
-        
+
         base_image_width, base_image_height = base_image_size
 
         # Register the image to the base image
         LOG.info("Registering image to base image")
-        
+
         image_register = register_image(
-            image_register, base_image_width, base_image_height, points_source, points_destination
+            image_register,
+            base_image_width,
+            base_image_height,
+            points_source,
+            points_destination,
         )
 
     # Get elemental data cube recipe
     cube_recipe_path: str | None = get_elemental_cube_recipe_path(data_source)
     if cube_recipe_path is None:
         return None
-    
+
     # Load the control points and apply the perspective transformation
     points_source, points_destination = load_points(cube_recipe_path)
-    
-    # Inverse register the image 
+
+    # Inverse register the image
     LOG.info("Registering image to elemental cube")
-    
-    return inverse_register_image(image_register, cube_w, cube_h, points_source, points_destination)
+
+    return inverse_register_image(
+        image_register, cube_w, cube_h, points_source, points_destination
+    )
