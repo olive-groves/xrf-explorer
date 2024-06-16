@@ -47,9 +47,6 @@ function onColorUpdate(newColor: string) {
  * @param newSelection - Object containing all necessary information about the selection to update the layer.
  */
 async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
-  // ensure that the new selection is not undefined
-  if (newSelection.type == undefined) return;
-
   // remove current selection
   if (newSelection.points.length == 0) {
     updateLayer(0);
@@ -87,6 +84,9 @@ function updateBitmask(newSelection: SelectionAreaSelection): void {
 
   // reset bitmask (through the opacity)
   for (let i = 3; i < data.length; i += 4) data[i] = 0;
+
+  // return after resetting bitmask for undefined selection
+  if (newSelection.type == undefined) return;
 
   // check which points are in the selection and update the bitmask accordingly
   for (let x = Math.floor(topLeftPoint.x); x <= Math.ceil(bottomRightPoint.x); x++) {

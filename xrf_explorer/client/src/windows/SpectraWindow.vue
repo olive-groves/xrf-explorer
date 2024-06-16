@@ -12,7 +12,8 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-import { RequestBody } from "./selection";
+import { flipSelectionAreaSelection } from "@/lib/utils";
+import { getTargetSize } from "@/components/image-viewer/api";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
@@ -144,12 +145,10 @@ async function plotAverageSpectrum() {
  * @param selection Json object representing the selection.
  */
 async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
-  if (ready && selection != undefined) {
+  if (ready && selection.type != undefined) {
     // Request body for selection
-    const request_body: RequestBody = {
-      type: selection.type,
-      points: selection.points,
-    };
+    const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
+
     try {
       //make api call
       const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {

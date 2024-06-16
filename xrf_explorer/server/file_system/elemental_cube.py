@@ -204,6 +204,10 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     :param names: The names of the elements present in the painting.
     :return: List of the names and average composition of the elements.
     """
+    # Return zeroes if selection is empty
+    if selection.size == 0:
+        return [{"name": names[i], "average": 0.0} for i in range(len(names))]
+
     # Calculate the average composition of each element in the selection
     averages: np.ndarray = np.mean(selection, axis=1)
 
