@@ -73,7 +73,7 @@ const selectedOverlay = ref();
 
 // Dimensionality reduction image
 const imageSourceUrl = ref();
-const abortController = new AbortController();
+let abortController = new AbortController();
 
 // Selection
 const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
@@ -96,7 +96,7 @@ async function fetchDRImage() {
   if (status.value == Status.GENERATING) return;
 
   // If an overlay is already being loaded, cancel that fetch
-  if (status.value == Status.LOADING) abortController.abort();
+  abortController.abort();
 
   status.value = Status.LOADING;
 
@@ -104,6 +104,7 @@ async function fetchDRImage() {
   const apiURL = `${config.api.endpoint}/${datasource.value}/dr/overlay/${selectedOverlay.value}`;
 
   // Fetch the image
+  abortController = new AbortController();
   fetch(apiURL, { signal: abortController.signal }).then(
     async (response) => {
       if (!response.ok) throw new Error("Failed to fetch overlay image");
@@ -118,26 +119,10 @@ async function fetchDRImage() {
       // Update status
       status.value = Status.SUCCESS;
     },
-    (error) => {},
+    (error) => {
+      console.warn("Fetch for overlay rejected, request was either aborted intentionally or an error occurred", error);
+    },
   );
-
-  // Fetch the image
-  const { response, data } = await useFetch(apiURL).get().blob();
-
-  // Check if fetching the image was successful
-  if (response.value?.ok && data.value != null) {
-    // Create URL for image and set it globally
-    imageSourceUrl.value = URL.createObjectURL(data.value).toString();
-
-    // the middle image used for conversion from embedding to main viewer image needs to be updated
-    updateMiddleImage();
-
-    // Update status
-    status.value = Status.SUCCESS;
-  } else {
-    currentError.value = "Failed to load overlay, make sure embedding has been generated";
-    status.value = Status.ERROR;
-  }
 }
 
 /**
