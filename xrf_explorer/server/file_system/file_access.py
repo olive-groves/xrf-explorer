@@ -14,23 +14,45 @@ from xrf_explorer.server.file_system.workspace_handler import get_path_to_worksp
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_elemental_cube_name(data_source_folder: str) -> str | None:
-    """Get the name of the elemental cube file of a given datasource.
+def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
+    """Get the names of the elemental cube files of a given datasource.
 
-    :param data_source_folder: Name of the data source folder.
-    :return: Name of the elemental cube file.
+    :param data_source: Name of the data source folder.
+    :return: Names of the elemental cube files.
     """
-    # load backend config
+
+    workspace_dict = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        return None
+
+    return [cube_info["dataLocation"] for cube_info in workspace_dict["elementalCubes"]]
+
+
+def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> list[str] | None:
+    """Get the path to the elemental data cube of the given cube and data source.
+
+    :param data_source: Name of the data source folder.
+    :param cube_name: Name of the elemental cube.
+    :return: Path to the elemental data cube with the given name.
+    """
+
+    # Load backend config
     backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
-
-    workspace_dict = get_workspace_dict(data_source_folder)
+    
+    # Load workspace
+    workspace_dict = get_workspace_dict(data_source)
     if workspace_dict is None:
         return None
-
-    return workspace_dict["elementalCubes"][0]["dataLocation"]
+    
+    # Find the file name with the given name
+    for cube_info in workspace_dict['elementalCubes']:
+        if cube_info['name'] == cube_name:
+            return join(backend_config["uploads-folder"], data_source, cube_info['dataLocation'])
+    
+    return None
 
 
 def get_elemental_cube_path(data_source_folder: str) -> str | None:
@@ -50,7 +72,7 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
                   join(backend_config["uploads-folder"], data_source_folder)} does not exist.")
         return None
 
-    filename: str | None = get_elemental_cube_name(data_source_folder)
+    filename: str | None = get_elemental_cube_file_names(data_source_folder)[0]
 
     if filename is None:
         LOG.error("An error occurred while trying to find elemental cube name.")

@@ -1,10 +1,12 @@
 import logging
 
+from os import remove
+from os.path import join, isdir, basename, splitext, dirname
+
+import json
 import numpy as np
 
-from os.path import join, isdir
-
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.file_access import get_path_to_workspace, get_elemental_cube_path_from_name
 from xrf_explorer.server.file_system.from_csv import (
     get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
     get_elements_from_csv)
@@ -212,6 +214,69 @@ def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> l
     LOG.info("Calculated the average composition of the elements within selection.")
 
     return composition
+
+
+def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
+    """Converts an elemental data cube to .dms format. Updates the workspace accordingly and removes the old elemental data cube.
+
+    :param data_source: Name of the data source.
+    :param cube_name: Name of the elemental data cube. Should be present in the workspace.
+    :return: True if the cube was converted successfully, False otherwise.
+    """
+
+    # Get the path to the elemental data cube
+    cube_path: str = get_elemental_cube_path_from_name(data_source, cube_name)
+
+    # Get the elemental data cube and the names of the elements from the file of the given type
+    cube: np.ndarray
+    element_names: list[str]
+
+    if cube_path.endswith(".dms"):
+        return True
+    elif cube_path.endswith(".csv"):
+        # Convert elemental data cube to .dms format
+        cube = get_elemental_data_cube(cube_path)
+        element_names = get_element_names(cube_path)
+    else:
+        LOG.error(f"Cannot convert {cube_path} to .dms format.")
+        return False
+    
+    # Check if the data was loaded correctly
+    if cube is np.empty(0) or len(element_names) == 0:
+        return False
+    
+    # Save the elemental data cube with elements to a .dms file
+    file_name: str = splitext(basename(cube_path))[0]
+    sucess: bool = to_dms(dirname(cube_path), file_name, cube, element_names)
+    if not sucess:
+        return False
+    
+    # Update workspace
+    workspace_path: str = get_path_to_workspace(data_source)
+    if not workspace_path:
+        return False
+
+    try:
+        with open(workspace_path, "r+") as file:
+            workspace: dict = json.load(file)
+
+            # Find the correct elemental data cube
+            for cube_info in workspace["elementalCubes"]:
+                if cube_info["name"] == cube_name:
+                    cube_info["dataLocation"] = f"{file_name}.dms"
+                    break
+
+            file.seek(0)
+            file.write(json.dumps(workspace))
+            file.truncate()
+    except Exception as e:
+        LOG.error(f"Failed to update workspace: {str(e)}")
+        return False
+
+    # Remove the old elemental data cube
+    remove(cube_path)
+
+    return True
 
 
 def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
