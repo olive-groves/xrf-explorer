@@ -9,7 +9,7 @@ import { Point2D } from "@/lib/utils";
  */
 export interface RequestBody {
   /**
-   *The type of the selection.
+   * The type of the selection.
    */
   type: SelectionAreaType | undefined;
   /**
