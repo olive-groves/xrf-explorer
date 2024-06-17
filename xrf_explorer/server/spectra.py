@@ -8,11 +8,11 @@ from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_s
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_data(data_source: str) -> np.ndarray:
+def get_raw_data(data_source: str) -> np.memmap:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array.
 
     :param data_source: the path to the .raw file.
-    :return: 3-dimensional array containing the raw data in format {x, y, channel}.
+    :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}.
     """
     # get paths to files
     path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
@@ -38,11 +38,10 @@ def get_raw_data(data_source: str) -> np.ndarray:
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
+        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
         return np.empty(0)
-    datacube = np.reshape(datacube, (height, width, bin_nr))
     return datacube
 
 
@@ -159,9 +158,13 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     if element == 'yAl':
         element = 'Al'
 
-    # get spectrum and peaks
-    data: tuple[np.ndarray, np.ndarray, np.ndarray,
-                np.ndarray] | np.ndarray = get_element_spectrum(element, excitation_energy_kev)
+    try:
+        # get spectrum and peaks
+        data: tuple[np.ndarray, np.ndarray, np.ndarray,
+                    np.ndarray] | np.ndarray = get_element_spectrum(element, excitation_energy_kev)
+    except:
+        LOG.info(f"Could not get theoretical spectral for excitation energy {excitation_energy_kev}")
+        return []
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
     y_spectrum: np.ndarray = data[1]*255
@@ -266,6 +269,7 @@ def get_element_spectrum(element: str, excitation_energy_kev: float, normalize: 
     """
 
     el = ElementLines(element, excitation_energy_kev)
+
     pe = el.peak_energies
     pi = el.peak_intensities
 
