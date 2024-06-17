@@ -15,6 +15,7 @@ import {
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { toast } from "vue-sonner";
+import { zoom } from "d3-zoom";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
@@ -82,7 +83,8 @@ function setup() {
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
+    .attr("style", "max-width: 100%; height: auto;")
+    .call(zoom().on("zoom", zoomed));
 
   //add axis
   svg
@@ -92,6 +94,17 @@ function setup() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
   plotAverageSpectrum();
+}
+
+/**
+ * Handles zoom event on the chart.
+ */
+function zoomed(event) {
+  const { transform } = event;
+  svg.select("g").attr("transform", transform);
+  svg.select("#globalLine").attr("transform", transform);
+  svg.select("#selectionLine").attr("transform", transform);
+  svg.select("#elementLine").attr("transform", transform);
 }
 
 const globalChecked = ref(false);
@@ -282,6 +295,8 @@ function updateElement() {
  */
 function updateSelectionSpectrum() {
   if (selectionChecked.value) {
+    // The selection average is only updated when the checkbox is checked,
+    // so if the checkbox is unchecked, the user should be informed to reselect the area
     toast.info("Please reselect the area to update the selection average spectrum.")
     svg.select("#selectionLine").style("opacity", 1);
   } else {
