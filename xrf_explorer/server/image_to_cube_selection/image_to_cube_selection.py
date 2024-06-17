@@ -134,7 +134,7 @@ def deregister_coord(
 def extract_selected_data(data_cube: np.ndarray | np.memmap, mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
-    
+
     :param data_cube: The 3D data cube from which data will be extracted.
     :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
     :return: A 2D array where the rows represent pixels in the data cube image
@@ -198,8 +198,8 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     Clip a list of points to the bounds of the datacube.
 
     :param points: A list of points where each point is a tuple (x, y).
-    :param datacube_width: The width of the datacube corresponding to the painting.
-    :param datacube_height: The height of the datacube corresponding to the painting.
+    :param cube_width: The width of the datacube corresponding to the painting.
+    :param cube_height: The height of the datacube corresponding to the painting.
     :return: The list of clipped points, in the same order as the input.
     """
     clipped_points = []
