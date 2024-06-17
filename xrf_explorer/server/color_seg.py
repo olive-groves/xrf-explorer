@@ -29,7 +29,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     LOG.info("Merging similar clusters.")
 
     if clusters.size == 0 or bitmasks.size == 0:
-        LOG.info("Cluster or bitmask array length is zero")
+        LOG.warning("Cluster or bitmask array length is zero")
         return np.ndarray([]), np.ndarray([])
 
     # Transform colors to LAB format
