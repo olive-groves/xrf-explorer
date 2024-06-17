@@ -133,8 +133,8 @@ def deregister_coord(
 def extract_selected_data(mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
-    :param data_cube: The 3D data cube from which data will be extracted.
 
+    :param data_cube: The 3D data cube from which data will be extracted.
     :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
     :param cube_type: The type of the cube the selection is made on.
     :return: The list coordinates of indices of the selected pixels, grouped by pixel.
@@ -144,6 +144,7 @@ def extract_selected_data(mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     if cube_type == CubeType.Raw:
         indices = np.argwhere(mask == True)
     return indices
+
 
 def get_scaled_cube_coordinates(
         coords: list[tuple[int, int]],
@@ -195,8 +196,8 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     Clip a list of points to the bounds of the datacube.
 
     :param points: A list of points where each point is a tuple (x, y).
-    :param datacube_width: The width of the datacube corresponding to the painting.
-    :param datacube_height: The height of the datacube corresponding to the painting.
+    :param cube_width: The width of the datacube corresponding to the painting.
+    :param cube_height: The height of the datacube corresponding to the painting.
     :return: The list of clipped points, in the same order as the input.
     """
     clipped_points = []
@@ -209,7 +210,11 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     return clipped_points
 
 
-def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int, cube_height: int):
+def compute_selection_mask(
+        selection_type: SelectionType,
+        selection: list[tuple[int, int]],
+        cube_width: int,
+        cube_height: int):
     """
     Compute the selection mask of a given selection.
     
@@ -297,7 +302,7 @@ def get_selection(
         LOG.error(f"Error occurred while retrieving the path of the base image of {
                   data_source_folder}")
         LOG.error(
-            f"Error occured while retrieving the path of the base image of {
+            f"Error occurred while retrieving the path of the base image of {
                 data_source_folder}"
         )
         return None

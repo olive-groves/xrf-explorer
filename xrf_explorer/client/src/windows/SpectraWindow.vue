@@ -15,11 +15,14 @@ import {
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { toast } from "vue-sonner";
+import { zoom } from "d3-zoom";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
+let yAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -82,16 +85,51 @@ function setup() {
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
+    .attr("style", "max-width: 100%; height: auto;")
+    .call(zoom().on("zoom", zoomed));
 
-  //add axis
-  svg
+  // add x-axis
+  xAxis = svg
     .append("g")
+    .attr("class", "x-axis")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x));
 
-  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
+  // add y-axis
+  yAxis = svg
+    .append("g")
+    .attr("class", "y-axis")
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(y));
+
   plotAverageSpectrum();
+}
+
+/**
+ * Handles zoom event on the chart.
+ * @param event Zoom event.
+ */
+function zoomed(event) {
+  const { transform } = event;
+  svg.select("g").attr("transform", transform);
+  svg.select("#globalLine").attr("transform", transform);
+  svg.select("#selectionLine").attr("transform", transform);
+  svg.select("#elementLine").attr("transform", transform);
+
+  // Adjust zoom speed
+  const zoomScale = d3.zoomTransform(svg.node()).k;
+  const zoomSpeed = 1 / zoomScale;
+  svg.transition().duration(zoomSpeed);
+
+  // Update x-axis domain
+  const newXDomain = transform.rescaleX(x).domain();
+  x.domain(newXDomain);
+  xAxis.call(d3.axisBottom(x));
+
+  // Update y-axis domain
+  const newYDomain = transform.rescaleY(y).domain();
+  y.domain(newYDomain);
+  yAxis.call(d3.axisLeft(y));
 }
 
 const globalChecked = ref(false);
@@ -132,7 +170,7 @@ async function plotAverageSpectrum() {
         .attr("d", line)
         .style("opacity", 0);
 
-      //modify visibility based on checkbox status
+      // Modify visibility based on checkbox status
       updateGlobal();
     } catch (e) {
       console.error("Error getting global average spectrum", e);
@@ -182,7 +220,7 @@ async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
         .style("opacity", 0);
 
       // Confirm to the user that the selection average spectrum has been updated
-      toast.info("Selection average spectrum updated.");
+      toast.info("Spectrum's selection average updated.");
 
       // Modify visibility based on checkbox status
       updateSelectionSpectrum();
@@ -282,7 +320,9 @@ function updateElement() {
  */
 function updateSelectionSpectrum() {
   if (selectionChecked.value) {
-    toast.info("Please reselect the area to update the selection average spectrum.")
+    // The selection average is only updated when the checkbox is checked,
+    // so if the checkbox is unchecked, the user should be informed to reselect the area
+    toast.info("Please reselect the area to update the spectrum's selection average.");
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
