@@ -80,6 +80,7 @@ const lastLassoCandidateLine = computed(() => {
  * @returns - The location in the selection coordinates.
  */
 function mapLocation(client: Point2D): Point2D {
+  box.update();
   return {
     x: props.x + ((client.x - box.left.value) * props.w) / box.width.value,
     y: props.y + props.h - ((client.y - box.top.value) * props.h) / box.height.value,
