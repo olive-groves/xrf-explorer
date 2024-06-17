@@ -277,6 +277,7 @@ async function plotElementSpectrum(element: string, excitation: number) {
 
 /**
  * Get the maximum y-value of the current global and selected data.
+ * @return - the maximum y-value.
  */
 function getMax() {
   const globalMax: number = d3.max(globalData, (d) => d.value) as number;
