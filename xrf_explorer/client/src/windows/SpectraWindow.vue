@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { toast } from "vue-sonner";
 
 const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
@@ -145,7 +146,7 @@ async function plotAverageSpectrum() {
  * @param selection Json object representing the selection.
  */
 async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
-  if (ready && selection.type != undefined) {
+  if (ready && selection.type != undefined && selectionChecked.value) {
     // Request body for selection
     const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
 
@@ -180,7 +181,10 @@ async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
         .attr("d", line)
         .style("opacity", 0);
 
-      //modify visibility based on checkbox status
+      // Confirm to the user that the selection average spectrum has been updated
+      toast.info("Selection average spectrum updated.");
+
+      // Modify visibility based on checkbox status
       updateSelectionSpectrum();
     } catch (e) {
       console.error("Error getting selection average spectrum", e);
@@ -278,6 +282,7 @@ function updateElement() {
  */
 function updateSelectionSpectrum() {
   if (selectionChecked.value) {
+    toast.info("Please reselect the area to update the selection average spectrum.")
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
