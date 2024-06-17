@@ -134,8 +134,8 @@ def deregister_coord(
 def extract_selected_data(data_cube: np.ndarray | np.memmap, mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
+    
     :param data_cube: The 3D data cube from which data will be extracted.
-
     :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
     :return: A 2D array where the rows represent pixels in the data cube image
     and the columns represent their elemental map values.
