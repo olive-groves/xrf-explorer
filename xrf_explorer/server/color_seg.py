@@ -27,6 +27,11 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
     """
 
     LOG.info("Merging similar clusters.")
+
+    if clusters.length == 0 or bitmasks.length == 0:
+        LOG.info("Cluster or bitmask length is zero")
+        return np.ndarray([]), np.ndarray([])
+
     # Transform colors to LAB format
     # (in LAB format, euclidean distance represent
     # similarity in color better)
