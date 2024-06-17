@@ -14,16 +14,16 @@ import {
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
-import { toast } from "vue-sonner";
 
 const spectraChart = ref<HTMLElement>();
-let x: d3.ScaleLinear<number, number, never>;
-let y: d3.ScaleLinear<number, number, never>;
-let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+// SVG container
+let svg = d3.select(spectraChart.value!);
+let x = d3.scaleLinear();
+let y = d3.scaleLinear();
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
-watch(areaSelection, plotSelectionSpectrum, { deep: true, immediate: true });
+watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
 
 /**
  * Sets up export of chart.
@@ -44,6 +44,11 @@ interface Point {
   value: number;
 }
 
+// set the dimensions and margins of the graph
+const margin = { top: 30, right: 30, bottom: 70, left: 60 },
+    width = 860 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
+
 const trimmedList: ComputedRef<
   {
     name: string;
@@ -52,6 +57,11 @@ const trimmedList: ComputedRef<
   }[]
 > = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
 
+let globalData: Point[] = [];
+let selectionData: Point[] = [];
+let elementData: Point[] = [];
+let elementPeaks: Point[] = []
+
 /**
  * Setup the svg and axis of the graph.
  */
@@ -59,13 +69,14 @@ function setup() {
   ready = binned.value;
   watch(binned, () => {
     ready = binned.value;
-    plotAverageSpectrum();
   });
-  // set the dimensions and margins of the graph
-  const margin = { top: 30, right: 30, bottom: 70, left: 60 },
-    width = 860 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
+  getAverageSpectrum();
+  makeChart();
+}
 
+function makeChart(){
+  svg.select("*").remove()
+  let max = getMax()
   // Add X and Y axis
   x = d3
     .scaleLinear()
@@ -74,7 +85,7 @@ function setup() {
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain([0, 255]);
+    .domain([0, max]);
 
   // append the svg object to the body of the page
   svg = d3
@@ -91,7 +102,82 @@ function setup() {
     .call(d3.axisBottom(x));
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
-  plotAverageSpectrum();
+
+  //create line
+  const globalLine = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
+
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(globalData)
+        .attr("fill", "none")
+        .attr("stroke", "steelblue")
+        .attr("stroke-width", 1)
+        .attr("id", "globalLine")
+        .attr("d", globalLine)
+        .style("opacity", 0)
+
+      //modify visibility based on checkbox status
+      updateGlobal();
+
+   //remove spectrum of previous selection
+   svg.select("#selectionLine").remove();
+
+  //create line
+  const line = d3
+    .line<Point>()
+    .x((d: Point) => x(d.index))
+    .y((d: Point) => y(d.value));
+
+  // Add the line to chart
+  svg
+    .append("path")
+    .datum(selectionData)
+    .attr("fill", "none")
+    .attr("stroke", "green")
+    .attr("stroke-width", 1)
+    .attr("id", "selectionLine")
+    .attr("d", line)
+    .style("opacity", 0);
+
+  //modify visibility based on checkbox status
+  updateSelectionSpectrum();
+
+  //remove previous element lines
+  svg.select("#elementLine").remove();
+      svg.selectAll("line").remove();
+
+      //create line
+      const elementLine = d3
+        .line<Point>()
+        .x((d: Point) => x(d.index))
+        .y((d: Point) => y(d.value));
+
+      // Add the line to chart
+      svg
+        .append("path")
+        .datum(elementData)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 1)
+        .attr("id", "elementLine")
+        .attr("d", elementLine)
+        .style("opacity", 1);
+
+      //Add peaks
+      elementPeaks.forEach((peak: Point) => {
+        svg
+          .append("line")
+          .style("stroke", "grey")
+          .style("stroke-width", 1)
+          .attr("x1", x(peak.index))
+          .attr("y1", 30)
+          .attr("x2", x(peak.index))
+          .attr("y2", 430);
+      });
 }
 
 const globalChecked = ref(false);
@@ -103,7 +189,7 @@ const excitation = ref(0);
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
  */
-async function plotAverageSpectrum() {
+async function getAverageSpectrum() {
   if (ready) {
     try {
       //make api call
@@ -114,26 +200,8 @@ async function plotAverageSpectrum() {
         },
       });
       const data = await response.json();
-
-      //create line
-      const line = d3
-        .line<Point>()
-        .x((d: Point) => x(d.index))
-        .y((d: Point) => y(d.value));
-
-      // Add the line to chart
-      svg
-        .append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1)
-        .attr("id", "globalLine")
-        .attr("d", line)
-        .style("opacity", 0);
-
-      //modify visibility based on checkbox status
-      updateGlobal();
+      globalData = data;
+      makeChart()
     } catch (e) {
       console.error("Error getting global average spectrum", e);
     }
@@ -145,7 +213,7 @@ async function plotAverageSpectrum() {
  * For now assumes that the pixels are given in the raw data coordinate system.
  * @param selection Json object representing the selection.
  */
-async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
+async function getSelectionSpectrum(selection: SelectionAreaSelection) {
   if (ready && selection.type != undefined && selectionChecked.value) {
     // Request body for selection
     const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
@@ -160,32 +228,9 @@ async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
         body: JSON.stringify(request_body),
       });
       const data = await response.json();
+      selectionData = data;
+      makeChart()
 
-      //remove spectrum of previous selection
-      svg.select("#selectionLine").remove();
-
-      //create line
-      const line = d3
-        .line<Point>()
-        .x((d: Point) => x(d.index))
-        .y((d: Point) => y(d.value));
-
-      // Add the line to chart
-      svg
-        .append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "green")
-        .attr("stroke-width", 1)
-        .attr("id", "selectionLine")
-        .attr("d", line)
-        .style("opacity", 0);
-
-      // Confirm to the user that the selection average spectrum has been updated
-      toast.info("Selection average spectrum updated.");
-
-      // Modify visibility based on checkbox status
-      updateSelectionSpectrum();
     } catch (e) {
       console.error("Error getting selection average spectrum", e);
     }
@@ -208,40 +253,10 @@ async function plotElementSpectrum(element: string, excitation: number) {
         },
       });
       const data = await response.json();
-      const spectrum = data[0];
-
-      //remove previous element lines
-      svg.select("#elementLine").remove();
-      svg.selectAll("line").remove();
-
-      //create line
-      const line = d3
-        .line<Point>()
-        .x((d: Point) => x(d.index))
-        .y((d: Point) => y(d.value));
-
-      // Add the line to chart
-      svg
-        .append("path")
-        .datum(spectrum)
-        .attr("fill", "none")
-        .attr("stroke", "red")
-        .attr("stroke-width", 1)
-        .attr("id", "elementLine")
-        .attr("d", line)
-        .style("opacity", 1);
-
-      //Add peaks
-      data[1].forEach((peak: Point) => {
-        svg
-          .append("line")
-          .style("stroke", "grey")
-          .style("stroke-width", 1)
-          .attr("x1", x(peak.index))
-          .attr("y1", 30)
-          .attr("x2", x(peak.index))
-          .attr("y2", 430);
-      });
+      elementData = data;
+      elementData = data[0];
+      elementPeaks = data[1]
+      makeChart()
     } catch (e) {
       console.error("Error getting element theoretical spectrum", e);
     }
@@ -253,6 +268,16 @@ async function plotElementSpectrum(element: string, excitation: number) {
 
   //modify visibility based on checkbox status
   updateElement();
+}
+
+function getMax() {
+  let globalMax: number = d3.max(globalData, (d) => d.value) as number;
+  let selectionMax: number = d3.max(selectionData, (d) => d.value) as number;
+  let max = Math.max(...[globalMax, selectionMax])
+  if (max == 0) {
+    max = 255
+  }
+  return max
 }
 
 /**
@@ -282,7 +307,6 @@ function updateElement() {
  */
 function updateSelectionSpectrum() {
   if (selectionChecked.value) {
-    toast.info("Please reselect the area to update the selection average spectrum.")
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
