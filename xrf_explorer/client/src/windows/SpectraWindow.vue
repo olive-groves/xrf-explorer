@@ -21,6 +21,8 @@ const spectraChart = ref<HTMLElement>();
 let x: d3.ScaleLinear<number, number, never>;
 let y: d3.ScaleLinear<number, number, never>;
 let svg: d3.Selection<HTMLElement, unknown, null, undefined>;
+let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
+let yAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -86,13 +88,20 @@ function setup() {
     .attr("style", "max-width: 100%; height: auto;")
     .call(zoom().on("zoom", zoomed));
 
-  //add axis
-  svg
+  // add x-axis
+  xAxis = svg
     .append("g")
+    .attr("class", "x-axis")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x));
 
-  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
+  // add y-axis
+  yAxis = svg
+    .append("g")
+    .attr("class", "y-axis")
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(y));
+
   plotAverageSpectrum();
 }
 
@@ -111,6 +120,16 @@ function zoomed(event) {
   const zoomScale = d3.zoomTransform(svg.node()).k;
   const zoomSpeed = 1 / zoomScale;
   svg.transition().duration(zoomSpeed);
+
+  // Update x-axis domain
+  const newXDomain = transform.rescaleX(x).domain();
+  x.domain(newXDomain);
+  xAxis.call(d3.axisBottom(x));
+
+  // Update y-axis domain
+  const newYDomain = transform.rescaleY(y).domain();
+  y.domain(newYDomain);
+  yAxis.call(d3.axisLeft(y));
 }
 
 const globalChecked = ref(false);
@@ -151,7 +170,7 @@ async function plotAverageSpectrum() {
         .attr("d", line)
         .style("opacity", 0);
 
-      //modify visibility based on checkbox status
+      // Modify visibility based on checkbox status
       updateGlobal();
     } catch (e) {
       console.error("Error getting global average spectrum", e);
