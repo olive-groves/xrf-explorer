@@ -310,7 +310,7 @@ def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[st
     path_cube: str = join(folder_path, name_cube + '.dms')
     
     # Get the shape of the elemental data cube
-    c, w, h = cube.shape
+    c, h, w = cube.shape
 
     # Write the elemental data cube to a DMS file
     try:
