@@ -28,8 +28,8 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
     LOG.info("Merging similar clusters.")
 
-    if clusters.length == 0 or bitmasks.length == 0:
-        LOG.info("Cluster or bitmask length is zero")
+    if clusters.size == 0 or bitmasks.size == 0:
+        LOG.info("Cluster or bitmask array length is zero")
         return np.ndarray([]), np.ndarray([])
 
     # Transform colors to LAB format
@@ -124,7 +124,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
                                          elem_threshold: float = 0.1, nr_of_attempts: int = 10, 
-                                         k: int = 30) -> tuple[list[np.ndarray], list[list[np.ndarray]]]:
+                                         k: int = 30) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
@@ -168,7 +168,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
     colors: list[np.ndarray] = []
-    bitmasks: list[list[np.ndarray]] = []
+    bitmasks: list[np.ndarray] = []
     # For each element
     for elem_index in range(data_cube.shape[0]):
         # Get bitmask of pixels with high element concentration
@@ -183,7 +183,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
             bitmasks.append(np.empty(0))
             continue
 
-        # k cannot be bigger than number of pixels w/element present 
+        # k cannot be bigger than number of pixels w/element present
         k = min(k, masked_image.size)
         labels: np.ndarray
         center: np.ndarray
@@ -206,7 +206,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
         # Transform back to rgb
         center = np.array([lab_to_rgb(c) for c in center])
         colors.append(center)
-        bitmasks.append(cluster_bitmasks)
+        bitmasks.append(np.array(cluster_bitmasks))
 
     return colors, bitmasks
 
