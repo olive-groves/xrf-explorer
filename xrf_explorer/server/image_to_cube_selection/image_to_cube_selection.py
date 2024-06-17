@@ -212,7 +212,11 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     return clipped_points
 
 
-def compute_selection_mask(selection_type: SelectionType, selection: list[tuple[int, int]], cube_width: int, cube_height: int):
+def compute_selection_mask(
+        selection_type: SelectionType,
+        selection: list[tuple[int, int]],
+        cube_width: int,
+        cube_height: int):
     """
     Compute the selection mask of a given selection.
     
