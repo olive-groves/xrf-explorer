@@ -57,9 +57,13 @@ const trimmedList: ComputedRef<
   }[]
 > = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
 
+//Points of the global average spectrum
 let globalData: Point[] = [];
+//Points of the selected average spectrum
 let selectionData: Point[] = [];
+//Points of the theoretical element spectrum
 let elementData: Point[] = [];
+//Coordinates of the theoretical element peaks
 let elementPeaks: Point[] = [];
 
 /**
@@ -255,7 +259,6 @@ async function plotElementSpectrum(element: string, excitation: number) {
         },
       });
       const data = await response.json();
-      elementData = data;
       elementData = data[0];
       elementPeaks = data[1];
       makeChart();

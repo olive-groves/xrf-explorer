@@ -137,6 +137,7 @@ def extract_selected_data(data_cube: np.ndarray | np.memmap, mask: np.ndarray, c
 
     :param data_cube: The 3D data cube from which data will be extracted.
     :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
+    :param cube_type: The type of the cube to get the data from.
     :return: A 2D array where the rows represent pixels in the data cube image
     and the columns represent their elemental map values.
     """
@@ -322,7 +323,6 @@ def get_selection(
         
     if cube_type == CubeType.Raw:
         data_cube: np.memmap = get_raw_data(data_source_folder)
-        #data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
         img_h, img_w, _ = imread(base_img_dir).shape
         cube_h, cube_w = data_cube.shape[0], data_cube.shape[1] 
         
