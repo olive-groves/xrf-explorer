@@ -220,7 +220,7 @@ async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
         .style("opacity", 0);
 
       // Confirm to the user that the selection average spectrum has been updated
-      toast.info("Selection average spectrum updated.");
+      toast.info("Spectrum's selection average updated.");
 
       // Modify visibility based on checkbox status
       updateSelectionSpectrum();
@@ -322,7 +322,7 @@ function updateSelectionSpectrum() {
   if (selectionChecked.value) {
     // The selection average is only updated when the checkbox is checked,
     // so if the checkbox is unchecked, the user should be informed to reselect the area
-    toast.info("Please reselect the area to update the selection average spectrum.");
+    toast.info("Please reselect the area to update the spectrum's selection average.");
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
