@@ -23,12 +23,13 @@ from xrf_explorer.server.file_system.data_listing import get_data_sources_names,
 from xrf_explorer.server.file_system.elemental_cube import (
     get_short_element_names, get_element_averages, get_element_names,
     get_elemental_map, normalize_ndarray_to_grayscale,
-    get_element_averages_selection
+    get_element_averages_selection, convert_elemental_cube_to_dms
 )
 from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_raw_rpl_paths,
-    get_base_image_name
+    get_base_image_name,
+    get_workspace_dict
 )
 from xrf_explorer.server.image_register.register_image import load_points_dict
 from xrf_explorer.server.dim_reduction import (
@@ -231,6 +232,29 @@ def upload_chunk(data_source: str, file_name: str, start: int):
         LOG.info("Wrote chunk from %i into %s", start, path)
 
     return "Uploaded file chunk", 200
+
+
+@app.route("/api/<data_source>/data/convert")
+def convert_elemental_cube(data_source: str):
+    """Converts all elemental data cubes of a data source to .dms format.
+
+    :param data_source: The name of the data source to convert the elemental data cube
+    """
+    
+    # Get elemental data cube paths
+    workspace_dict = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        return "Error getting elemental datacube path", 500
+
+    cube_names: list[str] = [cube_info["name"] for cube_info in workspace_dict["elementalCubes"]]
+    
+    # Convert each elemental data cube
+    for cube_name in cube_names:
+        succes: bool = convert_elemental_cube_to_dms(data_source, cube_name)
+        if not succes:
+            return "Error converting elemental data cube to .dms format", 500
+        
+    return "Converted elemental data cube to .dms format", 200
 
 
 @app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
@@ -618,6 +642,7 @@ def get_selection_spectra(data_source: str):
     :param data_source: the name of the data source
     :return: json list of tuples containing the channel number and the average intensity of this channel.
     """
+
     selection: dict[str, any] | None = request.get_json()
     if selection is None:
         return "Error parsing request body", 400
@@ -646,7 +671,7 @@ def get_selection_spectra(data_source: str):
     data: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
     if data is None:
         return "Error occurred while getting selection from datacube", 500
-    
+
     # get average
     result = get_average_selection(data)
     try:

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
-import { Point2D, deepClone } from "@/lib/utils";
+import { Point2D, deepClone, sortRectanglePoints } from "@/lib/utils";
 import { useElementBounding } from "@vueuse/core";
 import { computed, ref, toRef, watch } from "vue";
 
@@ -141,16 +141,7 @@ function onMouseUp() {
     ) {
       model.value = {
         type: SelectionAreaType.Rectangle,
-        points: [
-          {
-            x: Math.min(candidatePoints.value[0].x, candidatePoints.value[1].x),
-            y: Math.min(candidatePoints.value[0].y, candidatePoints.value[1].y),
-          },
-          {
-            x: Math.max(candidatePoints.value[0].x, candidatePoints.value[1].x),
-            y: Math.max(candidatePoints.value[0].y, candidatePoints.value[1].y),
-          },
-        ],
+        points: sortRectanglePoints([candidatePoints.value[0], candidatePoints.value[1]]),
       };
     } else {
       model.value.type = undefined;

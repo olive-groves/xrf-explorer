@@ -10,7 +10,8 @@ import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
-import { RequestBody } from "./selection";
+import { flipSelectionAreaSelection } from "@/lib/utils";
+import { getTargetSize } from "@/components/image-viewer/api";
 
 /**
  * Sets up export of chart.
@@ -71,12 +72,6 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
-  // Request body for selection
-  const request_body: RequestBody = {
-    type: selection.type,
-    points: selection.points,
-  };
-
   // If the request is for a selection, change the request accordingly
   if (selectionRequest) request_url += `_selection`;
 
@@ -86,7 +81,7 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(request_body),
+    body: JSON.stringify(flipSelectionAreaSelection(selection, (await getTargetSize()).height)),
   });
   let fetchSuccessful: boolean = false;
 
