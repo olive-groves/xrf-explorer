@@ -298,7 +298,7 @@ def get_selection(
         LOG.error(f"Error occurred while retrieving the path of the base image of {
                   data_source_folder}")
         LOG.error(
-            f"Error occured while retrieving the path of the base image of {
+            f"Error occurred while retrieving the path of the base image of {
                 data_source_folder}"
         )
         return None
