@@ -8,7 +8,7 @@ from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_s
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_data(data_source: str) -> np.memmap:
+def get_raw_data(data_source: str) -> np.memmap | np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array.
 
     :param data_source: the path to the .raw file.
@@ -122,15 +122,22 @@ def get_average_global(data: np.ndarray) -> list:
     return average_values
 
 
-def get_average_selection(data: np.ndarray) -> list:
+def get_average_selection(data_source: str, indices: np.ndarray) -> list:
     """Computes the average of the raw data for each bin on the selected pixels.
 
-    :param data: 2D array where the rows represent the selected pixels from the data cube image and the columns.
-    represent their energy channel value.
+    :param data_source: name of the data source to get the selection average from.
+    :param indices: The list of coordinates of the selected pixels, grouped by pixel
     :return: list with the average raw data for each bin in the range.
     """
+    data = get_raw_data(data_source)
+    length = data.shape[2]
+    sum = np.zeros(length)
+    
+    for index in indices:
+        sum += data[index[0], index[1], :]
+        
     # compute average
-    result = np.mean(data, axis=0)
+    result = sum/indices.shape[0]
 
     response = []
 

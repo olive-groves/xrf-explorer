@@ -198,18 +198,27 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     return composition
 
 
-def get_element_averages_selection(selection: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
+def get_element_averages_selection(path: str, indices: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in (a subarea of) the painting.
+    :param path: The path to the data cube to get the selection averages from.
     :param selection: A 2D array where the rows represent the selected pixels from the data cube image and the columns represent their elemental map values.
     :param names: The names of the elements present in the painting.
     :return: List of the names and average composition of the elements.
     """
-    # Return zeroes if selection is empty
-    if selection.size == 0:
+     # Return zeroes if selection is empty
+    if indices.size == 0:
         return [{"name": names[i], "average": 0.0} for i in range(len(names))]
-
-    # Calculate the average composition of each element in the selection
-    averages: np.ndarray = np.mean(selection, axis=1)
+    
+    raw_cube: np.ndarray = get_elemental_data_cube(path)
+    data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+    
+    length = data_cube.shape[0]
+    sum = np.zeros(length)
+    
+    for index in indices:
+        sum += data_cube[:, index[0], index[1]]
+    
+    averages = sum/indices.shape[0]
 
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
