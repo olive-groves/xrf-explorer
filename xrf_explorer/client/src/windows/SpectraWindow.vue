@@ -98,6 +98,7 @@ function setup() {
 
 /**
  * Handles zoom event on the chart.
+ * @param event Zoom event.
  */
 function zoomed(event) {
   const { transform } = event;
@@ -105,6 +106,11 @@ function zoomed(event) {
   svg.select("#globalLine").attr("transform", transform);
   svg.select("#selectionLine").attr("transform", transform);
   svg.select("#elementLine").attr("transform", transform);
+
+  // Adjust zoom speed
+  const zoomScale = d3.zoomTransform(svg.node()).k;
+  const zoomSpeed = 1 / zoomScale;
+  svg.transition().duration(zoomSpeed);
 }
 
 const globalChecked = ref(false);
@@ -297,7 +303,7 @@ function updateSelectionSpectrum() {
   if (selectionChecked.value) {
     // The selection average is only updated when the checkbox is checked,
     // so if the checkbox is unchecked, the user should be informed to reselect the area
-    toast.info("Please reselect the area to update the selection average spectrum.")
+    toast.info("Please reselect the area to update the selection average spectrum.");
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
