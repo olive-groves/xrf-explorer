@@ -8,11 +8,11 @@ from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_s
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_data(data_source: str) -> np.ndarray:
+def get_raw_data(data_source: str) -> np.memmap:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array.
 
     :param data_source: the path to the .raw file.
-    :return: 3-dimensional array containing the raw data in format {x, y, channel}.
+    :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}.
     """
     # get paths to files
     path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
@@ -38,11 +38,10 @@ def get_raw_data(data_source: str) -> np.ndarray:
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r')
+        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
         return np.empty(0)
-    datacube = np.reshape(datacube, (height, width, bin_nr))
     return datacube
 
 
