@@ -57,13 +57,13 @@ const trimmedList: ComputedRef<
   }[]
 > = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
 
-//Points of the global average spectrum
+// Points of the global average spectrum
 let globalData: Point[] = [];
-//Points of the selected average spectrum
+// Points of the selected average spectrum
 let selectionData: Point[] = [];
-//Points of the theoretical element spectrum
+// Points of the theoretical element spectrum
 let elementData: Point[] = [];
-//Coordinates of the theoretical element peaks
+// Coordinates of the theoretical element peaks
 let elementPeaks: Point[] = [];
 
 /**
@@ -102,7 +102,7 @@ function makeChart() {
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
 
-  //add axis
+  // add axis
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
@@ -110,7 +110,7 @@ function makeChart() {
 
   svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
 
-  //create line
+  // create line
   const globalLine = d3
     .line<Point>()
     .x((d: Point) => x(d.index))
@@ -127,13 +127,13 @@ function makeChart() {
     .attr("d", globalLine)
     .style("opacity", 0);
 
-  //modify visibility based on checkbox status
+  // modify visibility based on checkbox status
   updateGlobal();
 
-  //remove spectrum of previous selection
+  // remove spectrum of previous selection
   svg.select("#selectionLine").remove();
 
-  //create line
+  // create line
   const line = d3
     .line<Point>()
     .x((d: Point) => x(d.index))
@@ -150,14 +150,14 @@ function makeChart() {
     .attr("d", line)
     .style("opacity", 0);
 
-  //modify visibility based on checkbox status
+  // modify visibility based on checkbox status
   updateSelectionSpectrum();
 
-  //remove previous element lines
+  // remove previous element lines
   svg.select("#elementLine").remove();
   svg.selectAll("line").remove();
 
-  //create line
+  // create line
   const elementLine = d3
     .line<Point>()
     .x((d: Point) => x(d.index))
@@ -199,7 +199,7 @@ const excitation = ref(0);
 async function getAverageSpectrum() {
   if (ready) {
     try {
-      //make api call
+      // make api call
       const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
         method: "GET",
         headers: {
@@ -266,12 +266,12 @@ async function plotElementSpectrum(element: string, excitation: number) {
       console.error("Error getting element theoretical spectrum", e);
     }
   } else {
-    //remove previous element line
+    // remove previous element line
     svg.select("#elementLine").remove();
     svg.selectAll("line").remove();
   }
 
-  //modify visibility based on checkbox status
+  // modify visibility based on checkbox status
   updateElement();
 }
 
