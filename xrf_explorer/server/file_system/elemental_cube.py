@@ -238,7 +238,7 @@ def to_dms(name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
     path_cube: str = join(Path(backend_config['uploads-folder']), name_cube + '.dms')
     
     # Get the shape of the elemental data cube
-    c, w, h = cube.shape
+    c, h, w = cube.shape
 
     # Write the elemental data cube to a DMS file
     try:
