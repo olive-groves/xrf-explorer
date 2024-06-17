@@ -84,6 +84,13 @@ function setup() {
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
 
+  //add axis
+  svg
+    .append("g")
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .call(d3.axisBottom(x));
+
+  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
   plotAverageSpectrum();
 }
 
@@ -125,7 +132,7 @@ async function plotAverageSpectrum() {
         .attr("d", line)
         .style("opacity", 0);
 
-      // Modify visibility based on checkbox status
+      //modify visibility based on checkbox status
       updateGlobal();
     } catch (e) {
       console.error("Error getting global average spectrum", e);
@@ -175,7 +182,7 @@ async function plotSelectionSpectrum(selection: SelectionAreaSelection) {
         .style("opacity", 0);
 
       // Confirm to the user that the selection average spectrum has been updated
-      toast.info("Spectrum's selection average updated.");
+      toast.info("Selection average spectrum updated.");
 
       // Modify visibility based on checkbox status
       updateSelectionSpectrum();
@@ -275,9 +282,7 @@ function updateElement() {
  */
 function updateSelectionSpectrum() {
   if (selectionChecked.value) {
-    // The selection average is only updated when the checkbox is checked,
-    // so if the checkbox is unchecked, the user should be informed to reselect the area
-    toast.info("Please reselect the area to update the spectrum's selection average.");
+    toast.info("Please reselect the area to update the selection average spectrum.")
     svg.select("#selectionLine").style("opacity", 1);
   } else {
     svg.select("#selectionLine").style("opacity", 0);
