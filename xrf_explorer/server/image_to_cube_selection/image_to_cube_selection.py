@@ -147,6 +147,7 @@ def extract_selected_data(data_cube: np.ndarray | np.memmap, mask: np.ndarray, c
         indices = np.nonzero(mask)
         return data_cube[indices[0], indices[1] , :]
 
+
 def get_scaled_cube_coordinates(
         coords: list[tuple[int, int]],
         base_img_width: int,
