@@ -211,8 +211,8 @@ def get_element_averages_selection(path: str, mask: np.ndarray, names: list[str]
     length = data_cube.shape[0]
     averages = np.zeros(length)
 
-    for i in range(length):
-        averages[i] = np.ma.array(data_cube[i], mask=mask).mean()
+    for index in range(length):
+        averages[index] = np.ma.array(data_cube[index], mask=np.logical_not(mask)).mean()
 
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str,  str | float]] = \
