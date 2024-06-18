@@ -313,10 +313,15 @@ function updateGlobal() {
  * Updates visibility of element theoretical spectrum.
  */
 function updateElement() {
-  if (elementChecked.value) {
+  if (elementChecked.value && selectedElement.value != "No element") {
     svg.select("#elementLine").style("opacity", 1);
   } else {
     svg.select("#elementLine").style("opacity", 0);
+  }
+  if (selectedElement.value == "No element") {
+    svg.selectAll("line").style("opacity", 0);
+  } else {
+    svg.selectAll("line").style("opacity", 1);
   }
 }
 
