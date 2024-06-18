@@ -142,7 +142,8 @@ void main() {
   }
 
   // Apply contrast and brightness
-  fragColor.xyz = ((fragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5 + uBrightness;
+  vec3 adjustedColor = ((fragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5 + uBrightness;
+  fragColor.xyz = clamp(adjustedColor, 0.0, 1.0);
 
   // Create HSL color vector for saturation
   vec3 hslColor = rgbToHsl(fragColor.xyz);
