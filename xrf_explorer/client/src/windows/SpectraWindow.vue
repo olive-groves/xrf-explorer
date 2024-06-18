@@ -185,6 +185,8 @@ function makeChart() {
       .attr("x2", x(peak.index))
       .attr("y2", 430);
   });
+  // modify visibility based on checkbox status
+  updateElement()
 }
 
 const globalChecked = ref(false);
@@ -248,7 +250,7 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
  */
-async function plotElementSpectrum(element: string, excitation: number) {
+async function getElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
@@ -326,7 +328,7 @@ function updateSelectionSpectrum() {
  * Plots element spectrum when an element is selected in the dropdown.
  */
 function updateElementSpectrum() {
-  plotElementSpectrum(selectedElement.value, excitation.value);
+  getElementSpectrum(selectedElement.value, excitation.value);
 }
 </script>
 
