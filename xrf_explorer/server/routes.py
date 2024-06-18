@@ -306,7 +306,8 @@ def list_element_averages_selection(data_source: str):
     of the painting.
 
     :param data_source: data_source to get the element averages from
-    :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
+    :return: JSON list of objects indicating average abundance for every element.
+Each object is of the form {name: element name, average: element abundance}
     """
     # path to elemental cube
     path: str | None = get_elemental_cube_path(data_source)
@@ -344,18 +345,18 @@ def list_element_averages_selection(data_source: str):
         return "Error parsing points", 400
 
     # get selection
-    selection: np.ndarray | None = get_selection(
+    mask: np.ndarray | None = get_selection(
         data_source, points_parsed, selection_type_parsed, CubeType.Elemental
     )
 
-    if selection is None:
+    if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
     # get names
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(selection, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(path, mask, names)
 
     try:
         return json.dumps(composition)
@@ -668,12 +669,12 @@ def get_selection_spectra(data_source: str):
         return "Error parsing points", 400
     
     # get selection
-    data: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
-    if data is None:
+    mask: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
+    if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
     # get average
-    result = get_average_selection(data)
+    result = get_average_selection(data_source, mask)
     try:
         return json.dumps(result)
     except Exception as e:

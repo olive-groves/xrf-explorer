@@ -2,7 +2,9 @@
   "name": "Data source",
   "baseImage": { "name": "baseTest", "imageLocation": "image.png" },
   "contextualImages": [],
-  "spectralCubes": [],
+  "spectralCubes": [
+    { "rawLocation": "nowhere.raw", "rplLocation": "data.rpl" }
+  ],
   "elementalCubes": [
     { "dataLocation": "3x300x300_test_cube.dms", "recipeLocation": "" }
   ]

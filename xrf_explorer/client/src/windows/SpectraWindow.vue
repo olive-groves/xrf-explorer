@@ -3,7 +3,7 @@ import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
-import { SelectionAreaSelection } from "@/lib/selection";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -202,12 +202,21 @@ const excitation = ref(0);
 async function getAverageSpectrum() {
   if (ready) {
     try {
-      // make api call
-      const response = await fetch(`${url}/${datasource.value}/get_average_data`, {
-        method: "GET",
+      const size = await getTargetSize();
+      const request_body: SelectionAreaSelection = {
+        type: SelectionAreaType.Rectangle,
+        points: [
+          { x: 0, y: 0 },
+          { x: size.width, y: size.height },
+        ],
+      };
+      //make api call
+      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(request_body),
       });
       const data = await response.json();
       globalData = data;

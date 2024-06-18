@@ -38,7 +38,10 @@ export async function getImageSize(name: string): Promise<Size> {
   if (!(url in sizeCache)) {
     sizeCache[url] = (await (await fetch(url)).json()) as Size;
   }
-  return sizeCache[url];
+  const size = sizeCache[url];
+  size.width = parseInt(size.width as unknown as string);
+  size.height = parseInt(size.height as unknown as string);
+  return size;
 }
 
 /**
@@ -50,7 +53,10 @@ export async function getDataSize(): Promise<Size> {
   if (!(url in sizeCache)) {
     sizeCache[url] = (await (await fetch(url)).json()) as Size;
   }
-  return sizeCache[url];
+  const size = sizeCache[url];
+  size.width = parseInt(size.width as unknown as string);
+  size.height = parseInt(size.height as unknown as string);
+  return size;
 }
 
 /**

@@ -1,17 +1,25 @@
 # This module contains all functions related to the spectral chart
+import math
+from os import makedirs
+from os.path import join, isfile, isdir
+
 import numpy as np
 import xraydb
 import logging
 from math import ceil, floor
 
-from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl, set_binned
+from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl, set_binned, \
+    get_raw_rpl_names
+from xrf_explorer.server.file_system.config_handler import get_config
+
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def get_raw_data(data_source: str) -> np.memmap:
+def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array.
 
     :param data_source: the path to the .raw file.
+    :param level: the mipmap level of the data to get.
     :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}.
     """
     # get paths to files
@@ -21,8 +29,16 @@ def get_raw_data(data_source: str) -> np.memmap:
     info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
-    width = int(info['width'])
-    height = int(info['height'])
+    width: int = ceil(int(info['width']) / (2 ** level))
+    height: int = ceil(int(info['height']) / (2 ** level))
+
+    # get mipmapped cube
+    if level > 0:
+        if not mipmap_exists(data_source, level):
+            mipmap_raw_cube(data_source, level)
+        config: dict = get_config()
+        raw_name, _ = get_raw_rpl_names(data_source)
+        path_to_raw: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
 
     try:
         params: dict = get_spectra_params(data_source)
@@ -34,15 +50,78 @@ def get_raw_data(data_source: str) -> np.memmap:
     low: int = params["low"]
     high: int = params["high"]
     bin_size: int = params["binSize"]
-    bin_nr = ceil((high-low)/bin_size)
+    bin_nr: int = ceil((high-low)/bin_size)
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
+        datacube: np.memmap = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
     except OSError as err:
         LOG.error("error while loading raw file: {%s}", err)
         return np.empty(0)
     return datacube
+
+
+def mipmap_raw_cube(data_source: str, level: int):
+    """Generates the mipmaps of the raw data in the data source up to the selected level.
+
+    :param data_source: The data source to mipmap the data for.
+    :param level: The level to mipmap the data to, 0 is original resolution
+    """
+    if level <= 0:
+        return
+
+    if not mipmap_exists(data_source, level - 1):
+        mipmap_raw_cube(data_source, level - 1)
+
+    raw_name, _ = get_raw_rpl_names(data_source)
+
+    LOG.info("Mipmapping spectral cube %s to level %i", raw_name, level)
+
+    config: dict = get_config()
+    mipmap_dir: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level))
+    mipmap_path: str = join(mipmap_dir, raw_name)
+
+    # Create directory for mipmap
+    if not isdir(mipmap_dir):
+        makedirs(mipmap_dir)
+
+    # Get raw data from previous mipmap
+    data: np.ndarray = get_raw_data(data_source, level - 1)
+
+    mipmapped: np.memmap = np.memmap(
+        mipmap_path,
+        shape=(ceil(data.shape[0] / 2.0), ceil(data.shape[1] / 2.0), data.shape[2]),
+        dtype=np.uint16,
+        mode="w+"
+    )
+
+    for y in range(mipmapped.shape[0]):
+        for x in range(mipmapped.shape[1]):
+            mipmapped[y, x, :] = np.mean(data[2*y:2*y+2, 2*x:2*x+2, :], axis=(0, 1))
+
+    # Write to disk
+    mipmapped.flush()
+    
+    LOG.info("Finished mipmapping spectral cube %s to level %i", raw_name, level)
+
+
+def mipmap_exists(data_source: str, level: int) -> bool:
+    """Checks if a specific mipmap level exists for a data source.
+    
+    :param data_source: The datasource to check.
+    :param level: The mipmap level to check.
+    :return: Whether the specified mipmap level exists.
+    """
+
+    if level <= 0:
+        return True
+
+    raw_name, _ = get_raw_rpl_names(data_source)
+
+    config: dict = get_config()
+    mipmap_path: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
+
+    return isfile(mipmap_path)
 
 
 def bin_data(data_source: str, low: int, high: int, bin_size: int):
@@ -122,23 +201,61 @@ def get_average_global(data: np.ndarray) -> list:
     return average_values
 
 
-def get_average_selection(data: np.ndarray) -> list:
+def get_average_selection(data_source: str, mask: np.ndarray) -> list:
     """Computes the average of the raw data for each bin on the selected pixels.
 
-    :param data: 2D array where the rows represent the selected pixels from the data cube image and the columns.
-    represent their energy channel value.
+    :param data_source: name of the data source to get the selection average from.
+    :param mask: The mask describing the selected pixels.
     :return: list with the average raw data for each bin in the range.
     """
-    # compute average
-    result = np.mean(data, axis=0)
 
-    response = []
+    config: dict = get_config()
+    max_points: int = int(config["max-spectrum-points"])
+
+    num_points: int = np.count_nonzero(mask)
+    level: int = 0
+    if num_points > 0:
+        level = max(0, ceil(math.log(num_points / max_points, 4)))
+
+    LOG.info("Getting selection at mip level %i", level)
+
+    data: np.ndarray = get_raw_data(data_source, level=level)
+    length: int = data.shape[2]
+    total: np.ndarray = np.zeros(length)
+
+    scaled_mask: np.ndarray = np.empty((ceil(mask.shape[0] / 2**level), ceil(mask.shape[1] / 2**level)))
+    scaled_mask.fill(False)
+
+    indices: np.ndarray = np.argwhere(mask)
+
+    # function to vectorize to set the map
+    def set_mask(index: np.ndarray):
+        nonlocal scaled_mask
+        scaled_mask[floor(index[0] / 2 ** level), floor(index[1] / 2 ** level)] = True
+
+    if indices.size > 0:
+        np.vectorize(set_mask, signature="(2)->()")(indices)
+
+    indices: np.ndarray = np.argwhere(scaled_mask)
+
+    # Function to vectorize to calculate the average data
+    def add_row(index: np.ndarray):
+        nonlocal total
+        total += data[index[0], index[1], :]
+
+    average: np.ndarray = np.zeros(indices.shape[0])
+
+    if indices.size > 0:
+        np.vectorize(add_row, signature="(2)->()")(indices)
+        average: np.ndarray = total / indices.shape[0]
+
+    response: list = []
 
     # create list of dictionaries
-    for i in range(np.size(result)):
-        response.append({"index": i, "value": result[i]})
+    for i in range(np.size(average)):
+        response.append({"index": i, "value": average[i]})
 
-    LOG.info("Calculated the average composition of the elements within selection.")
+    LOG.info("Calculated the average spectrum for the selection.")
     return response
 
 

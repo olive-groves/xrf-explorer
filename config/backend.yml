@@ -4,6 +4,7 @@ generated-folder-name: "generated"
 bind-address: 127.0.0.1
 port: 8001
 upload-buffer-size: 16384
+max-spectrum-points: 400
 dim-reduction:
   folder-name: "dim_reduction"
   max-samples: 50000
