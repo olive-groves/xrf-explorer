@@ -141,14 +141,12 @@ void main() {
     }
   }
 
-  // Apply contrast
-  fragColor.xyz = ((fragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5;
+  // Apply contrast and brightness
+  vec3 adjustedColor = ((fragColor.xyz - 0.5) * max(uContrast, 0.0)) + 0.5 + uBrightness;
+  fragColor.xyz = clamp(adjustedColor, 0.0, 1.0);
 
-  // Create HSL color vector for brightness and saturation
+  // Create HSL color vector for saturation
   vec3 hslColor = rgbToHsl(fragColor.xyz);
-
-  // Apply brightness
-  hslColor.z = hslColor.z + uBrightness;
 
   // Apply saturation
   hslColor.y = hslColor.y * uSaturation;
@@ -157,7 +155,7 @@ void main() {
   fragColor.xyz = rgbFromHsl(hslColor);
 
   // Apply gamma correction
-  fragColor.xyz = pow(fragColor.xyz, vec3(1.0/uGamma));
+  fragColor.xyz = pow(fragColor.xyz, vec3(1.0 / uGamma));
   
   // Apply opacity
   fragColor = vec4(fragColor.xyz, fragColor.w * uOpacity);
