@@ -141,7 +141,7 @@ class TestImageToCubeSelection:
                 "An error occured while extracting data cube selected region.")
 
         # verify
-        actual_size: int = selection_data.shape[1]
+        actual_size: int = np.count_nonzero(selection_data)
 
         # Calculate a percentage-based tolerance, because of rounding
         tolerance_percentage: float = 0.02  # 2% tolerance
@@ -234,14 +234,14 @@ class TestImageToCubeSelection:
         selection_data_lasso: np.ndarray | None = get_selection(
             self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Lasso, CubeType.Elemental
         )
-        tolerance: float = selection_data_rect.shape[1] * tolerance_percentage
+        tolerance: float = np.count_nonzero(selection_data_rect) * tolerance_percentage
 
         # verify
         assert selection_data_rect is not None
         assert selection_data_lasso is not None
 
         # ribbon selection must be about half of the rect selection
-        assert abs(selection_data_rect.shape[1] - selection_data_lasso.shape[1] * 2) <= tolerance
+        assert abs(np.count_nonzero(selection_data_rect) - np.count_nonzero(selection_data_lasso) * 2) <= tolerance
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.
