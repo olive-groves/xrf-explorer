@@ -69,12 +69,13 @@ let elementPeaks: Point[] = [];
 /**
  * Setup the svg and axis of the graph.
  */
-function setup() {
+async function setup() {
+  trimmedList.value.unshift({ name: "No element", channel: -1, enabled: false });
   ready = binned.value;
   watch(binned, () => {
     ready = binned.value;
   });
-  getAverageSpectrum();
+  await getAverageSpectrum();
   makeChart();
 }
 
@@ -172,7 +173,7 @@ function makeChart() {
     .attr("stroke-width", 1)
     .attr("id", "elementLine")
     .attr("d", elementLine)
-    .style("opacity", 1);
+    .style("opacity", 0);
 
   //Add peaks
   elementPeaks.forEach((peak: Point) => {
@@ -185,6 +186,8 @@ function makeChart() {
       .attr("x2", x(peak.index))
       .attr("y2", 430);
   });
+  // modify visibility based on checkbox status
+  updateElement();
 }
 
 const globalChecked = ref(false);
@@ -257,7 +260,7 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
  * @param element Symbol of element to be plotted.
  * @param excitation Excitation energy.
  */
-async function plotElementSpectrum(element: string, excitation: number) {
+async function getElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
@@ -289,12 +292,24 @@ async function plotElementSpectrum(element: string, excitation: number) {
  * @returns - The maximum y-value.
  */
 function getMax() {
-  const globalMax: number = d3.max(globalData, (d) => d.value) as number;
-  const selectionMax: number = d3.max(selectionData, (d) => d.value) as number;
-  let max = Math.max(...[globalMax, selectionMax]);
-  if (max == 0) {
-    max = 255;
+  let globalMax: number = d3.max(globalData, (d) => d.value) as number;
+  let selectionMax: number = d3.max(selectionData, (d) => d.value) as number;
+
+  // Initialize max values if they are NaN
+  if (isNaN(globalMax)) globalMax = 0;
+  if (isNaN(selectionMax)) selectionMax = 0;
+
+  let max: number;
+
+  // Update the global and selection max values
+  if (selectionChecked.value && !globalChecked.value) {
+    max = selectionMax;
+  } else if (globalChecked.value && !selectionChecked.value) {
+    max = globalMax;
+  } else {
+    max = Math.max(...[globalMax, selectionMax]);
   }
+
   return max;
 }
 
@@ -313,10 +328,15 @@ function updateGlobal() {
  * Updates visibility of element theoretical spectrum.
  */
 function updateElement() {
-  if (elementChecked.value) {
+  if (elementChecked.value && selectedElement.value != "No element") {
     svg.select("#elementLine").style("opacity", 1);
   } else {
     svg.select("#elementLine").style("opacity", 0);
+  }
+  if (selectedElement.value == "No element") {
+    svg.selectAll("line").style("opacity", 0);
+  } else {
+    svg.selectAll("line").style("opacity", 1);
   }
 }
 
@@ -335,7 +355,7 @@ function updateSelectionSpectrum() {
  * Plots element spectrum when an element is selected in the dropdown.
  */
 function updateElementSpectrum() {
-  plotElementSpectrum(selectedElement.value, excitation.value);
+  getElementSpectrum(selectedElement.value, excitation.value);
 }
 </script>
 
@@ -346,15 +366,15 @@ function updateElementSpectrum() {
       <div class="space-y-1">
         <p class="font-bold">Select which spectra to show:</p>
         <div class="mt-1 flex items-center">
-          <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="updateGlobal" />
+          <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="makeChart" />
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="updateSelectionSpectrum" />
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="makeChart" />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="updateElement" />
+          <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="makeChart" />
           <label class="ml-1" for="elementCheck">Element theoretical</label>
         </div>
       </div>
