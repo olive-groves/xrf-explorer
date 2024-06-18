@@ -233,7 +233,8 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
         nonlocal scaled_mask
         scaled_mask[floor(i[0] / 2**level), floor(i[1] / 2**level)] = True
 
-    np.vectorize(set_mask, signature="(2)->()")(indices)
+    if indices.size > 0:
+        np.vectorize(set_mask, signature="(2)->()")(indices)
 
     indices: np.ndarray = np.argwhere(scaled_mask == True)
 
@@ -242,11 +243,13 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
         nonlocal total
         total += data[i[0], i[1], :]
 
-    np.vectorize(add_row, signature="(2)->()")(indices)
+    average: np.ndarray = np.zeros(indices.shape[0])
 
-    average = total / indices.shape[0]
+    if indices.size > 0:
+        np.vectorize(add_row, signature="(2)->()")(indices)
+        average: np.ndarray = total / indices.shape[0]
 
-    response = []
+    response: list = []
 
     # create list of dictionaries
     for i in range(np.size(average)):
