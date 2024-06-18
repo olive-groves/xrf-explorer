@@ -1,1 +1,2 @@
 uploads-folder: "tests/resources/image_to_cube_selection/data"
+max-spectrum-points: 90000
