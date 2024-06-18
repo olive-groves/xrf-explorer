@@ -13,7 +13,7 @@ import {
   NumberFieldInput,
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
-import { getDataSize, getTargetSize } from "@/components/image-viewer/api";
+import { getTargetSize } from "@/components/image-viewer/api";
 
 const spectraChart = ref<HTMLElement>();
 // SVG container

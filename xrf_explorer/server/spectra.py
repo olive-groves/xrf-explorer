@@ -67,7 +67,7 @@ def mipmap_raw_cube(data_source: str, level: int):
     :param data_source: The data source to mipmap the data for.
     :param level: The level to mipmap the data to, 0 is original resolution
     """
-    if level == 0:
+    if level <= 0:
         return
 
     if not mipmap_exists(data_source, level - 1):
@@ -113,7 +113,7 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     :return: Whether the specified mipmap level exists.
     """
 
-    if level == 0:
+    if level <= 0:
         return True
 
     raw_name, _ = get_raw_rpl_names(data_source)
