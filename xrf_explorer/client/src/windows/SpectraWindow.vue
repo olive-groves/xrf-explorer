@@ -199,7 +199,7 @@ const excitation = ref(0);
 async function getAverageSpectrum() {
   if (ready) {
     try {
-      const size = await getDataSize();
+      const size = await getTargetSize();
       const request_body: SelectionAreaSelection = {
         type: SelectionAreaType.Rectangle,
         points: [
@@ -216,7 +216,7 @@ async function getAverageSpectrum() {
         body: JSON.stringify(request_body),
       });
       const data = await response.json();
-      selectionData = data;
+      globalData = data;
       makeChart();
     } catch (e) {
       console.error("Error getting global average spectrum", e);
