@@ -306,7 +306,8 @@ def list_element_averages_selection(data_source: str):
     of the painting.
 
     :param data_source: data_source to get the element averages from
-    :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
+    :return: JSON list of objects indicating average abundance for every element.
+Each object is of the form {name: element name, average: element abundance}
     """
     # path to elemental cube
     path: str | None = get_elemental_cube_path(data_source)

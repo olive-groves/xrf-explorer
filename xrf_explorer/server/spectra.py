@@ -38,7 +38,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
             mipmap_raw_cube(data_source, level)
         config: dict = get_config()
         raw_name, _ = get_raw_rpl_names(data_source)
-        path_to_raw: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name)
+        path_to_raw: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
 
     try:
         params: dict = get_spectra_params(data_source)
@@ -119,7 +119,7 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     raw_name, _ = get_raw_rpl_names(data_source)
 
     config: dict = get_config()
-    mipmap_path: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name)
+    mipmap_path: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
 
     return isfile(mipmap_path)
 
@@ -226,22 +226,22 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
     scaled_mask: np.ndarray = np.empty((ceil(mask.shape[0] / 2**level), ceil(mask.shape[1] / 2**level)))
     scaled_mask.fill(False)
 
-    indices: np.ndarray = np.argwhere(mask == True)
+    indices: np.ndarray = np.argwhere(mask)
 
     # function to vectorize to set the map
-    def set_mask(i: np.ndarray):
+    def set_mask(index: np.ndarray):
         nonlocal scaled_mask
-        scaled_mask[floor(i[0] / 2**level), floor(i[1] / 2**level)] = True
+        scaled_mask[floor(index[0] / 2 ** level), floor(index[1] / 2 ** level)] = True
 
     if indices.size > 0:
         np.vectorize(set_mask, signature="(2)->()")(indices)
 
-    indices: np.ndarray = np.argwhere(scaled_mask == True)
+    indices: np.ndarray = np.argwhere(scaled_mask)
 
     # Function to vectorize to calculate the average data
-    def add_row(i: np.ndarray):
+    def add_row(index: np.ndarray):
         nonlocal total
-        total += data[i[0], i[1], :]
+        total += data[index[0], index[1], :]
 
     average: np.ndarray = np.zeros(indices.shape[0])
 
