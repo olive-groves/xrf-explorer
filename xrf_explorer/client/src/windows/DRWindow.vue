@@ -107,7 +107,11 @@ async function fetchDRImage() {
   abortController = new AbortController();
   fetch(apiURL, { signal: abortController.signal }).then(
     async (response) => {
-      if (!response.ok) throw new Error("Failed to fetch overlay image");
+      if (!response.ok) {
+        status.value = Status.ERROR;
+        currentError.value = "Failed to fetch overlay image. Please make sure that an embedding has been generated.";
+        return;
+      }
       const blob = await response.blob();
 
       // Create url for the image

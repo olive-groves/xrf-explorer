@@ -272,9 +272,13 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     if element == 'yAl':
         element = 'Al'
 
-    # get spectrum and peaks
-    data: tuple[np.ndarray, np.ndarray, np.ndarray,
-                np.ndarray] | np.ndarray = get_element_spectrum(element, excitation_energy_kev)
+    try:
+        # get spectrum and peaks
+        data: tuple[np.ndarray, np.ndarray, np.ndarray,
+                    np.ndarray] | np.ndarray = get_element_spectrum(element, excitation_energy_kev)
+    except:
+        LOG.info(f"Could not get theoretical spectral for excitation energy {excitation_energy_kev}")
+        return []
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
     y_spectrum: np.ndarray = data[1]*255
@@ -379,6 +383,7 @@ def get_element_spectrum(element: str, excitation_energy_kev: float, normalize: 
     """
 
     el = ElementLines(element, excitation_energy_kev)
+
     pe = el.peak_energies
     pi = el.peak_intensities
 

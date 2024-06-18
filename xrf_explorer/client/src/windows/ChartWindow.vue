@@ -37,6 +37,7 @@ let dataAverages: Element[] = [];
 
 // Elements which are enabled for this workspace
 let workspaceElements: Element[] = [];
+watch(elements, updateWorkspaceElements, { deep: true, immediate: true });
 
 // Whole element selection
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);

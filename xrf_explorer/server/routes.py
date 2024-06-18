@@ -723,7 +723,7 @@ def get_color_clusters(data_source: str):
     k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
-    full_path_json: str = join(path_to_save, f'image_{k}_{nr_attempts}_{
+    full_path_json: str = join(path_to_save, f'colors_{k}_{nr_attempts}_{
         elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
