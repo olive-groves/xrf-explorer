@@ -344,18 +344,18 @@ def list_element_averages_selection(data_source: str):
         return "Error parsing points", 400
 
     # get selection
-    indices: np.ndarray | None = get_selection(
+    mask: np.ndarray | None = get_selection(
         data_source, points_parsed, selection_type_parsed, CubeType.Elemental
     )
 
-    if indices is None:
+    if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
     # get names
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(path, indices, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(path, mask, names)
 
     try:
         return json.dumps(composition)
@@ -668,12 +668,12 @@ def get_selection_spectra(data_source: str):
         return "Error parsing points", 400
     
     # get selection
-    indices: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
-    if indices is None:
+    mask: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
+    if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
     # get average
-    result = get_average_selection(data_source, indices)
+    result = get_average_selection(data_source, mask)
     try:
         return json.dumps(result)
     except Exception as e:

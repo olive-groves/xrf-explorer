@@ -270,7 +270,7 @@ def get_selection(
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
     :param selection_type: The type of selection being performed. selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso selection, the list must contain the points in the order in which they form the selection area.
     :param cube_type: The type of the cube the selection is made on.
-    :return: The list coordinates of indices of the selected pixels, grouped by pixel.
+    :return: A boolean mask over the data cube indicating which pixels are part of the selection.
     """
     if selection_type == SelectionType.Rectangle and len(selection_coords) != 2:
         LOG.error(f"Expected 2 points for rectangle selection but got {len(selection_coords)}")
@@ -337,7 +337,7 @@ def get_selection(
         #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also, the performance decrease should be less than tenth of a second in most cases.
-        return extract_selected_data(mask, cube_type)
+        return mask
     else:
         # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
@@ -349,4 +349,4 @@ def get_selection(
 
         mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_deregistered, cube_w, cube_h)
 
-        return extract_selected_data(mask, cube_type)
+        return mask
