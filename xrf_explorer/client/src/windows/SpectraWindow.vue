@@ -69,12 +69,12 @@ let elementPeaks: Point[] = [];
 /**
  * Setup the svg and axis of the graph.
  */
-function setup() {
+async function setup() {
   ready = binned.value;
   watch(binned, () => {
     ready = binned.value;
   });
-  getAverageSpectrum();
+  await getAverageSpectrum();
   makeChart();
 }
 
@@ -186,7 +186,7 @@ function makeChart() {
       .attr("y2", 430);
   });
   // modify visibility based on checkbox status
-  updateElement()
+  updateElement();
 }
 
 const globalChecked = ref(false);
@@ -284,9 +284,15 @@ async function getElementSpectrum(element: string, excitation: number) {
 function getMax() {
   const globalMax: number = d3.max(globalData, (d) => d.value) as number;
   const selectionMax: number = d3.max(selectionData, (d) => d.value) as number;
-  let max = Math.max(...[globalMax, selectionMax]);
-  if (max == 0) {
+  let max: number;
+  if (isNaN(globalMax) && isNaN(selectionMax)) {
     max = 255;
+  } else if (isNaN(globalMax)) {
+    max = selectionMax;
+  } else if (isNaN(selectionMax)) {
+    max = globalMax;
+  } else {
+    max = Math.max(...[globalMax, selectionMax]);
   }
   return max;
 }
