@@ -172,7 +172,7 @@ function makeChart() {
     .attr("stroke-width", 1)
     .attr("id", "elementLine")
     .attr("d", elementLine)
-    .style("opacity", 1);
+    .style("opacity", 0);
 
   //Add peaks
   elementPeaks.forEach((peak: Point) => {
