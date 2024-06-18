@@ -10,7 +10,8 @@ from xrf_explorer.server.file_system.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
     get_cube_recipe_path,
-    get_raw_rpl_paths
+    get_raw_rpl_paths,
+    parse_rpl
 )
 from cv2 import (
     fillPoly,
@@ -28,8 +29,6 @@ from cv2 import imread
 from enum import Enum
 import numpy as np
 import logging
-
-from xrf_explorer.server.spectra import get_raw_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -131,22 +130,20 @@ def deregister_coord(
     return round(x_reversed_scaling), round(y_reversed_scaling)
 
 
-def extract_selected_data(data_cube: np.ndarray | np.memmap, mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
+def extract_selected_data(mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
     """
     Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
 
     :param data_cube: The 3D data cube from which data will be extracted.
     :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
-    :param cube_type: The type of the cube to get the data from.
-    :return: A 2D array where the rows represent pixels in the data cube image
-    and the columns represent their elemental map values.
+    :param cube_type: The type of the cube the selection is made on.
+    :return: The list coordinates of indices of the selected pixels, grouped by pixel.
     """
     if cube_type == CubeType.Elemental:
-        indices = np.nonzero(mask)
-        return data_cube[:, indices[0], indices[1]]
+        indices = np.argwhere(mask == True)
     if cube_type == CubeType.Raw:
-        indices = np.nonzero(mask)
-        return data_cube[indices[0], indices[1] , :]
+        indices = np.argwhere(mask == True)
+    return indices
 
 
 def get_scaled_cube_coordinates(
@@ -273,8 +270,7 @@ def get_selection(
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
     :param selection_type: The type of selection being performed. selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso selection, the list must contain the points in the order in which they form the selection area.
     :param cube_type: The type of the cube the selection is made on.
-    :return: A 2D array where the rows represent the selected pixels from the data cube image and the columns
-    represent their elemental map values. Note that values from the elemental datacube are normalized to [0, 255]
+    :return: The list coordinates of indices of the selected pixels, grouped by pixel.
     """
     if selection_type == SelectionType.Rectangle and len(selection_coords) != 2:
         LOG.error(f"Expected 2 points for rectangle selection but got {len(selection_coords)}")
@@ -285,12 +281,15 @@ def get_selection(
         return None
 
     cube_dir: str | None = None
-
-    if cube_type == CubeType.Elemental:
-        cube_dir = get_elemental_cube_path(data_source_folder)
-        
-    if cube_type == CubeType.Raw:
-        cube_dir = get_raw_rpl_paths(data_source_folder)[0]
+    
+    match cube_type:
+        case CubeType.Elemental:
+            cube_dir = get_elemental_cube_path(data_source_folder)
+        case CubeType.Raw:
+            cube_dir = get_raw_rpl_paths(data_source_folder)[0] 
+        case _:
+            LOG.error(f"Incorrect cube type: {cube_type}")
+            return None
 
     if cube_dir is None:
         LOG.error(f"Data source directory {
@@ -312,19 +311,17 @@ def get_selection(
     img_w: int
     cube_h: int
     cube_w: int
+    img_h, img_w, _ = imread(base_img_dir).shape
     
-    data_cube: np.ndarray = np.array([])
+    # get paths to files
+    path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
 
-    if cube_type == CubeType.Elemental:
-        raw_cube: np.ndarray = get_elemental_data_cube(cube_dir)
-        data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
-        img_h, img_w, _ = imread(base_img_dir).shape
-        cube_h, cube_w = data_cube.shape[1], data_cube.shape[2]
-        
-    if cube_type == CubeType.Raw:
-        data_cube: np.memmap = get_raw_data(data_source_folder)
-        img_h, img_w, _ = imread(base_img_dir).shape
-        cube_h, cube_w = data_cube.shape[0], data_cube.shape[1] 
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    cube_w = int(info['width'])
+    cube_h = int(info['height'])
         
     cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
 
@@ -340,8 +337,7 @@ def get_selection(
         #       the best choice for performance, but the mask simplifies things, since it can be
         #       used for all kinds of selections to be implemented in the future.
         #       Also, the performance decrease should be less than tenth of a second in most cases.
-
-        return extract_selected_data(data_cube, mask, cube_type)
+        return extract_selected_data(mask, cube_type)
     else:
         # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
         # the selected area on the data cube
@@ -353,4 +349,4 @@ def get_selection(
 
         mask: np.ndarray = compute_selection_mask(selection_type, selection_coords_deregistered, cube_w, cube_h)
 
-        return extract_selected_data(data_cube, mask, cube_type)
+        return extract_selected_data(mask, cube_type)
