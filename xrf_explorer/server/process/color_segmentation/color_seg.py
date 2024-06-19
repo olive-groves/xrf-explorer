@@ -71,17 +71,18 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
-                               nr_of_attempts: int = 10, k: int = 30) -> tuple[np.ndarray, np.ndarray]:
+                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
     :param k: number of clusters required at end. Defaults to 30
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
     :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
     """
     # set seed so results are consistent
     cv2.setRNGSeed(0)
+    LOG.info(f'Computing image-wide color clusters with parameters: k={k}, data_source={data_source}')
 
     # Get registered image
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
@@ -119,18 +120,24 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     return colors, np.array(bitmasks)
 
 
-def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
-                                         elem_threshold: float = 0.1, nr_of_attempts: int = 10,
-                                         k: int = 30) -> tuple[list[np.ndarray], list[np.ndarray]]:
+def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
+                                         elem_threshold: float = 0.1, k: int = 30,
+                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
-    :param k: number of clusters required at end. Defaults to 2
+    :param k: number of clusters required at end. Defaults to 2.
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. 
+                           Defaults to 10.
+
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
+    LOG.info(
+        f"""Computing element-wise color clusters with parameters: 
+            k={k}, data_source={data_source}, elemental_channel={elemental_channel}"""
+    )
 
     # Get the elemental data cube
     data_cube_path: str | None = get_elemental_cube_path(data_source)
@@ -139,7 +146,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
         return [], []
 
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
-
+    
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
@@ -162,48 +169,39 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
     # At most 20 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, 1.0)
 
-    colors: list[np.ndarray] = []
-    bitmasks: list[np.ndarray] = []
-    # For each element
-    for elem_index in range(data_cube.shape[0]):
-        # Get bitmask of pixels with high element concentration
-        # and get respective pixels in the image
-        bitmask: np.ndarray = np.array(data_cube[elem_index] >= elem_threshold)
-        masked_image: np.ndarray = image[bitmask]
-        masked_image = reshape_image(masked_image)
+    # Get bitmask of pixels with high element concentration
+    # and get respective pixels in the image
+    bitmask: np.ndarray = np.array(data_cube[elemental_channel] >= elem_threshold)
+    masked_image: np.ndarray = image[bitmask]
+    masked_image = reshape_image(masked_image)
 
-        # If empty image, continue (elem. not present)
-        if masked_image.size == 0:
-            colors.append(np.empty(0))
-            bitmasks.append(np.empty(0))
-            continue
+    # If empty image, continue (elem. not present)
+    if masked_image.size == 0:
+        return np.empty(0), np.empty(0)
 
-        # k cannot be bigger than number of pixels w/element present
-        k = min(k, masked_image.size)
-        labels: np.ndarray
-        center: np.ndarray
-        _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    # k cannot be bigger than number of pixels w/element present
+    k = min(k, masked_image.size)
+    labels: np.ndarray
+    center: np.ndarray
+    _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
-        cluster_bitmasks: list[np.ndarray] = []
-        labels = labels.flatten()
-        subset_indices: tuple[np.ndarray, ...] = np.nonzero(bitmask)
+    cluster_bitmasks: list[np.ndarray] = []
+    labels = labels.flatten()
+    subset_indices: tuple[bool, ...] = np.nonzero(bitmask)
 
-        # For each cluster
-        for i in range(k):
-            # Indices for cluster "i"
-            cluster_indices: np.ndarray = np.array(labels == i)
-            # Initialize empty mask
-            cluster_mask: np.ndarray = np.zeros(image.shape[:2], dtype=bool)
-            # Set values to true
-            cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
-            cluster_bitmasks.append(cluster_mask)
+    # Bitmasks for each cluster
+    for i in range(k):
+        # Indices for cluster "i"
+        cluster_indices: np.ndarray = np.array(labels == i)
+        # Initialize empty mask
+        cluster_mask: np.ndarray = np.zeros(image.shape[:2], dtype=bool)
+        # Set values to true
+        cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
+        cluster_bitmasks.append(cluster_mask)
 
-        # Transform back to rgb
-        center = np.array([lab_to_rgb(c) for c in center])
-        colors.append(center)
-        bitmasks.append(np.array(cluster_bitmasks))
-
-    return colors, bitmasks
+    # Transform back to rgb
+    center = np.array([lab_to_rgb(c) for c in center])
+    return center, np.array(cluster_bitmasks)
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
