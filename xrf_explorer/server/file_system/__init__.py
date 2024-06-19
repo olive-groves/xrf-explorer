@@ -5,7 +5,7 @@ from .elemental_cube import (
     get_element_names, get_short_element_names,
     get_element_averages, to_dms
 )
-from .workspace_handler import get_path_to_workspace, update_workspace
+from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path_from_name, get_elemental_cube_path, get_base_image_name, get_elemental_cube_recipe_path
 )

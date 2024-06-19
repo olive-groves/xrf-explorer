@@ -20,7 +20,7 @@ from xrf_explorer.server.file_system.workspace.contextual_images import (get_con
                                                                          get_contextual_image_recipe_path)
 from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_recipe_path
 from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
-from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace, update_workspace
+from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace, update_workspace
 from xrf_explorer.server.file_system.workspace.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.elemental_cube import (
     get_short_element_names, get_element_averages, get_element_names,
