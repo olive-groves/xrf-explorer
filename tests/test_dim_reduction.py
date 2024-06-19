@@ -3,7 +3,7 @@ import logging
 from os import remove
 from os.path import isfile, join, normpath
 
-from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.process.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
