@@ -39,7 +39,7 @@ from xrf_explorer.server.process.dim_reduction import (
     create_embedding_image,
     get_image_of_indices_to_embedding
 )
-from xrf_explorer.server.color_seg import (
+from xrf_explorer.server.process.color_segmentation import (
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex

@@ -1,8 +1,11 @@
 import logging
 
+from os import path, makedirs
+from typing import Any
+
 import cv2
 import numpy as np
-from os import path, makedirs
+from numpy import ndarray, dtype, signedinteger, long
 from skimage import color
 from cv2.typing import MatLike
 
@@ -191,7 +194,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
-        subset_indices: tuple[bool, ...] = np.nonzero(bitmask)
+        subset_indices: tuple[ndarray[Any, dtype[signedinteger[Any] | long]], ...] = np.nonzero(bitmask)
 
         # For each cluster
         for i in range(k):
@@ -346,7 +349,7 @@ def get_image(image_file_path: str) -> np.ndarray:
 
     raw_image: np.ndarray = cv2.imread(image_file_path)
     try:
-        raw_image: np.ndarray = cv2.cvtColor(raw_image,cv2.COLOR_BGR2RGB)
+        raw_image: np.ndarray = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
     except Exception as e:
         LOG.error(f"The path '{image_file_path}' is not a valid file path: {e}")
         return np.empty(0)
@@ -367,6 +370,7 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
     """
 
     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
 
 def convert_to_hex(clusters: np.array) -> np.array:
     """
