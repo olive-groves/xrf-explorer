@@ -115,17 +115,6 @@ def deregister_coord(
     return round(x_reversed_scaling), round(y_reversed_scaling)
 
 
-def extract_selected_data(mask: np.ndarray, cube_type: CubeType) -> np.ndarray:
-    """
-    Extracts elements from a 3D data cube at positions specified by a 2D boolean mask.
-
-    :param mask: A 2D boolean array where True indicates the position to be extracted from the last 2 dimensions of data_cube.
-    :param cube_type: The type of the cube the selection is made on.
-    :return: The list coordinates of indices of the selected pixels, grouped by pixel.
-    """
-    return np.argwhere(mask)
-
-
 def get_scaled_cube_coordinates(
         coords: list[tuple[int, int]],
         base_img_width: int,
@@ -156,38 +145,6 @@ def get_scaled_cube_coordinates(
         scaled_coords.append(scaled_coord)
 
     return scaled_coords
-
-
-def compute_bounding_box(polygon_vertices: list[tuple[int, int]]) -> tuple[tuple[int, int], tuple[int, int]]:
-    """
-    Compute the smallest rectangle encapsulating every point in a polygon.
-
-    :param polygon_vertices: List of points that make up the polygon (vertices).
-    :return: The top-left and bottom-right points of the computed bounding box, in that order.
-    """
-    x_coords: list[int] = [point[0] for point in polygon_vertices]
-    y_coords: list[int] = [point[1] for point in polygon_vertices]
-
-    return (min(x_coords), min(y_coords)), (max(x_coords), max(y_coords))
-
-
-def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int) -> list[tuple[int, int]]:
-    """
-    Clip a list of points to the bounds of the datacube.
-
-    :param points: A list of points where each point is a tuple (x, y).
-    :param cube_width: The width of the datacube corresponding to the painting.
-    :param cube_height: The height of the datacube corresponding to the painting.
-    :return: The list of clipped points, in the same order as the input.
-    """
-    clipped_points = []
-
-    for x, y in points:
-        clipped_x = max(0, min(x, cube_width - 1))  # -1 for 0 based indexing
-        clipped_y = max(0, min(y, cube_height - 1))
-        clipped_points.append((clipped_x, clipped_y))
-
-    return clipped_points
 
 
 def compute_selection_mask(

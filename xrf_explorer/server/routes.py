@@ -269,8 +269,8 @@ def convert_elemental_cube(data_source: str):
 
     # Convert each elemental data cube
     for cube_name in cube_names:
-        succes: bool = convert_elemental_cube_to_dms(data_source, cube_name)
-        if not succes:
+        success: bool = convert_elemental_cube_to_dms(data_source, cube_name)
+        if not success:
             return "Error converting elemental data cube to .dms format", 500
 
     return "Converted elemental data cube to .dms format", 200
