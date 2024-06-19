@@ -54,7 +54,7 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
         return names
 
 
-def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
+def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
     """Get the elemental data cube from the dms file.
     Can raise error if file could not be read.
 
@@ -72,7 +72,7 @@ def get_raw_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
     return list_raw_elemental_cube.reshape(c, h, w)
 
 
-def get_raw_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
+def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
     """Get the elemental map of the given element from the dms file.
     Can raise error if file could not be read.
 
