@@ -13,7 +13,7 @@ from xrf_explorer.server.file_system.cubes.elemental import normalize_elemental_
 from xrf_explorer.server.file_system import (
     get_elemental_cube_path
 )
-from xrf_explorer.server.image_register import get_image_registered_to_data_cube
+from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

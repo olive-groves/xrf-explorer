@@ -9,7 +9,7 @@ from PIL.Image import Image
 
 from xrf_explorer.server.file_system import set_config
 
-from xrf_explorer.server.file_system.contextual_images import (
+from xrf_explorer.server.file_system.workspace.contextual_images import (
     get_contextual_image_path, get_contextual_image_size,
     get_contextual_image, get_contextual_image_recipe_path
 )

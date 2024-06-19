@@ -7,7 +7,7 @@ from xrf_explorer.server.file_system.workspace.file_access import (
 )
 from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
 
-from xrf_explorer.server.image_register.register_image import load_points, compute_fitting_dimensions_by_aspect
+from xrf_explorer.server.process.image_register.register_image import load_points, compute_fitting_dimensions_by_aspect
 from enum import Enum
 import numpy as np
 import logging

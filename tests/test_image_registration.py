@@ -7,7 +7,7 @@ from os.path import join, exists
 from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system import set_config
-from xrf_explorer.server.image_register import register_image_to_image, get_image_registered_to_data_cube
+from xrf_explorer.server.process.image_register import register_image_to_image, get_image_registered_to_data_cube
 
 
 class TestImageRegistration:

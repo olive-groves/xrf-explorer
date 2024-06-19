@@ -37,7 +37,7 @@ from xrf_explorer.server.file_system.workspace.file_access import (
     get_base_image_name,
     get_workspace_dict
 )
-from xrf_explorer.server.image_register.register_image import load_points_dict
+from xrf_explorer.server.process.image_register.register_image import load_points_dict
 from xrf_explorer.server.process.dim_reduction import (
     generate_embedding,
     create_embedding_image,

@@ -10,7 +10,7 @@ from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
 from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_path
-from xrf_explorer.server.image_register import get_image_registered_to_data_cube
+from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 
 from .general import valid_element, get_path_to_dr_folder
 
