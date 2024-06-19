@@ -35,7 +35,7 @@ def load_image_to_register(path_image_to_register: str) -> MatLike | None:
         image_to_register = imread(path_image_to_register, IMREAD_UNCHANGED)
         if (
                 image_to_register.ndim == 2
-        ):  # ...but if the PNG is monochannel, redo the imread and let cv2 determine how.
+        ):  # ...but if the PNG is mono-channel, redo the imread and let cv2 determine how.
             image_to_register = imread(path_image_to_register)
     else:
         image_to_register = imread(path_image_to_register)
