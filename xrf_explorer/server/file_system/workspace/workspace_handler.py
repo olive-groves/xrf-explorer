@@ -12,7 +12,7 @@ def get_path_to_workspace(datasource: str) -> str:
     """Get the path to the workspace.json file for a given datasource.
 
     :param datasource: The name of the datasource
-    :return: The path to the workspace.json file for the given datasource. If the workspace does not exist, return an empty string.
+    :return: The path to the workspace.json file for the given datasource. If the workspace does not exist, return an empty string
     """
 
     # load backend config
@@ -39,7 +39,7 @@ def update_workspace(datasource: str, new_workspace: any) -> bool:
 
     :param datasource: The name of the datasource
     :param new_workspace: The data to write to the workspace
-    :return: True if the workspace was updated successfully, False otherwise.
+    :return: True if the workspace was updated successfully, False otherwise
     """
 
     # load backend config
