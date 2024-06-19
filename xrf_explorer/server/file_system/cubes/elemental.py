@@ -2,15 +2,18 @@ import json
 
 from logging import Logger, getLogger
 from os import remove
-from os.path import basename, dirname, isdir, join, splitext
+from os.path import basename, dirname, splitext
 
 import numpy as np
 
-from .from_csv import get_elemental_data_cube_from_csv, get_elemental_map_from_csv, get_elements_from_csv
-from .from_dms import get_elemental_data_cube_from_dms, get_elemental_map_from_dms, get_elements_from_dms
+from .convert_csv import get_elemental_data_cube_from_csv, get_elemental_map_from_csv, get_elements_from_csv
+from .convert_dms import get_elemental_data_cube_from_dms, get_elemental_map_from_dms, get_elements_from_dms, to_dms
 
-from xrf_explorer.server.file_system.workspace.file_access import (get_path_to_workspace,
-                                                                   get_elemental_cube_path_from_name)
+from xrf_explorer.server.file_system.workspace.file_access import (
+    get_path_to_workspace,
+    get_elemental_cube_path_from_name
+)
+
 
 LOG: Logger = getLogger(__name__)
 
@@ -290,41 +293,4 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     remove(cube_path)
 
     LOG.info(f"Converted {cube_path} to .dms format.")
-    return True
-
-
-def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
-    """Saves a numpy array and list of elements to a DMS file.
-
-    :param folder_path: Path to the folder where the DMS file will be saved.
-    :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
-    :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
-    :param elements: List of the names of the elements.
-    :return: True if the cube was saved successfully, False otherwise.
-    """
-
-    if not isdir(folder_path):
-        LOG.error(f"Folder {folder_path} does not exist.")
-        return False
-
-    if "." in name_cube:
-        LOG.error("Name of the cube should not contain a file extension.")
-        return False
-
-    path_cube: str = join(folder_path, name_cube + '.dms')
-
-    # Get the shape of the elemental data cube
-    c, h, w = cube.shape
-
-    # Write the elemental data cube to a DMS file
-    try:
-        with open(path_cube, 'wb+') as f:
-            f.write(b'2\n')
-            f.write("{0} {1} {2}\n".format(w, h, c).encode())
-            f.write(cube.tobytes())
-            f.write('\n'.join(elements).encode())
-    except OSError as e:
-        LOG.error(f"Error while writing elemental map to dms: {e}")
-        return False
-
     return True
