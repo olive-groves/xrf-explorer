@@ -7,8 +7,9 @@ from numpy import ndarray, array_equal, array, float32
 
 from xrf_explorer.server.file_system.helper import set_config, get_config
 from xrf_explorer.server.file_system.cubes.elemental import (
-    get_elemental_data_cube, get_elemental_map, get_element_names, get_element_averages, to_dms
+    get_elemental_data_cube, get_elemental_map, get_element_names, get_element_averages
 )
+from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
