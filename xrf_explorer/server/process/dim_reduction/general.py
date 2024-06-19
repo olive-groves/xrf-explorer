@@ -10,7 +10,7 @@ from scipy.interpolate import NearestNDInterpolator
 
 from xrf_explorer.server.file_system import get_elemental_cube_path
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
-from xrf_explorer.server.file_system.helper import get_config
+from xrf_explorer.server.file_system.helper import get_config, get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -49,25 +49,15 @@ def get_path_to_dr_folder(data_source: str) -> str:
         LOG.error("Config is empty")
         return ""
 
-    # Path to the data source folder
-    path_to_data_source: str = join(
-        backend_config['uploads-folder'], data_source
-    )
-
-    # Check if the datasource exists
-    if not isdir(path_to_data_source):
-        LOG.error(f"Datasource {data_source} not found.")
+    # Get path to generated folder of the data source
+    path_to_generated_folder: str | None = get_path_to_generated_folder(data_source)
+    if path_to_generated_folder is None:
         return ""
-
-    path_to_generated_folder: str = join(path_to_data_source, backend_config['generated-folder-name'])
-    if not isdir(path_to_generated_folder):
-        makedirs(path_to_generated_folder)
-        LOG.info(f"Created directory {path_to_generated_folder}.")
 
     # Path to the dimensionality reduction folder
     path_to_dr_folder: str = join(path_to_generated_folder, backend_config['dim-reduction']['folder-name'])
 
-    # Check if the dimensionality reduction folder exists
+    # Check if the dimensionality reduction folder exists, otherwise create it
     if not isdir(path_to_dr_folder):
         makedirs(path_to_dr_folder)
         LOG.info(f"Created directory {path_to_dr_folder}.")

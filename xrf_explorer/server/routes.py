@@ -1,42 +1,39 @@
-from io import BytesIO
 import logging
+from io import BytesIO
 
-from PIL.Image import Image, fromarray
+from os import rmdir, mkdir
+from os.path import isfile, isdir, exists, abspath, join
+
 from flask import request, jsonify, abort, send_file
-import numpy as np
-from os.path import isfile, isdir
-from os import rmdir
-from os.path import exists, abspath, join
-from os import mkdir
-import json
 from markupsafe import escape
-from numpy import ndarray
+import json
+
+import numpy as np
+from PIL.Image import Image, fromarray
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.helper import get_config
-from xrf_explorer.server.file_system.workspace.contextual_images import (get_contextual_image_path,
-                                                                         get_contextual_image_size,
-                                                                         get_contextual_image,
-                                                                         get_contextual_image_recipe_path)
-from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_recipe_path
-from xrf_explorer.server.file_system.cubes.elemental import (
+from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
     get_element_names,
     get_short_element_names,
     get_element_averages,
     get_element_averages_selection,
-    convert_elemental_cube_to_dms
+    convert_elemental_cube_to_dms,
+    parse_rpl, get_spectra_params
 )
-from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
-from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace, update_workspace
-from xrf_explorer.server.file_system.sources.data_listing import get_data_sources_names, get_data_source_files
-from xrf_explorer.server.file_system.workspace.file_access import (
-    get_elemental_cube_path,
-    get_raw_rpl_paths,
-    get_base_image_name,
-    get_workspace_dict
+from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
+from xrf_explorer.server.file_system.workspace import (
+    get_contextual_image_path, get_contextual_image_size,
+    get_contextual_image, get_contextual_image_recipe_path,
+    get_path_to_workspace, update_workspace, get_workspace_dict,
+    get_elemental_cube_path, get_elemental_cube_recipe_path, get_raw_rpl_paths,
+    get_base_image_name
 )
+
+from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
+
 from xrf_explorer.server.process.image_register.register_image import load_points_dict
 from xrf_explorer.server.process.dim_reduction import (
     generate_embedding,
@@ -51,7 +48,6 @@ from xrf_explorer.server.process.color_segmentation import (
 from xrf_explorer.server.process.spectra import (
     get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
 )
-from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -737,7 +733,7 @@ def get_color_clusters(data_source: str):
     # If json already exists, return that directly
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
-            color_data: ndarray = json.load(json_file)
+            color_data: np.ndarray = json.load(json_file)
         return jsonify(color_data)
 
     # Create directory if it doesn't exist
@@ -745,17 +741,17 @@ def get_color_clusters(data_source: str):
         mkdir(path_to_save)
 
     # List to store colors
-    color_data: list[ndarray] = []
+    color_data: list[np.ndarray] = []
 
     # Compute colors and bitmasks
-    colors: ndarray
-    bitmasks: ndarray
+    colors: np.ndarray
+    bitmasks: np.ndarray
     colors, bitmasks = get_clusters_using_k_means(
         data_source, rgb_image_name, nr_attempts, k)
     # Merge similar clusters
     colors, bitmasks = merge_similar_colors(colors, bitmasks)
     # Combine bitmasks into one
-    combined_bitmask: ndarray = combine_bitmasks(bitmasks)
+    combined_bitmask: np.ndarray = combine_bitmasks(bitmasks)
 
     # Save bitmask
     full_path: str = join(path_to_save, f'imageClusters_{k}_{nr_attempts}.png')
@@ -767,8 +763,8 @@ def get_color_clusters(data_source: str):
     color_data.append(convert_to_hex(colors))
 
     # Compute colors and bitmasks per element
-    colors_per_elem: ndarray
-    bitmasks_per_elem: ndarray
+    colors_per_elem: np.ndarray
+    bitmasks_per_elem: np.ndarray
     colors_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
         data_source, rgb_image_name, elem_threshold, nr_attempts_elem, k_elem
     )
@@ -780,7 +776,7 @@ def get_color_clusters(data_source: str):
         color_data.append(convert_to_hex(colors_per_elem[i]))
 
         # Stored combined bitmask and colors
-        combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
+        combined_bitmask: np.ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
         full_path: str = join(path_to_save,
