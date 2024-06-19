@@ -12,16 +12,16 @@ from xrf_explorer.server.process.image_register import register_image_to_image, 
 
 
 class TestImageRegistration:
-    CONFIG_PATH = "tests/resources/configs/image-registration.yml"
+    CONFIG_PATH: str = "tests/resources/configs/image-registration.yml"
 
-    PATH_IMAGE_REFERENCE = "tests/resources/image_registration/data_source/image.png"
-    PATH_IMAGE_REGISTER = "tests/resources/image_registration/data_source/image.png"
-    PATH_CUBE = "tests/resources/image_registration/data_source/cube.dms"
-    PATH_CONTROL_POINTS = "tests/resources/image_registration/data_source/control_points.csv"
-    PATH_RESULT = "tests/resources/image_registration/result.tif"
+    PATH_IMAGE_REFERENCE: str = "tests/resources/image_registration/data_source/image.png"
+    PATH_IMAGE_REGISTER: str = "tests/resources/image_registration/data_source/image.png"
+    PATH_CUBE: str = "tests/resources/image_registration/data_source/cube.dms"
+    PATH_CONTROL_POINTS: str = "tests/resources/image_registration/data_source/control_points.csv"
+    PATH_RESULT: str = "tests/resources/image_registration/result.tif"
 
-    DATA_SOURCE = "data_source"
-    IMAGE_NAME = "RGB"
+    DATA_SOURCE: str = "data_source"
+    IMAGE_NAME: str = "RGB"
 
     @pytest.fixture(autouse=True)
     def setup_environment(self):
