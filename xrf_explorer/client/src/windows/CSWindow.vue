@@ -7,112 +7,92 @@ import { LoaderPinwheel } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "vue-sonner";
+import {
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from "@/components/ui/number-field";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
-const colors = ref<string[]>([]);
-const colorsElements = ref<Record<string, string[]>>({});
+const colors = ref<string>([]);
 const selectedElement = ref<string>();
 const selectedChannel = ref<boolean[]>();
 
 const selection = computed(() => appState.selection.colorSegmentation);
+const threshold = ref(40);
+const number_clusters = ref(10);
+const currentError = ref("Unknown error");
 
 watch(datasource, () => {
   setup();
 });
 
-watch(colorsElements, () => {
-  if (selectedElement.value) {
-    if (selectedElement.value === "complete") {
-      colors.value = colorsElements.value["complete"];
-    } else {
-      colors.value = colorsElements.value[selectedElement.value] || [];
-    }
-  }
-});
-
 // Watch for changes in selectedElement and update colors accordingly
-watch(selectedElement, (newValue) => {
-  selection.value.forEach((channel) => {
-    channel.selected = false;
-  });
-  if (newValue === "complete") {
-    colors.value = colorsElements.value["complete"];
-  } else if (newValue) {
-    colors.value = colorsElements.value[newValue] || [];
-  }
-  selection.value[getElementIndex(newValue)].selected = true;
-});
+watch(selectedElement, (_) => {fetchColors});
 
 // Status color segmentation
 enum Status {
+  WAITING,
   LOADING,
   ERROR,
   SUCCESS,
 }
-const status = ref(Status.LOADING);
+const status = ref(Status.WAITING);
 
 /**
  * Fetch the hexadecimal colors data.
  * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
-async function fetchColors(url: string) {
+async function fetchColors() {
   try {
-    const response = await fetch(`${url}/${datasource.value}/cs/clusters`);
+    status.value = Status.LOADING;
+    if (selectedElement.value == null) {
+      currentError.value = "Please select an element";
+      status.value = Status.ERROR;
+      return;
+    }
+    const elementIndex = getElementIndex(selectedElement.value);
+    const response = await fetch(`${config.api.endpoint}/${datasource.value}/cs/clusters/${elementIndex}/${number_clusters.value}/${threshold.value}`);
     if (!response.ok) throw new Error("Failed to fetch colors");
+    console.log("Made it before");
+    console.log(response);
 
     const data = await response.json();
-    //assign the full color palette if the selection is made for the complete painting
-    colorsElements.value["complete"] = data[0];
-    elements.value.forEach((element, index) => {
-      colorsElements.value[element.name] = data[index + 1];
-    });
-    console.info("Successfully fetched colors", colorsElements.value["complete"]);
+    console.log("Made it after");
+    console.log(data);
+    colors.value = data;
+    console.info("Successfully fetched colors", colors.value);
+    status.value = Status.SUCCESS;
     return true;
   } catch (e) {
     toast.warning("Failed to retrieve colors");
+    currentError.value = "Failed to generate color clusters";
+    status.value = Status.ERROR;
     console.error(e);
     return false;
   }
 }
 
 /**
- * Show the colors and element names, and initialize CS selection.
+ * Initialize CS selection and window.
  */
 async function setup() {
-  try {
-    // Whether the colors were fetched properly
-    await fetchColors(config.api.endpoint);
-  } catch (e) {
-    status.value = Status.ERROR;
-    toast.warning("Failed to retrieve painting colors");
-    console.error("Error fetching colors data", e);
-  }
-  status.value = Status.SUCCESS;
-
   // Initialize CS selection
-  const colors = colorsElements.value["complete"];
   const sel: ColorSegmentationSelection = {
     element: 0,
     selected: false,
     enabled: Array(colors.length).fill(false),
-    colors: colors,
+    colors: [],
+    k: number_clusters.value,
+    elem_threshold: threshold.value,
   };
-  selection.value.push(sel);
+  selection.value = sel;
 
   selectedChannel.value = Array(colors.length).fill(false);
-
-  for (let i = 1; i <= elements.value.length; i++) {
-    const colors = colorsElements.value[elements.value[i - 1].name];
-    const sel: ColorSegmentationSelection = {
-      element: i,
-      selected: false,
-      enabled: Array(colors.length).fill(false),
-      colors: colors,
-    };
-    selection.value.push(sel);
-  }
 }
 
 /**
@@ -121,17 +101,12 @@ async function setup() {
  * @param colorIndex The index of the selected color.
  */
 function setSelection(selectedElement: string, colorIndex: number) {
-  // Deselect all channels
-  selection.value.forEach((channel) => {
-    channel.selected = false;
-  });
-
   // Get index of selected element
   const index = getElementIndex(selectedElement);
 
   // Update selection
-  selection.value[index].selected = true;
-  selection.value[index].enabled[colorIndex] = !selection.value[index].enabled[colorIndex];
+  selection.value.element = index;
+  selection.value.enabled[colorIndex] = !selection.value[index].enabled[colorIndex];
 }
 
 /**
@@ -162,19 +137,66 @@ function getElementIndex(elementName: string | undefined) {
   <Window title="Color segmentaton" location="right">
     <div class="space-y-2 p-2">
       <!-- SELECTION MENU -->
-      <div class="flex items-center" v-if="status == Status.SUCCESS">
-        <Select v-model="selectedElement">
-          <SelectTrigger class="w-40">
-            <SelectValue placeholder="Select an element" />
-          </SelectTrigger>
-          <SelectContent>
+      <!-- COLOR CLUSTER GENERATION -->
+      <div class="flex space-x-2">
+        <div class="grow space-y-1">
+          <Label for="element">Element</Label>
+          <Select v-model="selectedElement" class="w-full">
+            <SelectTrigger>
+              <SelectValue placeholder="Select an element" />
+            </SelectTrigger>
+            <SelectContent>
             <SelectItem value="complete"> Complete painting </SelectItem>
             <SelectItem v-for="element in elements" :key="element.channel" :value="element.name">
               {{ element.name }}
             </SelectItem>
-          </SelectContent>
-        </Select>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+      <div class="flex space-x-2">
+        <div class="w-28 shrink-0 space-y-1">
+          <Label for="elemental_threshold">Threshold</Label>
+          <NumberField
+            v-model="threshold"
+            :min="0"
+            :max="100"
+            :step="1"
+            id="elemental_threshold"
+            :format-options="{
+              minimumIntegerDigits: 1,
+              maximumFractionDigits: 0,
+            }"
+          >
+            <NumberFieldContent>
+              <NumberFieldDecrement />
+              <NumberFieldInput />
+              <NumberFieldIncrement />
+            </NumberFieldContent>
+          </NumberField>
+        </div>
+        <div class="w-28 shrink-0 space-y-1">
+          <Label for="number_clusters">Number of clusters</Label>
+          <NumberField
+            v-model="number_clusters"
+            :min="0"
+            :max="50"
+            :step="1"
+            id="number_clusters"
+            :format-options="{
+              minimumIntegerDigits: 1,
+              maximumFractionDigits: 0,
+            }"
+          >
+            <NumberFieldContent>
+              <NumberFieldDecrement />
+              <NumberFieldInput />
+              <NumberFieldIncrement />
+            </NumberFieldContent>
+          </NumberField>
+        </div>
+      </div>
+      <Button class="w-full" @click="fetchColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
       <div
@@ -185,7 +207,7 @@ function getElementIndex(elementName: string | undefined) {
         <div v-if="status == Status.LOADING" class="size-6">
           <LoaderPinwheel class="size-full animate-spin" />
         </div>
-        <span v-if="status == Status.ERROR"> An error ocurred while loading the color clusters. </span>
+        <span v-if="status == Status.ERROR">{{ currentError }}</span>
       </div>
 
       <!-- COLOR PALETTE -->

@@ -12,6 +12,7 @@ import { registerLayer } from "./registering";
 import { config } from "@/main";
 
 const selection = computed(() => appState.selection.colorSegmentation);
+const parameters = computed(() => appState.selection.colorSegmentationParameters);
 
 // Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
 const width = 256;
@@ -76,7 +77,11 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
   const filenames: { [key: number]: string } = {};
 
   // For simplicity, we put the image-wide bitmask first
-  const { response, data } = await useFetch(`${config.api.endpoint}/${datasource.value}/cs/image/bitmask`).get().blob();
+  const { response, data } = await useFetch(
+    `${config.api.endpoint}/${datasource.value}/cs/image/bitmask/${parameters.k}/${parameters.k_elem}/${parameters.elem_threshold}`
+  )
+    .get()
+    .blob();
 
   if (response.value?.ok && data.value != null) {
     filenames[0] = URL.createObjectURL(data.value).toString();
@@ -87,7 +92,7 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
   // Bitmasks for element-wise color segments
   for (const element in elements.value) {
     const { response, data } = await useFetch(
-      `${config.api.endpoint}/${datasource.value}/cs/element/${element}/bitmask`,
+      `${config.api.endpoint}/${datasource.value}/cs/element/${element}/bitmask/${parameters.k}/${parameters.k_elem}/${parameters.elem_threshold}`,
     )
       .get()
       .blob();
@@ -106,39 +111,39 @@ async function getFilenames(): Promise<{ [key: number]: string }> {
  * Creates color segmentation layers (for whole image and element-wise layers).
  */
 export async function createColorClusterLayers() {
-  const filenames = await getFilenames();
-  const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
-  recipe.movingSize = await getDataSize();
-  recipe.targetSize = await getTargetSize();
+  // const filenames = await getFilenames();
+  // const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
+  // recipe.movingSize = await getDataSize();
+  // recipe.targetSize = await getTargetSize();
 
-  const layers: Layer[] = [];
-  // Whole-image color clusters
-  const layer = createLayer(`cs_image`, filenames[0], false);
-  registerLayer(layer, recipe);
-  layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-  layer.uniform.iAuxiliary = { value: 0 };
-  layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-  layers.push(layer);
+  // const layers: Layer[] = [];
+  // // Whole-image color clusters
+  // const layer = createLayer(`cs_image`, filenames[0], false);
+  // registerLayer(layer, recipe);
+  // layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+  // layer.uniform.iAuxiliary = { value: 0 };
+  // layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+  // layers.push(layer);
 
-  // Element-wise color clusters
-  for (const element in elements.value) {
-    const layer = createLayer(`cs_element_${element}`, filenames[Number(element) + 1], false);
-    registerLayer(layer, recipe);
-    layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
-    // iAuxiliary passes corresponding element index [1, num_elements]
-    layer.uniform.iAuxiliary = { value: Number(element) + 1 };
-    layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-    layers.push(layer);
-  }
+  // // Element-wise color clusters
+  // for (const element in elements.value) {
+  //   const layer = createLayer(`cs_element_${element}`, filenames[Number(element) + 1], false);
+  //   registerLayer(layer, recipe);
+  //   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
+  //   // iAuxiliary passes corresponding element index [1, num_elements]
+  //   layer.uniform.iAuxiliary = { value: Number(element) + 1 };
+  //   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+  //   layers.push(layer);
+  // }
 
-  layerGroups.value.colorClusters = {
-    name: "Color clusters",
-    description: "",
-    layers: layers,
-    index: -2,
-    visible: true,
-    ...layerGroupDefaults,
-  };
+  // layerGroups.value.colorClusters = {
+  //   name: "Color clusters",
+  //   description: "",
+  //   layers: layers,
+  //   index: -2,
+  //   visible: true,
+  //   ...layerGroupDefaults,
+  // };
 
-  updateLayerGroupLayers(layerGroups.value.colorClusters);
+  // updateLayerGroupLayers(layerGroups.value.colorClusters);
 }
