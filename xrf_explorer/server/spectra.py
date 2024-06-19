@@ -8,8 +8,9 @@ import xraydb
 import logging
 from math import ceil, floor
 
-from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl, set_binned, \
+from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, set_binned, \
     get_raw_rpl_names
+from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
 from xrf_explorer.server.file_system.helper import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)

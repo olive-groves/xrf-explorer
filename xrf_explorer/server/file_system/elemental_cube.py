@@ -6,12 +6,13 @@ from os.path import join, isdir, basename, splitext, dirname
 import json
 import numpy as np
 
-from xrf_explorer.server.file_system.file_access import get_path_to_workspace, get_elemental_cube_path_from_name
+from xrf_explorer.server.file_system.workspace.file_access import (get_path_to_workspace,
+                                                                   get_elemental_cube_path_from_name)
 from xrf_explorer.server.file_system.from_csv import (
-    get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
+    get_elemental_data_cube_from_csv, get_elemental_map_from_csv,
     get_elements_from_csv)
 from xrf_explorer.server.file_system.from_dms import (
-    get_raw_elemental_data_cube_from_dms, get_raw_elemental_map_from_dms, 
+    get_elemental_data_cube_from_dms, get_elemental_map_from_dms,
     get_elements_from_dms)
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -67,9 +68,9 @@ def get_elemental_data_cube(path: str) -> np.ndarray:
     try:
         # Choose the correct method to read the elemental data cube
         if path.endswith('.csv'):
-            elemental_cube = get_raw_elemental_data_cube_from_csv(path)
+            elemental_cube = get_elemental_data_cube_from_csv(path)
         elif path.endswith('.dms'):
-            elemental_cube = get_raw_elemental_data_cube_from_dms(path)
+            elemental_cube = get_elemental_data_cube_from_dms(path)
         else:
             elemental_cube = np.empty(0)
 
@@ -97,9 +98,9 @@ def get_elemental_map(element: int, path: str) -> np.ndarray:
     try:
         # Choose the correct method to read the elemental map
         if path.endswith('.csv'):
-            elemental_cube = get_raw_elemental_map_from_csv(element, path)
+            elemental_cube = get_elemental_map_from_csv(element, path)
         elif path.endswith('.dms'):
-            elemental_cube = get_raw_elemental_map_from_dms(element, path)
+            elemental_cube = get_elemental_map_from_dms(element, path)
         else:
             elemental_cube = np.empty(0)
 

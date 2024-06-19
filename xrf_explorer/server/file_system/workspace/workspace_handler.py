@@ -3,7 +3,7 @@ import logging
 from os.path import isfile, isdir, join
 from json import dump
 
-from .helper import get_config
+from xrf_explorer.server.file_system.helper import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

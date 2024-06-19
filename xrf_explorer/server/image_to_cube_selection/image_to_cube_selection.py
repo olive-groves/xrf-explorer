@@ -1,31 +1,13 @@
-from enum import Enum
-import logging
-
-import numpy as np
-
-from xrf_explorer.server.file_system.elemental_cube import (
-    get_elemental_data_cube, normalize_ndarray_to_grayscale
-)
-from xrf_explorer.server.file_system.file_access import (
+from xrf_explorer.server.file_system.cubes.spectral import parse_rpl
+from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
-    get_cube_recipe_path,
     get_raw_rpl_paths,
-    parse_rpl
+    get_cube_recipe_path,
 )
-from cv2 import (
-    fillPoly,
-    imread,
-    perspectiveTransform,
-    getPerspectiveTransform, 
-    convexHull
-)
+from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
 
-from xrf_explorer.server.image_register.register_image import (
-    load_points,
-    compute_fitting_dimensions_by_aspect,
-)
-from cv2 import imread
+from xrf_explorer.server.image_register.register_image import load_points, compute_fitting_dimensions_by_aspect
 from enum import Enum
 import numpy as np
 import logging
@@ -287,18 +269,15 @@ def get_selection(
             return None
 
     if cube_dir is None:
-        LOG.error(f"Data source directory {
-                  data_source_folder} does not exist.")
+        LOG.error(f"Data source directory {data_source_folder} does not exist.")
         return None
 
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(f"Error occurred while retrieving the path of the base image of {
-                  data_source_folder}")
+        LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
         LOG.error(
-            f"Error occurred while retrieving the path of the base image of {
-                data_source_folder}"
+            f"Error occurred while retrieving the path of the base image of {data_source_folder}"
         )
         return None
 
