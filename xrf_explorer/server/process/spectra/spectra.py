@@ -13,6 +13,8 @@ from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_pa
 from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
 from xrf_explorer.server.file_system.helper import get_config
 
+from ..helper import get_path_to_generated_folder
+
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
@@ -37,9 +39,15 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     if level > 0:
         if not mipmap_exists(data_source, level):
             mipmap_raw_cube(data_source, level)
-        config: dict = get_config()
         raw_name, _ = get_raw_rpl_names(data_source)
-        path_to_raw: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name)
+
+        # Get the path to the generated folder
+        path_to_generated_folder: str = get_path_to_generated_folder(data_source)
+        if not path_to_generated_folder:
+            return np.array([])
+        
+        # Get path to raw file
+        path_to_raw: str = join(path_to_generated_folder, "mipmaps", str(level), raw_name)
 
     try:
         params: dict = get_spectra_params(data_source)
@@ -78,8 +86,12 @@ def mipmap_raw_cube(data_source: str, level: int):
 
     LOG.info("Mipmapping spectral cube %s to level %i", raw_name, level)
 
-    config: dict = get_config()
-    mipmap_dir: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level))
+    # Get the path to the generated folder
+    path_to_generated_folder: str = get_path_to_generated_folder(data_source)
+    if not path_to_generated_folder:
+        return
+
+    mipmap_dir: str = join(path_to_generated_folder, "mipmaps", str(level))
     mipmap_path: str = join(mipmap_dir, raw_name)
 
     # Create directory for mipmap
@@ -119,8 +131,12 @@ def mipmap_exists(data_source: str, level: int) -> bool:
 
     raw_name, _ = get_raw_rpl_names(data_source)
 
-    config: dict = get_config()
-    mipmap_path: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
+    # Get the path to the generated folder
+    path_to_generated_folder: str = get_path_to_generated_folder(data_source)
+    if not path_to_generated_folder:
+        return False
+    
+    mipmap_path: str = str(join(path_to_generated_folder, "mipmaps", str(level), raw_name))
 
     return isfile(mipmap_path)
 

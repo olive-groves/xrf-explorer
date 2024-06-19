@@ -41,6 +41,7 @@ from xrf_explorer.server.process.dim_reduction import (
     get_image_of_indices_to_embedding
 )
 from xrf_explorer.server.process.color_segmentation import (
+    get_path_to_cs_folder,
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
@@ -705,40 +706,37 @@ def get_color_clusters(data_source: str):
     config: dict | None = get_config()
     if not config:
         return 'Error occurred while getting backend config', 500
-    uploads_folder: str = str(config['uploads-folder'])
-    cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Paths
     path_to_data_cube: str = get_elemental_cube_path(data_source)
     if not path_to_data_cube:
         return f"Could not find elemental data cube in source {data_source}", 500
-    path_to_save: str = join(uploads_folder, data_source, cs_folder)
+    
+    path_to_save: str = get_path_to_cs_folder(data_source)
+    if not path_to_save:
+        return 'Error occurred while getting path to save', 500
 
     # get default dim reduction config for image clusters
-    k_means_parameters: dict[str,
-                             str] = config['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # get default dim reduction config for elemental clusters
-    k_means_parameters_elem: dict[str,
-                                  str] = config['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters_elem: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters_elem['elem-threshold'])
     nr_attempts_elem: int = int(k_means_parameters_elem['nr-attempts'])
     k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
-    full_path_json: str = join(path_to_save,
-                               f'colors_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
+    full_path_json: str = join(
+        path_to_save, f'colors_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json'
+    )
+
     # If json already exists, return that directly
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
             color_data: np.ndarray = json.load(json_file)
         return jsonify(color_data)
-
-    # Create directory if it doesn't exist
-    if not exists(path_to_save):
-        mkdir(path_to_save)
 
     # List to store colors
     color_data: list[np.ndarray] = []
@@ -779,8 +777,7 @@ def get_color_clusters(data_source: str):
         combined_bitmask: np.ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
-        full_path: str = join(path_to_save,
-                              f'elementCluster_{i}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
+        full_path: str = join(path_to_save, f'elementCluster_{i}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if not image_saved:
             return f'Error occurred while saving bitmask for element {i} as png', 500
@@ -803,17 +800,17 @@ def get_color_cluster_bitmask(data_source: str):
     config: dict | None = get_config()
     if not config:
         return 'Error occurred while getting backend config', 500
-    uploads_folder: str = str(config['uploads-folder'])
-    cs_folder: str = str(config['color-segmentation']['folder-name'])
 
     # Get parameters
-    k_means_parameters: dict[str,
-                             str] = config['color-segmentation']['k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['k-means-parameters']
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # Get path to image
-    path_to_save: str = join(uploads_folder, data_source, cs_folder)
+    path_to_save: str = get_path_to_cs_folder(data_source)
+    if not path_to_save:
+        return 'Error occurred while getting path to save', 500
+    
     full_path: str = join(path_to_save, f'imageClusters_{k}_{nr_attempts}.png')
     # If image doesn't exist, compute clusters
     if not exists(full_path):
@@ -832,20 +829,21 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
     :return bitmask png file for the given element
     """
     config: dict = get_config()
-    uploads_folder: str = str(config['uploads-folder'])
-    cs_folder: str = str(config['color-segmentation']['folder-name'])
+    if not config:
+        return 'Error occurred while getting backend config', 500
 
     # Get parameters
-    k_means_parameters: dict[str,
-                             str] = config['color-segmentation']['elemental-k-means-parameters']
+    k_means_parameters: dict[str, str] = config['color-segmentation']['elemental-k-means-parameters']
     elem_threshold: float = float(k_means_parameters['elem-threshold'])
     nr_attempts: int = int(k_means_parameters['nr-attempts'])
     k: int = int(k_means_parameters['k'])
 
     # Path to bitmask
-    path_to_save: str = join(uploads_folder, data_source, cs_folder)
-    full_path: str = join(path_to_save,
-                          f'elementCluster_{element}_{elem_threshold}_{k}_{nr_attempts}.png')
+    path_to_save: str = get_path_to_cs_folder(data_source)
+    if not path_to_save:
+        return 'Error occurred while getting path to save', 500
+
+    full_path: str = join(path_to_save, f'elementCluster_{element}_{elem_threshold}_{k}_{nr_attempts}.png')
     if not exists(full_path):
         get_color_clusters(data_source)
 

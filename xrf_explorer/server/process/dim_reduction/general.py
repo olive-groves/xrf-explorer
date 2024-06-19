@@ -9,7 +9,9 @@ from cv2 import imwrite
 
 from xrf_explorer.server.file_system import get_elemental_cube_path
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
-from xrf_explorer.server.file_system.helper import get_config, get_path_to_generated_folder
+from xrf_explorer.server.file_system.helper import get_config
+
+from ..helper import get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -49,8 +51,8 @@ def get_path_to_dr_folder(data_source: str) -> str:
         return ""
 
     # Get path to generated folder of the data source
-    path_to_generated_folder: str | None = get_path_to_generated_folder(data_source)
-    if path_to_generated_folder is None:
+    path_to_generated_folder: str = get_path_to_generated_folder(data_source)
+    if not path_to_generated_folder:
         return ""
 
     # Path to the dimensionality reduction folder
