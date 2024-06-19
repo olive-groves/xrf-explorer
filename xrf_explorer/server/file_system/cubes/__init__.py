@@ -7,7 +7,8 @@ from .elemental import (
     get_short_element_names,
     get_element_averages,
     get_element_averages_selection,
-    convert_elemental_cube_to_dms
+    convert_elemental_cube_to_dms,
+    get_elemental_data_cube
 )
 from .spectral import parse_rpl, get_spectra_params
 
