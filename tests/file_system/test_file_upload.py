@@ -3,9 +3,9 @@ from os.path import join, isdir
 
 from werkzeug.datastructures.file_storage import FileStorage
 
-from xrf_explorer.server.file_system import set_config, get_config
+from xrf_explorer.server.file_system.helper import set_config, get_config
 
-from xrf_explorer.server.file_system.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system.workspace.data_listing import get_data_sources_names
 
 RESOURCES_PATH: str = join('tests', 'resources')
 

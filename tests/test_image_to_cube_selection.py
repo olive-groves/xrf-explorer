@@ -13,8 +13,8 @@ from xrf_explorer.server.image_to_cube_selection import (
     SelectionType,
     CubeType
 )
-from xrf_explorer.server.file_system.elemental_cube import get_elemental_data_cube
-from xrf_explorer.server.file_system.file_access import (
+from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
+from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path,
     get_base_image_path,
 )
