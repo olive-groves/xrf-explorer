@@ -1,24 +1,16 @@
-from logging import INFO
-
-import sys
-
-from os import remove
-from os.path import join
-from pathlib import Path
-
 from json import load
+from logging import INFO
+from os import remove
+from os.path import join, normpath
 
-from xrf_explorer.server.file_system.config_handler import set_config
+from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.file_system.workspace import get_path_to_workspace, update_workspace
 
-sys.path.append('.')
-
-from xrf_explorer.server.file_system import get_path_to_workspace, update_workspace
-
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestWorkspaceHandler:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'workspace_handler.yml'))
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'workspace_handler.yml')
     CUSTOM_DATA_FOLDER: str = join(RESOURCES_PATH, 'file_system', 'test_workspace_handler')
     DATASOURCE_NAME: str = "a_datasource"
     DATASOURCE_NAME_NO_WORKSPACE: str = "no_datasource"
@@ -30,11 +22,11 @@ class TestWorkspaceHandler:
 
         # execute
         result: str = get_path_to_workspace(self.DATASOURCE_NAME, )
-        
+
         # verify
         assert not result
         assert expected_output in caplog.text
-    
+
     def test_config_not_found_update_workspace(self, caplog):
         # setup
         expected_output: str = "Failed to access config"
@@ -43,7 +35,7 @@ class TestWorkspaceHandler:
 
         # execute
         result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace)
-        
+
         # verify
         assert not result
         assert expected_output in caplog.text
@@ -55,11 +47,11 @@ class TestWorkspaceHandler:
 
         # execute
         result: str = get_path_to_workspace("this_is_not_a_datasource")
-        
+
         # verify
         assert not result
         assert expected_output in caplog.text
-    
+
     def test_datasource_not_found_update_workspace(self, caplog):
         # setup
         expected_output: str = "Datasource this_is_not_a_datasource not found."
@@ -68,7 +60,7 @@ class TestWorkspaceHandler:
 
         # execute
         result: bool = update_workspace("this_is_not_a_datasource", new_workspace)
-        
+
         # verify
         assert not result
         assert expected_output in caplog.text
@@ -82,11 +74,11 @@ class TestWorkspaceHandler:
 
         # execute
         result: str = get_path_to_workspace(self.DATASOURCE_NAME)
-        
+
         # verify
-        assert Path(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME, 'workspace.json').samefile(result)
+        assert normpath(join(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME, 'workspace.json')) == normpath(result)
         assert expected_output in caplog.text
-    
+
     def test_update_workspace(self, caplog):
         caplog.set_level(INFO)
 
@@ -97,11 +89,11 @@ class TestWorkspaceHandler:
 
         # execute
         result: bool = update_workspace(self.DATASOURCE_NAME_NO_WORKSPACE, new_workspace)
-        
+
         # verify
         assert result
         assert expected_output in caplog.text
-        
+
         # verify json
         path_to_workspace: str = join(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME_NO_WORKSPACE, 'workspace.json')
         with open(path_to_workspace, 'r') as f:
