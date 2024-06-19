@@ -1,11 +1,12 @@
-import logging 
+import logging
 
 from os import makedirs
 from os.path import join, isdir, isfile
 
 import numpy as np
-from scipy.interpolate import NearestNDInterpolator
+
 from cv2 import imwrite
+from scipy.interpolate import NearestNDInterpolator
 
 from xrf_explorer.server.file_system import get_elemental_cube_path
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
@@ -19,9 +20,9 @@ MAPPING_IMAGE_NAME: str = 'image_index_to_embedding.png'
 def valid_element(element: int, data_cube: np.ndarray) -> bool:
     """Verifies whether the given element is valid for the given data cube.
     
-    :param element: The element to verify.
-    :param data_cube: The data cube to verify the element for.
-    :return: True if the element is valid, otherwise False.
+    :param element: The element to verify
+    :param data_cube: The data cube to verify the element for
+    :return: True if the element is valid, otherwise False
     """
 
     # verify valid element
@@ -30,7 +31,7 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
     if element < 0 or element >= total_number_of_elements:
         LOG.error(f"Invalid element: {element}")
         return False
-    
+
     return True
 
 
@@ -39,7 +40,7 @@ def get_path_to_dr_folder(data_source: str) -> str:
     created.
     
     :param data_source: The name of the datasource
-    :return: The path to the dimensionality reduction folder for the given datasource.
+    :return: The path to the dimensionality reduction folder for the given datasource
     """
 
     # load backend config
@@ -57,7 +58,7 @@ def get_path_to_dr_folder(data_source: str) -> str:
     if not isdir(path_to_data_source):
         LOG.error(f"Datasource {data_source} not found.")
         return ""
-    
+
     path_to_generated_folder: str = join(path_to_data_source, backend_config['generated-folder-name'])
     if not isdir(path_to_generated_folder):
         makedirs(path_to_generated_folder)
@@ -76,12 +77,11 @@ def get_path_to_dr_folder(data_source: str) -> str:
 
 
 def create_image_of_indices_to_embedding(data_source: str) -> bool:
-    """Creates the image for lasso selection that decodes to which points in the embedding
-    the pixels of the elemental data cube are mapped. Uses the current embedding and indices
-    to create the image.
+    """Creates the image for lasso selection that decodes to which points in the embedding the pixels of the elemental
+    data cube are mapped. Uses the current embedding and indices to create the image.
 
-    :param data_source: Name of the data source.
-    :return: True if the image was created successfully, otherwise False.
+    :param data_source: Name of the data source
+    :return: True if the image was created successfully, otherwise False
     """
 
     # Get the path to the dimensionality reduction folder
@@ -114,14 +114,14 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
 
     LOG.info(f"Creating the interpolator with the data of size: {indices.shape[0]}")
     interp = NearestNDInterpolator(elemental_cube[:, indices[:, 0], indices[:, 1]].T, embedding)
-    
+
     LOG.info(f"Interpolating the data of size: {all_indices.shape[0]}")
     interpolated = interp(elemental_cube[:, all_indices[:, 0], all_indices[:, 1]].T)
 
     # Initialize new image
     LOG.info("Creating the mapping image")
     newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
-    
+
     # Fill pixels (in BGR format)
     newimage[all_indices[:, 0], all_indices[:, 1], 0] = 255
     newimage[all_indices[:, 0], all_indices[:, 1], 1] = interpolated[:, 1]
@@ -139,14 +139,14 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
 def get_image_of_indices_to_embedding(data_source: str) -> str:
     """Returns the path to the image that maps the indices of the elemental data cube to the embedding.
 
-    :param data_source: Name of the data source.
-    :return: Path to the image. If the image is not found, an empty string is returned.
+    :param data_source: Name of the data source
+    :return: Path to the image. If the image is not found, an empty string is returned
     """
     # Get the path to the dimensionality reduction folder
     dr_folder: str = get_path_to_dr_folder(data_source)
     if not dr_folder:
         return ""
-    
+
     # Check if the image exists
     file_path: str = join(dr_folder, MAPPING_IMAGE_NAME)
     if not isfile(file_path):

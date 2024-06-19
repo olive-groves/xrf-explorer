@@ -1,17 +1,15 @@
 import logging
 
 from math import ceil, floor, log
-
 from os import makedirs
 from os.path import join, isfile, isdir
 
 import numpy as np
 import xraydb
 
-from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, set_binned, \
-    get_raw_rpl_names
 from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
 from xrf_explorer.server.file_system.helper import get_config
+from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, set_binned, get_raw_rpl_names
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -19,9 +17,9 @@ LOG: logging.Logger = logging.getLogger(__name__)
 def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     """Parse the raw data cube of a data source as a 3-dimensional numpy array.
 
-    :param data_source: the path to the .raw file.
-    :param level: the mipmap level of the data to get.
-    :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}.
+    :param data_source: the path to the .raw file
+    :param level: the mipmap level of the data to get
+    :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}
     """
     # get paths to files
     path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
@@ -51,7 +49,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     low: int = params["low"]
     high: int = params["high"]
     bin_size: int = params["binSize"]
-    bin_nr: int = ceil((high-low)/bin_size)
+    bin_nr: int = ceil((high - low) / bin_size)
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
@@ -65,7 +63,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
 def mipmap_raw_cube(data_source: str, level: int):
     """Generates the mipmaps of the raw data in the data source up to the selected level.
 
-    :param data_source: The data source to mipmap the data for.
+    :param data_source: The data source to mipmap the data for
     :param level: The level to mipmap the data to, 0 is original resolution
     """
     if level <= 0:
@@ -98,20 +96,20 @@ def mipmap_raw_cube(data_source: str, level: int):
 
     for y in range(mipmapped.shape[0]):
         for x in range(mipmapped.shape[1]):
-            mipmapped[y, x, :] = np.mean(data[2*y:2*y+2, 2*x:2*x+2, :], axis=(0, 1))
+            mipmapped[y, x, :] = np.mean(data[2 * y:2 * y + 2, 2 * x:2 * x + 2, :], axis=(0, 1))
 
     # Write to disk
     mipmapped.flush()
-    
+
     LOG.info("Finished mipmapping spectral cube %s to level %i", raw_name, level)
 
 
 def mipmap_exists(data_source: str, level: int) -> bool:
     """Checks if a specific mipmap level exists for a data source.
     
-    :param data_source: The datasource to check.
-    :param level: The mipmap level to check.
-    :return: Whether the specified mipmap level exists.
+    :param data_source: The datasource to check
+    :param level: The mipmap level to check
+    :return: Whether the specified mipmap level exists
     """
 
     if level <= 0:
@@ -128,10 +126,10 @@ def mipmap_exists(data_source: str, level: int) -> bool:
 def bin_data(data_source: str, low: int, high: int, bin_size: int):
     """Reduces the raw data of a data source to channels in range [low:high] and averages channels per bin.
 
-    :param data_source: the name of the data source containing the raw data.
-    :param low: the lower channel boundary.
-    :param high: the higher channel boundary.
-    :param bin_size: the number of channels per bin.
+    :param data_source: the name of the data source containing the raw data
+    :param low: the lower channel boundary
+    :param high: the higher channel boundary
+    :param bin_size: the number of channels per bin
     """
     # get paths to files
     path_to_raw: str
@@ -164,16 +162,16 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         new_cube: np.ndarray = datacube[:, :, low:high]
     else:
         # compute number of bins
-        nr_bins: int = ceil((high-low)/bin_size)
+        nr_bins: int = ceil((high - low) / bin_size)
         # initialize  array
         new_cube: np.ndarray = np.zeros(
             shape=(height, width, nr_bins), dtype=np.int16)
 
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
-            start_channel = low + i*bin_size
+            start_channel = low + i * bin_size
             bin_average = np.mean(
-                datacube[:, :, start_channel:start_channel+bin_size], axis=2)
+                datacube[:, :, start_channel:start_channel + bin_size], axis=2)
             new_cube[:, :, i] = bin_average
 
     # overwrite file
@@ -187,8 +185,8 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 def get_average_global(data: np.ndarray) -> list:
     """Computes the average of the raw data for each bin on the whole painting.
 
-    :param data: datacube containing the raw data.
-    :return: list with the average raw data for each channel in the range.
+    :param data: datacube containing the raw data
+    :return: list with the average raw data for each channel in the range
     """
 
     average_values: list = []
@@ -205,9 +203,9 @@ def get_average_global(data: np.ndarray) -> list:
 def get_average_selection(data_source: str, mask: np.ndarray) -> list:
     """Computes the average of the raw data for each bin on the selected pixels.
 
-    :param data_source: name of the data source to get the selection average from.
-    :param mask: The mask describing the selected pixels.
-    :return: list with the average raw data for each bin in the range.
+    :param data_source: name of the data source to get the selection average from
+    :param mask: The mask describing the selected pixels
+    :return: list with the average raw data for each bin in the range
     """
 
     config: dict = get_config()
@@ -224,7 +222,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
     length: int = data.shape[2]
     total: np.ndarray = np.zeros(length)
 
-    scaled_mask: np.ndarray = np.empty((ceil(mask.shape[0] / 2**level), ceil(mask.shape[1] / 2**level)))
+    scaled_mask: np.ndarray = np.empty((ceil(mask.shape[0] / 2 ** level), ceil(mask.shape[1] / 2 ** level)))
     scaled_mask.fill(False)
 
     indices: np.ndarray = np.argwhere(mask)
@@ -264,43 +262,44 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     """Get the theoretical spectrum and peaks of an element.
         Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
 
-        :param element: symbol of the element.
-        :param excitation_energy_kev: excitation energy.
-        :param low: lower channel boundary.
-        :param high: higher channel boundary.
-        :param bin_size: size of each bin.
-        :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks.
+        :param element: symbol of the element
+        :param excitation_energy_kev: excitation energy
+        :param low: lower channel boundary
+        :param high: higher channel boundary
+        :param bin_size: size of each bin
+        :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks
     """
     # remove last character to get periodic table symbol
-    element = element[:len(element)-1].strip()
+    element = element[:len(element) - 1].strip()
     if element == 'yAl':
         element = 'Al'
 
     try:
         # get spectrum and peaks
-        data: tuple[np.ndarray, np.ndarray, np.ndarray,
-                    np.ndarray] | np.ndarray = get_element_spectrum(element, excitation_energy_kev)
+        data: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | np.ndarray = (
+            get_element_spectrum(element, excitation_energy_kev)
+        )
     except:
         LOG.info(f"Could not get theoretical spectral for excitation energy {excitation_energy_kev}")
         return []
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_spectrum: np.ndarray = data[1]*255
+    y_spectrum: np.ndarray = data[1] * 255
 
     response: list = []
 
     spectrum: list = []
-    bin_nr = ceil((high-low)/bin_size)
+    bin_nr = ceil((high - low) / bin_size)
 
     # for each bin
     for i in range(bin_nr):
         # compute starting channel
-        start_channel = low+i*bin_size
+        start_channel = low + i * bin_size
 
         # y_spectra has 10000 points instead of 4096, so scale index and bin size to slice it
-        start_index = floor(start_channel*len(y_spectrum)/4096)
-        new_bin_size = round(bin_size/(4096 / len(y_spectrum)))
-        mean = np.mean(y_spectrum[start_index:start_index+new_bin_size])
+        start_index = floor(start_channel * len(y_spectrum) / 4096)
+        new_bin_size = round(bin_size / (4096 / len(y_spectrum)))
+        mean = np.mean(y_spectrum[start_index:start_index + new_bin_size])
 
         point = {"index": i, "value": mean}
         spectrum.append(point)
@@ -308,19 +307,20 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     response.append(spectrum)
 
     # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
-    x_peaks = data[2]*4096/abs(data[0].max()-data[0].min())
+    x_peaks = data[2] * 4096 / abs(data[0].max() - data[0].min())
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_peaks = data[3]*255
+    y_peaks = data[3] * 255
 
     peaks = []
     for i in range(len(x_peaks)):
         # take only the peaks within the domain [low, high]
         if low <= x_peaks[i] < high:
-            point = {"index": (x_peaks[i]-low)/bin_size, "value": y_peaks[i]}
+            point = {"index": (x_peaks[i] - low) / bin_size, "value": y_peaks[i]}
             peaks.append(point)
     response.append(peaks)
     return response
+
 
 # functions to compute theoretical elemental spectrum
 # From xrf4u: https://github.com/fligt/maxrf4u/blob/main/maxrf4u/xphysics.py
@@ -329,11 +329,9 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
 
 class ElementLines:
     """Computes fluorescence emission line energies and intensities for `element`.
-
     """
 
     def __init__(self, element, excitation_energy_kev):
-
         excitation_energy = 1000 * excitation_energy_kev
 
         lines = xraydb.xray_lines(element, excitation_energy=excitation_energy)
@@ -344,7 +342,6 @@ class ElementLines:
         peak_intensities = []
 
         for name, line in lines.items():
-
             peak_names.append(name)
 
             # intensities (a.k.a. transition probabilities) sum up to unity within each level
@@ -379,7 +376,7 @@ def get_element_spectrum(
         element: str, excitation_energy_kev: float, normalize: bool = True,
         x_kevs: np.ndarray | None = None, std: float = 0.01
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | np.ndarray:
-    """Compute simple excitation spectrum (no matrix effects) and peaks
+    """Compute simple excitation spectrum (no matrix effects) and peaks.
 
     :param element: symbol of the element
     :param excitation_energy_kev: excitation energy
@@ -408,8 +405,8 @@ def get_element_spectrum(
 
 
 def get_element_spectra(elements: list, x_kevs: np.ndarray, excitation_energy_kev: float) -> tuple[list, np.ndarray]:
-    """Compute theoretical emission spectrum for multiple elements. 
-    Sorts elements according to largest (alpha) peak. Based on xraydb. 
+    """Compute theoretical emission spectrum for multiple elements. Sorts elements according to largest (alpha) peak.
+    Based on xraydb.
 
     :param elements: symbols of the elements
     :param x_kevs: pre-determined x values
@@ -442,8 +439,7 @@ def get_element_spectra(elements: list, x_kevs: np.ndarray, excitation_energy_ke
 def gaussian_convolve(
         peak_energies: np.ndarray, peak_intensities: np.ndarray, x_kevs: np.ndarray | None = None, std: float = 0.01
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Convolves line spectrum defined by `peak_energies` and `peak_intensities` 
-    with a Gaussian peak shape. 
+    """Convolve line spectrum defined by `peak_energies` and `peak_intensities` with a Gaussian peak shape.
 
     :param peak_energies: peak energies of the element
     :param peak_intensities: peak intensities of the element
@@ -457,8 +453,7 @@ def gaussian_convolve(
     y_spectrum = np.zeros_like(x_kevs)
 
     for peak_energy, peak_intensity in zip(peak_energies, peak_intensities):
-
         y_spectrum += peak_intensity * \
-            np.exp(-(1 / std) * (x_kevs - peak_energy)**2)
+                      np.exp(-(1 / std) * (x_kevs - peak_energy) ** 2)
 
     return x_kevs, y_spectrum

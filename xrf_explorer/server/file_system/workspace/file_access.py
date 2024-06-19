@@ -1,7 +1,8 @@
 #  module responsible for giving the different paths corresponding to the files of a data source
 
-import logging
 import json
+import logging
+
 from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
@@ -38,17 +39,17 @@ def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str |
     if not backend_config:  # config is empty
         LOG.error("Config is empty")
         return None
-    
+
     # Load workspace
     workspace_dict = get_workspace_dict(data_source)
     if workspace_dict is None:
         return None
-    
+
     # Find the file name with the given name
     for cube_info in workspace_dict['elementalCubes']:
         if cube_info['name'] == cube_name:
             return str(join(backend_config["uploads-folder"], data_source, cube_info['dataLocation']))
-    
+
     LOG.error(f"Elemental cube with name {cube_name} not found in data source {data_source}")
     return None
 
@@ -75,7 +76,7 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
     if filenames is None or len(filenames) == 0:
         LOG.error("An error occurred while trying to find elemental cube name.")
         return None
-    
+
     # Assuming there is only one elemental cube file
     filename = filenames[0]
 

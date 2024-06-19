@@ -1,7 +1,7 @@
 import logging
 
-from os.path import isfile, isdir, join
 from json import dump
+from os.path import isfile, isdir, join
 
 from xrf_explorer.server.file_system.helper import get_config
 

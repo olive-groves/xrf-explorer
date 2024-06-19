@@ -1,3 +1,11 @@
+import logging
+
+from enum import Enum
+
+import numpy as np
+
+from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
+
 from xrf_explorer.server.file_system.cubes.spectral import parse_rpl
 from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path,
@@ -5,12 +13,7 @@ from xrf_explorer.server.file_system.workspace.file_access import (
     get_raw_rpl_paths,
     get_cube_recipe_path,
 )
-from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
-
 from xrf_explorer.server.process.image_register.register_image import load_points, compute_fitting_dimensions_by_aspect
-from enum import Enum
-import numpy as np
-import logging
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -23,8 +26,8 @@ class SelectionType(str, Enum):
         Rectangle: Represents the rectangle selection tool.
         Lasso: Represents the lasso selection tool.
     """
-    Rectangle = "rectangle"     # The rectangle selection tool
-    Lasso = "lasso"             # The lasso selection tool
+    Rectangle = "rectangle"  # The rectangle selection tool
+    Lasso = "lasso"  # The lasso selection tool
 
 
 class CubeType(Enum):
@@ -56,12 +59,12 @@ def perspective_transform_coord(coord: tuple[int, int], transform_matrix: np.nda
 
 
 def deregister_coord(
-    coord: tuple[int, int],
-    cube_recipe_path: str,
-    base_img_height: int,
-    base_img_width: int,
-    cube_height: int,
-    cube_width: int,
+        coord: tuple[int, int],
+        cube_recipe_path: str,
+        base_img_height: int,
+        base_img_width: int,
+        cube_height: int,
+        cube_width: int,
 ) -> tuple[int, int]:
     """
     Translates an (x, y) coordinate to its (x', y') counterpart in the cube coordinate system.
@@ -76,7 +79,7 @@ def deregister_coord(
     :return: A (x', y') tuple representing the translated coordinate to the cube's coordinates.
     """
     # Note: Reversing padding is not needed, since the images are padded
-    #       on their right and bottom sides. Since (0, 0) is at the top
+    #       on their right and bottom sides. Since (0, 0) is in the top
     #       left corner of the image, padding does not affect the coordinate
     #       system.
 
@@ -180,7 +183,7 @@ def clip_points(points: list[tuple[int, int]], cube_width: int, cube_height: int
     clipped_points = []
 
     for x, y in points:
-        clipped_x = max(0, min(x, cube_width - 1))   # -1 for 0 based indexing
+        clipped_x = max(0, min(x, cube_width - 1))  # -1 for 0 based indexing
         clipped_y = max(0, min(y, cube_height - 1))
         clipped_points.append((clipped_x, clipped_y))
 
@@ -205,7 +208,7 @@ def compute_selection_mask(
     mask: np.ndarray = np.zeros((cube_height, cube_width), dtype=np.uint8)
 
     np_selection: np.ndarray = np.array(selection)
-    
+
     # If the selection is Rectangle selection, the polygon cannot self intersect,
     # so find the convex hull of the selection
     if selection_type == SelectionType.Rectangle:
@@ -214,7 +217,7 @@ def compute_selection_mask(
         # of an hourglass figure
         x1, y1 = np_selection[0]
         x2, y2 = np_selection[1]
-        
+
         p1 = (x1, y1)
         p2 = (x1, y2)
         p3 = (x2, y1)
@@ -257,13 +260,13 @@ def get_selection(
         LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
         return None
 
-    cube_dir: str | None = None
-    
+    cube_dir: str | None
+
     match cube_type:
         case CubeType.Elemental:
             cube_dir = get_elemental_cube_path(data_source_folder)
         case CubeType.Raw:
-            cube_dir = get_raw_rpl_paths(data_source_folder)[0] 
+            cube_dir = get_raw_rpl_paths(data_source_folder)[0]
         case _:
             LOG.error(f"Incorrect cube type: {cube_type}")
             return None
@@ -286,7 +289,7 @@ def get_selection(
     cube_h: int
     cube_w: int
     img_h, img_w, _ = imread(base_img_dir).shape
-    
+
     # get paths to files
     path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
 
@@ -296,7 +299,7 @@ def get_selection(
         return np.empty(0)
     cube_w = int(info['width'])
     cube_h = int(info['height'])
-        
+
     cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
 
     if cube_recipe_path is None:

@@ -4,7 +4,6 @@ from os.path import join, isdir
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer.server.file_system.helper import set_config, get_config
-
 from xrf_explorer.server.file_system.sources.data_listing import get_data_sources_names
 
 RESOURCES_PATH: str = join('tests', 'resources')
@@ -28,10 +27,10 @@ class TestUploadFileToServer:
 
         # execute
         result: list[str] = get_data_sources_names()
-        
+
         # validate
         assert data_source_name in result
-    
+
     def test_no_file_names(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH_NO_SOURCES)

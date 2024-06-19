@@ -4,13 +4,12 @@ from os import path, makedirs
 
 import cv2
 import numpy as np
-from skimage import color
-from cv2.typing import MatLike
 
+from cv2.typing import MatLike
+from skimage import color
+
+from xrf_explorer.server.file_system import get_elemental_cube_path
 from xrf_explorer.server.file_system.cubes.elemental import normalize_elemental_cube_per_layer, get_elemental_data_cube
-from xrf_explorer.server.file_system import (
-    get_elemental_cube_path
-)
 from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -22,9 +21,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
     :param clusters: the currently available clusters
     :param bitmasks: the bitmasks corresponding to the different clusters
-    :param threshold: the threshold that indicates how similar the colors have to be in order
-    to be merged in a cluster
-
+    :param threshold: the threshold that indicates how similar the colors have to be in order to be merged in a cluster
     :return: the new bitmask with potentially merged clusters and the new clusters
     """
 
@@ -79,10 +76,8 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
-            Defaults to 10.
-    :param k: number of clusters required at end. Defaults to 30.
-
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
+    :param k: number of clusters required at end. Defaults to 30
     :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
     """
     # set seed so results are consistent
@@ -93,7 +88,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
         return np.ndarray([]), np.ndarray([])
-    
+
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
     reshaped_image: np.ndarray = reshape_image(image)
 
@@ -125,17 +120,15 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
-                                         elem_threshold: float = 0.1, nr_of_attempts: int = 10, 
+                                         elem_threshold: float = 0.1, nr_of_attempts: int = 10,
                                          k: int = 30) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. 
-                           Defaults to 10.
-    :param k: number of clusters required at end. Defaults to 2.
-
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
+    :param k: number of clusters required at end. Defaults to 2
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
 
@@ -146,7 +139,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
         return [], []
 
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
-    
+
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
@@ -214,13 +207,11 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
-    """ Merges array of bitmasks into single bitmask with up to 32 bits = 4 bytes per entry,
-    where the set bits determine the clusters that pixel corresponds to.
+    """Merges array of bitmasks into single bitmask with up to 32 bits = 4 bytes per entry, where the set bits
+    determine the clusters that pixel corresponds to.
 
     :param bitmasks: the bitmasks corresponding to each cluster
-
-    :return: a single bitmask in the form of an image (3 8bit entries per pixel) corresponding to
-    the combination of all bitmasks
+    :return: a single bitmask in the form of an image (3 8bit entries per pixel) corresponding to the combination of all bitmasks
     """
     if len(bitmasks) == 0:
         return np.ndarray([])
@@ -244,12 +235,11 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
 
 
 def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
-    """ Saves the given bitmask as a png with the given name in the given path.
+    """Saves the given bitmask as a png with the given name in the given path.
 
-    :param bitmask: the bitmask to be saved as png.
-    :param full_path: the path (including image name) to save the file to.
-
-    :return: true if the file was successfully saved, false otherwise.
+    :param bitmask: the bitmask to be saved as png
+    :param full_path: the path (including image name) to save the file to
+    :return: true if the file was successfully saved, false otherwise
     """
     try:
         # Ensure the directory exists
@@ -273,31 +263,31 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
 
 
 def calculate_color_difference(lab1: np.ndarray, lab2: np.ndarray) -> int:
-    """
-    Returns the Euclidean distance between two LAB colors.
-    :param lab1: color 1.
-    :param lab2: color 2.
-    :return: The distance.
+    """Returns the Euclidean distance between two LAB colors.
+
+    :param lab1: color 1
+    :param lab2: color 2
+    :return: The distance
     """
 
     return np.linalg.norm(lab1 - lab2)
 
 
 def image_to_lab(image: np.ndarray) -> np.ndarray:
-    """
-    Turns an image of RGB triples into an image of LAB triples.
-    :param image: The image in RGB format (range: [0, 255]).
-    :return: The image in LAB format.
+    """Turns an image of RGB triples into an image of LAB triples.
+
+    :param image: The image in RGB format (range: [0, 255])
+    :return: The image in LAB format
     """
 
     return color.rgb2lab(image / 255)
 
 
 def image_to_rgb(image: np.ndarray) -> np.ndarray:
-    """
-    Turns an image of LAB triples into an image of RGB triples.
+    """Turns an image of LAB triples into an image of RGB triples.
+
     :param image: The image in LAB format (range: L = [0,100], AB = [-127,127])
-    :return: The image in RGB format.
+    :return: The image in RGB format
     """
 
     rgb_image = color.lab2rgb(image) * 255
@@ -307,20 +297,20 @@ def image_to_rgb(image: np.ndarray) -> np.ndarray:
 
 
 def rgb_to_lab(rgb_triple: np.ndarray) -> np.ndarray:
-    """
-    Returns the LAB equivalent of an RGB color.
-    :param rgb_triple: The RGB color triple.
-    :return: the LAB format.
+    """Returns the LAB equivalent of an RGB color.
+
+    :param rgb_triple: The RGB color triple
+    :return: the LAB format
     """
 
     return color.rgb2lab([[[rgb_triple[0] / 255, rgb_triple[1] / 255, rgb_triple[2] / 255]]])[0][0]
 
 
 def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
-    """
-    Returns the RGB equivalent of an LAB color.
-    :param lab_color: The LAB color triple.
-    :return: The RGB color.
+    """Returns the RGB equivalent of an LAB color.
+
+    :param lab_color: The LAB color triple
+    :return: The RGB color
     """
     rgb_color = color.lab2rgb([lab_color[0], lab_color[1], lab_color[2]]) * 255
     # when doing rgb_to_lab and then lab_to_rgb the numbers
@@ -330,8 +320,8 @@ def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
 
 
 def reshape_image(small_image: np.ndarray) -> np.ndarray:
-    """Reshape image into 2D array where each row represents a pixel and each pixel is
-    represented as a 3-element array containing the RGB values
+    """Reshape image into 2D array where each row represents a pixel and each pixel is represented as a 3-element array
+    containing the RGB values.
 
     :param small_image: the resized image to reshape
     :return: the reshaped image
@@ -343,7 +333,7 @@ def get_image(image_file_path: str) -> np.ndarray:
     """Read an image from the specified file path and convert it from BGR to RGB color space.
 
     :param image_file_path: the path to the image file
-    :return: The image represented as a NumPy array in RGB color space.
+    :return: The image represented as a NumPy array in RGB color space
     """
 
     raw_image: np.ndarray = cv2.imread(image_file_path)
@@ -360,8 +350,8 @@ def get_image(image_file_path: str) -> np.ndarray:
 
 
 def rgb_to_hex(r: int, g: int, b: int) -> str:
-    """
-    Turns a rgb triple into hex format.
+    """Turns a rgb triple into hex format.
+
     :param r: the red value
     :param g: the green value
     :param b: the blue value
@@ -372,8 +362,8 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
 
 
 def convert_to_hex(clusters: np.array) -> np.array:
-    """
-    Converts clusters to hex format.
+    """ Converts clusters to hex format.
+
     :param clusters: the list of clusters in rgb format
     :return: clusters in hex format
     """

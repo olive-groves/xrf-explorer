@@ -1,7 +1,7 @@
 from logging import Logger, getLogger
 from os.path import abspath
-from yaml import safe_load, YAMLError
 
+from yaml import safe_load, YAMLError
 
 LOG: Logger = getLogger(__name__)
 APP_CONFIG: dict | None = None
