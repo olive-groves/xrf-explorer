@@ -1,7 +1,6 @@
 import logging
 
 from os import path, makedirs
-from typing import Any
 
 import cv2
 import numpy as np
