@@ -48,7 +48,9 @@ from xrf_explorer.server.process.color_segmentation import (
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
-from xrf_explorer.server.spectra import get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
+from xrf_explorer.server.process.spectra import (
+    get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
+)
 from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
 
 LOG: logging.Logger = logging.getLogger(__name__)

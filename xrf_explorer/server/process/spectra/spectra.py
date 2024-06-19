@@ -1,12 +1,12 @@
-# This module contains all functions related to the spectral chart
-import math
+import logging
+
+from math import ceil, floor, log
+
 from os import makedirs
 from os.path import join, isfile, isdir
 
 import numpy as np
 import xraydb
-import logging
-from math import ceil, floor
 
 from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, set_binned, \
     get_raw_rpl_names
@@ -39,7 +39,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
             mipmap_raw_cube(data_source, level)
         config: dict = get_config()
         raw_name, _ = get_raw_rpl_names(data_source)
-        path_to_raw: str = str(join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name))
+        path_to_raw: str = join(config["uploads-folder"], data_source, "generated", "mipmaps", str(level), raw_name)
 
     try:
         params: dict = get_spectra_params(data_source)
@@ -216,7 +216,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
     num_points: int = np.count_nonzero(mask)
     level: int = 0
     if num_points > 0:
-        level = max(0, ceil(math.log(num_points / max_points, 4)))
+        level = max(0, ceil(log(num_points / max_points, 4)))
 
     LOG.info("Getting selection at mip level %i", level)
 
@@ -299,7 +299,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
 
         # y_spectra has 10000 points instead of 4096, so scale index and bin size to slice it
         start_index = floor(start_channel*len(y_spectrum)/4096)
-        new_bin_size = round(bin_size/((4096)/len(y_spectrum)))
+        new_bin_size = round(bin_size/(4096 / len(y_spectrum)))
         mean = np.mean(y_spectrum[start_index:start_index+new_bin_size])
 
         point = {"index": i, "value": mean}
@@ -316,7 +316,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     peaks = []
     for i in range(len(x_peaks)):
         # take only the peaks within the domain [low, high]
-        if (low <= x_peaks[i] and high > x_peaks[i]):
+        if low <= x_peaks[i] < high:
             point = {"index": (x_peaks[i]-low)/bin_size, "value": y_peaks[i]}
             peaks.append(point)
     response.append(peaks)
@@ -375,7 +375,10 @@ class ElementLines:
         self.peak_labels = np.array(peak_labels)[indices]
 
 
-def get_element_spectrum(element: str, excitation_energy_kev: float, normalize: bool = True, x_kevs: np.ndarray | None = None, std: float = 0.01) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | np.ndarray:
+def get_element_spectrum(
+        element: str, excitation_energy_kev: float, normalize: bool = True,
+        x_kevs: np.ndarray | None = None, std: float = 0.01
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | np.ndarray:
     """Compute simple excitation spectrum (no matrix effects) and peaks
 
     :param element: symbol of the element
@@ -436,7 +439,9 @@ def get_element_spectra(elements: list, x_kevs: np.ndarray, excitation_energy_ke
     return elements, element_spectra
 
 
-def gaussian_convolve(peak_energies: np.ndarray, peak_intensities: np.ndarray, x_kevs: np.ndarray | None = None, std: float = 0.01) -> tuple[np.ndarray, np.ndarray]:
+def gaussian_convolve(
+        peak_energies: np.ndarray, peak_intensities: np.ndarray, x_kevs: np.ndarray | None = None, std: float = 0.01
+) -> tuple[np.ndarray, np.ndarray]:
     """Convolves line spectrum defined by `peak_energies` and `peak_intensities` 
     with a Gaussian peak shape. 
 
