@@ -368,7 +368,7 @@ class ElementLines:
 
             # get corresponding edge properties
             edge = initial_level  # IUPAC notation!  e.g. 'L1', not 'La'
-            edge_energy, fluo_yield, jump_ratio = xraydb.xray_edge(
+            _, fluo_yield, jump_ratio = xraydb.xray_edge(
                 element, edge)
             jump_coeff = (jump_ratio - 1) / jump_ratio  # see Volker
             # print(f'{name}: {energy}; jump_coeff: {jump_coeff:.03f}; fluo_yield: {fluo_yield}')

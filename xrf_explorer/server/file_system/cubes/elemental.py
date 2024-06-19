@@ -181,7 +181,7 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
 
     # Check if the data was loaded correctly
     if raw_cube.size == 0 or names == []:
-        LOG.error(f"Couldn't parse elemental image cube or list of names")
+        LOG.error("Couldn't parse elemental image cube or list of names")
         return []
 
     # Normalize the elemental data cube
