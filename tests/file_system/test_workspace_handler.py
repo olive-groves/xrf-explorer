@@ -5,7 +5,7 @@ from os.path import join, normpath
 
 from json import load
 
-from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.file_system import get_path_to_workspace, update_workspace
 
 RESOURCES_PATH: str = join('tests', 'resources')

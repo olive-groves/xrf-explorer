@@ -6,9 +6,10 @@ from os.path import isdir, join
 import numpy as np
 from umap import UMAP
 
+from xrf_explorer.server.file_system.cubes.elemental import normalize_ndarray_to_grayscale, get_elemental_data_cube
 from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system import (
-    get_elemental_data_cube, get_elemental_cube_path, normalize_ndarray_to_grayscale
+    get_elemental_cube_path
 )
 
 from .general import valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding

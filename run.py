@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # import app dependencies only after showing initial log message
     from waitress import serve
     from xrf_explorer import app
-    from xrf_explorer.server.file_system.config_handler import get_config, set_config
+    from xrf_explorer.server.file_system.helper import get_config, set_config
 
     LOG.info("Finished loading XRF-Explorer")
 

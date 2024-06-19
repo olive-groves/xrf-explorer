@@ -19,12 +19,12 @@ from xrf_explorer.server.file_system import (
     get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size, 
     get_path_to_base_image, is_base_image
 )
-from xrf_explorer.server.file_system.from_dms import get_elemental_datacube_dimensions_from_dms
+from xrf_explorer.server.file_system.cubes.convert_dms import get_elemental_datacube_dimensions_from_dms
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
 
-def load_image_toregister(path_image_toregister: str) -> MatLike | None:
+def load_image_to_register(path_image_toregister: str) -> MatLike | None:
     """Loads an image from the specified path. Preserves the alpha channel of .png files.
 
     :param path_image_toregister: Path of the image to be loaded for registering.
@@ -310,7 +310,7 @@ def register_image_to_image(
     """
 
     image_reference = imread(path_image_reference)
-    image_register = load_image_toregister(path_image_register)
+    image_register = load_image_to_register(path_image_register)
 
     if image_reference is None:
         LOG.error("Reference image could not be loaded")
