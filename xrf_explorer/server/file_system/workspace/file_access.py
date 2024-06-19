@@ -169,42 +169,6 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
     return path_to_raw, path_to_rpl
 
 
-def parse_rpl(path: str) -> dict:
-    """Parse the rpl file of a data source as a dictionary, containing the following info:
-        - width
-        - height
-        - depth
-        - offset
-        - data length
-        - data type
-        - byte order
-        - record by
-
-    :param path: path to the rpl file
-    :return: Dictionary containing the attributes' name and value
-    """
-
-    try:
-        with open(path, "r") as in_file:
-            # first split on linebreak
-            info: list[str] = in_file.read().splitlines()
-    except OSError as err:
-        LOG.error("error while reading rpl file: {%s}", err)
-        return {}
-
-    parsed_rpl: dict[str, str] = {}
-    if info:
-        for line in info:
-            split: list[str] = line.split()  # split on whitespace
-            if len(split) == 2:
-                # add tuple to dictionary
-                parsed_rpl[split[0].strip()] = split[1].strip()
-    else:
-        LOG.error("Error while parsing rpl file: file empty")
-
-    return parsed_rpl
-
-
 def set_binned(data_source: str, binned: bool):
     """
     Sets the binned boolean attribute of a workspace.
@@ -224,20 +188,6 @@ def set_binned(data_source: str, binned: bool):
 
     with open(workspace_path, 'w') as f:
         json.dump(workspace_dict, f)
-
-
-def get_spectra_params(data_source: str) -> dict[str, int]:
-    """
-    Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
-
-    :param data_source: Name of the data source.
-    :return: dictionary with the low, high and bin size values
-    """
-    workspace_dict: dict | None = get_workspace_dict(data_source)
-    if workspace_dict is None:
-        raise FileNotFoundError
-
-    return workspace_dict["spectralParams"]
 
 
 def get_workspace_dict(data_source_folder_name: str) -> dict | None:
