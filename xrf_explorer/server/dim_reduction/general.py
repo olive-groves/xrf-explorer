@@ -139,7 +139,7 @@ def get_image_of_indices_to_embedding(data_source: str) -> str:
     """Returns the path to the image that maps the indices of the elemental data cube to the embedding.
 
     :param data_source: Name of the data source.
-    :return: Path the the image. If the image is not found, an empty string is returned.
+    :return: Path to the image. If the image is not found, an empty string is returned.
     """
     # Get the path to the dimensionality reduction folder
     dr_folder: str = get_path_to_dr_folder(data_source)
