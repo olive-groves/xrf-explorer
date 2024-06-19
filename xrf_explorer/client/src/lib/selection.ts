@@ -50,8 +50,9 @@ export type ElementSelection = {
  */
 export type ColorSegmentationSelection = {
   /**
-   * The element corresponding to the clusters (indexed from 1).
-   * If no element, then it should be 0.
+   * The element index corresponding to the clusters
+   * If no element, its 0, otherwise its the 
+   * element's channel plus 1
    */
   element: number;
   /**
@@ -71,15 +72,8 @@ export type ColorSegmentationSelection = {
    * range from 0 to 100.
    * Arbitrary number if computing clusters over the whole image.
    */
-  elem_threshold: number;
+  threshold: number;
 };
-
-export type ColorSegmentationParameters = {
-  /**
-   * The number of clusters to compute for each element.
-   */
-  k_elem: number;
-}
 
 /**
  * Describes a selection made in the DR Window.
