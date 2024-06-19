@@ -6,7 +6,7 @@ from os.path import isdir, join
 import numpy as np
 from umap import UMAP
 
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system import (
     get_elemental_data_cube, get_elemental_cube_path, normalize_ndarray_to_grayscale
 )

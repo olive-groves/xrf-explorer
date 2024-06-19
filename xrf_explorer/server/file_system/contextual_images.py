@@ -7,7 +7,7 @@ from pathlib import Path
 import PIL
 from PIL.Image import Image
 
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.helper import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

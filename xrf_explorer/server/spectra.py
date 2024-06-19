@@ -10,7 +10,7 @@ from math import ceil, floor
 
 from xrf_explorer.server.file_system.file_access import get_raw_rpl_paths, get_spectra_params, parse_rpl, set_binned, \
     get_raw_rpl_names
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.helper import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

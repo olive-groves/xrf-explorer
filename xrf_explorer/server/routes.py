@@ -13,7 +13,7 @@ from markupsafe import escape
 from numpy import ndarray
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system.contextual_images import (get_contextual_image_path, get_contextual_image_size,
                                                                get_contextual_image,
                                                                get_contextual_image_recipe_path)
@@ -724,8 +724,8 @@ def get_color_clusters(data_source: str):
     k_elem: int = int(k_means_parameters_elem['k'])
 
     # path to json for caching
-    full_path_json: str = join(path_to_save, f'colors_{k}_{nr_attempts}_{
-        elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
+    full_path_json: str = join(path_to_save,
+                               f'colors_{k}_{nr_attempts}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.json')
     # If json already exists, return that directly
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
@@ -775,8 +775,8 @@ def get_color_clusters(data_source: str):
         combined_bitmask: ndarray = combine_bitmasks(bitmasks_per_elem[i])
 
         # Save bitmask
-        full_path: str = join(path_to_save, f'elementCluster_{i}_{
-            elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
+        full_path: str = join(path_to_save,
+                              f'elementCluster_{i}_{elem_threshold}_{k_elem}_{nr_attempts_elem}.png')
         image_saved: bool = save_bitmask_as_png(combined_bitmask, full_path)
         if not image_saved:
             return f'Error occurred while saving bitmask for element {i} as png', 500
@@ -840,8 +840,8 @@ def get_element_color_cluster_bitmask(data_source: str, element: int):
 
     # Path to bitmask
     path_to_save: str = join(uploads_folder, data_source, cs_folder)
-    full_path: str = join(path_to_save, f'elementCluster_{element}_{
-        elem_threshold}_{k}_{nr_attempts}.png')
+    full_path: str = join(path_to_save,
+                          f'elementCluster_{element}_{elem_threshold}_{k}_{nr_attempts}.png')
     if not exists(full_path):
         get_color_clusters(data_source)
 

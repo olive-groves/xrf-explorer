@@ -3,7 +3,7 @@ import logging
 from os import listdir
 from os.path import isdir, isfile, join
 
-from .config_handler import get_config
+from .helper import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

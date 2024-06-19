@@ -5,7 +5,7 @@ import json
 from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
-from xrf_explorer.server.file_system.config_handler import get_config
+from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system.workspace_handler import get_path_to_workspace
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -66,8 +66,8 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
         return None
 
     if not exists(join(backend_config["uploads-folder"], data_source_folder)):
-        LOG.error(f"Data source folder at {
-                  join(backend_config["uploads-folder"], data_source_folder)} does not exist.")
+        LOG.error(
+            f"Data source folder at {join(backend_config['uploads-folder'], data_source_folder)} does not exist.")
         return None
 
     # Get the filenames of the elemental cube files
@@ -262,9 +262,7 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
             return workspace_json
     except Exception:
         LOG.error(
-            f"Error while reading workspace json of data source with folder name {
-                data_source_folder_name}"
-        )
+            f"Error while reading workspace json of data source with folder name {data_source_folder_name}")
         return None
 
 
