@@ -8,7 +8,7 @@ import numpy as np
 
 from xrf_explorer.server.file_system.workspace.file_access import get_path_to_workspace, get_elemental_cube_path_from_name
 from xrf_explorer.server.file_system.from_csv import (
-    get_raw_elemental_data_cube_from_csv, get_raw_elemental_map_from_csv,
+    get_elemental_data_cube_from_csv, get_elemental_map_from_csv,
     get_elements_from_csv)
 from xrf_explorer.server.file_system.from_dms import (
     get_raw_elemental_data_cube_from_dms, get_raw_elemental_map_from_dms, 
