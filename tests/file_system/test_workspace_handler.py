@@ -3,8 +3,8 @@ from logging import INFO
 from os import remove
 from os.path import join, normpath
 
-from xrf_explorer.server.file_system import get_path_to_workspace, update_workspace
-from xrf_explorer.server.file_system.helper import set_config
+from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.file_system.workspace import get_path_to_workspace, update_workspace
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
