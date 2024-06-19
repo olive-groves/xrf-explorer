@@ -1,6 +1,6 @@
 from logging import Logger, getLogger
 
-from xrf_explorer.server.file_system.workspace.file_access import get_workspace_dict
+from xrf_explorer.server.file_system.workspace import get_workspace_dict
 
 LOG: Logger = getLogger(__name__)
 

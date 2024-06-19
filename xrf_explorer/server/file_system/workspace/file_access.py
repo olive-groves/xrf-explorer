@@ -7,7 +7,7 @@ from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
 from xrf_explorer.server.file_system import get_config
-from xrf_explorer.server.file_system.workspace import get_path_to_workspace
+from .workspace_handler import get_path_to_workspace
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
