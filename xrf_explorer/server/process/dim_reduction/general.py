@@ -8,7 +8,7 @@ import numpy as np
 from cv2 import imwrite
 from scipy.interpolate import NearestNDInterpolator
 
-from xrf_explorer.server.file_system import get_elemental_cube_path
+from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_path
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
 from xrf_explorer.server.file_system.helper import get_config
 
