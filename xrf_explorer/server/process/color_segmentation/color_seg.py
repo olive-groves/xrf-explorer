@@ -5,7 +5,6 @@ from typing import Any
 
 import cv2
 import numpy as np
-from numpy import ndarray, dtype, signedinteger, long
 from skimage import color
 from cv2.typing import MatLike
 
@@ -195,7 +194,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str,
 
         cluster_bitmasks: list[np.ndarray] = []
         labels = labels.flatten()
-        subset_indices: tuple[ndarray[Any, dtype[signedinteger[Any] | long]], ...] = np.nonzero(bitmask)
+        subset_indices: tuple[np.ndarray, ...] = np.nonzero(bitmask)
 
         # For each cluster
         for i in range(k):
