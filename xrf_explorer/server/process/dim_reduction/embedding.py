@@ -10,9 +10,8 @@ from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system import (
     get_elemental_data_cube, get_elemental_cube_path, normalize_ndarray_to_grayscale
 )
-from xrf_explorer.server.dim_reduction.general import (
-    valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
-)
+
+from .general import valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

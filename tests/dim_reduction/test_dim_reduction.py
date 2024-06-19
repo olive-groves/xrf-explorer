@@ -4,18 +4,17 @@ import sys
 
 from os import remove
 from os.path import isfile, join, normpath
-from pathlib import Path
 
-from xrf_explorer.server.file_system.config_handler import set_config
+from xrf_explorer.server.file_system import set_config
 
 sys.path.append('.')
 
-from xrf_explorer.server.dim_reduction import (
+from xrf_explorer.server.process.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
-from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
+from xrf_explorer.server.process.dim_reduction.general import create_image_of_indices_to_embedding
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestDimReduction:

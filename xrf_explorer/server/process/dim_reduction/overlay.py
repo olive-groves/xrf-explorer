@@ -1,9 +1,6 @@
 import logging 
 
 from os.path import join, abspath
-from pathlib import Path
-
-from json import dump
 
 import numpy as np
 import matplotlib
@@ -14,7 +11,8 @@ from cv2.typing import MatLike
 from xrf_explorer.server.file_system import get_elemental_data_cube
 from xrf_explorer.server.file_system.file_access import get_elemental_cube_path
 from xrf_explorer.server.image_register import get_image_registered_to_data_cube
-from xrf_explorer.server.dim_reduction.general import valid_element, get_path_to_dr_folder
+
+from .general import valid_element, get_path_to_dr_folder
 
 matplotlib.use('Agg')
 
@@ -38,8 +36,8 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
 
     # Load the file embedding.npy
     try:
-        indices: np.ndarray = np.load(Path(abspath(dr_folder), 'indices.npy'))
-        embedding: np.ndarray = np.load(Path(abspath(dr_folder), 'embedded_data.npy'))
+        indices: np.ndarray = np.load(join(abspath(dr_folder), 'indices.npy'))
+        embedding: np.ndarray = np.load(join(abspath(dr_folder), 'embedded_data.npy'))
     except OSError as e:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return ""
