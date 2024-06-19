@@ -237,7 +237,7 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
 
     # Initialize the resulting image with 3 color channels
     merged_image: np.ndarray = np.zeros((height, width, 3), dtype=np.uint8)
-    # Store bitmask in G(reen) channel
+    # Store bitmask in Green channel
     merged_image[:, :, 1] = combined_bitmask
 
     return merged_image
@@ -342,7 +342,7 @@ def reshape_image(small_image: np.ndarray) -> np.ndarray:
 def get_image(image_file_path: str) -> np.ndarray:
     """Read an image from the specified file path and convert it from BGR to RGB color space.
 
-    :param image_file_path: the file path of the image
+    :param image_file_path: the path to the image file
     :return: The image represented as a NumPy array in RGB color space.
     """
 
