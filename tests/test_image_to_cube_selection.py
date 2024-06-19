@@ -5,7 +5,7 @@ import pytest
 
 from cv2 import imread
 
-from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
 from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path,
