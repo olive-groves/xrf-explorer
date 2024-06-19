@@ -14,8 +14,8 @@ LOG: logging.Logger = logging.getLogger(__name__)
 def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
     """Get the names of the elemental cube files of a given datasource.
 
-    :param data_source: Name of the data source folder.
-    :return: Names of the elemental cube files.
+    :param data_source: Name of the data source folder
+    :return: Names of the elemental cube files
     """
 
     workspace_dict = get_workspace_dict(data_source)
@@ -28,9 +28,9 @@ def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
 def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str | None:
     """Get the path to the elemental data cube of the given cube and data source.
 
-    :param data_source: Name of the data source folder.
-    :param cube_name: Name of the elemental cube.
-    :return: Path to the elemental data cube with the given name.
+    :param data_source: Name of the data source folder
+    :param cube_name: Name of the elemental cube
+    :return: Path to the elemental data cube with the given name
     """
 
     # Load backend config
@@ -56,8 +56,8 @@ def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str |
 def get_elemental_cube_path(data_source_folder: str) -> str | None:
     """Get the path to the elemental data cube of a data source.
 
-    :param data_source_folder: Name of the data source folder.
-    :return: Path to the elemental data cube.
+    :param data_source_folder: Name of the data source folder
+    :return: Path to the elemental data cube
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -91,10 +91,10 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
 
 
 def get_elemental_cube_recipe_path(data_source: str) -> str | None:
-    """Get the location of the elemental cube recipe file of a given datasource
+    """Get the location of the elemental cube recipe file of a given datasource.
 
-    :param data_source: Name of the datasource.
-    :return: Path string pointing to the recipe of the elemental cube.
+    :param data_source: Name of the datasource
+    :return: Path string pointing to the recipe of the elemental cube
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -116,12 +116,11 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     return abspath(join(data_source_dir, recipe_name))
 
 
-def get_raw_rpl_names(data_source: str
-                      ) -> tuple[str, str]:
-    """Get the name of the raw data file (.raw) and the .rpl file of a given datasource
+def get_raw_rpl_names(data_source: str) -> tuple[str, str]:
+    """Get the name of the raw data file (.raw) and the .rpl file of a given datasource.
 
-    :param data_source: Name of the data source.
-    :return: Names of the raw data and rpl files.
+    :param data_source: Name of the data source
+    :return: Names of the raw data and rpl files
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -146,10 +145,10 @@ def get_raw_rpl_names(data_source: str
 
 
 def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
-    """Get the paths to the raw data file (.raw) and the .rpl file of a given datasource
+    """Get the paths to the raw data file (.raw) and the .rpl file of a given datasource.
 
-    :param data_source: Name of the data source.
-    :return: Paths to the raw data and rpl files.
+    :param data_source: Name of the data source
+    :return: Paths to the raw data and rpl files
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -173,8 +172,8 @@ def set_binned(data_source: str, binned: bool):
     """
     Sets the binned boolean attribute of a workspace.
 
-    :param data_source: Name of the data source.
-    :param binned: Boolean to set binned to.
+    :param data_source: Name of the data source
+    :param binned: Boolean to set binned to
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
@@ -194,7 +193,7 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
     """
     Returns the workspace of the specified data source in dictionary format.
 
-    :param data_source_folder_name: Name of the data source folder.
+    :param data_source_folder_name: Name of the data source folder
     :return: Dictionary format of the workspace.json
     """
     backend_config: dict | None = get_config()
@@ -218,10 +217,10 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
 
 def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
     """
-    Returns the path of the data cube recipe of the specified data source. If the data cube does
-    not have a recipe, the function returns None.
+    Returns the path of the data cube recipe of the specified data source. If the data cube does not have a recipe, the
+    function returns None.
 
-    :param data_source_folder_name: Name of the data source folder.
+    :param data_source_folder_name: Name of the data source folder
     :return: Path of the data cube recipe
     """
     # load backend config
@@ -252,8 +251,8 @@ def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
 def get_base_image_name(data_source_folder_name: str) -> str | None:
     """Get the name of the rgb image of a given data source.
 
-    :param data_source_folder_name: Name of the data source folder.
-    :return: Name of the rgb image.
+    :param data_source_folder_name: Name of the data source folder
+    :return: Name of the rgb image
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -271,8 +270,8 @@ def get_base_image_name(data_source_folder_name: str) -> str | None:
 def get_base_image_path(data_source_folder_name: str) -> str | None:
     """Get the path to rgb image of a data source.
 
-    :param data_source_folder_name: Name of the data source folder.
-    :return: Path to the rgb image.
+    :param data_source_folder_name: Name of the data source folder
+    :return: Path to the rgb image
     """
     # load backend config
     backend_config: dict | None = get_config()

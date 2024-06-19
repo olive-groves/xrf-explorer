@@ -30,7 +30,7 @@ from xrf_explorer.server.file_system.cubes.elemental import (
 )
 from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
 from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace, update_workspace
-from xrf_explorer.server.file_system.workspace.data_listing import get_data_sources_names, get_data_source_files
+from xrf_explorer.server.file_system.sources.data_listing import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace.file_access import (
     get_elemental_cube_path,
     get_raw_rpl_paths,
