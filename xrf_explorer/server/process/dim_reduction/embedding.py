@@ -4,14 +4,14 @@ from os import mkdir
 from os.path import isdir, join
 
 import numpy as np
+
 from umap import UMAP
 
-from xrf_explorer.server.file_system.cubes.elemental import normalize_ndarray_to_grayscale, get_elemental_data_cube
-from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system import (
     get_elemental_cube_path
 )
-
+from xrf_explorer.server.file_system.cubes.elemental import normalize_ndarray_to_grayscale, get_elemental_data_cube
+from xrf_explorer.server.file_system.helper import get_config
 from .general import valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -22,12 +22,12 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     """Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
     The original data is not modified. For more information on UMAP, see: https://umap-learn.readthedocs.io/en/latest/.
 
-    :param data: np.ndarray, shape (n_samples, n_features). The data on which UMAP is used to reduce the dimension of -features to n_components.
-    :param n_neighbors: The size of local neighborhood. See UMAP documentation for more information.
-    :param min_dist: The minimum distance between points in the embedding. See UMAP documentation for more information.
-    :param n_components: The dimension of the embedded space. See UMAP documentation for more information.
-    :param metric: The metric to use for distance computation. See UMAP documentation for more information.
-    :return: np.ndarray, shape (n_samples, n_components) containing the result of UMAP applied to given data with the given parameters. If UMAP fails, None is returned.
+    :param data: np.ndarray, shape (n_samples, n_features). The data on which UMAP is used to reduce the dimension of -features to n_components
+    :param n_neighbors: The size of local neighborhood. See UMAP documentation for more information
+    :param min_dist: The minimum distance between points in the embedding. See UMAP documentation for more information
+    :param n_components: The dimension of the embedded space. See UMAP documentation for more information
+    :param metric: The metric to use for distance computation. See UMAP documentation for more information
+    :return: np.ndarray, shape (n_samples, n_components) containing the result of UMAP applied to given data with the given parameters. If UMAP fails, None is returned
     """
 
     try:
@@ -43,21 +43,22 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
         return None
 
 
-def filter_elemental_cube(elemental_cube: np.ndarray, element: int, 
+def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
                           threshold: int, max_indices: int) -> tuple[np.ndarray, bool]:
-    """Get indices for which the value of the given element in the normalized elemental data cube is above the threshold.
+    """Get indices for which the value of the given element in the normalized elemental data cube is above the
+    threshold.
 
-    :param elemental_cube: shape (3, m, n) elemental data cube.
-    :param element: The element to filter on.
-    :param threshold: The threshold to filter by.
-    :param max_indices: The maximum number of indices to return.
-    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; the reduced list of indices.
+    :param elemental_cube: shape (3, m, n) elemental data cube
+    :param element: The element to filter on
+    :param threshold: The threshold to filter by
+    :param max_indices: The maximum number of indices to return
+    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; the reduced list of indices
     """
 
     # normalize the elemental map to [0, 255]
     # this is done so the threshold can be applied
     normalized_elemental_map: np.ndarray = normalize_ndarray_to_grayscale(elemental_cube[element])
-    
+
     # get all indices for which the intensity of the given element is above the threshold
     all_indices: np.ndarray = np.argwhere(normalized_elemental_map >= threshold)
 
@@ -66,10 +67,10 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     if all_indices.shape[0] > max_indices:
         LOG.info("Number of data points for dimensionality reduction is higher than the configured limit. "
                  "Points will be randomly downsampled, (%i -> %i)", all_indices.shape[0], max_indices)
-        
+
         # Use default rng to ensure random selection every time
         reduced_indices = all_indices[np.random.default_rng().choice(all_indices.shape[0], size=max_indices)]
-        
+
         return all_indices, reduced_indices
 
     # return the filtered indices
@@ -77,18 +78,16 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
 
 
 def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {}) -> str:
-    """Generate the embedding (lower dimensional representation of the data) of the
-    elemental data cube using the dimensionality reduction method "UMAP". The embedding 
-    with the list of indices (which pixels from the elemental data cube are in the embedding) 
-    are stored in the folder specified in the backend config file. The order the indices
-    occur in the indices list is the same order as the positions of the mapped pixels in 
-    the embedding.
+    """Generate the embedding (lower dimensional representation of the data) of the elemental data cube using the
+    dimensionality reduction method "UMAP". The embedding with the list of indices (which pixels from the elemental data
+    cube are in the embedding) are stored in the folder specified in the backend config file. The order the indices
+    occur in the indices list is the same order as the positions of the mapped pixels in the embedding.
 
-    :param data_source: The name of the data source to generate the embedding for.
-    :param element: The element to generate the embedding for.
-    :param threshold: The threshold to filter the data cube by.
-    :param new_umap_parameters: The parameters passed on to the UMAP algorithm.
-    :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled.
+    :param data_source: The name of the data source to generate the embedding for
+    :param element: The element to generate the embedding for
+    :param threshold: The threshold to filter the data cube by
+    :param new_umap_parameters: The parameters passed on to the UMAP algorithm
+    :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled
     """
 
     # load backend config

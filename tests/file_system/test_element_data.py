@@ -1,15 +1,14 @@
 from logging import INFO
-
 from os import remove
 from os.path import join
 
 from numpy import ndarray, array_equal, array, float32
 
-from xrf_explorer.server.file_system.helper import set_config, get_config
+from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
 from xrf_explorer.server.file_system.cubes.elemental import (
     get_elemental_data_cube, get_elemental_map, get_element_names, get_element_averages
 )
-from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
+from xrf_explorer.server.file_system.helper import set_config, get_config
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -24,16 +23,16 @@ class TestElementalData:
 
     ELEMENTS: list[str] = ["Secret", "Element"]
     RAW_ELEMENTAL_CUBE: ndarray = array([
-        [[-1, -2, -3], [-4, -5, -6], [-7, -8, -9]], 
+        [[-1, -2, -3], [-4, -5, -6], [-7, -8, -9]],
         [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        ], dtype=float32)
+    ], dtype=float32)
 
     def do_test_get_element_names(self, source, caplog):
         caplog.set_level(INFO)
 
         # setup
         expected_output: str = f"Elements loaded. Total elements: {len(self.ELEMENTS)}"
-        
+
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
@@ -41,18 +40,18 @@ class TestElementalData:
 
         # execute
         result: list[str] = get_element_names(path)
-        
+
         # verify
         assert len(result) == 2
         assert result == self.ELEMENTS
         assert expected_output in caplog.text
-    
+
     def do_test_get_elemental_cube(self, source, caplog):
         caplog.set_level(INFO)
 
         # setup
         expected_output: str = f"Elemental data cube loaded. Shape: {self.RAW_ELEMENTAL_CUBE.shape}"
-        
+
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
@@ -60,7 +59,7 @@ class TestElementalData:
 
         # execute
         result: ndarray = get_elemental_data_cube(path)
-        
+
         # verify
         assert array_equal(result, self.RAW_ELEMENTAL_CUBE)
         assert expected_output in caplog.text
@@ -71,7 +70,7 @@ class TestElementalData:
         # setup
         elemental_map: ndarray = self.RAW_ELEMENTAL_CUBE[0]
         expected_output: str = f"Elemental map loaded. Shape: {elemental_map.shape}"
-        
+
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
@@ -79,7 +78,7 @@ class TestElementalData:
 
         # execute
         result: ndarray = get_elemental_map(0, path)
-        
+
         # verify
         assert array_equal(result, elemental_map)
         assert expected_output in caplog.text
@@ -87,7 +86,7 @@ class TestElementalData:
     def test_get_element_names(self, caplog):
         self.do_test_get_element_names(self.DATA_CUBE_DMS, caplog)
         self.do_test_get_element_names(self.DATA_CUBE_CSV, caplog)
-    
+
     def test_get_elemental_cube(self, caplog):
         self.do_test_get_elemental_cube(self.DATA_CUBE_DMS, caplog)
         self.do_test_get_elemental_cube(self.DATA_CUBE_CSV, caplog)
@@ -101,15 +100,15 @@ class TestElementalData:
 
         # setup
         expected_output: str = "Calculated the average composition of the elements."
-        
+
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
         path: str = join(custom_config["uploads-folder"], self.DATA_CUBE_DMS)
-        
+
         # execute
         result: list[dict[str, str | float]] = get_element_averages(path)
-        
+
         # verify
         assert len(result) == 2
         assert result[0]['name'] == self.ELEMENTS[0]

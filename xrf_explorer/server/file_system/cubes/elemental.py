@@ -6,14 +6,12 @@ from os.path import basename, dirname, splitext
 
 import numpy as np
 
-from .convert_csv import get_elemental_data_cube_from_csv, get_elemental_map_from_csv, get_elements_from_csv
-from .convert_dms import get_elemental_data_cube_from_dms, get_elemental_map_from_dms, get_elements_from_dms, to_dms
-
 from xrf_explorer.server.file_system.workspace.file_access import (
     get_path_to_workspace,
     get_elemental_cube_path_from_name
 )
-
+from .convert_csv import get_elemental_data_cube_from_csv, get_elemental_map_from_csv, get_elements_from_csv
+from .convert_dms import get_elemental_data_cube_from_dms, get_elemental_map_from_dms, get_elements_from_dms, to_dms
 
 LOG: Logger = getLogger(__name__)
 

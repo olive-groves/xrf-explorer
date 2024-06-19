@@ -1,18 +1,17 @@
+import json
 import logging
-from io import BytesIO
 
+from io import BytesIO
 from os import rmdir, mkdir
 from os.path import isfile, isdir, exists, abspath, join
 
+import numpy as np
+
+from PIL.Image import Image, fromarray
 from flask import request, jsonify, abort, send_file
 from markupsafe import escape
-import json
-
-import numpy as np
-from PIL.Image import Image, fromarray
 
 from xrf_explorer import app
-from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
@@ -23,6 +22,7 @@ from xrf_explorer.server.file_system.cubes import (
     convert_elemental_cube_to_dms,
     parse_rpl, get_spectra_params
 )
+from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import (
     get_contextual_image_path, get_contextual_image_size,
@@ -31,21 +31,19 @@ from xrf_explorer.server.file_system.workspace import (
     get_elemental_cube_path, get_elemental_cube_recipe_path, get_raw_rpl_paths,
     get_base_image_name
 )
-
 from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
-
-from xrf_explorer.server.process.image_register.register_image import load_points_dict
-from xrf_explorer.server.process.dim_reduction import (
-    generate_embedding,
-    create_embedding_image,
-    get_image_of_indices_to_embedding
-)
 from xrf_explorer.server.process.color_segmentation import (
     get_path_to_cs_folder,
     combine_bitmasks, get_clusters_using_k_means,
     get_elemental_clusters_using_k_means, merge_similar_colors,
     save_bitmask_as_png, convert_to_hex
 )
+from xrf_explorer.server.process.dim_reduction import (
+    generate_embedding,
+    create_embedding_image,
+    get_image_of_indices_to_embedding
+)
+from xrf_explorer.server.process.image_register.register_image import load_points_dict
 from xrf_explorer.server.process.spectra import (
     get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
 )
@@ -73,7 +71,8 @@ def api():
 
 @app.route("/api/datasources")
 def list_accessible_data_sources():
-    """Return a list of all available data sources stored in the data folder on the remote server as specified in the project's configuration.
+    """Return a list of all available data sources stored in the data folder on the remote server as specified in the
+    project's configuration.
 
     :return: json list of strings representing the data sources names
     """
@@ -89,7 +88,7 @@ def get_workspace(data_source: str):
     """ Gets the workspace content for the specified data source or writes to it if a POST request is made.
 
     :param data_source: The name of the data source to get the workspace content for
-    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent.
+    :return: If a GET request is made, the workspace content is sent as a json file. If a POST request is made, a confirmation message is sent
     """
 
     if request.method == "POST":
@@ -99,7 +98,7 @@ def get_workspace(data_source: str):
         # Write content to the workspace
         result: bool = update_workspace(data_source, data)
 
-        # Check if the write was successful
+        # Check if writing was successful
         if not result:
             abort(400)
 
@@ -245,20 +244,20 @@ def convert_elemental_cube(data_source: str):
 
     :param data_source: The name of the data source to convert the elemental data cube
     """
-    
+
     # Get elemental data cube paths
     workspace_dict = get_workspace_dict(data_source)
     if workspace_dict is None:
         return "Error getting elemental datacube path", 500
 
     cube_names: list[str] = [cube_info["name"] for cube_info in workspace_dict["elementalCubes"]]
-    
+
     # Convert each elemental data cube
     for cube_name in cube_names:
         succes: bool = convert_elemental_cube_to_dms(data_source, cube_name)
         if not succes:
             return "Error converting elemental data cube to .dms format", 500
-        
+
     return "Converted elemental data cube to .dms format", 200
 
 
@@ -266,9 +265,9 @@ def convert_elemental_cube(data_source: str):
 def bin_raw_data(data_source: str, bin_params: str):
     """Bins the raw data files channels to compress the file.
 
-    :param data_source: the data source containing the raw data to bin.
-    :param bin_params: the JSON list of parameters: low, high, binSize.
-    :return: A boolean indicating if the binning was successful.
+    :param data_source: the data source containing the raw data to bin
+    :param bin_params: the JSON list of parameters: low, high, binSize
+    :return: A boolean indicating if the binning was successful
     """
     params: dict = json.loads(bin_params)
     low: int = params["low"]
@@ -284,7 +283,7 @@ def bin_raw_data(data_source: str, bin_params: str):
     return "Binned data", 200
 
 
-@ app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
+@app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
 def list_element_averages(data_source: str):
     """Get the names and averages of the elements present in the painting.
 
@@ -307,12 +306,10 @@ def list_element_averages(data_source: str):
 
 @app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
 def list_element_averages_selection(data_source: str):
-    """Get the names and averages of the elements present in a rectangular selection
-    of the painting.
+    """Get the names and averages of the elements present in a rectangular selection of the painting.
 
     :param data_source: data_source to get the element averages from
-    :return: JSON list of objects indicating average abundance for every element.
-Each object is of the form {name: element name, average: element abundance}
+    :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
     # path to elemental cube
     path: str | None = get_elemental_cube_path(data_source)
@@ -397,7 +394,7 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     :param data_source: data source to generate the embedding from
     :param element: element to generate the embedding for
     :param threshold: threshold from which a pixel is selected
-    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled.
+    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled
     """
 
     # Try to generate the embedding
@@ -431,9 +428,8 @@ def get_dr_overlay(data_source: str, overlay_type: str):
 
 @app.route("/api/<data_source>/dr/embedding/mapping")
 def get_dr_embedding_mapping(data_source: str):
-    """Creates the image for lasso selection that decodes to which points in the embedding
-    the pixels of the elemental data cube are mapped. Uses the current embedding and indices
-    for the given data source to create the image.
+    """Creates the image for lasso selection that decodes to which points in the embedding the pixels of the elemental
+    data cube are mapped. Uses the current embedding and indices for the given data source to create the image.
 
     :param data_source: data source to get the overlay from
     :return: image that decodes to which points in the embedding the pixels of the elemental data cube are mapped
@@ -615,12 +611,13 @@ def get_average_data(data_source: str):
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
 def get_element_spectra(data_source: str, element: str, excitation: int):
-    """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the element's peaks energies and intensity.
+    """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the
+    element's peaks energies and intensity.
 
-    :param data_source: the name of the data source, used for getting the spectrum boundaries and bin size.
-    :param element: the chemical element to get the theoretical spectra of.
-    :param excitation: the excitation energy.
-    :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities.
+    :param data_source: the name of the data source, used for getting the spectrum boundaries and bin size
+    :param element: the chemical element to get the theoretical spectra of
+    :param excitation: the excitation energy
+    :return: json list of tuples containing the bin number and the theoretical intensity for this bin, the peak energies and the peak intensities
     """
     try:
         params: dict[str, int] = get_spectra_params(data_source)
@@ -646,25 +643,25 @@ def get_selection_spectra(data_source: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
     :param data_source: the name of the data source
-    :return: json list of tuples containing the channel number and the average intensity of this channel.
+    :return: json list of tuples containing the channel number and the average intensity of this channel
     """
 
     selection: dict[str, any] | None = request.get_json()
     if selection is None:
         return "Error parsing request body", 400
-    
+
     # get selection type and points
     selection_type: str | None = selection.get('type')
     points: list[dict[str, float]] | None = selection.get('points')
     if selection_type is None or points is None:
         return "Error occurred while getting selection type or points from request body", 400
-    
+
     # validate and parse selection type
     try:
         selection_type_parsed: SelectionType = SelectionType(selection_type)
     except ValueError:
         return "Error parsing selection type", 400
-    
+
     # validate and parse points
     if not isinstance(points, list):
         return "Error parsing points; expected a list of points", 400
@@ -672,7 +669,7 @@ def get_selection_spectra(data_source: str):
         points_parsed: list[tuple[int, int]] = [(round(point['x']), round(point['y'])) for point in points]
     except ValueError:
         return "Error parsing points", 400
-    
+
     # get selection
     mask: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
     if mask is None:
@@ -689,8 +686,7 @@ def get_selection_spectra(data_source: str):
 
 @app.route('/api/<data_source>/cs/clusters', methods=['GET'])
 def get_color_clusters(data_source: str):
-    """Gets the colors corresponding to the image-wide color clusters, and saves the
-    corresponding bitmasks.
+    """Gets the colors corresponding to the image-wide color clusters, and saves the corresponding bitmasks.
 
     :param data_source: data_source to get the clusters from
     :return json containing the ordered list of colors
@@ -789,7 +785,7 @@ def get_color_clusters(data_source: str):
     return json.dumps(color_data)
 
 
-@ app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
+@app.route('/api/<data_source>/cs/image/bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
     """
     Returns the png bitmask for the color clusters over the whole painting.

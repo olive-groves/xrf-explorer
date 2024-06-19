@@ -132,10 +132,11 @@ class TestColorSegmentation:
         clusters_per_elem: np.ndarray
         bitmasks_per_elem: np.ndarray
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                          self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
+            self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
 
         for i in range(len(clusters_per_elem)):
-            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
+            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i],
+                                                                              bitmasks_per_elem[i])
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)

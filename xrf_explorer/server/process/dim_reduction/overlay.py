@@ -1,17 +1,17 @@
-import logging 
+import logging
 
 from os.path import join, abspath
 
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+
 from cv2 import cvtColor, COLOR_BGR2RGB
 from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
 from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_path
 from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
-
 from .general import valid_element, get_path_to_dr_folder
 
 matplotlib.use('Agg')
@@ -22,9 +22,9 @@ LOG: logging.Logger = logging.getLogger(__name__)
 def create_embedding_image(data_source: str, overlay_type: str) -> str:
     """Creates the embedding image from the embedding.
 
-    :param data_source: Name of the data source to create the embedding image for.
-    :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_.
-    :return: Path to created embedding image is successful, otherwise empty string.
+    :param data_source: Name of the data source to create the embedding image for
+    :param overlay_type: The type of overlay to create. Can be the name of image prefixed by contextual_ or an element number prefixed by elemental_
+    :return: Path to created embedding image is successful, otherwise empty string
     """
 
     LOG.info("Creating embedding image...")
@@ -58,7 +58,7 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_type)
         if registered_image is None:
             return ""
-        
+
         # Convert BGR to RGB
         registered_rgb_image: np.ndarray = cvtColor(registered_image, COLOR_BGR2RGB)
 
@@ -98,14 +98,14 @@ def create_image_overlay(registered_image: np.ndarray, indices: np.ndarray) -> n
     """Creates the overlay based on the given image type. This is done by getting the pixels out of the image at the
     given indices.
 
-    :param registered_image: The pixels of the registered image to create the overlay from.
-    :param indices: The indices to get the pixels from.
-    :return: The normalized pixels at the given indices of the image.
+    :param registered_image: The pixels of the registered image to create the overlay from
+    :param indices: The indices to get the pixels from
+    :return: The normalized pixels at the given indices of the image
     """
 
     # Get the pixels at the given indices
     overlay: np.ndarray = registered_image[indices[:, 0], indices[:, 1]]
-    
+
     # Normalize the pixels values to be in the range [0, 1]
     overlay = overlay.astype(float) / 255.0
 
@@ -117,11 +117,11 @@ def create_element_overlay(
         data_cube: np.ndarray, embedding: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Creates an intensity overlay of the given element.
 
-    :param element: The element to create the overlay for.
-    :param indices: The indices of the data to create the overlay for.
-    :param data_cube: The data to create the overlay from.
-    :param embedding: The embedding data.
-    :return: The reordered embedding and overlay of the given element.
+    :param element: The element to create the overlay for
+    :param indices: The indices of the data to create the overlay for
+    :param data_cube: The data to create the overlay from
+    :param embedding: The embedding data
+    :return: The reordered embedding and overlay of the given element
     """
 
     # Get elemental overlay
@@ -139,10 +139,10 @@ def create_element_overlay(
 def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path: str) -> str:
     """Makes the image of the given embedding with the given overlay and saves it to the given path.
     
-    :param embedding: The embedding data.
-    :param overlay: The overlay data.
-    :param path: The path to save the image.
-    :return: Path to the created image.
+    :param embedding: The embedding data
+    :param overlay: The overlay data
+    :param path: The path to save the image
+    :return: Path to the created image
     """
 
     # Create the plot
@@ -150,7 +150,7 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
 
     plt.axis('off')
     fig.patch.set_facecolor('black')
-    
+
     # Get the minimum and maximum values of the embedding (values can possibly be NaN)
     xmin, xmax = np.nanmin(embedding[:, 0]), np.nanmax(embedding[:, 0])
     ymin, ymax = np.nanmin(embedding[:, 1]), np.nanmax(embedding[:, 1])

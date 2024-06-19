@@ -1,17 +1,17 @@
 {
-    "baseImage": {
-        "imageLocation": "image.png",
-        "name": "RGB",
-        "recipeLocation": ""
-    },
-    "contextualImages": [],
-    "elementalCubes": [
-        {
-            "dataLocation": "cube.dms",
-            "fileType": "dms",
-            "name": "Datacube",
-            "recipeLocation": "control_points.csv"
-        }
-    ],
-    "name": "data_source"
+  "baseImage": {
+    "imageLocation": "image.png",
+    "name": "RGB",
+    "recipeLocation": ""
+  },
+  "contextualImages": [],
+  "elementalCubes": [
+    {
+      "dataLocation": "cube.dms",
+      "fileType": "dms",
+      "name": "Datacube",
+      "recipeLocation": "control_points.csv"
+    }
+  ],
+  "name": "data_source"
 }

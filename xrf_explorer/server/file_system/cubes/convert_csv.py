@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import csv
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -13,14 +12,14 @@ def get_elements_from_csv(path: str | Path) -> list[str]:
     :param path: Path to the csv file containing the elemental data cube.
     :return: List of the names of the elements.
     """
-    
+
     with open(path, 'r') as f:
         # Create csv reader. The data is separated by ';'
         csvreader: csv._reader = csv.reader(f, delimiter=';')
 
         # Columns names are on the first row
         column_names: list[str] = csvreader.__next__()
-        
+
         # First two columns are not for elements
         return column_names[2:]
 
@@ -32,11 +31,11 @@ def get_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
     :param path: Path to the csv file containing the elemental data cube.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
-    
+
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
     df_cube: pd.DataFrame = pd.read_csv(
-            path, sep=';', header=0, index_col=False, dtype=np.float32
-        ).set_index(["row", "column"])
+        path, sep=';', header=0, index_col=False, dtype=np.float32
+    ).set_index(["row", "column"])
 
     # Get width and height of the elemental cube
     height, width = len(df_cube.index.levels[0]), len(df_cube.index.levels[1])
@@ -59,7 +58,7 @@ def get_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray:
 
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
     df_cube: pd.DataFrame = pd.read_csv(
-        path, sep=';', usecols=[0, 1, column_element], 
+        path, sep=';', usecols=[0, 1, column_element],
         header=0, index_col=False, dtype=np.float32
     ).set_index(["row", "column"])
 

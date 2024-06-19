@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 
-
 LOG: Logger = getLogger(__name__)
 
 
@@ -16,14 +15,14 @@ def get_elemental_datacube_dimensions_from_dms(path: str | Path) \
     :param path: Path to the raw data file in the server.
     :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes). Tuple is as follows (width, height, channels, header size)
     """
-    
+
     with open(path, 'rb') as file:
         # Read the first line and ignore it (doesn't include important data)
         file.readline()
 
         # Read the second line
         dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
-        
+
         # Parse the second line into the dimensions
         dimensions: list[int] = [int(dim) for dim in dimensions_list]
 
@@ -40,10 +39,10 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
     :param path: Path to the dms file containing the elemental data cube.
     :return: List of the names of the elements.
     """
-    
+
     # data dimensions
     (width, height, channels, header_size) = get_elemental_datacube_dimensions_from_dms(path)
-    
+
     with open(path, 'rb') as f:
         # Calculate total offset 
         total_offset: int = header_size + width * height * channels * 4
@@ -55,7 +54,7 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
         names: list[str] = []
         while line := f.readline():
             names.append(line.decode('utf-8').strip())
-        
+
         return names
 
 
@@ -66,12 +65,12 @@ def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
     :param path: Path to the dms file containing the elemental data cube.
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
-    
+
     # get data dimensions
     (w, h, c, header_size) = get_elemental_datacube_dimensions_from_dms(path)
 
     # list of raw elemental data
-    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=header_size, count=w*h*c, dtype=np.float32)
+    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=header_size, count=w * h * c, dtype=np.float32)
 
     # reshape the raw elemental data
     return list_raw_elemental_cube.reshape(c, h, w)
@@ -85,10 +84,10 @@ def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
     :param path: Path to the dms file containing the elemental data cube.
     :return: 2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.
     """
-    
+
     # get data dimensions
     (w, h, _, header_size) = get_elemental_datacube_dimensions_from_dms(path)
-    
+
     # size of the elemental map in bytes
     bytes_elemental_map: int = w * h * 4
 
@@ -96,8 +95,8 @@ def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
     total_offset: int = header_size + element * bytes_elemental_map
 
     # list of raw elemental map
-    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=total_offset, count=w*h, dtype=np.float32)
-    
+    list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=total_offset, count=w * h, dtype=np.float32)
+
     # reshape the raw elemental map
     return list_raw_elemental_cube.reshape(h, w)
 

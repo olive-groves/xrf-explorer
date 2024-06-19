@@ -1,8 +1,9 @@
 import logging
-import pytest
 
 from os import remove
 from os.path import join, exists
+
+import pytest
 
 from cv2.typing import MatLike
 
@@ -84,8 +85,8 @@ class TestImageRegistration:
         assert not result
         assert not exists(self.PATH_RESULT)
         assert (
-            f"Registered image could not be saved at {invalid_path} because directory does not exist."
-            in caplog.text
+                f"Registered image could not be saved at {invalid_path} because directory does not exist."
+                in caplog.text
         )
 
     def test_register_image_to_image_success(self, caplog):
@@ -129,7 +130,7 @@ class TestImageRegistration:
         # setup
         set_config(self.CONFIG_PATH)
         caplog.set_level(logging.INFO)
-        
+
         # execute
         result: MatLike | None = get_image_registered_to_data_cube(
             self.DATA_SOURCE, self.IMAGE_NAME

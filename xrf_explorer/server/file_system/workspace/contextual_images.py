@@ -1,10 +1,11 @@
+import json
 import logging
 
-import json
 from os.path import join, abspath
 from pathlib import Path
 
 import PIL
+
 from PIL.Image import Image
 
 from xrf_explorer.server.file_system.helper import get_config
@@ -20,9 +21,9 @@ def get_contextual_image_data(data_source: str, name: str) -> dict | None:
     """
     Returns a contextual image from workspace.json. Returns None if the image or data_source does not exist.
 
-    :param data_source: The data source to fetch the image from.
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image.
-    :return: Dict containing the name, imageLocation and recipeLocation of a contextual image.
+    :param data_source: The data source to fetch the image from
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
+    :return: Dict containing the name, imageLocation and recipeLocation of a contextual image
     """
 
     LOG.info("Searching for contextual image %s in data source %s.", name, data_source)
@@ -57,9 +58,9 @@ def get_contextual_image_path(data_source: str, name: str) -> str | None:
     Returns the path of the requested contextual image. If no file is found, it will return None. This will also happen
     if the config file is empty.
 
-    :param data_source: The data source to fetch the image from.
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image.
-    :return: The path to the file.
+    :param data_source: The data source to fetch the image from
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
+    :return: The path to the file
     """
 
     # Get the contextual image
@@ -81,9 +82,9 @@ def get_contextual_image_recipe_path(data_source: str, name: str) -> str | None:
     Returns the path of the registering recipe of the requested contextual image. If no file is found, it will return
     None. This will also happen if the config file is empty.
 
-    :param data_source: The data source to fetch the image from.
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image.
-    :return: The path to the file.
+    :param data_source: The data source to fetch the image from
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
+    :return: The path to the file
     """
 
     # Get the contextual image
@@ -108,8 +109,8 @@ def get_contextual_image_recipe_path(data_source: str, name: str) -> str | None:
 def get_contextual_image(image_path: str) -> Image | None:
     """Open and returns an image at a specified path.
 
-    :param image_path: The path to the image file.
-    :return: The image.
+    :param image_path: The path to the image file
+    :return: The image
     """
 
     try:
@@ -125,8 +126,8 @@ def get_contextual_image(image_path: str) -> Image | None:
 def get_contextual_image_size(image_path: str) -> tuple[int, int] | None:
     """Get the size of an image.
 
-    :param image_path: The path to the image file.
-    :return: The dimensions of the image.
+    :param image_path: The path to the image file
+    :return: The dimensions of the image
     """
 
     image: Image = get_contextual_image(image_path)
@@ -139,8 +140,8 @@ def get_contextual_image_size(image_path: str) -> tuple[int, int] | None:
 def get_base_image_name(data_source: str) -> str | None:
     """Get the name to the base image of the data source.
     
-    :param data_source: The data source to get the base image from.
-    :return: The name of the base image.
+    :param data_source: The data source to get the base image from
+    :return: The name of the base image
     """
 
     LOG.info("Getting path to base image of data source %s.", data_source)
@@ -150,33 +151,33 @@ def get_base_image_name(data_source: str) -> str | None:
     if not backend_config:
         LOG.error("Config file is empty.")
         return None
-    
+
     data_source_dir: str = join(backend_config["uploads-folder"], data_source)
     workspace_path: str = join(data_source_dir, "workspace.json")
     try:
         with open(workspace_path, 'r') as workspace:
             data_json: str = workspace.read()
             data: dict = json.loads(data_json)
-            
+
             return data["baseImage"]["name"]
     except OSError as err:
         LOG.error("Error while opening workspace: %s", err)
-    
+
     return None
 
 
 def get_path_to_base_image(data_source: str) -> str | None:
     """Get the path to the base image of the data source.
     
-    :param data_source: The data source to get the base image from.
-    :return: The path to the base image.
+    :param data_source: The data source to get the base image from
+    :return: The path to the base image
     """
 
     # Get the name of the base image
     base_image_name: str | None = get_base_image_name(data_source)
     if base_image_name is None:
-        return None 
-    
+        return None
+
     # Return the path to the base image
     return get_contextual_image_path(data_source, base_image_name)
 
@@ -184,15 +185,15 @@ def get_path_to_base_image(data_source: str) -> str | None:
 def is_base_image(data_source: str, name: str) -> bool | None:
     """Check if the image is the base image of the data source.
 
-    :param data_source: The data source to check whether the name is the base image.
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image.
-    :return: True if the image is the base image, False otherwise.
+    :param data_source: The data source to check whether the name is the base image
+    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
+    :return: True if the image is the base image, False otherwise
     """
 
     # Get the name of the base image
     base_image_name: str | None = get_base_image_name(data_source)
     if base_image_name is None:
         return None
-    
+
     # Return whether the name is the base image
     return base_image_name == name
