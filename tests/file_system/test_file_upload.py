@@ -1,26 +1,22 @@
-from os import mkdir, path
-import sys
-
-from os.path import join
-from pathlib import Path
+from os import mkdir
+from os.path import join, isdir
 
 from werkzeug.datastructures.file_storage import FileStorage
 
-from xrf_explorer.server.file_system.config_handler import set_config, get_config
-
-sys.path.append('.')
+from xrf_explorer.server.file_system import set_config, get_config
 
 from xrf_explorer.server.file_system.data_listing import get_data_sources_names
 
-RESOURCES_PATH: Path = Path('tests/resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestUploadFileToServer:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs/upload-file-server-backend.yml'))
-    CUSTOM_CONFIG_PATH_NO_SOURCES: str = join(RESOURCES_PATH, Path('configs/upload-file-server-backend-no-sources.yml'))
-    UPLOAD_FILE_PATH: str = join(RESOURCES_PATH, 'file_system/txt-file.txt')
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'upload-file-server-backend.yml')
+    CUSTOM_CONFIG_PATH_NO_SOURCES: str = join(RESOURCES_PATH, 'configs', 'upload-file-server-backend-no-sources.yml')
+    UPLOAD_FILE_PATH: str = join(RESOURCES_PATH, 'file_system', 'txt-file.txt')
 
-    def get_filestorage_object(self, path: str):
+    @staticmethod
+    def get_filestorage_object(path: str):
         with open(path, 'rb') as f:
             file_storage: FileStorage = FileStorage(f)
         return file_storage
@@ -40,7 +36,7 @@ class TestUploadFileToServer:
         # setup
         set_config(self.CUSTOM_CONFIG_PATH_NO_SOURCES)
         config: dict = get_config()
-        if not path.isdir(config["uploads-folder"]):
+        if not isdir(config["uploads-folder"]):
             mkdir(config["uploads-folder"])
 
         # execute

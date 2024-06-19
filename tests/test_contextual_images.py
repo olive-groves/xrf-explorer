@@ -1,29 +1,28 @@
 import logging
-import sys
-from os.path import join, abspath
-from pathlib import Path
 
-import PIL
+from os.path import join, abspath
+
 import numpy as np
+import PIL
 from PIL import ImageChops
 from PIL.Image import Image
 
-from xrf_explorer.server.file_system.config_handler import set_config
+from xrf_explorer.server.file_system import set_config
 
-sys.path.append('.')
-
-from xrf_explorer.server.file_system.contextual_images import get_contextual_image_path, get_contextual_image_size, \
+from xrf_explorer.server.file_system.contextual_images import (
+    get_contextual_image_path, get_contextual_image_size,
     get_contextual_image, get_contextual_image_recipe_path
+)
 
 
 class TestContextualImages:
-    RESOURCES_PATH: Path = Path('tests', 'resources')
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path("configs", "contextual-images.yml"))
-    TEST_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "test.png")))
-    TEST_RECIPE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "recipe.csv")))
-    INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, Path("contextual_images", "painting", "invalid.png")))
+    RESOURCES_PATH: str = join('tests', 'resources')
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "contextual-images.yml")
+    TEST_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, "contextual_images", "painting", "test.png"))
+    TEST_RECIPE_PATH: str = abspath(join(RESOURCES_PATH, "contextual_images", "painting", "recipe.csv"))
+    INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, "contextual_images", "painting", "invalid.png"))
     NONEXISTENT_IMAGE_PATH: str = abspath(
-        join(RESOURCES_PATH, Path("contextual_images", "painting", "nonexistent.png")))
+        join(RESOURCES_PATH, "contextual_images", "painting", "nonexistent.png"))
 
     def test_get_contextual_image_path_base(self, caplog):
         caplog.set_level(logging.INFO)

@@ -1,24 +1,18 @@
 from logging import INFO
 
-import sys
-
 from os import remove
-from os.path import join
-from pathlib import Path
+from os.path import join, normpath
 
 from json import load
 
-from xrf_explorer.server.file_system.config_handler import set_config
-
-sys.path.append('.')
-
+from xrf_explorer.server.file_system import set_config
 from xrf_explorer.server.file_system import get_path_to_workspace, update_workspace
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestWorkspaceHandler:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'workspace_handler.yml'))
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'workspace_handler.yml')
     CUSTOM_DATA_FOLDER: str = join(RESOURCES_PATH, 'file_system', 'test_workspace_handler')
     DATASOURCE_NAME: str = "a_datasource"
     DATASOURCE_NAME_NO_WORKSPACE: str = "no_datasource"
@@ -84,7 +78,7 @@ class TestWorkspaceHandler:
         result: str = get_path_to_workspace(self.DATASOURCE_NAME)
         
         # verify
-        assert Path(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME, 'workspace.json').samefile(result)
+        assert normpath(join(self.CUSTOM_DATA_FOLDER, self.DATASOURCE_NAME, 'workspace.json')) == normpath(result)
         assert expected_output in caplog.text
     
     def test_update_workspace(self, caplog):

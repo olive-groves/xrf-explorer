@@ -1,8 +1,11 @@
-from xrf_explorer.server.file_system.config_handler import set_config
 import pytest
-from cv2 import imread
-import numpy as np
+
 from os.path import join
+
+import numpy as np
+from cv2 import imread
+
+from xrf_explorer.server.file_system import set_config
 from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,

@@ -1,16 +1,11 @@
 from logging import INFO
 
-import sys
-
 from os import remove
 from os.path import join
-from pathlib import Path
 
 from numpy import ndarray, array_equal, array, float32
 
-from xrf_explorer.server.file_system.config_handler import set_config, get_config
-
-sys.path.append('.')
+from xrf_explorer.server.file_system import set_config, get_config
 
 from xrf_explorer.server.file_system import (
     get_elemental_data_cube, get_elemental_map, 
@@ -18,11 +13,11 @@ from xrf_explorer.server.file_system import (
     to_dms    
 )
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestElementalData:
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, Path('configs', 'elemental-data.yml'))
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'elemental-data.yml')
 
     DATA_CUBE_DMS: str = 'test.dms'
     DATA_CUBE_CSV: str = 'test.csv'
@@ -44,7 +39,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(Path(custom_config["uploads-folder"]), source)
+        path: str = join(custom_config["uploads-folder"], source)
 
         # execute
         result: list[str] = get_element_names(path)
@@ -63,7 +58,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(Path(custom_config["uploads-folder"]), source)
+        path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
         result: ndarray = get_elemental_data_cube(path)
@@ -82,7 +77,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(Path(custom_config["uploads-folder"]), source)
+        path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
         result: ndarray = get_elemental_map(0, path)
@@ -112,7 +107,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(Path(custom_config["uploads-folder"]), self.DATA_CUBE_DMS)
+        path: str = join(custom_config["uploads-folder"], self.DATA_CUBE_DMS)
         
         # execute
         result: list[dict[str, str | float]] = get_element_averages(path)
