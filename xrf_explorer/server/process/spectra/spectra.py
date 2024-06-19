@@ -7,9 +7,9 @@ from os.path import join, isfile, isdir
 import numpy as np
 import xraydb
 
-from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_spectra_params
-from xrf_explorer.server.file_system.helper import get_config
-from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, set_binned, get_raw_rpl_names
+from xrf_explorer.server.file_system import get_config
+from xrf_explorer.server.file_system.cubes import parse_rpl, get_spectra_params
+from xrf_explorer.server.file_system.workspace import get_raw_rpl_paths, set_binned, get_raw_rpl_names
 
 from ..helper import get_path_to_generated_folder
 

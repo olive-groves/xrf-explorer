@@ -8,11 +8,10 @@ import numpy as np
 from cv2 import imwrite
 from scipy.interpolate import NearestNDInterpolator
 
+from xrf_explorer.server.file_system import get_config
+from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
 from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_path
-from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
-from xrf_explorer.server.file_system.helper import get_config
-
-from ..helper import get_path_to_generated_folder
+from xrf_explorer.server.process import get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

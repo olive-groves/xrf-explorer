@@ -12,6 +12,8 @@ from flask import request, jsonify, abort, send_file
 from markupsafe import escape
 
 from xrf_explorer import app
+
+from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
@@ -22,30 +24,43 @@ from xrf_explorer.server.file_system.cubes import (
     convert_elemental_cube_to_dms,
     parse_rpl, get_spectra_params
 )
-from xrf_explorer.server.file_system.helper import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import (
-    get_contextual_image_path, get_contextual_image_size,
-    get_contextual_image, get_contextual_image_recipe_path,
-    get_path_to_workspace, update_workspace, get_workspace_dict,
-    get_elemental_cube_path, get_elemental_cube_recipe_path, get_raw_rpl_paths,
+    get_contextual_image_path,
+    get_contextual_image_size,
+    get_contextual_image,
+    get_contextual_image_recipe_path,
+    get_path_to_workspace,
+    update_workspace,
+    get_workspace_dict,
+    get_elemental_cube_path,
+    get_elemental_cube_recipe_path,
+    get_raw_rpl_paths,
     get_base_image_name
 )
-from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
+
+from xrf_explorer.server.process.image_to_cube_selection import get_selection, SelectionType, CubeType
 from xrf_explorer.server.process.color_segmentation import (
     get_path_to_cs_folder,
-    combine_bitmasks, get_clusters_using_k_means,
-    get_elemental_clusters_using_k_means, merge_similar_colors,
-    save_bitmask_as_png, convert_to_hex
+    combine_bitmasks,
+    get_clusters_using_k_means,
+    get_elemental_clusters_using_k_means,
+    merge_similar_colors,
+    save_bitmask_as_png,
+    convert_to_hex
 )
 from xrf_explorer.server.process.dim_reduction import (
     generate_embedding,
     create_embedding_image,
     get_image_of_indices_to_embedding
 )
-from xrf_explorer.server.process.image_register.register_image import load_points_dict
+from xrf_explorer.server.process.image_register import load_points_dict
 from xrf_explorer.server.process.spectra import (
-    get_average_global, get_raw_data, get_average_selection, get_theoretical_data, bin_data
+    get_average_global,
+    get_raw_data,
+    get_average_selection,
+    get_theoretical_data,
+    bin_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)

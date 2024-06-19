@@ -16,12 +16,12 @@ from cv2 import (
 )
 from cv2.typing import MatLike
 
-from xrf_explorer.server.file_system import (
+from xrf_explorer.server.file_system.workspace import (
     get_elemental_cube_path, get_elemental_cube_recipe_path,
     get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size,
     get_path_to_base_image, is_base_image
 )
-from xrf_explorer.server.file_system.cubes.convert_dms import get_elemental_datacube_dimensions_from_dms
+from xrf_explorer.server.file_system.cubes import get_elemental_datacube_dimensions_from_dms
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

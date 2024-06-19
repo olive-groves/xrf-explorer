@@ -8,12 +8,8 @@ from .elemental import (
     get_element_averages,
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
-    get_elemental_data_cube
+    get_elemental_data_cube,
+    normalize_elemental_cube_per_layer,
 )
 from .spectral import parse_rpl, get_spectra_params
-
-__all__ = [
-    "normalize_ndarray_to_grayscale", "get_elemental_map", "get_element_names", "get_short_element_names",
-    "get_element_averages", "get_element_averages_selection", "convert_elemental_cube_to_dms",
-    "parse_rpl", "get_spectra_params"           
-]
+from .convert_dms import get_elemental_datacube_dimensions_from_dms
