@@ -658,7 +658,7 @@ def get_selection_spectra(data_source: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
     :param data_source: the name of the data source
-    :return: json list of tuples containing the channel number and the average intensity of this channel
+    :return: JSON array where the index is the channel number and the value is the average intensity of that channel
     """
 
     selection: dict[str, any] | None = request.get_json()
@@ -691,7 +691,7 @@ def get_selection_spectra(data_source: str):
         return "Error occurred while getting selection from datacube", 500
 
     # get average
-    result = get_average_selection(data_source, mask)
+    result: list[float] = get_average_selection(data_source, mask)
     try:
         return json.dumps(result)
     except Exception as e:
@@ -711,21 +711,16 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
     :return json containing the ordered list of colors
     """
     # Get rgb image name and path
-    rgb_image_name: str = get_base_image_name(data_source)
+    rgb_image_name: str | None = get_base_image_name(data_source)
     if rgb_image_name is None:
         return 'Error occurred while getting rgb image name', 500
 
     config: dict | None = get_config()
-    if not config:
+    if config is None:
         return 'Error occurred while getting backend config', 500
-    uploads_folder: str = str(config['uploads-folder'])
-    generated_folder: str = str(config['generated-folder-name'])
-    cs_folder: str = str(config['cs-folder-name'])
 
     # Path to cache data
     path_to_save: str = get_path_to_cs_folder(data_source)
-    if not path_to_save:
-        return 'Error occurred while getting path to save bitmask to', 500
 
     # path to json for caching color
     full_path_json: str
