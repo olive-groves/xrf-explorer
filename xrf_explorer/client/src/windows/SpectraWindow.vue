@@ -33,7 +33,7 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
-let ready: boolean;
+let ready: boolean = false;
 
 // set the dimensions and margins of the graph
 const margin = { top: 30, right: 30, bottom: 70, left: 60 },
