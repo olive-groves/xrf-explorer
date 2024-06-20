@@ -1,20 +1,24 @@
 import * as THREE from "three";
 import { Layer, LayerGroup, LayerUniform } from "./types";
+import { toast } from "vue-sonner";
+import { h, markRaw } from "vue";
+import { getTargetSize } from "./api";
 
 export const scene: {
   /**
    * The scene that is being rendered.
    */
   scene: THREE.Scene;
+  /**
+   * The renderer for the scene.
+   */
+  renderer?: THREE.WebGLRenderer;
 } = {
   scene: new THREE.Scene(),
 };
 
 import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
-import { toast } from "vue-sonner";
-import { h, markRaw } from "vue";
-import { getTargetSize } from "./api";
 
 /**
  * Creates a layer in the image viewer and adds the given image to it.
@@ -35,52 +39,8 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
         texture.generateMipmaps = false;
       }
 
-      // Create a square
-      const shape = new THREE.Shape();
-      shape.moveTo(0, 0);
-      shape.lineTo(1, 0);
-      shape.lineTo(1, 1);
-      shape.lineTo(0, 1);
-
-      const geometry = new THREE.ShapeGeometry(shape);
-
-      // Get the size of the target image
-      const size = await getTargetSize();
-
-      // Scale the square to the same dimensions as the texture.
-      // By scaling through this method, the UV coordinates of the shape are preserved.
-      const mat = new THREE.Matrix4();
-      mat.set(size.width, 0, 0, 0, 0, size.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
-      geometry.applyMatrix4(mat);
-
-      // Add the texture to the uniform to allow it to be used in the shaders
-      layer.uniform.tImage = {
-        type: "t",
-        value: texture,
-      };
-
-      // Create a material to render the texture on to the created shape.
-      // The vertex shader handles the movement of the texture for registering and the viewport.
-      // The fragment shader handles sampling colors from the texture.
-      const material = new THREE.RawShaderMaterial({
-        vertexShader: vertex,
-        fragmentShader: fragment,
-        glslVersion: "300 es",
-        uniforms: layer.uniform,
-        side: THREE.DoubleSide,
-        transparent: true,
-        blending: THREE.NormalBlending,
-      });
-
-      const mesh = new THREE.Mesh(geometry, material);
-
-      // Set the correct initial render order.
-      mesh.renderOrder = -layer.uniform.iIndex.value;
-
-      layer.mesh = mesh;
-
-      console.debug(`Adding layer ${layer.id} to scene`);
-      scene.scene.add(mesh);
+      // Create layer
+      loadLayerFromTexture(layer, texture);
     },
     (reason) => {
       console.warn(`Failed to load layer ${layer.id}`, reason);
@@ -89,6 +49,60 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
       });
     },
   );
+}
+
+/**
+ * Creates a layer in the image viewer and adds the given texture to it.
+ * @param layer - The layer that should get loaded.
+ * @param texture - The layer that should get loaded.
+ */
+export async function loadLayerFromTexture(layer: Layer, texture: THREE.Texture) {
+  // Create a square
+  const shape = new THREE.Shape();
+  shape.moveTo(0, 0);
+  shape.lineTo(1, 0);
+  shape.lineTo(1, 1);
+  shape.lineTo(0, 1);
+
+  const geometry = new THREE.ShapeGeometry(shape);
+
+  // Get the size of the target image
+  const size = await getTargetSize();
+
+  // Scale the square to the same dimensions as the texture.
+  // By scaling through this method, the UV coordinates of the shape are preserved.
+  const mat = new THREE.Matrix4();
+  mat.set(size.width, 0, 0, 0, 0, size.height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+  geometry.applyMatrix4(mat);
+
+  // Add the texture to the uniform to allow it to be used in the shaders
+  layer.uniform.tImage = {
+    type: "t",
+    value: texture,
+  };
+
+  // Create a material to render the texture on to the created shape.
+  // The vertex shader handles the movement of the texture for registering and the viewport.
+  // The fragment shader handles sampling colors from the texture.
+  const material = new THREE.RawShaderMaterial({
+    vertexShader: vertex,
+    fragmentShader: fragment,
+    glslVersion: "300 es",
+    uniforms: layer.uniform,
+    side: THREE.DoubleSide,
+    transparent: true,
+    blending: THREE.NormalBlending,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+
+  // Set the correct initial render order.
+  mesh.renderOrder = -layer.uniform.iIndex.value;
+
+  layer.mesh = mesh;
+
+  console.debug(`Adding layer ${layer.id} to scene`);
+  scene.scene.add(mesh);
 }
 
 /**

@@ -111,17 +111,6 @@ void main() {
     // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
     // and (channel/256, 1) for the thresholds.
     // We get the color from the auxiliary and render in alphascale.
-    vec4 auxiliaryColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
-    vec2 threshold = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
-    if (auxiliaryColor.w == 0.0) {
-      fragColor = transparent;
-    } else {
-      float alpha = (fragColor.x - threshold.x) / (threshold.y - threshold.x);
-      fragColor = vec4(
-        auxiliaryColor.xyz,
-        clamp(alpha, 0.0, 1.0)
-      );
-    }
   } else if (iLayerType == TYPE_CS) {
     // Get auxiliary data from texture
     // Element index j given by iAuxiliary, cluster index i given by R value

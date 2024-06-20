@@ -1,22 +1,45 @@
 import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
-import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
+import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { LayerType } from "./types";
-import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
+import { loadLayerFromTexture, scene } from "./scene";
 import { ElementSelection } from "@/lib/selection";
-import { hexToRgb } from "@/lib/utils";
 import { layerGroupDefaults } from "./workspace";
 import { registerLayer } from "./registering";
 import { getDataSize, getRecipe, getTargetSize } from "./api";
 import { config } from "@/main";
+import * as THREE from "three";
+import { hexToRgb } from "@/lib/utils";
+
+import elementalFragment from "./elementalFragment.glsl?raw";
+import elementalVertex from "./elementalVertex.glsl?raw";
 
 const selection = computed(() => appState.selection.elements);
 
-const width = 256; // Arbitrary amount, just needs to be greater than the maximal amount of elemental channels.
-const height = 2; // Top row of pixels will be used to store colors and the bottom to store thresholds.
-const data = new Uint8Array(width * height * 4);
-const dataTexture = createDataTexture(data, width, height);
+type ElementalMap = {
+  loading: boolean;
+  mesh?: THREE.Mesh;
+  uniform: ElementalUniform;
+};
+
+type ElementalUniform = {
+  iThreshold: { value: THREE.Vector2 };
+  iColor: { value: THREE.Vector3 };
+  tMap?: { value: THREE.Texture; type: "t" };
+};
+
+let elementalMaps: {
+  [key: number]: ElementalMap;
+} = {};
+const elementalScene = new THREE.Scene();
+const elementalTarget = new THREE.WebGLRenderTarget(1, 1, {
+  format: THREE.RGBAFormat,
+  type: THREE.FloatType,
+});
+const elementalCamera = new THREE.OrthographicCamera();
+
+render();
 
 watch(selection, selectionUpdated, { immediate: true, deep: true });
 
@@ -26,45 +49,105 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  */
 function selectionUpdated(newSelection: ElementSelection[]) {
   newSelection.forEach((channel) => {
-    // Update auxiliary texture
-    const start = channel.channel * 4;
-    const second = start + width * 4;
-
-    // If channel n is selected, the color at (n, 0) is set to its selected color
-    // and the color at (n, 1) contains the thresholds.
+    const map = elementalMaps[channel.channel];
     if (channel.selected) {
-      const color = hexToRgb(channel.color);
-      data[start + 0] = color[0];
-      data[start + 1] = color[1];
-      data[start + 2] = color[2];
-      data[start + 3] = 255;
-      data[second + 0] = Math.round(channel.thresholds[0] * 255);
-      data[second + 1] = Math.round(channel.thresholds[1] * 255);
+      if (!map.loading && map.mesh == undefined) {
+        loadMap(channel);
+      }
+      map.uniform.iColor.value.set(...hexToRgb(channel.color));
+      map.uniform.iThreshold.value.set(...channel.thresholds);
     } else {
-      data[start + 3] = 0;
+      if (map.mesh != undefined) {
+        disposeMap(channel.channel);
+      }
     }
   });
+}
 
-  // Create and dispose of layers in accordance with the selection.
-  if (layerGroups.value.elemental != undefined) {
-    newSelection.forEach((channel) => {
-      // Find the corresponding layer for the element in the selection.
-      const layer = layerGroups.value.elemental.layers.filter(
-        (layer) => layer.uniform.iAuxiliary!.value == channel.channel,
-      )[0];
+/**
+ * Loads an elemental map into elementalScene.
+ * @param element - The element for which the map should be loaded.
+ */
+function loadMap(element: ElementSelection) {
+  console.debug(`Loading elemental map ${element.channel}`);
+  const map = elementalMaps[element.channel];
+  map.loading = true;
+  const url = `${config.api.endpoint}/${datasource.value}/data/elements/map/${element.channel}`;
+  new THREE.TextureLoader().loadAsync(url).then(
+    (texture) => {
+      texture.colorSpace = THREE.NoColorSpace;
 
-      if (layer.mesh == undefined && channel.selected) {
-        // If the layer has no mesh/is unloaded, load it into the image viewer if it is selected.
-        loadLayer(layer);
-      } else if (layer.mesh != undefined && !channel.selected) {
-        // If the layer has a mesh/is loaded, dispose of it from the image viewer if it is no longer selected.
-        disposeLayer(layer);
-      }
-    });
+      map.uniform.tMap = {
+        type: "t",
+        value: texture,
+      };
 
-    // Update the data texture in the gpu to reflect possible changes as a result of updating the selection.
-    updateDataTexture(layerGroups.value.elemental);
+      const shape = new THREE.Shape();
+      shape.moveTo(0, 0);
+      shape.lineTo(1, 0);
+      shape.lineTo(1, 1);
+      shape.lineTo(0, 1);
+
+      const geometry = new THREE.ShapeGeometry(shape);
+
+      const material = new THREE.RawShaderMaterial({
+        fragmentShader: elementalFragment,
+        vertexShader: elementalVertex,
+        glslVersion: "300 es",
+        uniforms: map.uniform,
+        side: THREE.DoubleSide,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+      });
+
+      map.mesh = new THREE.Mesh(geometry, material);
+
+      map.loading = false;
+
+      elementalScene.add(map.mesh);
+    },
+    () => {
+      map.loading = false;
+    },
+  );
+}
+
+/**
+ * Disposes elemental map from elementalScene.
+ * @param channel - The channel of the map to remove.
+ */
+function disposeMap(channel: number) {
+  const map = elementalMaps[channel];
+  if (map.mesh != undefined) {
+    const uuid = map.mesh.uuid;
+    const child = elementalScene.children.filter((mesh) => mesh.uuid == uuid)[0];
+    elementalScene.remove(child);
+
+    const mesh = child as THREE.Mesh;
+    const material = mesh.material as THREE.RawShaderMaterial;
+    const uniforms = material.uniforms as ElementalUniform;
+
+    uniforms.tMap?.value.dispose();
+    uniforms.tMap = undefined;
+
+    material.dispose();
+    mesh.geometry.dispose();
+
+    map.mesh = undefined;
   }
+}
+
+/**
+ * Renders the elemental maps to the render target using order independent transparency.
+ */
+function render() {
+  if (scene.renderer != undefined) {
+    scene.renderer.setRenderTarget(elementalTarget);
+    scene.renderer.render(elementalScene, elementalCamera);
+    scene.renderer.setRenderTarget(null);
+  }
+
+  requestAnimationFrame(render); // For debugging, should be removed
 }
 
 /**
@@ -78,29 +161,54 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
 
-  const layers = workspace.elementalChannels
-    .filter((channel) => channel.enabled)
-    .map((channel) => {
-      const layer = createLayer(
-        `elemental_${channel.channel}`,
-        `${config.api.endpoint}/${datasource.value}/data/elements/map/${channel.channel}`,
-        false,
-      );
-      registerLayer(layer, recipe);
-      layer.uniform.iLayerType.value = LayerType.Elemental;
-      layer.uniform.iAuxiliary = { value: channel.channel };
-      layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-      return layer;
-    });
+  // const layers = workspace.elementalChannels
+  //   .filter((channel) => channel.enabled)
+  //   .map((channel) => {
+  //     const layer = createLayer(
+  //       `elemental_${channel.channel}`,
+  //       `${config.api.endpoint}/${datasource.value}/data/elements/map/${channel.channel}`,
+  //       false,
+  //     );
+  //     registerLayer(layer, recipe);
+  //     layer.uniform.iLayerType.value = LayerType.Elemental;
+  //     layer.uniform.iAuxiliary = { value: channel.channel };
+  //     layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
+  //     return layer;
+  //   });
+
+  // Setup elemental maps
+  Object.keys(elementalMaps).forEach((key) => {
+    disposeMap(parseInt(key));
+  });
+  elementalMaps = {};
+  workspace.elementalChannels.forEach((channel) => {
+    elementalMaps[channel.channel] = {
+      loading: false,
+      uniform: {
+        iColor: { value: new THREE.Vector3() },
+        iThreshold: { value: new THREE.Vector2() },
+      },
+    };
+  });
+
+  // Setup rendering
+  const size = await getDataSize();
+  elementalTarget.setSize(size.width, size.height);
+  const layer = createLayer("elemental_maps", "", false);
+  layer.uniform.iLayerType.value = LayerType.Elemental;
+  loadLayerFromTexture(layer, elementalTarget.texture);
+  registerLayer(layer, recipe);
 
   layerGroups.value.elemental = {
     name: "Elemental maps",
     description: "Generated layer",
-    layers: layers,
+    layers: [layer],
     index: -2,
     visible: true,
     ...layerGroupDefaults,
   };
+
+  console.log(layers);
 
   updateLayerGroupLayers(layerGroups.value.elemental);
 }
