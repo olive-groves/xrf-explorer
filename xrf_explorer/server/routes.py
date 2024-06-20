@@ -660,7 +660,7 @@ def get_selection_spectra(data_source: str):
     """Get the average spectrum of the selected pixels of a rectangle selection.
 
     :param data_source: the name of the data source
-    :return: json list of tuples containing the channel number and the average intensity of this channel
+    :return: JSON array where the index is the channel number and the value is the average intensity of that channel
     """
 
     selection: dict[str, any] | None = request.get_json()
@@ -693,7 +693,7 @@ def get_selection_spectra(data_source: str):
         return "Error occurred while getting selection from datacube", 500
 
     # get average
-    result = get_average_selection(data_source, mask)
+    result: list[float] = get_average_selection(data_source, mask)
     try:
         return json.dumps(result)
     except Exception as e:
@@ -709,20 +709,20 @@ def get_color_clusters(data_source: str):
     :return json containing the ordered list of colors
     """
     # Get rgb image name and path
-    rgb_image_name: str = get_base_image_name(data_source)
+    rgb_image_name: str | None = get_base_image_name(data_source)
     if rgb_image_name is None:
         return 'Error occurred while getting rgb image name', 500
-    path_to_image: str = get_contextual_image_path(data_source, rgb_image_name)
+    path_to_image: str | None = get_contextual_image_path(data_source, rgb_image_name)
     if path_to_image is None:
         return 'Error occurred while getting rgb image path', 500
 
     config: dict | None = get_config()
-    if not config:
+    if config is None:
         return 'Error occurred while getting backend config', 500
 
     # Paths
-    path_to_data_cube: str = get_elemental_cube_path(data_source)
-    if not path_to_data_cube:
+    path_to_data_cube: str | None = get_elemental_cube_path(data_source)
+    if path_to_data_cube is None:
         return f"Could not find elemental data cube in source {data_source}", 500
     
     path_to_save: str = get_path_to_cs_folder(data_source)
