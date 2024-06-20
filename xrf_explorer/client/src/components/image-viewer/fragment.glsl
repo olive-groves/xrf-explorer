@@ -126,10 +126,10 @@ void main() {
     // Get auxiliary data from texture
     // Element index j given by iAuxiliary, cluster index i given by R value
     // of current pixel in tImage/bitmask
-    // Texture is 256x30 (wxh), we can hence sample at (j/256, i) to determine
+    // Texture is 1x30 (wxh), we can hence sample at (0, i) to determine
     // if cluster i of element j is selected
     float clusterIndex = texture(tImage, uv.xy).g * 8.0;
-    fragColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, clusterIndex));
+    fragColor = texture(tAuxiliary, vec2(0.0, clusterIndex));
   } else if (iLayerType == TYPE_DR) {
     // the BLUE value (z) in the middle image (0 or 255) denotes if this pixel is in the embedding
     if (fragColor.z != 1.0) {

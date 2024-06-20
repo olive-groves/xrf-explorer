@@ -19,19 +19,11 @@ import {
 const config = inject<FrontendConfig>("config")!;
 const colors = ref<string>([]);
 const selectedElement = ref<string>();
-const selectedChannel = ref<boolean[]>();
 
 const selection = computed(() => appState.selection.colorSegmentation);
-const threshold = ref(40);
-const number_clusters = ref(10);
+const threshold = ref(20);
+const number_clusters = ref(20);
 const currentError = ref("Unknown error");
-
-watch(datasource, () => {
-  setup();
-});
-
-// Watch for changes in selectedElement and update colors accordingly
-watch(selectedElement, (_) => {fetchColors});
 
 // Status color segmentation
 enum Status {
@@ -58,12 +50,8 @@ async function fetchColors() {
     const elementIndex = getElementIndex(selectedElement.value);
     const response = await fetch(`${config.api.endpoint}/${datasource.value}/cs/clusters/${elementIndex}/${number_clusters.value}/${threshold.value}`);
     if (!response.ok) throw new Error("Failed to fetch colors");
-    console.log("Made it before");
-    console.log(response);
 
     const data = await response.json();
-    console.log("Made it after");
-    console.log(data);
     colors.value = data;
     console.info("Successfully fetched colors", colors.value);
     status.value = Status.SUCCESS;
@@ -77,66 +65,72 @@ async function fetchColors() {
   }
 }
 
-/**
- * Initialize CS selection and window.
- */
 async function setup() {
-  // Initialize CS selection
-  const sel: ColorSegmentationSelection = {
-    element: 0,
-    selected: false,
-    enabled: Array(colors.length).fill(false),
-    colors: [],
-    k: number_clusters.value,
-    elem_threshold: threshold.value,
-  };
-  selection.value = sel;
+  try {
+    // Whether the colors were fetched properly
+    await fetchColors(config.api.endpoint);
+  } catch (e) {
+    status.value = Status.ERROR;
+    toast.warning("Failed to retrieve painting colors");
+    console.error("Error fetching colors data", e);
+  }
+  status.value = Status.SUCCESS;
+  console.log("Fetched colors in CS window");
 
-  selectedChannel.value = Array(colors.length).fill(false);
+  updateSelection();
+  console.log("Updated selection");
 }
 
 /**
  * Sets the CS selection.
- * @param selectedElement The selected element.
- * @param colorIndex The index of the selected color.
  */
-function setSelection(selectedElement: string, colorIndex: number) {
-  // Get index of selected element
-  const index = getElementIndex(selectedElement);
+function updateSelection() {
+  const elementIndex = getElementIndex(selectedElement.value);
 
   // Update selection
-  selection.value.element = index;
-  selection.value.enabled[colorIndex] = !selection.value[index].enabled[colorIndex];
+  selection.value.element = elementIndex;
+  selection.value.enabled = Array(colors.value.length).fill(false);
+  selection.value.colors = colors.value;
+  selection.value.k = number_clusters.value;
+  selection.value.threshold = threshold.value;
 }
 
 /**
- * Returns the index of the given element.
- * @param elementName Name of element to get index of.
- * @returns Index of the element.
+ * Toggles (enables/disables) the given color cluster.
+ * @param colorIndex The index of the selected cluster/color.
+ */
+function toggleCluster(colorIndex: number) {
+  if (selection.value.enabled[colorIndex] != undefined) {
+    selection.value.enabled[colorIndex] = !selection.value.enabled[colorIndex];
+  }
+}
+
+/**
+ * Returns the index of the given element/complete painting to pass to the backend,
+ * by setting the complete painting to index 0, and 
+ * the elements to their channel number plus 1.
+ *
+ * @param elementName Name of element/complete painting to get index of.
+ * @returns Index of the element/complete painting.
  */
 function getElementIndex(elementName: string | undefined) {
   if (elementName == undefined) {
     return 0;
   }
   // Get index of new channel
-  let index: number;
   if (elementName == "complete") {
-    index = 0;
+    return 0;
   } else {
-    index = elements.value.findIndex((element) => element.name === elementName) + 1;
-    if (index == 0) {
-      console.error("Error fetching selected element");
-      return 0;
-    }
+    const index = elements.value.findIndex((element) => element.name === elementName);
+    return elements.value[index].channel + 1;
   }
-  return index;
 }
+
 </script>
 
 <template>
   <Window title="Color segmentaton" location="right">
     <div class="space-y-2 p-2">
-      <!-- SELECTION MENU -->
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
         <div class="grow space-y-1">
@@ -147,7 +141,7 @@ function getElementIndex(elementName: string | undefined) {
             </SelectTrigger>
             <SelectContent>
             <SelectItem value="complete"> Complete painting </SelectItem>
-            <SelectItem v-for="element in elements" :key="element.channel" :value="element.name">
+            <SelectItem v-for="element in elements" :value="element.name">
               {{ element.name }}
             </SelectItem>
             </SelectContent>
@@ -179,7 +173,7 @@ function getElementIndex(elementName: string | undefined) {
           <Label for="number_clusters">Number of clusters</Label>
           <NumberField
             v-model="number_clusters"
-            :min="0"
+            :min="1"
             :max="50"
             :step="1"
             id="number_clusters"
@@ -196,7 +190,7 @@ function getElementIndex(elementName: string | undefined) {
           </NumberField>
         </div>
       </div>
-      <Button class="w-full" @click="fetchColors">Generate color clusters</Button>
+      <Button class="w-full" @click="setup">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
       <div
@@ -219,9 +213,9 @@ function getElementIndex(elementName: string | undefined) {
           class="inline-block size-12 rounded-md"
           :class="{
             'ring-2 ring-foreground ring-offset-1 ring-offset-background':
-              selection[getElementIndex(selectedElement)].enabled[colorIndex],
+              selection.enabled[colorIndex],
           }"
-          @click="setSelection(selectedElement, colorIndex)"
+          @click="toggleCluster(colorIndex)"
         />
       </div>
     </div>
