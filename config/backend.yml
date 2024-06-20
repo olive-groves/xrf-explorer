@@ -14,7 +14,7 @@ dim-reduction:
     n-components: 2
     metric: "cosine"
 color-segmentation:
-  folder-name: "generated_cs"
+  folder-name: "color_segmentation"
   k-means-parameters:
     k: 10
     nr-attempts: 10

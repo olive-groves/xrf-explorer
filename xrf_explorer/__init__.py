@@ -4,7 +4,6 @@ from flask import Flask, send_from_directory
 
 app = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 
-
 from xrf_explorer.server import routes
 
 
