@@ -9,9 +9,9 @@ import numpy as np
 from cv2 import cvtColor, COLOR_BGR2RGB
 from cv2.typing import MatLike
 
-from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
-from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 from .general import valid_element, get_path_to_dr_folder
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
+from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
 
 matplotlib.use('Agg')
 

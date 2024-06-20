@@ -5,7 +5,7 @@ from os.path import join
 import numpy as np
 
 from xrf_explorer.server.file_system import set_config
-from xrf_explorer.server.process.color_segmentation.color_seg import (
+from xrf_explorer.server.color_segmentation.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
     get_elemental_clusters_using_k_means, combine_bitmasks,
     image_to_lab, image_to_rgb, lab_to_rgb, rgb_to_lab

@@ -13,7 +13,7 @@ from xrf_explorer.server.file_system.workspace import (
     get_raw_rpl_paths,
     get_cube_recipe_path,
 )
-from xrf_explorer.server.process.image_register import load_points, compute_fitting_dimensions_by_aspect
+from xrf_explorer.server.image_register import load_points, compute_fitting_dimensions_by_aspect
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

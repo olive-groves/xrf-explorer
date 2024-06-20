@@ -8,8 +8,8 @@ import numpy as np
 from cv2.typing import MatLike
 from skimage import color
 
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
 from xrf_explorer.server.file_system.cubes import normalize_elemental_cube_per_layer, get_elemental_data_cube
-from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

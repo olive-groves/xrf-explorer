@@ -5,19 +5,16 @@ import pytest
 
 from cv2 import imread
 
-from xrf_explorer.server.file_system.helper import set_config
-from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
-from xrf_explorer.server.file_system.workspace.file_access import (
-    get_elemental_cube_path,
-    get_base_image_path,
-)
-from xrf_explorer.server.process.image_to_cube_selection import (
+from xrf_explorer.server.image_to_cube_selection import (
     get_selection,
     get_scaled_cube_coordinates,
     deregister_coord,
     SelectionType,
     CubeType
 )
+from xrf_explorer.server.file_system.helper import set_config
+from xrf_explorer.server.file_system.cubes.elemental import get_elemental_data_cube
+from xrf_explorer.server.file_system.workspace.file_access import get_base_image_path
 
 RESOURCES_PATH: str = join("tests", "resources")
 
