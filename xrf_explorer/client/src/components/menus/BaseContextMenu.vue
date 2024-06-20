@@ -6,7 +6,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { resetWindow } from "@/lib/utils";
 import { computed, useSlots } from "vue";
 
 /**
@@ -34,8 +33,6 @@ const hasMenuSlot = computed(() => {
       <slot />
     </ContextMenuTrigger>
     <ContextMenuContent>
-      <ContextMenuItem @click="resetWindow"> Reset client </ContextMenuItem>
-      <ContextMenuSeparator v-if="hasMenuSlot" />
       <slot name="menu" />
     </ContextMenuContent>
   </ContextMenu>
