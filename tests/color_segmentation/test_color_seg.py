@@ -1,20 +1,17 @@
 import logging
-import sys
+
 from os.path import join
-from pathlib import Path
 
 import numpy as np
 
-sys.path.append('.')
-
-from xrf_explorer.server.file_system.config_handler import set_config
-from xrf_explorer.server.color_seg import (
+from xrf_explorer.server.file_system import set_config
+from xrf_explorer.server.process.color_segmentation.color_seg import (
     get_image, get_clusters_using_k_means, merge_similar_colors,
     get_elemental_clusters_using_k_means, combine_bitmasks,
     image_to_lab, image_to_rgb, lab_to_rgb, rgb_to_lab
 )
 
-RESOURCES_PATH: Path = Path('tests', 'resources')
+RESOURCES_PATH: str = join('tests', 'resources')
 
 
 class TestColorSegmentation:
@@ -83,7 +80,7 @@ class TestColorSegmentation:
 
     def test_invalid_path_to_image(self, caplog):
         # Set-up
-        fake_path: str = join(RESOURCES_PATH, Path("fake"))
+        fake_path: str = join(RESOURCES_PATH, "fake")
 
         # Execute
         result: np.ndarray = get_image(fake_path)
@@ -115,7 +112,6 @@ class TestColorSegmentation:
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # Set-up
-        small_image: np.ndarray = get_image(self.BW_IMAGE_PATH)
         expected_result0: np.ndarray = np.array([
             [0, 0, 0],
             [211, 211, 211]
@@ -136,10 +132,11 @@ class TestColorSegmentation:
         clusters_per_elem: np.ndarray
         bitmasks_per_elem: np.ndarray
         clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-                          self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
+            self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
 
         for i in range(len(clusters_per_elem)):
-            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i], bitmasks_per_elem[i])
+            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i],
+                                                                              bitmasks_per_elem[i])
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)
