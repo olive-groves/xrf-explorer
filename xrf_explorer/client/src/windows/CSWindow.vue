@@ -135,6 +135,7 @@ function getElementIndex(elementName: string | undefined) {
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
+        <!-- ELEMENT SELECTION -->
         <div class="grow space-y-1">
           <Label for="element">Element</Label>
           <Select v-model="selectedElement" class="w-full">
@@ -150,9 +151,10 @@ function getElementIndex(elementName: string | undefined) {
           </Select>
         </div>
       </div>
-      <div class="flex space-x-2">
-        <div class="w-28 shrink-0 space-y-1">
-          <Label for="elemental_threshold">Threshold</Label>
+      <!-- PARAMETER SELECTION -->
+      <div class="flex items-center space-x-4">
+        <div class="flex-1 space-y-1">
+          <Label for="elemental_threshold">Threshold (0-100)</Label>
           <NumberField
             v-model="threshold"
             :min="0"
@@ -171,8 +173,8 @@ function getElementIndex(elementName: string | undefined) {
             </NumberFieldContent>
           </NumberField>
         </div>
-        <div class="w-28 shrink-0 space-y-1">
-          <Label for="number_clusters">Number of clusters</Label>
+        <div class="flex-1 space-y-1">
+          <Label for="number_clusters">Number of clusters (1-50)</Label>
           <NumberField
             v-model="number_clusters"
             :min="1"
