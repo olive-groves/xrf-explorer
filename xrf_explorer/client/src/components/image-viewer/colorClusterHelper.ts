@@ -13,10 +13,10 @@ import { config } from "@/main";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-// Arbitrary amount, just needs to be greater than maximum number of elemental channels plus one.
+// We have a single bitmaks that we update, so width = 1
 const width = 1;
 // Arbitrary amount, needs to be greater than maximum number of clusters.
-const height = 32;
+const height = 64;
 // One data entry for each of the elements + one for the whole picture
 const data = new Uint8Array(width * height * 4);
 const dataTexture = createDataTexture(data, width, height);
@@ -69,8 +69,7 @@ export async function loadPlaceholderLayer() {
 
   const layer = createLayer(
     `cs_image`, 
-    // `${config.api.endpoint}/${datasource.value}/cs/bitmask/0/20/20`, 
-    `${config.api.endpoint}/${datasource.value}/data/elements/map/0`,
+    ``,
     false
   );
   registerLayer(layer, recipe);
