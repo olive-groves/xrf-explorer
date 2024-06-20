@@ -1,6 +1,8 @@
 from logging import Logger, getLogger
 from os import makedirs
 from os.path import abspath, join, isdir
+from pathlib import Path
+
 from yaml import safe_load, YAMLError
 
 LOG: Logger = getLogger(__name__)
@@ -65,3 +67,13 @@ def get_path_to_generated_folder(data_source: str) -> str:
         LOG.info(f"Created directory {path_to_generated_folder}.")
 
     return path_to_generated_folder
+
+
+def data_source_name_from_cube_path(path_to_cube: str) -> str:
+    """Gets the name of the data source from the path to the cube.
+
+    :param path_to_cube: The path to the cube
+    :return: The name of the data source where the cube is located
+    """
+
+    return Path(path_to_cube).parent.name

@@ -111,7 +111,7 @@ class TestImageRegistration:
 
         # verify
         assert result is None
-        assert "Data cube not found at" in caplog.text
+        assert "Failed to register image" in caplog.text
 
     def test_register_image_to_cube_image_register_not_found(self, caplog):
         # setup

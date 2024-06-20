@@ -17,11 +17,14 @@ from cv2 import (
 from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system.workspace import (
-    get_elemental_cube_path, get_elemental_cube_recipe_path,
-    get_contextual_image_path, get_contextual_image_recipe_path, get_contextual_image_size,
-    get_path_to_base_image, is_base_image
+    get_elemental_cube_recipe_path,
+    get_contextual_image_path,
+    get_contextual_image_recipe_path,
+    get_contextual_image_size,
+    get_path_to_base_image,
+    is_base_image
 )
-from xrf_explorer.server.file_system.cubes import get_elemental_datacube_dimensions_from_dms
+from xrf_explorer.server.file_system.cubes import get_elemental_datacube_dimensions
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -342,15 +345,12 @@ def get_image_registered_to_data_cube(data_source: str, image_name: str) -> MatL
     :param image_name: The name of the image to be registered
     :return: The registered image in BGR format or None in case of an error
     """
-
-    # Get the data cube and check if the data cube exists
-    path_data_cube: str | None = get_elemental_cube_path(data_source)
-    if path_data_cube is None:
-        LOG.error(f"Data cube not found at {path_data_cube}")
-        return None
-
     # Load the data cube dimensions
-    cube_w, cube_h, _, _ = get_elemental_datacube_dimensions_from_dms(path_data_cube)
+    dimensions: tuple[int, int, int, int] | None = get_elemental_datacube_dimensions(data_source)
+    if dimensions is None:
+        LOG.error(f"Failed to register image {image_name} in data source {data_source}")
+        return None
+    cube_w, cube_h, _, _ = dimensions
 
     # Get the path to the image to be registered
     path_image_register: str | None = get_contextual_image_path(data_source, image_name)

@@ -12,4 +12,4 @@ from .elemental import (
     normalize_elemental_cube_per_layer,
 )
 from .spectral import parse_rpl, get_spectra_params, get_raw_data
-from .convert_dms import get_elemental_datacube_dimensions_from_dms
+from .convert_dms import get_elemental_datacube_dimensions
