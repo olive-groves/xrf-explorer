@@ -125,7 +125,7 @@ class TestColorSegmentation:
             [211, 211, 211]
         ])
         elem_threshold: float = 0.1
-        num_attemps: int = 10
+        num_attempts: int = 10
         k: int = 2
 
         # Execute
@@ -136,7 +136,7 @@ class TestColorSegmentation:
             bitmask: np.ndarray
             clusters: np.ndarray
             clusters, bitmask = get_elemental_clusters_using_k_means(
-                self.DATA_SOURCE, self.IMAGE_NAME, i, elem_threshold, k, num_attemps
+                self.DATA_SOURCE, self.IMAGE_NAME, i, elem_threshold, k, num_attempts
             )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
