@@ -17,7 +17,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
                          threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
-    """Go over every pair of clusters and merge the pair if they are similar according to threshold the t.
+    """Go over every pair of clusters and merge the pair if they are similar according to the threshold.
     Currently unused function, left in code in case it becomes useful in the future.
 
     :param clusters: the currently available clusters
@@ -131,8 +131,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     :param elemental_channel: channel of the element to compute the color clusters of
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param k: number of clusters required at end. Defaults to 30
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial 
-    labellings. Defaults to 10.
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
