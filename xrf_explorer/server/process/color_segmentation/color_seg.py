@@ -17,7 +17,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
                          threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
-    """Go over every pair of clusters and merge the pair of they are similar according to threshold t.
+    """Go over every pair of clusters and merge the pair if they are similar according to threshold the t.
     Currently unused function, left in code in case it becomes useful in the future.
 
     :param clusters: the currently available clusters
@@ -99,7 +99,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
-    # At most 20 iterations and at least 1.0 accuracy
+    # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
     # apply kmeans
@@ -128,23 +128,24 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
+    :param elemental_channel: channel of the element to compute the color clusters of
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
-    :param k: number of clusters required at end. Defaults to 2.
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
-                           Defaults to 10.
+    :param k: number of clusters required at end. Defaults to 30
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial 
+    labellings. Defaults to 10.
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
     LOG.info(
-        f"""Computing element-wise color clusters with parameters:
-            k={k}, data_source={data_source}, elemental_channel={elemental_channel}"""
+        f'Computing element-wise color clusters with parameters:'
+        f'k={k}, data_source={data_source}, elemental_channel={elemental_channel}'
     )
 
     # Get the elemental data cube
     data_cube_path: str | None = get_elemental_cube_path(data_source)
     if data_cube_path is None:
         LOG.error("Elemental data cube not found")
-        return [], []
+        return np.empty(0), np.empty(0)
 
     data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
 
@@ -155,7 +156,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return [], []
+        return np.empty(0), np.empty(0)
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
@@ -167,7 +168,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
-    # At most 20 iterations and at least 1.0 accuracy
+    # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
     # Get bitmask of pixels with high element concentration
@@ -188,7 +189,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     cluster_bitmasks: list[np.ndarray] = []
     labels = labels.flatten()
-    subset_indices: tuple[bool, ...] = np.nonzero(bitmask)
+    subset_indices: tuple[np.ndarray, ...] = np.nonzero(bitmask)
 
     # Bitmasks for each cluster
     for i in range(k):
@@ -205,9 +206,9 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     return center, np.array(cluster_bitmasks)
 
 
-def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
-    """Merges array of bitmasks into single bitmask, by setting the G(reen) value of each pixel
-    to store the index of the corresponding bitmask.
+def combine_bitmasks(bitmasks: np.ndarray) -> np.ndarray:
+    """Merges array of bitmasks into single bitmask, by setting the Green value of each pixel to store the index of
+    the corresponding bitmask.
 
     :param bitmasks: the bitmasks corresponding to each cluster
     :return: a single bitmask in the form of an image corresponding to the combination of all bitmasks

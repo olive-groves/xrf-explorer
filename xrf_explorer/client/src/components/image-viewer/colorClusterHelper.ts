@@ -12,7 +12,7 @@ import { config } from "@/main";
 
 const selection = computed(() => appState.selection.colorSegmentation);
 
-// We have a single bitmaks that we update, so width = 1
+// We have a single bitmask that we update, so width = 1
 const width = 1;
 // Arbitrary amount, needs to be greater than maximum number of clusters.
 const height = 64;
@@ -34,8 +34,8 @@ function selectionUpdated(newSelection: ColorSegmentationSelection) {
       const start = (index + 1) * width * 4;
 
       if (newSelection.enabled[index]) {
-        const color = hexToRgb(newSelection.colors[index]);
-        data[start + 0] = color[0];
+        const color: [number, number, number] = hexToRgb(newSelection.colors[index]);
+        data[start] = color[0];
         data[start + 1] = color[1];
         data[start + 2] = color[2];
         data[start + 3] = 255;
@@ -72,7 +72,7 @@ export async function loadPlaceholderLayer() {
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
 
-  const layer = createLayer(`cs_image`, ``, false);
+  const layer = createLayer("cs_image", "", false);
   registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };

@@ -1,7 +1,7 @@
 temp-folder: "xrf_explorer/server/temp"
 uploads-folder: "xrf_explorer/server/data"
 generated-folder-name: "generated"
-cs-folder-name: "generated_cs"
+cs-folder-name: "color_segmentation"
 bind-address: 127.0.0.1
 port: 8001
 upload-buffer-size: 16384

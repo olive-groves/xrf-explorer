@@ -51,7 +51,7 @@ export type ElementSelection = {
 export type ColorSegmentationSelection = {
   /**
    * The element index corresponding to the clusters
-   * If no element, its 0, otherwise its the
+   * If whole painting, it's 0, otherwise it's the
    * element's channel plus 1.
    */
   element: number;

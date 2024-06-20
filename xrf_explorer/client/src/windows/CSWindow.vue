@@ -34,34 +34,33 @@ enum Status {
 const status = ref(Status.WAITING);
 
 /**
- * Fetch the hexadecimal colors data.
+ * Fetch the hexadecimal colors' data.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
 async function fetchColors() {
-  try {
-    status.value = Status.LOADING;
-    if (selectedElement.value == null) {
-      currentError.value = "Please select an element";
-      status.value = Status.ERROR;
-      return;
-    }
-    const elementIndex = getElementIndex(selectedElement.value);
-    const response = await fetch(
-      `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
-        `${elementIndex}/${number_clusters.value}/${threshold.value}`,
-    );
-    if (!response.ok) throw new Error("Failed to fetch colors");
+  status.value = Status.LOADING;
+  if (selectedElement.value == null) {
+    currentError.value = "Please select an element";
+    status.value = Status.ERROR;
+    return;
+  }
+  const elementIndex = getElementIndex(selectedElement.value);
+  const response = await fetch(
+    `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
+      `${elementIndex}/${number_clusters.value}/${threshold.value}`,
+  );
 
-    const data = await response.json();
-    colors.value = data;
-    return true;
-  } catch (e) {
+  if (!response.ok) {
     toast.warning("Failed to retrieve colors");
-    currentError.value = "Failed to generate color clusters";
+    currentError.value = "Failed to retrieve or generate color clusters";
     status.value = Status.ERROR;
     console.error(e);
     return false;
   }
+
+  const colorData = await response.json();
+  colors.value = colorData;
+  return true;
 }
 
 /**
@@ -131,7 +130,7 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window title="Color segmentaton" location="right">
+  <Window title="Color segmentation" location="right">
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">

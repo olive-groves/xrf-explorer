@@ -701,8 +701,7 @@ def get_selection_spectra(data_source: str):
 
 @app.route('/api/<data_source>/cs/clusters/<int:elem>/<int:k>/<int:elem_threshold>', methods=['GET'])
 def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int):
-    """Gets the colors corresponding to the image-wide color clusters, and saves the
-    corresponding bitmasks.
+    """Gets the colors corresponding to the image-wide color clusters, and saves the corresponding bitmasks.
 
     :param data_source: data_source to get the clusters from
     :param elem: index of selected element (0 if whole painting, channel+1 if element)
@@ -727,7 +726,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
     if elem == 0:
         full_path_json = join(path_to_save, f'colors_painting_{k}.json')
     else:
-        full_path_json = join(path_to_save, f'colors_{elem-1}_{k}_{elem_threshold}.json')
+        full_path_json = join(path_to_save, f'colors_{elem - 1}_{k}_{elem_threshold}.json')
 
     # If json already exists, return that directly
     if exists(full_path_json):
@@ -740,22 +739,22 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
 
     # elem == 0 indicates clusters for the whole painting
     if elem == 0:
-        LOG.info("Computing color clusters for whole image")
+        LOG.info('Computing color clusters for whole image')
         # Compute colors and bitmasks
         colors: np.ndarray
         bitmasks: np.ndarray
         colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, k)
         bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}.png')
     else:
-        LOG.info("Computing color clusters for single element")
+        LOG.info(f'Computing color clusters for single element: {elem - 1}')
         scaled_elem_threshold: int = int(255 * elem_threshold / 100)
         # Compute colors and bitmasks per element
         colors: np.ndarray
         bitmasks: np.ndarray
         colors, bitmasks = get_elemental_clusters_using_k_means(
-            data_source, rgb_image_name, elem-1, scaled_elem_threshold, k
+            data_source, rgb_image_name, elem - 1, scaled_elem_threshold, k
         )
-        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem-1}_{k}_{elem_threshold}.png')
+        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem - 1}_{k}_{elem_threshold}.png')
 
     # Combine bitmasks into one
     combined_bitmask: np.ndarray = combine_bitmasks(bitmasks)
@@ -775,8 +774,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
 
 @app.route('/api/<data_source>/cs/bitmask/<int:elem>/<int:k>/<int:elem_threshold>', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshold: int):
-    """
-    Returns the png bitmask for the color clusters over the whole painting.
+    """Returns the png bitmask for the color clusters over the whole painting.
 
     :param data_source: data_source to get the bitmask from
     :param elem: index of selected element (0 if whole painting, channel+1 if element)
@@ -798,7 +796,7 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
     if elem == 0:
         bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}.png')
     else:
-        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem-1}_{k}_{elem_threshold}.png')
+        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem - 1}_{k}_{elem_threshold}.png')
 
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
