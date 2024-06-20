@@ -198,33 +198,33 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     set_binned(data_source, True)
 
 
-def get_average_global(data: np.ndarray) -> list:
+def get_average_global(data: np.ndarray) -> list[float]:
     """Computes the average of the raw data for each bin on the whole painting.
 
     :param data: datacube containing the raw data
-    :return: list with the average raw data for each channel in the range
+    :return: list where the index is the channel number and the value is the average global intensity of that channel
     """
 
     average_values: list = []
 
     mean: np.ndarray = np.mean(data, axis=(0, 1))
 
-    # create list of dictionaries
-    for i in range(np.size(mean)):
-        average_values.append({"index": i, "value": mean[i]})
-
-    return average_values
+    return mean.tolist()
 
 
-def get_average_selection(data_source: str, mask: np.ndarray) -> list:
+def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     """Computes the average of the raw data for each bin on the selected pixels.
 
     :param data_source: name of the data source to get the selection average from
     :param mask: The mask describing the selected pixels
-    :return: list with the average raw data for each bin in the range
+    :return: list where the index is the channel number and the value is the average intensity of that channel within the selection
     """
 
-    config: dict = get_config()
+    config: dict | None = get_config()
+    if config is None:
+        LOG.error("Could not get backend configuration")
+        return []
+
     max_points: int = int(config["max-spectrum-points"])
 
     num_points: int = np.count_nonzero(mask)
@@ -264,14 +264,8 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list:
         np.vectorize(add_row, signature="(2)->()")(indices)
         average: np.ndarray = total / indices.shape[0]
 
-    response: list = []
-
-    # create list of dictionaries
-    for i in range(np.size(average)):
-        response.append({"index": i, "value": average[i]})
-
     LOG.info("Calculated the average spectrum for the selection.")
-    return response
+    return average.tolist()
 
 
 def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, high: int, bin_size: int) -> list:

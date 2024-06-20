@@ -3,6 +3,7 @@ import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
+import { ElementalChannel } from "@/lib/workspace";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
@@ -34,37 +35,24 @@ const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
 let ready: boolean;
 
-/**
- * Represents a point in the chart coordinate system.
- * Index is the x-coordinate, value the y-coordinate.
- * Used to plot each point of the line.
- */
-interface Point {
-  index: number;
-  value: number;
-}
-
 // set the dimensions and margins of the graph
 const margin = { top: 30, right: 30, bottom: 70, left: 60 },
   width = 860 - margin.left - margin.right,
   height = 600 - margin.top - margin.bottom;
 
-const trimmedList: ComputedRef<
-  {
-    name: string;
-    channel: number;
-    enabled: boolean;
-  }[]
-> = computed(() => elements.value.filter((element) => element.name != "Continuum" && element.name != "chisq"));
+const trimmedList: ComputedRef<ElementalChannel[]> = computed(() =>
+  elements.value.filter((element: ElementalChannel) => element.name != "Continuum" && element.name != "chisq"),
+);
 
+// For all variables below, index is bin/channel number, and value is average intensity for that bin/channel
 // Points of the global average spectrum
-let globalData: Point[] = [];
+let globalData: number[] = [];
 // Points of the selected average spectrum
-let selectionData: Point[] = [];
+let selectionData: number[] = [];
 // Points of the theoretical element spectrum
-let elementData: Point[] = [];
+let elementData: number[] = [];
 // Coordinates of the theoretical element peaks
-let elementPeaks: Point[] = [];
+let elementPeaks: number[] = [];
 
 /**
  * Setup the svg and axis of the graph.
@@ -80,10 +68,18 @@ async function setup() {
 }
 
 /**
+ * Clear the whole chart (including axes).
+ */
+function clearChart() {
+  svg.selectAll("*").remove();
+}
+
+/**
  * Set up the axis and plot the data.
  */
 function makeChart() {
-  svg.selectAll("*").remove();
+  clearChart();
+
   const max = getMax();
   // Add X and Y axis
   x = d3
@@ -113,9 +109,9 @@ function makeChart() {
 
   // create line
   const globalLine = d3
-    .line<Point>()
-    .x((d: Point) => x(d.index))
-    .y((d: Point) => y(d.value));
+    .line<number>()
+    .x((_, i) => x(i))
+    .y((d, _) => y(d));
 
   // Add the line to chart
   svg
@@ -136,9 +132,9 @@ function makeChart() {
 
   // create line
   const line = d3
-    .line<Point>()
-    .x((d: Point) => x(d.index))
-    .y((d: Point) => y(d.value));
+    .line<number>()
+    .x((_, i) => x(i))
+    .y((d, _) => y(d));
 
   // Add the line to chart
   svg
@@ -160,9 +156,9 @@ function makeChart() {
 
   // create line
   const elementLine = d3
-    .line<Point>()
-    .x((d: Point) => x(d.index))
-    .y((d: Point) => y(d.value));
+    .line<number>()
+    .x((_, i) => x(i))
+    .y((d, _) => y(d));
 
   // Add the line to chart
   svg
@@ -176,14 +172,14 @@ function makeChart() {
     .style("opacity", 0);
 
   //Add peaks
-  elementPeaks.forEach((peak: Point) => {
+  elementPeaks.forEach((peak, index) => {
     svg
       .append("line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x(peak.index))
+      .attr("x1", x(index))
       .attr("y1", 30)
-      .attr("x2", x(peak.index))
+      .attr("x2", x(peak))
       .attr("y2", 430);
   });
   // modify visibility based on checkbox status
@@ -292,8 +288,8 @@ async function getElementSpectrum(element: string, excitation: number) {
  * @returns - The maximum y-value.
  */
 function getMax() {
-  let globalMax: number = d3.max(globalData, (d) => d.value) as number;
-  let selectionMax: number = d3.max(selectionData, (d) => d.value) as number;
+  let globalMax: number = d3.max(globalData, (d) => d) as number;
+  let selectionMax: number = d3.max(selectionData, (d) => d) as number;
 
   // Initialize max values if they are NaN
   if (isNaN(globalMax)) globalMax = 0;
