@@ -54,12 +54,10 @@ async function fetchColors() {
     toast.warning("Failed to retrieve colors");
     currentError.value = "Failed to retrieve or generate color clusters";
     status.value = Status.ERROR;
-    console.error(e);
     return false;
   }
 
-  const colorData = await response.json();
-  colors.value = colorData;
+  colors.value = await response.json();
   return true;
 }
 

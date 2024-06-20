@@ -171,8 +171,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
-    # Get bitmask of pixels with high element concentration
-    # and get respective pixels in the image
+    # Get bitmask of pixels with high element concentration and get respective pixels in the image
     bitmask: np.ndarray = np.array(data_cube[elemental_channel] >= elem_threshold)
     masked_image: np.ndarray = image[bitmask]
     masked_image = reshape_image(masked_image)
@@ -187,23 +186,25 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     center: np.ndarray
     _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
-    cluster_bitmasks: list[np.ndarray] = []
     labels = labels.flatten()
     subset_indices: tuple[np.ndarray, ...] = np.nonzero(bitmask)
 
+    bitmasks: list[np.ndarray] = []
     # Bitmasks for each cluster
     for i in range(k):
         # Indices for cluster "i"
         cluster_indices: np.ndarray = np.array(labels == i)
         # Initialize empty mask
-        cluster_mask: np.ndarray = np.zeros(image.shape[:2], dtype=bool)
+        cluster_mask: np.ndarray = np.zeros(image.shape[:2])
         # Set values to true
         cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
-        cluster_bitmasks.append(cluster_mask)
+        # Convert mask to boolean
+        cluster_mask = cluster_mask.astype(bool)
+        bitmasks.append(cluster_mask)
 
     # Transform back to rgb
     center = np.array([lab_to_rgb(c) for c in center])
-    return center, np.array(cluster_bitmasks)
+    return center, np.array(bitmasks)
 
 
 def combine_bitmasks(bitmasks: np.ndarray) -> np.ndarray:
