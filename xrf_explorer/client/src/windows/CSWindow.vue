@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, inject, computed, watch } from "vue";
+import { ref, inject, computed } from "vue";
 import { appState, datasource, elements } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
-import { ColorSegmentationSelection } from "@/lib/selection";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +16,7 @@ import {
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
-const colors = ref<string>([]);
+const colors = ref<string[]>([""]);
 const selectedElement = ref<string>();
 
 const selection = computed(() => appState.selection.colorSegmentation);
@@ -36,7 +35,6 @@ const status = ref(Status.WAITING);
 
 /**
  * Fetch the hexadecimal colors data.
- * @param url URL to the server API endpoint which provides the color hexadecimal numbers.
  * @returns True if the colors were fetched successfully, false otherwise.
  */
 async function fetchColors() {
@@ -48,13 +46,14 @@ async function fetchColors() {
       return;
     }
     const elementIndex = getElementIndex(selectedElement.value);
-    const response = await fetch(`${config.api.endpoint}/${datasource.value}/cs/clusters/${elementIndex}/${number_clusters.value}/${threshold.value}`);
+    const response = await fetch(
+      `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
+        `${elementIndex}/${number_clusters.value}/${threshold.value}`,
+    );
     if (!response.ok) throw new Error("Failed to fetch colors");
 
     const data = await response.json();
     colors.value = data;
-    console.info("Successfully fetched colors", colors.value);
-    status.value = Status.SUCCESS;
     return true;
   } catch (e) {
     toast.warning("Failed to retrieve colors");
@@ -65,20 +64,23 @@ async function fetchColors() {
   }
 }
 
-async function setup() {
+/**
+ * Generates color clusters based on the user-set parameters,
+ * and updates the CS selection.
+ */
+async function generateColors() {
   try {
     // Whether the colors were fetched properly
-    await fetchColors(config.api.endpoint);
+    await fetchColors();
   } catch (e) {
     status.value = Status.ERROR;
     toast.warning("Failed to retrieve painting colors");
     console.error("Error fetching colors data", e);
+    return;
   }
   status.value = Status.SUCCESS;
-  console.log("Fetched colors in CS window");
 
   updateSelection();
-  console.log("Updated selection");
 }
 
 /**
@@ -87,12 +89,14 @@ async function setup() {
 function updateSelection() {
   const elementIndex = getElementIndex(selectedElement.value);
 
-  // Update selection
-  selection.value.element = elementIndex;
-  selection.value.enabled = Array(colors.value.length).fill(false);
-  selection.value.colors = colors.value;
-  selection.value.k = number_clusters.value;
-  selection.value.threshold = threshold.value;
+  if (selection.value != undefined) {
+    // Update selection
+    selection.value.element = elementIndex;
+    selection.value.enabled = Array(colors.value.length).fill(false);
+    selection.value.colors = colors.value;
+    selection.value.k = number_clusters.value;
+    selection.value.threshold = threshold.value;
+  }
 }
 
 /**
@@ -107,9 +111,8 @@ function toggleCluster(colorIndex: number) {
 
 /**
  * Returns the index of the given element/complete painting to pass to the backend,
- * by setting the complete painting to index 0, and 
+ * by setting the complete painting to index 0, and
  * the elements to their channel number plus 1.
- *
  * @param elementName Name of element/complete painting to get index of.
  * @returns Index of the element/complete painting.
  */
@@ -125,7 +128,6 @@ function getElementIndex(elementName: string | undefined) {
     return elements.value[index].channel + 1;
   }
 }
-
 </script>
 
 <template>
@@ -140,10 +142,10 @@ function getElementIndex(elementName: string | undefined) {
               <SelectValue placeholder="Select an element" />
             </SelectTrigger>
             <SelectContent>
-            <SelectItem value="complete"> Complete painting </SelectItem>
-            <SelectItem v-for="element in elements" :value="element.name">
-              {{ element.name }}
-            </SelectItem>
+              <SelectItem value="complete"> Complete painting </SelectItem>
+              <SelectItem v-for="element in elements" :key="element.name" :value="element.name">
+                {{ element.name }}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -190,7 +192,7 @@ function getElementIndex(elementName: string | undefined) {
           </NumberField>
         </div>
       </div>
-      <Button class="w-full" @click="setup">Generate color clusters</Button>
+      <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
       <div
@@ -212,8 +214,7 @@ function getElementIndex(elementName: string | undefined) {
           :style="{ 'background-color': color }"
           class="inline-block size-12 rounded-md"
           :class="{
-            'ring-2 ring-foreground ring-offset-1 ring-offset-background':
-              selection.enabled[colorIndex],
+            'ring-2 ring-foreground ring-offset-1 ring-offset-background': selection.enabled[colorIndex],
           }"
           @click="toggleCluster(colorIndex)"
         />

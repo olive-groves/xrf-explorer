@@ -1,8 +1,7 @@
-import { appState, datasource, elements } from "@/lib/appState";
+import { appState, datasource } from "@/lib/appState";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { useFetch } from "@vueuse/core";
-import { LayerType, Layer } from "./types";
+import { LayerType } from "./types";
 import { createDataTexture, disposeLayer, loadLayer, updateDataTexture } from "./scene";
 import { ColorSegmentationSelection } from "@/lib/selection";
 import { hexToRgb } from "@/lib/utils";
@@ -25,13 +24,14 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
 
 /**
  * Update image viewer to show updated selection.
+ * If needed, also updates CS layer bitmask.
  * @param newSelection - The updated selection.
  */
-function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
+function selectionUpdated(newSelection: ColorSegmentationSelection) {
   if (newSelection != undefined) {
     newSelection.enabled.forEach((_, index) => {
       // Get index in texture for cluster at index of element channel.element
-      const start = ((index + 1) * width) * 4;
+      const start = (index + 1) * width * 4;
 
       if (newSelection.enabled[index]) {
         const color = hexToRgb(newSelection.colors[index]);
@@ -47,7 +47,9 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
     // Create and dispose of layers in accordance with the selection.
     if (layerGroups.value.colorClusters != undefined) {
       layerGroups.value.colorClusters.layers.forEach((layer) => {
-        const filename = `${config.api.endpoint}/${datasource.value}/cs/bitmask/${newSelection.element}/${newSelection.k}/${newSelection.threshold}`
+        const filename =
+          `${config.api.endpoint}/${datasource.value}/cs/bitmask/` +
+          `${newSelection.element}/${newSelection.k}/${newSelection.threshold}`;
         // Only upload image if it changed
         if (layer.image !== filename) {
           disposeLayer(layer);
@@ -62,16 +64,15 @@ function selectionUpdated(newSelection: ColorSegmentationSelection[]) {
   }
 }
 
+/**
+ * Load placeholder cs layer with empty image.
+ */
 export async function loadPlaceholderLayer() {
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
 
-  const layer = createLayer(
-    `cs_image`, 
-    ``,
-    false
-  );
+  const layer = createLayer(`cs_image`, ``, false);
   registerLayer(layer, recipe);
   layer.uniform.iLayerType.value = LayerType.ColorSegmentation;
   layer.uniform.iAuxiliary = { value: 0 };
@@ -85,6 +86,6 @@ export async function loadPlaceholderLayer() {
     visible: true,
     ...layerGroupDefaults,
   };
-  
+
   updateLayerGroupLayers(layerGroups.value.colorClusters);
 }
