@@ -13,9 +13,7 @@ const config = inject<FrontendConfig>("config")!;
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 
-/**
- * Sets up export of chart.
- */
+// Sets up export of chart.
 watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
 
 type Element = {
@@ -27,37 +25,33 @@ type Element = {
 const barChecked = ref(true);
 const lineChecked = ref(false);
 
-// SVG container
+// SVG container and axes
 let svg = d3.select(chart.value!);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
 
-// Elemental data averages for all elements
-let dataAverages: Element[] = [];
+// Averages returned by the last fetching operation
+let fetchedAverages: Element[] = [];
 
-// Elements which are enabled for this workspace
-let workspaceElements: Element[] = [];
-watch(elements, updateWorkspaceElements, { deep: true, immediate: true });
+// Global elemental data averages for all elements
+let globalAverages: Element[] = [];
 
-// Whole element selection
+// Selection elemental data averages for all elements
+let selectionAverages: Element[] = [];
+
+// Selected elements from the elemental channels
 const elementSelection: ComputedRef<ElementSelection[]> = computed(() => appState.selection.elements);
+let maskedElementSelection: ElementSelection[] = [];
 
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
 watch(areaSelection, onSelectionAreaUpdate, { deep: true, immediate: true });
 
-// Element selection of only selected elements
-let displayedSelection: ElementSelection[] = [];
-
-// Actual displayed data, i.e. elements which are selected and enabled
-let selectedData: Element[] = [];
-
 // Whether we should display the averages of elements outside the selection in grey
 const displayGrey = ref(true);
 
 /**
- * Fetch the average elemental data for each of the elements, and store it
- * in the `dataAverages` array.
+ * Fetch the average elemental data for each of the elements, and store it in the `fetchedAverages` array.
  * @param url URL to the server API endpoint which provides the elemental data.
  * @param selectionRequest Whether to fetch averages for a selection.
  * @param selection The selection made in the image viewer.
@@ -92,7 +86,7 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
     fetchSuccessful = await response
       .json()
       .then((data) => {
-        dataAverages = data;
+        fetchedAverages = data;
         console.debug("Successfully fetched averages");
         return true;
       })
@@ -118,43 +112,31 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
 }
 
 /**
- * Update the workspace elements to be only the elements enabled for that workspace.
+ * Fetches the global averages and updates the `globalAverages` variable accordingly.
  */
-function updateWorkspaceElements() {
-  const elementalChannels: ElementalChannel[] = elements.value;
-  workspaceElements = dataAverages.filter((_, i) =>
-    elementalChannels.some((channel) => i == channel.channel && channel.enabled),
-  );
-}
-
-/**
- * Mask out the element data of the elements which are selected to not be visible.
- * @param selection The selection of elements.
- */
-function maskData(selection: ElementSelection[]) {
-  displayedSelection = selection.filter((element) => element.selected);
-
-  selectedData = dataAverages.filter((_, index) =>
-    displayedSelection.some((elementVis) => elementVis.channel == index),
-  );
-}
-
-/**
- * Callback for when the selection in the main viewer is changed.
- * @param selection New area selection in the main viewer.
- */
-async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
+async function fetchGlobalAverages() {
   try {
-    // If the selection was not cancelled
-    const selecting: boolean = selection != undefined;
     // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint, selecting, selection);
+    const fetched: boolean = await fetchAverages(config.api.endpoint, false, areaSelection.value);
     if (fetched) {
-      // After having fetched the data, update the workspace elements
-      updateWorkspaceElements();
+      // Save the global data
+      globalAverages = fetchedAverages;
+    }
+  } catch (e) {
+    console.error("Error fetching global average data", e);
+  }
+}
 
-      // Update the charts with the fetched data
-      await updateCharts();
+/**
+ * Fetches the selection averages and updates the `selectionAverages` variable accordingly.
+ */
+async function fetchSelectionAverages() {
+  try {
+    // Whether the elemental data was fetched properly
+    const fetched: boolean = await fetchAverages(config.api.endpoint, true, areaSelection.value);
+    if (fetched) {
+      // Save the selection data
+      selectionAverages = fetchedAverages;
     }
   } catch (e) {
     console.error("Error fetching average data", e);
@@ -162,15 +144,67 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
 }
 
 /**
- * Set up the chart's SVG container, add axes.
- * @param data Element data array that we want to display on the chart.
+ * Filter a given list of element averages to only contain the averages for elements enabled in the
+ * current workspace.
+ * @param data List of elemental averages to be filtered.
+ * @returns The filtered list of averages.
  */
-function setupChart(data: Element[]) {
+function filterToWorkspaceElements(data: Element[]) {
+  const elementalChannels: ElementalChannel[] = elements.value;
+
+  const tmp: Element[] = data.filter((_, i) =>
+    elementalChannels.some((channel) => i == channel.channel && channel.enabled),
+  );
+
+  return tmp;
+}
+
+/**
+ * Mask out the element data of the elements which are selected to not be visible.
+ * @param data The data array that will be masked.
+ * @param selection The selection of elements.
+ * @returns The masked data array.
+ */
+function maskData(data: Element[], selection: ElementSelection[]) {
+  maskedElementSelection = selection.filter((element) => element.selected);
+
+  const tmp: Element[] = data.filter((_, index) =>
+    maskedElementSelection.some((elementVis) => elementVis.channel == index),
+  );
+
+  return tmp;
+}
+
+/**
+ * Callback for when the selection in the main viewer is changed.
+ * @param selection New area selection in the main viewer.
+ */
+async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
+  // If the selection was not cancelled
+  const selecting: boolean = selection != undefined;
+
+  if (selecting) {
+    console.log("Updating selection things");
+    await fetchSelectionAverages();
+    updateCharts();
+  }
+}
+
+/**
+ * Set up the chart's SVG container, add axes.
+ * @param barChartData Element data array that will be displayed on the bar chart.
+ * @param lineChartData Element data array that wil be displayed on the line chart.
+ */
+function setupChart(barChartData: Element[], lineChartData: Element[]) {
   // Declare chart dimensions and margins
   const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
   const width: number = 860 - margin.left - margin.right;
   const height: number = 400 - margin.top - margin.bottom;
-  const max: number = d3.max(data, (d) => d.average) as number;
+
+  // Get the maximum for the y-axis
+  const maxBarChart: number = d3.max(barChartData, (d) => d.average) as number;
+  const maxLineChart: number = d3.max(lineChartData, (d) => d.average) as number;
+  const max: number = d3.max([maxBarChart, maxLineChart]) as number;
 
   // Select SVG container
   svg = d3
@@ -180,10 +214,12 @@ function setupChart(data: Element[]) {
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
 
+  console.log(barChartData, lineChartData);
+
   // Declare the horizontal position scale
   x = d3
     .scaleBand()
-    .domain(data.map((d) => d.name))
+    .domain(barChartData.map((d) => d.name))
     .range([margin.left, width - margin.right])
     .padding(0.1);
 
@@ -233,7 +269,7 @@ function updateLineChart(data: Element[]) {
   // Add a line generator
   const line = d3
     .line<Element>()
-    .x((d) => x(d.name)! + x.bandwidth() / 2)
+    .x((d) => (x(d.name) as number) + x.bandwidth() / 2)
     .y((d) => y(d.average));
 
   // Add opposite colored line behind the colored line for better visibility
@@ -278,7 +314,7 @@ function updateBarChart(data: Element[]) {
           return "hsl(var(--border))";
         }
       } else {
-        return displayedSelection[i].color;
+        return maskedElementSelection[i].color;
       }
     });
 }
@@ -286,60 +322,51 @@ function updateBarChart(data: Element[]) {
 /**
  * Update the charts being displayed.
  */
-async function updateCharts() {
+function updateCharts() {
   // Mask the data with the selected elements
-  maskData(elementSelection.value);
+  const maskedGlobalAverages: Element[] = maskData(globalAverages, elementSelection.value);
+  const maskedSelectionAverages: Element[] = maskData(selectionAverages, elementSelection.value);
 
-  // If we are displaying all elements, set that to be the data
-  if (displayGrey.value) {
-    selectedData = workspaceElements;
-  }
+  // Filter data to elements enabled in workspace
+  const workspaceGlobalAverages: Element[] = filterToWorkspaceElements(globalAverages);
+  const workspaceSelectionAverages: Element[] = filterToWorkspaceElements(selectionAverages);
+  const workspaceMaskedGlobalAverages: Element[] = filterToWorkspaceElements(maskedGlobalAverages);
+  const workspaceMaskedSelectionAverages: Element[] = filterToWorkspaceElements(maskedSelectionAverages);
+
+  // Initialize data for each diagram
+  const barChartData: Element[] = displayGrey.value ? workspaceGlobalAverages : workspaceMaskedGlobalAverages;
+  const lineChartData: Element[] = displayGrey.value ? workspaceSelectionAverages : workspaceMaskedSelectionAverages;
 
   // Clear all previous instances of the chart
   clearChart();
 
-  // Set up the chart
-  setupChart(selectedData);
+  // Set up the chart for the new data
+  setupChart(barChartData, lineChartData);
 
   // Add the bar chart
   if (barChecked.value) {
-    updateBarChart(selectedData);
+    updateBarChart(barChartData);
   }
 
   // Add the line chart
   if (lineChecked.value) {
-    updateLineChart(selectedData);
+    updateLineChart(lineChartData);
   }
 }
 
 /**
- * Set up the window when it is mounted. This function includes the fetching of the elemental data
- * which is displayed in the chart.
+ * Set up the window when it is mounted. Global elemental averages are fetched only once at this point.
  */
 async function setupWindow() {
-  try {
-    // Whether the elemental data was fetched properly
-    const fetched: boolean = await fetchAverages(config.api.endpoint, false, areaSelection.value);
-    if (fetched) {
-      // After having fetched the data, update the workspace elements
-      updateWorkspaceElements();
-
-      // Update the charts with the fetched data
-      await updateCharts();
-    }
-  } catch (e) {
-    console.error("Error fetching average data", e);
-  }
+  await fetchGlobalAverages();
+  updateCharts();
 }
 
-watch(
-  elementSelection,
-  (selection) => {
-    maskData(selection);
-    updateCharts();
-  },
-  { deep: true, immediate: true },
-);
+// Update charts when the workspace elements are updated
+watch(elements, updateCharts, { deep: true, immediate: true });
+
+// Update charts when the selection is updated
+watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
@@ -349,11 +376,11 @@ watch(
       <p class="font-bold">Charts</p>
       <div class="mt-1 flex items-center">
         <Checkbox id="barCheck" v-model:checked="barChecked" @update:checked="updateCharts" />
-        <Label class="ml-1" for="barCheck">Bar chart</Label>
+        <Label class="ml-1" for="barCheck">Bar chart (global data)</Label>
       </div>
       <div class="mt-1 flex items-center">
         <Checkbox id="lineCheck" v-model:checked="lineChecked" @update:checked="updateCharts" />
-        <Label class="ml-1" for="lineCheck">Line chart</Label>
+        <Label class="ml-1" for="lineCheck">Line chart (selection data)</Label>
       </div>
       <!-- OPTIONS CHECKBOXES -->
       <p class="font-bold">Options</p>

@@ -177,7 +177,7 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
 
     # Get the elemental data cube and the names of the elements
     raw_cube: np.ndarray = get_elemental_data_cube(path)
-    names: list[str] = get_element_names(path)
+    names: list[str] = get_short_element_names(path)
 
     # Check if the data was loaded correctly
     if raw_cube.size == 0 or names == []:
