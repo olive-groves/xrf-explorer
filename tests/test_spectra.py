@@ -23,7 +23,7 @@ class TestSpectra:
         expected_result: list[float] = [2.0, 2.0, 3.0, 4.0]
 
         # execute
-        result: list[float ] = get_average_global(data)
+        result: list[float] = get_average_global(data)
 
         # verify
         assert result == expected_result
