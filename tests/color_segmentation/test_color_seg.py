@@ -37,7 +37,7 @@ class TestColorSegmentation:
         k: int = 2
 
         # Execute
-        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, num_attempts, k)
+        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, k, num_attempts)
         print(result)
         # Verify
         # The image has 2 colors
@@ -129,14 +129,17 @@ class TestColorSegmentation:
         k: int = 2
 
         # Execute
-        clusters_per_elem: np.ndarray
-        bitmasks_per_elem: np.ndarray
-        clusters_per_elem, bitmasks_per_elem = get_elemental_clusters_using_k_means(
-            self.DATA_SOURCE, self.IMAGE_NAME, elem_threshold, num_attemps, k)
+        clusters_per_elem: list[np.ndarray] = []
+        bitmasks_per_elem: list[np.ndarray] = []
 
-        for i in range(len(clusters_per_elem)):
-            clusters_per_elem[i], bitmasks_per_elem[i] = merge_similar_colors(clusters_per_elem[i],
-                                                                              bitmasks_per_elem[i])
+        for i in range(3):
+            bitmask: np.ndarray
+            clusters: np.ndarray
+            clusters, bitmask = get_elemental_clusters_using_k_means(
+                self.DATA_SOURCE, self.IMAGE_NAME, i, elem_threshold, k, num_attemps
+            )
+            clusters_per_elem.append(clusters)
+            bitmasks_per_elem.append(bitmask)
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)

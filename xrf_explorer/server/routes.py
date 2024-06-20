@@ -753,11 +753,12 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
         bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}.png')
     else:
         LOG.info("Computing color clusters for single element")
+        scaled_elem_threshold: int = int(255 * elem_threshold / 100)
         # Compute colors and bitmasks per element
         colors: np.ndarray
         bitmasks: np.ndarray
         colors, bitmasks = get_elemental_clusters_using_k_means(
-            data_source, rgb_image_name, elem-1, elem_threshold, k
+            data_source, rgb_image_name, elem-1, scaled_elem_threshold, k
         )
         bitmask_full_path: str = join(path_to_save, f'bitmask_{elem-1}_{k}_{elem_threshold}.png')
 
@@ -807,6 +808,5 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
         get_color_clusters(data_source, elem, k, elem_threshold)
-    LOG.info('Bitmask already exists')
 
     return send_file(abspath(bitmask_full_path), mimetype='image/png')
