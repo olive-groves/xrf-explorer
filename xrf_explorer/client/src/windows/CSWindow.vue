@@ -154,7 +154,7 @@ function getElementIndex(elementName: string | undefined) {
       <!-- PARAMETER SELECTION -->
       <div class="flex items-center space-x-4">
         <div class="flex-1 space-y-1">
-          <Label for="elemental_threshold">Threshold (0-100)</Label>
+          <Label for="elemental_threshold">Threshold (%)</Label>
           <NumberField
             v-model="threshold"
             :min="0"
