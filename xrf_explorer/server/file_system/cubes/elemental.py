@@ -3,6 +3,7 @@ import json
 from logging import Logger, getLogger
 from os import remove
 from os.path import basename, dirname, splitext
+from pathlib import Path
 
 import numpy as np
 
@@ -11,6 +12,7 @@ from .convert_dms import get_elemental_data_cube_from_dms, get_elemental_map_fro
 
 from xrf_explorer.server.file_system.workspace import (
     get_path_to_workspace,
+    get_elemental_cube_path,
     get_elemental_cube_path_from_name
 )
 
@@ -52,24 +54,25 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
     return normalized_cube
 
 
-def get_elemental_data_cube(path: str) -> np.ndarray:
+def get_elemental_data_cube(data_source: str) -> np.ndarray:
     """Get the elemental data cube at the given path.
 
-    :param path: Path to data cube.
+    :param data_source: the path to the .raw file
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
 
+    path_to_elemental_cube: str = get_elemental_cube_path(data_source)
     # Get the elemental data cube
     elemental_cube: np.ndarray
 
-    LOG.info(f"Reading elemental data cube from {path}")
+    LOG.info(f"Reading elemental data cube from {path_to_elemental_cube}")
 
     try:
         # Choose the correct method to read the elemental data cube
-        if path.endswith('.csv'):
-            elemental_cube = get_elemental_data_cube_from_csv(path)
-        elif path.endswith('.dms'):
-            elemental_cube = get_elemental_data_cube_from_dms(path)
+        if path_to_elemental_cube.endswith('.csv'):
+            elemental_cube = get_elemental_data_cube_from_csv(path_to_elemental_cube)
+        elif path_to_elemental_cube.endswith('.dms'):
+            elemental_cube = get_elemental_data_cube_from_dms(path_to_elemental_cube)
         else:
             elemental_cube = np.empty(0)
 
@@ -176,7 +179,8 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     """
 
     # Get the elemental data cube and the names of the elements
-    raw_cube: np.ndarray = get_elemental_data_cube(path)
+    source_folder: str = basename(str(Path(path).parent))
+    raw_cube: np.ndarray = get_elemental_data_cube(source_folder)
     names: list[str] = get_short_element_names(path)
 
     # Check if the data was loaded correctly

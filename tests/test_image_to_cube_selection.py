@@ -105,12 +105,7 @@ class TestImageToCubeSelection:
             (345, 678)
         ]
 
-        cube_dir: str | None = get_elemental_cube_path(self.DATA_SOURCE_FOLDER_NAME)
-
-        if cube_dir is None:
-            pytest.fail("Cube directory is None.")
-
-        cube: np.ndarray = get_elemental_data_cube(cube_dir)
+        cube: np.ndarray = get_elemental_data_cube(self.DATA_SOURCE_FOLDER_NAME)
         _, cube_h, cube_w = cube.shape
 
         base_img_dir: str | None = get_base_image_path(

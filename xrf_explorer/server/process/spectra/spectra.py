@@ -6,7 +6,7 @@ import numpy as np
 import xraydb
 
 from xrf_explorer.server.file_system import get_config
-from xrf_explorer.server.file_system.cubes.spectral import get_raw_data
+from xrf_explorer.server.file_system.cubes import get_raw_data
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

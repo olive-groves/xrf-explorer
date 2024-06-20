@@ -9,7 +9,6 @@ from cv2.typing import MatLike
 from skimage import color
 
 from xrf_explorer.server.file_system.cubes import normalize_elemental_cube_per_layer, get_elemental_data_cube
-from xrf_explorer.server.file_system.workspace import get_elemental_cube_path
 from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -141,12 +140,10 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     )
 
     # Get the elemental data cube
-    data_cube_path: str | None = get_elemental_cube_path(data_source)
-    if data_cube_path is None:
+    data_cube: np.ndarray = get_elemental_data_cube(data_source)
+    if data_cube.size == 0:
         LOG.error("Elemental data cube not found")
         return np.empty(0), np.empty(0)
-
-    data_cube: np.ndarray = get_elemental_data_cube(data_cube_path)
 
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
