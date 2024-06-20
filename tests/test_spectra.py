@@ -1,5 +1,6 @@
-from xrf_explorer.server.spectra import get_average_global, get_average_selection
 import numpy as np
+
+from xrf_explorer.server.process.spectra import get_average_global
 
 
 class TestSpectra:
