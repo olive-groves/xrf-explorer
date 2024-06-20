@@ -45,7 +45,6 @@ from xrf_explorer.server.process.color_segmentation import (
     combine_bitmasks,
     get_clusters_using_k_means,
     get_elemental_clusters_using_k_means,
-    merge_similar_colors,
     save_bitmask_as_png,
     convert_to_hex
 )
@@ -60,7 +59,6 @@ from xrf_explorer.server.process.spectra import (
     get_raw_data,
     get_average_selection,
     get_theoretical_data,
-    bin_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
