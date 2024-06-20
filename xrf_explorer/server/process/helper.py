@@ -9,7 +9,7 @@ LOG: Logger = getLogger(__name__)
 
 
 def get_path_to_generated_folder(data_source: str) -> str:
-    """Gets the path to the generated folder for a given data source. If it does not exists, it will be created.
+    """Gets the path to the generated folder for a given data source. If it does not exist, it will be created.
     
     :param data_source: The data source for which the path is requested.
     :return: The path to the generated folder for the given data source. Empty string is returned in case of error.

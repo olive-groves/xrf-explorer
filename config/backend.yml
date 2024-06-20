@@ -1,6 +1,7 @@
 temp-folder: "xrf_explorer/server/temp"
 uploads-folder: "xrf_explorer/server/data"
 generated-folder-name: "generated"
+cs-folder-name: "color_segmentation"
 bind-address: 127.0.0.1
 port: 8001
 upload-buffer-size: 16384
@@ -13,12 +14,3 @@ dim-reduction:
     min-dist: 0
     n-components: 2
     metric: "cosine"
-color-segmentation:
-  folder-name: "color_segmentation"
-  k-means-parameters:
-    k: 10
-    nr-attempts: 10
-  elemental-k-means-parameters:
-    k: 5
-    nr-attempts: 10
-    elem-threshold: 40 # range [0,255]
