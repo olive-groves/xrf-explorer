@@ -39,8 +39,6 @@ const elementalTarget = new THREE.WebGLRenderTarget(1, 1, {
 });
 const elementalCamera = new THREE.OrthographicCamera();
 
-render();
-
 watch(selection, selectionUpdated, { immediate: true, deep: true });
 
 /**
@@ -55,13 +53,15 @@ function selectionUpdated(newSelection: ElementSelection[]) {
         loadMap(channel);
       }
       map.uniform.iColor.value.set(...hexToRgb(channel.color));
-      map.uniform.iThreshold.value.set(...channel.thresholds);
+      map.uniform.iThreshold.value.set(Math.min(...channel.thresholds), Math.max(...channel.thresholds));
     } else {
       if (map.mesh != undefined) {
         disposeMap(channel.channel);
       }
     }
   });
+
+  requestAnimationFrame(render);
 }
 
 /**
@@ -105,6 +105,8 @@ function loadMap(element: ElementSelection) {
       map.loading = false;
 
       elementalScene.add(map.mesh);
+
+      requestAnimationFrame(render);
     },
     () => {
       map.loading = false;
@@ -146,8 +148,6 @@ function render() {
     scene.renderer.render(elementalScene, elementalCamera);
     scene.renderer.setRenderTarget(null);
   }
-
-  requestAnimationFrame(render); // For debugging, should be removed
 }
 
 /**
@@ -160,21 +160,6 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   const recipe = await getRecipe(`${config.api.endpoint}/${datasource.value}/data/recipe`);
   recipe.movingSize = await getDataSize();
   recipe.targetSize = await getTargetSize();
-
-  // const layers = workspace.elementalChannels
-  //   .filter((channel) => channel.enabled)
-  //   .map((channel) => {
-  //     const layer = createLayer(
-  //       `elemental_${channel.channel}`,
-  //       `${config.api.endpoint}/${datasource.value}/data/elements/map/${channel.channel}`,
-  //       false,
-  //     );
-  //     registerLayer(layer, recipe);
-  //     layer.uniform.iLayerType.value = LayerType.Elemental;
-  //     layer.uniform.iAuxiliary = { value: channel.channel };
-  //     layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
-  //     return layer;
-  //   });
 
   // Setup elemental maps
   Object.keys(elementalMaps).forEach((key) => {

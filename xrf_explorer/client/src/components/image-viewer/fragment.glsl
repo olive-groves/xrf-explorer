@@ -111,6 +111,8 @@ void main() {
     // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
     // and (channel/256, 1) for the thresholds.
     // We get the color from the auxiliary and render in alphascale.
+    fragColor.xyz = fragColor.xyz / fragColor.w;
+    fragColor.w = clamp(fragColor.w, 0.0, 1.0);
   } else if (iLayerType == TYPE_CS) {
     // Get auxiliary data from texture
     // Element index j given by iAuxiliary, cluster index i given by R value
@@ -147,5 +149,5 @@ void main() {
   fragColor.xyz = pow(fragColor.xyz, vec3(1.0 / uGamma));
   
   // Apply opacity
-  fragColor = vec4(fragColor.xyz, fragColor.w * uOpacity);
+  fragColor.w = fragColor.w * uOpacity;
 }

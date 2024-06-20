@@ -11,6 +11,6 @@ out vec4 fragColor;
 
 void main() {
     fragColor = texture(tMap, vUv);
-    fragColor.w = clamp((fragColor.w - iThreshold.x) / (iThreshold.y - iThreshold.x), 0.0, 1.0);
-    fragColor.xyz = iColor / 255.0 * fragColor.xyz;
+    fragColor.w = clamp((fragColor.x - iThreshold.x) / (iThreshold.y - iThreshold.x), 0.0, 1.0);
+    fragColor.xyz = iColor / 255.0;
 }
