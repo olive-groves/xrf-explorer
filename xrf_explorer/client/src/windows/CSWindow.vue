@@ -21,7 +21,7 @@ const selectedElement = ref<string>();
 
 const selection = computed(() => appState.selection.colorSegmentation);
 const threshold = ref(20);
-const number_clusters = ref(20);
+const number_clusters = ref(10);
 const currentError = ref("Unknown error");
 
 // Status color segmentation
