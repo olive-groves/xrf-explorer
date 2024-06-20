@@ -409,11 +409,13 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     :param data_source: data source to generate the embedding from
     :param element: element to generate the embedding for
     :param threshold: threshold from which a pixel is selected
-    :return: string code indicating the status of the embedding generation. "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was down sampled
+    :return: string code indicating the status of the embedding generation.
+             "success" when embedding was generated successfully,
+             "downsampled" when successful and the number of data points was down sampled.
     """
-
+    scaled_threshold: int = int(255 * threshold / 100)
     # Try to generate the embedding
-    result = generate_embedding(data_source, element, threshold, request.args)
+    result = generate_embedding(data_source, element, scaled_threshold, request.args)
     if result == "success" or result == "downsampled":
         return result
 

@@ -67,7 +67,7 @@ const status = ref(Status.WELCOME);
 const currentError = ref("Unknown error");
 
 // Dimensionality reduction parameters
-const threshold = ref(100);
+const threshold = ref(30);
 const selectedElement = ref();
 const selectedOverlay = ref();
 
@@ -200,11 +200,11 @@ async function updateEmbedding() {
           </Select>
         </div>
         <div class="w-28 shrink-0 space-y-1">
-          <Label for="embedding_threshold">Threshold</Label>
+          <Label for="embedding_threshold">Threshold (%)</Label>
           <NumberField
             v-model="threshold"
             :min="0"
-            :max="255"
+            :max="100"
             :step="1"
             id="embedding_threshold"
             :format-options="{
