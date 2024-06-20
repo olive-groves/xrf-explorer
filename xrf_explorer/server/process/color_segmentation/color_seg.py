@@ -17,7 +17,7 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
                          threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
-    """Go over every pair of clusters and merge the pair if they are similar according to threshold the t.
+    """Go over every pair of clusters and merge the pair if they are similar according to the threshold.
     Currently unused function, left in code in case it becomes useful in the future.
 
     :param clusters: the currently available clusters
