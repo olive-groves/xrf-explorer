@@ -53,6 +53,8 @@ let selectionData: number[] = [];
 let elementData: number[] = [];
 // Coordinates of the theoretical element peaks
 let elementPeaks: number[] = [];
+// X-axis offset
+let offset: number = 0;
 
 /**
  * Setup the svg and axis of the graph.
@@ -63,8 +65,30 @@ async function setup() {
   watch(binned, () => {
     ready = binned.value;
   });
+  offset = await getOffset();
   await getAverageSpectrum();
   makeChart();
+}
+
+/**
+ * Fetches the x-axis offset of the spectra.
+ * @returns - The offset.
+ */
+async function getOffset() {
+  try {
+    //make api call
+    const response = await fetch(`${url}/${datasource.value}/get_offset`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const offset = await response.json();
+    return offset;
+  } catch (e) {
+    console.error("Error getting energy offset", e);
+    return 0;
+  }
 }
 
 /**
@@ -85,7 +109,7 @@ function makeChart() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([0, (high.value - low.value) / binSize.value]);
+    .domain([low.value * ((40 - offset) / 4096) + offset, high.value * ((40 - offset) / 4096) + offset]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
@@ -103,14 +127,35 @@ function makeChart() {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(x))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", 50)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text("Energy (keV)"),
+    );
 
-  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
+  svg
+    .append("g")
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(y))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", -margin.left)
+        .attr("y", 20)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text("Average intensity (0-255)"),
+    );
 
   // create line
   const globalLine = d3
     .line<number>()
-    .x((_, i) => x(i))
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
     .y((d, _) => y(d));
 
   // Add the line to chart
@@ -133,7 +178,7 @@ function makeChart() {
   // create line
   const line = d3
     .line<number>()
-    .x((_, i) => x(i))
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
     .y((d, _) => y(d));
 
   // Add the line to chart
@@ -157,7 +202,7 @@ function makeChart() {
   // create line
   const elementLine = d3
     .line<number>()
-    .x((_, i) => x(i))
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
     .y((d, _) => y(d));
 
   // Add the line to chart
@@ -165,23 +210,25 @@ function makeChart() {
     .append("path")
     .datum(elementData)
     .attr("fill", "none")
-    .attr("stroke", "red")
+    .attr("stroke", "orange")
     .attr("stroke-width", 1)
     .attr("id", "elementLine")
     .attr("d", elementLine)
     .style("opacity", 0);
 
   //Add peaks
-  elementPeaks.forEach((peak, index) => {
+  elementPeaks.forEach((index) => {
     svg
       .append("line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x(index))
+      .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y1", 30)
-      .attr("x2", x(peak))
+      .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y2", 430);
   });
+
+  console.log(elementData);
   // modify visibility based on checkbox status
   updateElement();
 }
@@ -400,6 +447,8 @@ function updateElementSpectrum() {
         class="ml-1 mt-1 w-64"
         v-model="excitation"
         @update:model-value="updateElementSpectrum"
+        :min="0"
+        :max="40"
       >
         <NumberFieldContent>
           <NumberFieldInput />

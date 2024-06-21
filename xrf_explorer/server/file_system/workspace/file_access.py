@@ -2,6 +2,7 @@
 
 import json
 import logging
+import numpy as np
 
 from os.path import isfile, join, exists, abspath
 from pathlib import Path

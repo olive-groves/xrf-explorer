@@ -1,6 +1,11 @@
+import json
+import numpy as np
 from logging import Logger, getLogger
+from math import ceil, floor
 
 from xrf_explorer.server.file_system.workspace import get_workspace_dict
+from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths
+from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace
 
 LOG: Logger = getLogger(__name__)
 
@@ -53,3 +58,36 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
         raise FileNotFoundError
 
     return workspace_dict["spectralParams"]
+
+def update_bin_params(data_source: str):
+    """
+    Converts the low, high and binsize parameters in the workspace from energy to channel.
+    
+    """
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    try:
+        offset: int = int(info['depthscaleorigin'])
+    except:
+        offset: int = 0
+    
+    workspace_dict: dict | None = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        raise FileNotFoundError
+    low = workspace_dict["spectralParams"]["low"]
+    high = workspace_dict["spectralParams"]["high"]
+    bin_size = workspace_dict["spectralParams"]["binSize"]
+    
+    increment = (40-offset)/4096
+    workspace_dict["spectralParams"]["low"] = floor((low - offset)/increment)
+    workspace_dict["spectralParams"]["high"] = ceil((high - offset)/increment)
+    workspace_dict["spectralParams"]["binSize"] = round(bin_size/increment)
+    
+    workspace_path = get_path_to_workspace(data_source)
+
+    with open(workspace_path, 'w') as f:
+        json.dump(workspace_dict, f)

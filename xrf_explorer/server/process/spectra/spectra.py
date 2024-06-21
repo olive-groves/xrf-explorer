@@ -268,7 +268,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     return average.tolist()
 
 
-def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, high: int, bin_size: int) -> list:
+def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element.
         Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
 
@@ -310,9 +310,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
         start_index = floor(start_channel * len(y_spectrum) / 4096)
         new_bin_size = round(bin_size / (4096 / len(y_spectrum)))
         mean = np.mean(y_spectrum[start_index:start_index + new_bin_size])
-
-        point = {"index": i, "value": mean}
-        spectrum.append(point)
+        spectrum.append(mean)
 
     response.append(spectrum)
 
@@ -326,8 +324,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: int, low: int, hig
     for i in range(len(x_peaks)):
         # take only the peaks within the domain [low, high]
         if low <= x_peaks[i] < high:
-            point = {"index": (x_peaks[i] - low) / bin_size, "value": y_peaks[i]}
-            peaks.append(point)
+            peaks.append((x_peaks[i] - low) / bin_size)
     response.append(peaks)
     return response
 
