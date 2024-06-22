@@ -7,13 +7,13 @@ import numpy as np
 from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
 
 from xrf_explorer.server.file_system.cubes import parse_rpl
+from xrf_explorer.server.image_register import load_points, compute_fitting_dimensions_by_aspect
 from xrf_explorer.server.file_system.workspace import (
     get_elemental_cube_path,
     get_base_image_path,
     get_raw_rpl_paths,
     get_cube_recipe_path,
 )
-from xrf_explorer.server.process.image_register import load_points, compute_fitting_dimensions_by_aspect
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

@@ -1,0 +1,11 @@
+{
+  "elementalCubes": [
+    {
+      "dataLocation": "test.dms",
+      "fileType": "dms",
+      "name": "Datacube",
+      "recipeLocation": ""
+    }
+  ],
+  "name": "dms"
+}

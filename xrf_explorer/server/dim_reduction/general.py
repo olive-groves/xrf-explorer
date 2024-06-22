@@ -8,10 +8,8 @@ import numpy as np
 from cv2 import imwrite
 from scipy.interpolate import NearestNDInterpolator
 
-from xrf_explorer.server.file_system import get_config
+from xrf_explorer.server.file_system import get_config, get_path_to_generated_folder
 from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
-from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_path
-from xrf_explorer.server.process import get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -81,8 +79,7 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
         return False
 
     # Load the elemental data cube
-    path_to_cube = get_elemental_cube_path(data_source)
-    elemental_cube: np.ndarray | None = get_elemental_data_cube(path_to_cube)
+    elemental_cube: np.ndarray | None = get_elemental_data_cube(data_source)
     if elemental_cube is None:
         return False
 

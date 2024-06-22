@@ -1,5 +1,8 @@
 from logging import Logger, getLogger
-from os.path import abspath
+from os import makedirs
+from os.path import abspath, join, isdir
+from pathlib import Path
+
 from yaml import safe_load, YAMLError
 
 LOG: Logger = getLogger(__name__)
@@ -34,3 +37,43 @@ def get_config() -> dict | None:
     """
 
     return APP_CONFIG
+
+
+def get_path_to_generated_folder(data_source: str) -> str:
+    """Gets the path to the generated folder for a given data source. If it does not exist, it will be created.
+
+    :param data_source: The data source for which the path is requested.
+    :return: The path to the generated folder for the given data source. Empty string is returned in case of error.
+    """
+
+    # load backend config
+    backend_config: dict = get_config()
+    if not backend_config:  # config is empty
+        LOG.error("Config is empty")
+        return ""
+
+    # Get the path to the data source folder
+    path_to_data_source: str = join(backend_config['uploads-folder'], data_source)
+    if not isdir(path_to_data_source):
+        LOG.error(f"Data source {data_source} not found.")
+        return ""
+
+    # Path to the generated folder
+    path_to_generated_folder: str = join(path_to_data_source, backend_config['generated-folder-name'])
+
+    # Check whether it exists, if not create it
+    if not isdir(path_to_generated_folder):
+        makedirs(path_to_generated_folder)
+        LOG.info(f"Created directory {path_to_generated_folder}.")
+
+    return path_to_generated_folder
+
+
+def data_source_name_from_cube_path(path_to_cube: str) -> str:
+    """Gets the name of the data source from the path to the cube.
+
+    :param path_to_cube: The path to the cube
+    :return: The name of the data source where the cube is located
+    """
+
+    return Path(path_to_cube).parent.name

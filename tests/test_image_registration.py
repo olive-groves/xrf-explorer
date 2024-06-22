@@ -8,7 +8,7 @@ import pytest
 from cv2.typing import MatLike
 
 from xrf_explorer.server.file_system.helper import set_config
-from xrf_explorer.server.process.image_register import register_image_to_image, get_image_registered_to_data_cube
+from xrf_explorer.server.image_register import register_image_to_image, get_image_registered_to_data_cube
 
 
 class TestImageRegistration:
@@ -111,7 +111,7 @@ class TestImageRegistration:
 
         # verify
         assert result is None
-        assert "Data cube not found at" in caplog.text
+        assert "Failed to register image" in caplog.text
 
     def test_register_image_to_cube_image_register_not_found(self, caplog):
         # setup

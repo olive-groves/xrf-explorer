@@ -3,8 +3,7 @@ import logging
 from os import makedirs
 from os.path import join, isdir
 
-from xrf_explorer.server.file_system import get_config
-from xrf_explorer.server.process import get_path_to_generated_folder
+from xrf_explorer.server.file_system import get_config, get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
