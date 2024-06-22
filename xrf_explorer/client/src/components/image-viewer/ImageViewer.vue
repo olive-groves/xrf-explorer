@@ -209,30 +209,28 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <BaseContextMenu>
-    <div
-      ref="glcontainer"
-      class="relative size-full"
-      :style="{
-        cursor: cursor,
-      }"
-      @dblclick="resetViewport"
-      @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove"
-      @wheel="onWheel"
-    >
-      <canvas ref="glcanvas" />
-      <SelectionArea
-        v-model="appState.selection.imageViewer"
-        :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
-        :x="viewbox.x"
-        :y="viewbox.y"
-        :w="viewbox.w"
-        :h="viewbox.h"
-      />
-      <Toolbar v-model:state="toolState" @reset-viewport="resetViewport"/>
-    </div>
-  </BaseContextMenu>
+  <div
+    ref="glcontainer"
+    class="relative size-full"
+    :style="{
+      cursor: cursor,
+    }"
+    @dblclick="resetViewport"
+    @mousedown="onMouseDown"
+    @mouseup="onMouseUp"
+    @mouseleave="onMouseLeave"
+    @mousemove="onMouseMove"
+    @wheel="onWheel"
+  >
+    <canvas ref="glcanvas" />
+    <SelectionArea
+      v-model="appState.selection.imageViewer"
+      :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+    />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport"/>
+  </div>
 </template>
