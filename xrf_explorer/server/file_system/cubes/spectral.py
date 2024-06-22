@@ -5,8 +5,8 @@ from os.path import join, isfile, isdir
 
 import numpy as np
 
-from .. import get_path_to_generated_folder
-from ..workspace import (
+from xrf_explorer.server.file_system import get_path_to_generated_folder
+from xrf_explorer.server.file_system.workspace import (
     get_raw_rpl_paths,
     get_workspace_dict,
     get_raw_rpl_names,

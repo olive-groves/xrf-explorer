@@ -8,7 +8,7 @@ import PIL
 
 from PIL.Image import Image
 
-from .. import get_config
+from xrf_explorer.server.file_system import get_config
 
 LOG: logging.Logger = logging.getLogger(__name__)
 

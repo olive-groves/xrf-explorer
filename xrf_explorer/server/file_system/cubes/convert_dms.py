@@ -4,8 +4,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .. import data_source_name_from_cube_path
-from ..workspace import get_elemental_cube_path
+from xrf_explorer.server.file_system import data_source_name_from_cube_path
+from xrf_explorer.server.file_system.workspace import get_elemental_cube_path
 
 LOG: Logger = getLogger(__name__)
 

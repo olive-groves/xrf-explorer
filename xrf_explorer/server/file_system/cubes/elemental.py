@@ -7,8 +7,17 @@ from pathlib import Path
 
 import numpy as np
 
-from .convert_csv import get_elemental_data_cube_from_csv, get_elemental_map_from_csv, get_elements_from_csv
-from .convert_dms import get_elemental_data_cube_from_dms, get_elemental_map_from_dms, get_elements_from_dms, to_dms
+from xrf_explorer.server.file_system.cubes.convert_csv import (
+    get_elemental_data_cube_from_csv,
+    get_elemental_map_from_csv,
+    get_elements_from_csv
+)
+from xrf_explorer.server.file_system.cubes.convert_dms import (
+    get_elemental_data_cube_from_dms,
+    get_elemental_map_from_dms,
+    get_elements_from_dms,
+    to_dms
+)
 
 from xrf_explorer.server.file_system.workspace import (
     get_path_to_workspace,

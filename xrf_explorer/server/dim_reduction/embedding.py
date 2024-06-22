@@ -7,9 +7,13 @@ import numpy as np
 
 from umap import UMAP
 
+from xrf_explorer.server.dim_reduction.general import (
+    valid_element,
+    get_path_to_dr_folder,
+    create_image_of_indices_to_embedding
+)
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.cubes import normalize_ndarray_to_grayscale, get_elemental_data_cube
-from .general import valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
