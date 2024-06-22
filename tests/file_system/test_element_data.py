@@ -94,7 +94,6 @@ class TestElementalData:
 
         # execute & verify
         self.do_test_get_elemental_cube(source_folder, caplog)
-        # self.do_test_get_elemental_cube(self.DATA_CUBE_CSV, caplog)
 
     def test_get_elemental_map(self, caplog):
         # setup
