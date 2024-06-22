@@ -232,10 +232,7 @@ const cursor = computed(() => {
         :w="viewbox.w"
         :h="viewbox.h"
       />
-      <Toolbar v-model:state="toolState" />
+      <Toolbar v-model:state="toolState" @reset-viewport="resetViewport"/>
     </div>
-    <template #menu>
-      <ContextMenuItem @click="resetViewport"> Reset viewport </ContextMenuItem>
-    </template>
   </BaseContextMenu>
 </template>

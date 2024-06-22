@@ -2,14 +2,20 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
-import { Hand, Search, SquareMousePointer, Settings, LassoSelect } from "lucide-vue-next";
+import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen } from "lucide-vue-next";
 import { Tool, ToolState } from "./types";
 import { FrontendConfig } from "@/lib/config";
-import { inject } from "vue";
+import { inject, defineEmits } from "vue";
 
 const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
+const emit = defineEmits(['reset-viewport']);
+
+const resetViewport = () => {
+  // Emit reset viewport message to imageViewer
+  emit('reset-viewport');
+};
 </script>
 
 <template>
@@ -32,6 +38,9 @@ const state = defineModel<ToolState>("state", { required: true });
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
+    <Button variant="ghost" class="size-8 p-2" title="Refresh image" @click="resetViewport">
+      <Fullscreen />
+    </Button>
     <Popover>
       <PopoverTrigger as-child>
         <Button variant="ghost" class="size-8 p-2" title="Tool configuration">
