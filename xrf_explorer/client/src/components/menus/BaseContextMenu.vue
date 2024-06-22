@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { computed, useSlots } from "vue";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/components/ui/context-menu";
 
 /**
  * The base context menu, if a specific component needs to add additional components to this menu,
@@ -20,11 +13,6 @@ import { computed, useSlots } from "vue";
  * </BaseContextMenu>.
  * ```
  */
-
-const slots = useSlots();
-const hasMenuSlot = computed(() => {
-  return "menu" in slots;
-});
 </script>
 
 <template>

@@ -10,11 +10,11 @@ import { inject, defineEmits } from "vue";
 const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
-const emit = defineEmits(['reset-viewport']);
+const emit = defineEmits(["reset-viewport"]);
 
 const resetViewport = () => {
   // Emit reset viewport message to imageViewer
-  emit('reset-viewport');
+  emit("reset-viewport");
 };
 </script>
 

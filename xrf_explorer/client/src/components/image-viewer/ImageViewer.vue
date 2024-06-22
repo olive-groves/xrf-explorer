@@ -9,8 +9,6 @@ import * as THREE from "three";
 import { scene } from "./scene";
 import { datasource, appState } from "@/lib/appState";
 import { getTargetSize } from "./api";
-import { BaseContextMenu } from "../menus";
-import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
@@ -231,6 +229,6 @@ const cursor = computed(() => {
       :w="viewbox.w"
       :h="viewbox.h"
     />
-    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport"/>
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" />
   </div>
 </template>
