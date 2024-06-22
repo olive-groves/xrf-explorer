@@ -11,14 +11,16 @@ import { TriangleAlert } from "lucide-vue-next";
 <template>
   <DialogContent class="max-w-fit">
     <div class="w-[22rem] space-y-4">
-
       <!-- Header -->
-      <DialogTitle class="font-bold">Are you sure you want to reset the client?</DialogTitle>
-
-      <div class="flex justify-start">
+      <DialogTitle class="mb-2 font-bold"> Are you sure you want to reset the client? </DialogTitle>
+      <!-- Text and button -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-1.5">
+          <TriangleAlert class="size-5 text-primary" />
+          <div class="text-muted-foreground">This will refresh the webpage</div>
+        </div>
         <Button @click="resetWindow">Confirm</Button>
       </div>
-
     </div>
   </DialogContent>
 </template>
