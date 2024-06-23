@@ -40,7 +40,9 @@ class TestElementalData:
 
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict = get_config()
+        custom_config: dict | None = get_config()
+        assert custom_config is not None
+
         path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
@@ -73,7 +75,9 @@ class TestElementalData:
 
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict = get_config()
+        custom_config: dict | None = get_config()
+        assert custom_config is not None
+
         path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
@@ -112,7 +116,9 @@ class TestElementalData:
 
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict = get_config()
+        custom_config: dict | None = get_config()
+        assert custom_config is not None
+
         path: str = join(custom_config["uploads-folder"], self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS)
 
         # execute
@@ -127,7 +133,9 @@ class TestElementalData:
     def test_csv_to_dms(self, caplog):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict = get_config()
+        custom_config: dict | None = get_config()
+        assert custom_config is not None
+
         folder_name: str = "from_csv"
         folder_path: str = join(custom_config["uploads-folder"], folder_name)
         makedirs(folder_path, exist_ok=True)

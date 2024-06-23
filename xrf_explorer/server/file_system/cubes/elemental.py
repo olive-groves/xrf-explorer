@@ -70,7 +70,11 @@ def get_elemental_data_cube(data_source: str) -> np.ndarray:
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
 
-    path_to_elemental_cube: str = get_elemental_cube_path(data_source)
+    path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
+    if path_to_elemental_cube is None:
+        LOG.error("Failed to get path to elemental cube")
+        return np.empty(0)
+
     # Get the elemental data cube
     elemental_cube: np.ndarray
 
