@@ -37,6 +37,10 @@ const elementalTarget = new THREE.WebGLRenderTarget(1, 1, {
   format: THREE.RGBAFormat,
   type: THREE.FloatType,
 });
+const elementalAlphaTarget = new THREE.WebGLRenderTarget(1, 1, {
+  format: THREE.RGBAFormat,
+  type: THREE.FloatType,
+});
 const elementalCamera = new THREE.OrthographicCamera();
 
 watch(selection, selectionUpdated, { immediate: true, deep: true });
@@ -46,6 +50,7 @@ watch(selection, selectionUpdated, { immediate: true, deep: true });
  * @param newSelection - The updated selection.
  */
 function selectionUpdated(newSelection: ElementSelection[]) {
+  if (newSelection == undefined) return;
   newSelection.forEach((channel) => {
     const map = elementalMaps[channel.channel];
     if (channel.selected) {
@@ -144,8 +149,34 @@ function disposeMap(channel: number) {
  */
 function render() {
   if (scene.renderer != undefined) {
+    // Accumulate all color values in elementalTarget, large values possible due to FloatType.
+    // Every layer adds intensity * color to the rgb channels and intensity to the alpha channel.
+    // Fragment.glsl will compute the final color as color / sum of intensities.
     scene.renderer.setRenderTarget(elementalTarget);
+    Object.values(elementalMaps).forEach((map) => {
+      if (map.mesh != undefined) {
+        const material = map.mesh.material as THREE.RawShaderMaterial;
+        material.blending = THREE.AdditiveBlending;
+        material.needsUpdate = true;
+      }
+    });
     scene.renderer.render(elementalScene, elementalCamera);
+
+    // Render all layers again to calculate maximum intensity at each pixel
+    // Will be drawn to elementAlphaTarget which fragment.glsl can access as tAuxiliary
+    scene.renderer.setRenderTarget(elementalAlphaTarget);
+    Object.values(elementalMaps).forEach((map) => {
+      if (map.mesh != undefined) {
+        const material = map.mesh.material as THREE.RawShaderMaterial;
+        material.blending = THREE.CustomBlending;
+        material.blendEquation = THREE.MaxEquation;
+        material.blendSrc = THREE.SrcAlphaFactor;
+        material.blendDst = THREE.DstAlphaFactor;
+        material.needsUpdate = true;
+      }
+    });
+    scene.renderer.render(elementalScene, elementalCamera);
+
     scene.renderer.setRenderTarget(null);
   }
 }
@@ -179,8 +210,10 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   // Setup rendering
   const size = await getDataSize();
   elementalTarget.setSize(size.width, size.height);
+  elementalAlphaTarget.setSize(size.width, size.height);
   const layer = createLayer("elemental_maps", "", false);
   layer.uniform.iLayerType.value = LayerType.Elemental;
+  layer.uniform.tAuxiliary = { value: elementalAlphaTarget.texture, type: "t" };
   loadLayerFromTexture(layer, elementalTarget.texture);
   registerLayer(layer, recipe);
 

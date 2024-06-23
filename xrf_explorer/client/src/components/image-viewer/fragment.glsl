@@ -107,12 +107,14 @@ void main() {
 
   // Modify color based on layer type
   if (iLayerType == TYPE_ELEMENTAL) {
-    // Get auxiliary data from texture
-    // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
-    // and (channel/256, 1) for the thresholds.
-    // We get the color from the auxiliary and render in alphascale.
+    // Display the elemental maps.
+    // The order independent blend of the maps has been calculated by elementalHelper.ts
+    // tImage contains accumulated values, the sum of all color contributions and the sum of intensities.
+    // tAuxiliary contains the maximum intensity values
+    // Color is calculated as the weighted mean, sum of colors divided by sum of intensities.
+    // Alpha is equal to the maximum alpha in the pixel as stored in tAuxiliary.
     fragColor.xyz = fragColor.xyz / fragColor.w;
-    fragColor.w = clamp(fragColor.w, 0.0, 1.0);
+    fragColor.w = texture(tAuxiliary, uv.xy).w;
   } else if (iLayerType == TYPE_CS) {
     // Get auxiliary data from texture
     // Element index j given by iAuxiliary, cluster index i given by R value
