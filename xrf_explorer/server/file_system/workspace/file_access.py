@@ -1,8 +1,7 @@
-#  module responsible for giving the different paths corresponding to the files of a data source
+# Module responsible for giving the different paths corresponding to the files of a data source
 
 import json
 import logging
-import numpy as np
 
 from os.path import isfile, join, exists, abspath
 from pathlib import Path

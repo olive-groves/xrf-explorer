@@ -113,7 +113,7 @@ function makeChart() {
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain([0, max]);
+    .domain([0, max * (100 / 255)]);
 
   // append the svg object to the body of the page
   svg = d3
@@ -149,14 +149,14 @@ function makeChart() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("Average intensity (0-255)"),
+        .text("Average intensity (%)"),
     );
 
   // create line
   const globalLine = d3
     .line<number>()
     .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d));
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg
@@ -179,7 +179,7 @@ function makeChart() {
   const line = d3
     .line<number>()
     .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d));
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg
@@ -203,7 +203,7 @@ function makeChart() {
   const elementLine = d3
     .line<number>()
     .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d));
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg

@@ -61,7 +61,7 @@ from xrf_explorer.server.process.spectra import (
     get_raw_data,
     get_average_selection,
     get_theoretical_data,
-    bin_data,
+    bin_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -282,25 +282,22 @@ def bin_raw_data(data_source: str):
     """Bins the raw data files channels to compress the file.
 
     :param data_source: the data source containing the raw data to bin
-    :param bin_params: the JSON list of parameters: low, high, binSize
     :return: A boolean indicating if the binning was successful
     """
     try:
         params: dict = get_spectra_params(data_source)
     except FileNotFoundError as err:
-        LOG.error(
-            "error while loading workspace to retrieve spectra params: {%s}", err)
-        return 500
+            
+        return ("error while loading workspace to retrieve spectra params: {%s}", err), 500
     binned: bool = params["binned"]
     
-    print(binned)
     if not binned:
         try:
             update_bin_params(data_source)
             params: dict = get_spectra_params(data_source)
-            low = params["low"]
-            high = params["high"]
-            bin_size = params["binSize"]
+            low: int = params["low"]
+            high: int = params["high"]
+            bin_size: int = params["binSize"]
             
             bin_data(data_source, low, high, bin_size)
             LOG.info("binned")
@@ -327,13 +324,12 @@ def get_offset(data_source: str):
     info = parse_rpl(path_to_rpl)
     if not info:
         return np.empty(0)
-    
+
     try:
         return json.dumps(float(info['depthscaleorigin']))
     except:
         # If we can't get the offset, set default values
         return json.dumps(0)
-    
 
 
 @app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
