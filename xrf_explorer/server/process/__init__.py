@@ -1,1 +1,0 @@
-from .helper import get_path_to_generated_folder

@@ -9,10 +9,9 @@ import numpy as np
 from cv2 import cvtColor, COLOR_BGR2RGB
 from cv2.typing import MatLike
 
+from xrf_explorer.server.dim_reduction.general import valid_element, get_path_to_dr_folder
 from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
-from xrf_explorer.server.file_system.workspace import get_elemental_cube_path
-from xrf_explorer.server.process.image_register import get_image_registered_to_data_cube
-from .general import valid_element, get_path_to_dr_folder
+from xrf_explorer.server.image_register import get_image_registered_to_data_cube
 
 matplotlib.use('Agg')
 
@@ -42,11 +41,6 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         LOG.error(f"Failed to load indices and/or embedding data. Error: {e}")
         return ""
 
-    # Get the path to the elemental data cube
-    cube_path: str = get_elemental_cube_path(data_source)
-    if not cube_path:
-        return ""
-
     # Create the overlay
     overlay: np.ndarray
 
@@ -70,7 +64,7 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
         element: int = int(overlay_type.removeprefix("elemental_"))
 
         # Get elemental data cube
-        data_cube: np.ndarray = get_elemental_data_cube(cube_path)
+        data_cube: np.ndarray = get_elemental_data_cube(data_source)
         if len(data_cube) == 0:
             return ""
 

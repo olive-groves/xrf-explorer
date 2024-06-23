@@ -1,5 +1,7 @@
 from logging import INFO
-from os import remove
+from json import dump
+from shutil import rmtree
+from os import makedirs
 from os.path import join
 
 from numpy import ndarray, array_equal, array, float32
@@ -16,8 +18,11 @@ RESOURCES_PATH: str = join('tests', 'resources')
 class TestElementalData:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'elemental-data.yml')
 
+    SOURCE_FOLDER_CSV: str = 'csv'
+    SOURCE_FOLDER_DMS: str = 'dms'
     DATA_CUBE_DMS: str = 'test.dms'
     DATA_CUBE_CSV: str = 'test.csv'
+
     NAME_CUBE_FROM_CSV: str = 'cube_from_csv'
     NON_EXISTING_CUBE: str = 'non-existing.dms'
 
@@ -36,7 +41,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(custom_config["uploads-folder"], source)
+        path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
         result: list[str] = get_element_names(path)
@@ -52,13 +57,8 @@ class TestElementalData:
         # setup
         expected_output: str = f"Elemental data cube loaded. Shape: {self.RAW_ELEMENTAL_CUBE.shape}"
 
-        # load custom config
-        set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict = get_config()
-        path: str = str(join(custom_config["uploads-folder"], source))
-
         # execute
-        result: ndarray = get_elemental_data_cube(path)
+        result: ndarray = get_elemental_data_cube(source)
 
         # verify
         assert array_equal(result, self.RAW_ELEMENTAL_CUBE)
@@ -84,16 +84,25 @@ class TestElementalData:
         assert expected_output in caplog.text
 
     def test_get_element_names(self, caplog):
-        self.do_test_get_element_names(self.DATA_CUBE_DMS, caplog)
-        self.do_test_get_element_names(self.DATA_CUBE_CSV, caplog)
+        self.do_test_get_element_names(join(self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS), caplog)
+        self.do_test_get_element_names(join(self.SOURCE_FOLDER_CSV, self.DATA_CUBE_CSV), caplog)
 
     def test_get_elemental_cube(self, caplog):
-        self.do_test_get_elemental_cube(self.DATA_CUBE_DMS, caplog)
-        self.do_test_get_elemental_cube(self.DATA_CUBE_CSV, caplog)
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+        source_folder: str = "csv"
+
+        # execute & verify
+        self.do_test_get_elemental_cube(source_folder, caplog)
 
     def test_get_elemental_map(self, caplog):
-        self.do_test_get_elemental_map(self.DATA_CUBE_DMS, caplog)
-        self.do_test_get_elemental_map(self.DATA_CUBE_CSV, caplog)
+        # setup
+        dms_path: str = join(self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS)
+        csv_path: str = join(self.SOURCE_FOLDER_CSV, self.DATA_CUBE_CSV)
+
+        # execute & verify
+        self.do_test_get_elemental_map(dms_path, caplog)
+        self.do_test_get_elemental_map(csv_path, caplog)
 
     def test_get_element_averages(self, caplog):
         caplog.set_level(INFO)
@@ -104,7 +113,7 @@ class TestElementalData:
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict = get_config()
-        path: str = join(custom_config["uploads-folder"], self.DATA_CUBE_DMS)
+        path: str = join(custom_config["uploads-folder"], self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS)
 
         # execute
         result: list[dict[str, str | float]] = get_element_averages(path)
@@ -118,15 +127,32 @@ class TestElementalData:
     def test_csv_to_dms(self, caplog):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
-        folder_path: str = join(RESOURCES_PATH, "file_system", "test_elemental_data")
+        custom_config: dict = get_config()
+        folder_name: str = "from_csv"
+        folder_path: str = join(custom_config["uploads-folder"], folder_name)
+        makedirs(folder_path, exist_ok=True)
+
+        workspace: dict = {
+          "elementalCubes": [
+            {
+              "dataLocation": self.NAME_CUBE_FROM_CSV + ".dms",
+              "fileType": "dms",
+              "name": "Datacube",
+              "recipeLocation": ""
+            }
+          ],
+          "name": folder_name
+        }
+        with open(join(folder_path, 'workspace.json'), 'w') as workspace_file:
+            dump(workspace, workspace_file)
 
         # execute
         result: bool = to_dms(folder_path, self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
 
         # verify
         assert result
-        self.do_test_get_element_names(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
-        self.do_test_get_elemental_cube(self.NAME_CUBE_FROM_CSV + '.dms', caplog)
+        self.do_test_get_element_names(join(folder_name, self.NAME_CUBE_FROM_CSV + '.dms'), caplog)
+        self.do_test_get_elemental_cube(folder_name, caplog)
 
         # cleanup
-        remove(join(folder_path, self.NAME_CUBE_FROM_CSV + '.dms'))
+        rmtree(folder_path)

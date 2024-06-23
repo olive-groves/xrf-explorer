@@ -4,10 +4,10 @@ from os import remove
 from os.path import isfile, join, normpath
 
 from xrf_explorer.server.file_system.helper import set_config
-from xrf_explorer.server.process.dim_reduction import (
+from xrf_explorer.server.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
-from xrf_explorer.server.process.dim_reduction.general import create_image_of_indices_to_embedding
+from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
