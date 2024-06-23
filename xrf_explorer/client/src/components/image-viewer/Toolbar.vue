@@ -27,7 +27,7 @@ const state = defineModel<ToolState>("state", { required: true });
       <ToggleGroupItem :value="Tool.Rectangle" class="size-8 p-2" title="Rectangle selection">
         <SquareMousePointer />
       </ToggleGroupItem>
-      <ToggleGroupItem :value="Tool.Lasso" class="size-8 p-2" title="Lasso selection">
+      <ToggleGroupItem :value="Tool.Polygon" class="size-8 p-2" title="Polygon selection">
         <LassoSelect />
       </ToggleGroupItem>
     </ToggleGroup>
