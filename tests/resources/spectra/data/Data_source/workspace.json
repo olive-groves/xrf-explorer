@@ -1,0 +1,14 @@
+{
+  "name": "Data source",
+  "spectralCubes": [
+    {
+      "rawLocation": "data.raw",
+      "rplLocation": "data.rpl"
+    }
+  ],
+  "spectralParams": {
+    "low": 0,
+    "high": 8,
+    "binSize": 2
+  }
+}

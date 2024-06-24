@@ -1,17 +1,23 @@
 from ntpath import join
 from posixpath import abspath
 import numpy as np
+import pytest
 
+from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.spectra import get_average_global
+from xrf_explorer.server.spectra.spectra import get_average_selection
 
 
 class TestSpectra:
-    RESOURCES_PATH: str = join('tests', 'resources')
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "contextual-images.yml")
-    TEST_RAW_PATH: str = abspath(join(RESOURCES_PATH, "spectra", "test.raw"))
-    INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, "contextual_images", "painting", "invalid.png"))
-    NONEXISTENT_IMAGE_PATH: str = abspath(
-        join(RESOURCES_PATH, "contextual_images", "painting", "nonexistent.png"))
+    RESOURCES_PATH: str = join('resources')
+    DATA_SOURCE_FOLDER_NAME: str = "Data_source"
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "spectra.yml")
+    TEST_RAW_PATH: str = join(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")
+    
+    @pytest.fixture(autouse=True)
+    def setup_environment(self):
+        set_config(self.CUSTOM_CONFIG_PATH)
+        yield
 
     def test_get_average_global(self):
         # setup
@@ -27,12 +33,19 @@ class TestSpectra:
 
     def test_get_average_selection(self):
         # setup
-        data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [2, 2, 3, 4],
-                        [2, 0, 3, 4]]])
+        data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
+                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]],
+                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]]], dtype=np.uint16)
+        
+        mask = np.array([[True, False, True],
+                         [False, True, True],
+                         [True, False, False]])
+        
         expected_result: list[float] = [2.0, 2.0, 3.0, 4.0]
-
+        
         # execute
-        result: list[float] = get_average_global(data)
+        self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
 
         # verify
         assert result == expected_result
@@ -43,4 +56,4 @@ class TestSpectra:
         :param array: The array to write.
         :param path: The path to write the file to.
         """
-        array.flatten.tofile(path)
+        array.flatten().tofile(path)

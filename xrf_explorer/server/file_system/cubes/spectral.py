@@ -231,7 +231,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         nr_bins: int = ceil((high - low) / bin_size)
         # initialize  array
         new_cube: np.ndarray = np.zeros(
-            shape=(height, width, nr_bins), dtype=np.int16)
+            shape=(height, width, nr_bins), dtype=np.uint16)
 
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
