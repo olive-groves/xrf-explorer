@@ -17,6 +17,6 @@ from .file_access import (
     get_elemental_cube_path_from_name,
     get_base_image_path,
     set_binned,
-    get_raw_rpl_names,
+    get_raw_rpl_names
 )
 from .workspace_handler import get_path_to_workspace, update_workspace
