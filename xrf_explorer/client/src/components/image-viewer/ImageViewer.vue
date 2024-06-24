@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -119,6 +119,16 @@ async function resetViewport() {
   viewport.center.x = size.width / 2;
   viewport.center.y = size.height / 2;
   viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
+}
+
+/**
+ * Cancels the selection made in the image viewer.
+ */
+function clearSelection() {
+  const tool = toolState.value.tool;
+  toolState.value.tool = Tool.Grab;
+  appState.selection.imageViewer.type = undefined;
+  nextTick(() => (toolState.value.tool = tool));
 }
 
 const dragging = ref(false);
@@ -252,6 +262,6 @@ const cursor = computed(() => {
       :w="viewbox.w"
       :h="viewbox.h"
     />
-    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
   </div>
 </template>

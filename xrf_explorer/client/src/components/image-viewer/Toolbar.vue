@@ -2,7 +2,7 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
-import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen } from "lucide-vue-next";
+import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen, SearchX } from "lucide-vue-next";
 import { Tool, ToolState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { inject, defineEmits } from "vue";
@@ -10,7 +10,7 @@ import { inject, defineEmits } from "vue";
 const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
-const emit = defineEmits(["reset-viewport"]);
+const emit = defineEmits(["reset-viewport", "clear-selection"]);
 
 const resetViewport = () => {
   // Emit reset viewport message to imageViewer
@@ -38,9 +38,13 @@ const resetViewport = () => {
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
+    <Button variant="ghost" class="size-8 p-2" title="Cancel selection" @click="emit('clear-selection')">
+      <SearchX />
+    </Button>
     <Button variant="ghost" class="size-8 p-2" title="Reset painting location" @click="resetViewport">
       <Fullscreen />
     </Button>
+    <Separator orientation="vertical" class="h-8" />
     <Popover>
       <PopoverTrigger as-child>
         <Button variant="ghost" class="size-8 p-2" title="Tool configuration">
