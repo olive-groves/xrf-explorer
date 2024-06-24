@@ -32,6 +32,7 @@ const location = toRef(props, "location");
         v-for="window in windowState"
         :key="window.id"
         :checked="window.opened && window.location == location"
+        :disabled="window.disabled"
         @update:checked="
           {
             if (window.opened && window.location == location) {
