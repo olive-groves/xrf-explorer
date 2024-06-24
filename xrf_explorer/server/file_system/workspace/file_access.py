@@ -234,7 +234,13 @@ def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
     if workspace_dict is None:
         return None
 
-    recipe_name: str = workspace_dict["elementalCubes"][0]["recipeLocation"]
+    # Needs to be changed when considering multiple cubes
+    if len(workspace_dict["elementalCubes"]) > 0:
+        recipe_name: str = workspace_dict["elementalCubes"][0]["recipeLocation"]
+    elif len(workspace_dict["spectralCubes"]) > 0:
+        recipe_name: str = workspace_dict["spectralCubes"][0]["recipeLocation"]
+    else:
+        recipe_name: str = ""
 
     if recipe_name == "":
         return None
