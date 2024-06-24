@@ -323,6 +323,9 @@ function updateBarChart(data: Element[]) {
  * Update the charts being displayed.
  */
 function updateCharts() {
+  // Do not update if the required data does not exist
+  if (!elementalData.value) return;
+
   // Mask the data with the selected elements
   const maskedGlobalAverages: Element[] = maskData(globalAverages, elementSelection.value);
   const maskedSelectionAverages: Element[] = maskData(selectionAverages, elementSelection.value);
