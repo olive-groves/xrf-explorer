@@ -219,7 +219,7 @@ def get_selection(
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
-        LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
+        LOG.error(f"Data source directory {data_source_folder} does not exist.")
         return None
 
     img_h: int
