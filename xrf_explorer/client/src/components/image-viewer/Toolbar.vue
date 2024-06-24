@@ -38,7 +38,7 @@ const resetViewport = () => {
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
-    <Button variant="ghost" class="size-8 p-2" title="Refresh image" @click="resetViewport">
+    <Button variant="ghost" class="size-8 p-2" title="Reset painting location" @click="resetViewport">
       <Fullscreen />
     </Button>
     <Popover>
