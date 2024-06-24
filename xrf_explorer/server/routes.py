@@ -275,26 +275,57 @@ def convert_elemental_cube(data_source: str):
     return "Converted elemental data cube to .dms format", 200
 
 
-@app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
-def bin_raw_data(data_source: str, bin_params: str):
+@app.route("/api/<data_source>/bin_raw/", methods=["POST"])
+def bin_raw_data(data_source: str):
     """Bins the raw data files channels to compress the file.
 
     :param data_source: the data source containing the raw data to bin
-    :param bin_params: the JSON list of parameters: low, high, binSize
     :return: A boolean indicating if the binning was successful
     """
-    params: dict = json.loads(bin_params)
-    low: int = params["low"]
-    high: int = params["high"]
-    bin_size: int = params["binSize"]
+    try:
+        params: dict = get_spectra_params(data_source)
+    except FileNotFoundError as err:
+        return f"error while loading workspace to retrieve spectra params: {str(err)}", 500
+    
+    binned: bool = params["binned"]
+    
+    if not binned:
+        try:
+            update_bin_params(data_source)
+            params: dict = get_spectra_params(data_source)
+            low: int = params["low"]
+            high: int = params["high"]
+            bin_size: int = params["binSize"]
+            
+            bin_data(data_source, low, high, bin_size)
+            LOG.info("binned")
+            return "Binned data", 200
+        
+        except FileNotFoundError as err:
+            return f"error while loading workspace to retrieve spectra params: {str(err)}", 5000
+    else:
+        return "Data already binned", 200
+
+
+@app.route("/api/<data_source>/get_offset/", methods=["GET"])
+def get_offset(data_source: str):
+    """Returns the depth offset energy of the raw data, that is the energy level of channel 0.
+    
+    :param data_source: the data source containing the raw data
+    :return: The depth offset
+    """
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
 
     try:
-        bin_data(data_source, low, high, bin_size)
-        LOG.info("binned")
-    except Exception as e:
-        LOG.error("error while loading raw file: {%s}", e)
-
-    return "Binned data", 200
+        return json.dumps(float(info['depthscaleorigin']))
+    except:
+        # If we can't get the offset, set default values
+        return json.dumps(0)
 
 
 @app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
@@ -623,7 +654,7 @@ def get_average_data(data_source: str):
 
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
-def get_element_spectra(data_source: str, element: str, excitation: int):
+def get_element_spectra(data_source: str, element: str, excitation: float):
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the
     element's peaks energies and intensity.
 
@@ -644,7 +675,7 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     high: int = params["high"]
     bin_size: int = params["binSize"]
     response = get_theoretical_data(
-        element, int(excitation), low, high, bin_size)
+        element, float(excitation), low, high, bin_size)
 
     response = json.dumps(response)
 
