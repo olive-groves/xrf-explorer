@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FrontendConfig } from "@/lib/config";
+import { resetWindow } from "@/lib/utils";
 import { inject, ref, toRef } from "vue";
 import { toast } from "vue-sonner";
 
@@ -35,6 +36,7 @@ async function deleteWorkspace() {
   if (response.ok) {
     toast.success("Deleted project", { description: "Please reload the page" });
     emit("close");
+    resetWindow();
   } else {
     toast.error("An error occurred while deleting project");
   }
