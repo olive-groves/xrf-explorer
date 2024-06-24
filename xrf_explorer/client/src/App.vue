@@ -31,13 +31,13 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
 
       <BaseContextMenu>
         <!-- Place all windows below here -->
+        <SpectraWindow />
+        <ChartWindow />
         <ElementalChannelWindow />
+        <CSWindow />
+        <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
-        <ChartWindow />
-        <DRWindow />
-        <SpectraWindow />
-        <CSWindow />
       </BaseContextMenu>
     </WindowContainer>
   </div>
