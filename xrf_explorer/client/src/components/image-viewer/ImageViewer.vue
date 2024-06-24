@@ -122,11 +122,29 @@ async function resetViewport() {
 }
 
 const dragging = ref(false);
+const lensLocked = ref(false);
+
+/**
+ * Event handler for the onClick event on the glcanvas.
+ * @param event - The mouse event.
+ */
+function onClick(event: MouseEvent) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
+    event.preventDefault();
+  }
+}
 
 /**
  * Event handler for the onMouseDown event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseDown() {
+function onMouseDown(event: MouseEvent) {
+  if (event.button == 2) {
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+  }
+
   if (!selectionToolActive.value) {
     dragging.value = true;
   }
@@ -167,9 +185,12 @@ function onMouseMove(event: MouseEvent) {
   const normalizedX = (width.value * mouseX) / rect.width;
   const normalizedY = height.value * (1 - mouseY / rect.height);
 
-  layers.value.forEach((layer) => {
-    layer.uniform.uMouse.value.set(normalizedX, normalizedY);
-  });
+  // Only update lens position in the shader if the mouse is not locked.
+  if (!lensLocked.value) {
+    layers.value.forEach((layer) => {
+      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+    });
+  }
 }
 
 /**
@@ -213,6 +234,8 @@ const cursor = computed(() => {
     :style="{
       cursor: cursor,
     }"
+    @click="onClick"
+    @contextmenu="onClick"
     @dblclick="resetViewport"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
