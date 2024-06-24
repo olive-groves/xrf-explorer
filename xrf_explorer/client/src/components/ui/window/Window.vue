@@ -13,7 +13,7 @@ const props = defineProps<{
   /**
    * Whether or not the window is disabled.
    */
-  disabled: boolean;
+  disabled?: boolean;
   /**
    * Whether or not to open the window by default.
    */
