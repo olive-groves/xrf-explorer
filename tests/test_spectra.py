@@ -1,4 +1,5 @@
 from ntpath import join
+from pathlib import Path
 import numpy as np
 import pytest
 
@@ -8,10 +9,10 @@ from xrf_explorer.server.spectra.spectra import get_average_selection
 
 
 class TestSpectra:
-    RESOURCES_PATH: str = join('tests', 'resources')
+    RESOURCES_PATH = Path('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "spectra.yml")
-    TEST_RAW_PATH: str = join(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")
+    CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
+    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")).replace("\\","/")
     
     @pytest.fixture(autouse=True)
     def setup_environment(self):
