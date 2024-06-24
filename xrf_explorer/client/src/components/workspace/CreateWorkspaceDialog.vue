@@ -34,7 +34,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
     elementalChannels: [],
     spectralParams: {
       low: 0,
-      high: 4096,
+      high: 40,
       binSize: 1,
       binned: false,
     },
@@ -240,12 +240,8 @@ async function convertCubeToDms() {
  * Bins the updated raw data.
  */
 async function binData() {
-  // Get binning parameters
-  const binParams = `{"low": ${workspace.value.spectralParams.low}, 
-                          "high": ${workspace.value.spectralParams.high}, 
-                          "binSize": ${workspace.value.spectralParams.binSize}}`;
   // Bin raw data
-  await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/${binParams}`, {
+  await fetch(`${config.api.endpoint}/${workspace.value.name}/bin_raw/`, {
     method: "POST",
   }).then((response) => {
     // If the response is successful (status code 200), update the progress

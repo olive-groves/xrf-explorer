@@ -9,8 +9,6 @@ import * as THREE from "three";
 import { scene } from "./scene";
 import { datasource, appState } from "@/lib/appState";
 import { getTargetSize } from "./api";
-import { BaseContextMenu } from "../menus";
-import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
@@ -208,33 +206,28 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <BaseContextMenu>
-    <div
-      ref="glcontainer"
-      class="relative size-full"
-      :style="{
-        cursor: cursor,
-      }"
-      @dblclick="resetViewport"
-      @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove"
-      @wheel="onWheel"
-    >
-      <canvas ref="glcanvas" />
-      <SelectionArea
-        v-model="appState.selection.imageViewer"
-        :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
-        :x="viewbox.x"
-        :y="viewbox.y"
-        :w="viewbox.w"
-        :h="viewbox.h"
-      />
-      <Toolbar v-model:state="toolState" />
-    </div>
-    <template #menu>
-      <ContextMenuItem @click="resetViewport"> Reset viewport </ContextMenuItem>
-    </template>
-  </BaseContextMenu>
+  <div
+    ref="glcontainer"
+    class="relative size-full"
+    :style="{
+      cursor: cursor,
+    }"
+    @dblclick="resetViewport"
+    @mousedown="onMouseDown"
+    @mouseup="onMouseUp"
+    @mouseleave="onMouseLeave"
+    @mousemove="onMouseMove"
+    @wheel="onWheel"
+  >
+    <canvas ref="glcanvas" />
+    <SelectionArea
+      v-model="appState.selection.imageViewer"
+      :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+    />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" />
+  </div>
 </template>
