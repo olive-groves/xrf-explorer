@@ -142,7 +142,7 @@ function resetProgress() {
 }
 
 /**
- * Remove data source directory in the backend if it exists.
+ * Remove workspace.json in the backend if it exists.
  */
 async function abortDataSourceCreation() {
   const name = workspace.value.name;
