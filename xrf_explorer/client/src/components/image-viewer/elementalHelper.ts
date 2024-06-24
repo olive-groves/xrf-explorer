@@ -1,7 +1,7 @@
 import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
-import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
+import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerType } from "./types";
 import { loadLayerFromTexture, scene } from "./scene";
 import { ElementSelection } from "@/lib/selection";
