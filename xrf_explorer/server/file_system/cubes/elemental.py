@@ -28,7 +28,7 @@ from xrf_explorer.server.file_system.workspace import (
 LOG: Logger = getLogger(__name__)
 
 
-def normalize_ndarray_to_grayscale(array: np.ndarray, upper_bound: int = 100) -> np.ndarray:
+def normalize_ndarray_to_grayscale(array: np.ndarray, upper_bound: int = 255) -> np.ndarray:
     """Map all values in the given array to the interval [0, upper_bound].
 
     :param array: n-dimensional numpy array.
@@ -205,7 +205,7 @@ def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
         return []
 
     # Normalize the elemental data cube
-    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube, 100)
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
@@ -231,7 +231,7 @@ def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[d
     names: list[str] = get_short_element_names(data_source)
 
     # Normalize the elemental data cube
-    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube, 100)
 
     length: int = image_cube.shape[0]
     averages: np.ndarray = np.zeros(length)
