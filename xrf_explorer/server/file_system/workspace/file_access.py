@@ -112,6 +112,9 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     except OSError as err:
         LOG.error("Error while getting recipe of elemental cube: {%s}", err)
         return None
+    
+    if recipe_name == "":
+        return None
 
     return abspath(join(data_source_dir, recipe_name))
 
