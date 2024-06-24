@@ -1,9 +1,17 @@
+from ntpath import join
+from posixpath import abspath
 import numpy as np
 
 from xrf_explorer.server.spectra import get_average_global
 
 
 class TestSpectra:
+    RESOURCES_PATH: str = join('tests', 'resources')
+    CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "contextual-images.yml")
+    TEST_RAW_PATH: str = abspath(join(RESOURCES_PATH, "spectra", "test.raw"))
+    INVALID_IMAGE_PATH: str = abspath(join(RESOURCES_PATH, "contextual_images", "painting", "invalid.png"))
+    NONEXISTENT_IMAGE_PATH: str = abspath(
+        join(RESOURCES_PATH, "contextual_images", "painting", "nonexistent.png"))
 
     def test_get_average_global(self):
         # setup
@@ -28,3 +36,11 @@ class TestSpectra:
 
         # verify
         assert result == expected_result
+        
+    def numpy_to_raw(self, array:np.ndarray, path: str):
+        """Writes a numpy array to a raw file.
+        
+        :param array: The array to write.
+        :param path: The path to write the file to.
+        """
+        array.flatten.tofile(path)
