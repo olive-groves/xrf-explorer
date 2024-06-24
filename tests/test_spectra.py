@@ -1,5 +1,4 @@
 from ntpath import join
-from posixpath import abspath
 import numpy as np
 import pytest
 

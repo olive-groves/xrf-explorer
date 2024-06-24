@@ -1,2 +1,2 @@
-uploads-folder: "resources/spectra/data"
+uploads-folder: "tests/resources/spectra/data"
 max-spectrum-points: 9000
