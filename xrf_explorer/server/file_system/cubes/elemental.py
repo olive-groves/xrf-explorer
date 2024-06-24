@@ -136,7 +136,7 @@ def get_element_names(data_source: str) -> list[str]:
     path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
     if path_to_elemental_cube is None:
         LOG.error(f"Could not get path to elemental datacube of data source {data_source}")
-        return np.empty(0)
+        return []
     
     # Return the elemental data cube
     elements: list[str]
