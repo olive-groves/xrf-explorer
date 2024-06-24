@@ -233,7 +233,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).tickSizeOuter(0))
     .selectAll("text")
-    .style("font-size", "18px")
+    .style("font-size", "20px")
     .attr("transform", "translate(-13, 15)rotate(-45)");
 
   svg
@@ -249,7 +249,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
         .attr("stroke-opacity", 0.1),
     )
     .selectAll("text")
-    .style("font-size", "18px");
+    .style("font-size", "20px");
 }
 
 /**
@@ -389,7 +389,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
     </div>
     <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
-    <p class="ml-2 font-bold">Average abundance chart:</p>
+    <p class="ml-2 font-bold">Average abundance chart (%):</p>
     <AspectRatio :ratio="5 / 3">
       <svg class="ml-2" ref="chart"></svg>
     </AspectRatio>

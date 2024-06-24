@@ -28,11 +28,11 @@ from xrf_explorer.server.file_system.workspace import (
 LOG: Logger = getLogger(__name__)
 
 
-def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
-    """Map all values in the given array to the interval [0, 255].
+def normalize_ndarray_to_grayscale(array: np.ndarray, upper_bound: int = 100) -> np.ndarray:
+    """Map all values in the given array to the interval [0, upper_bound].
 
     :param array: n-dimensional numpy array.
-    :return: a copy of the array with values mapped to the interval [0, 255].
+    :return: a copy of the array with values mapped to the interval [0, upper_bound].
     """
 
     # normalize data
@@ -40,7 +40,7 @@ def normalize_ndarray_to_grayscale(array: np.ndarray) -> np.ndarray:
     normalized_array: np.ndarray = (array - min_val) / (max_val - min_val)
 
     # obtain image of elemental abundance at every pixel of elemental image
-    return np.rint(normalized_array * 255).astype(np.uint8)
+    return np.rint(normalized_array * upper_bound).astype(np.uint8)
 
 
 def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
