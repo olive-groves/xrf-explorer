@@ -17,22 +17,33 @@ import elementalVertex from "./elementalVertex.glsl?raw";
 
 const selection = computed(() => appState.selection.elements);
 
+/**
+ * Represents an elemental map loaded in elementalScene.
+ */
 type ElementalMap = {
   loading: boolean;
   mesh?: THREE.Mesh;
   uniform: ElementalUniform;
 };
 
+/**
+ * Uniforms used for rendering an elemental map.
+ */
 type ElementalUniform = {
   iThreshold: { value: THREE.Vector2 };
   iColor: { value: THREE.Vector3 };
   tMap?: { value: THREE.Texture; type: "t" };
 };
 
+// Elemental maps
 let elementalMaps: {
   [key: number]: ElementalMap;
 } = {};
+
+// THREE js scene object that stores the elemental maps
 const elementalScene = new THREE.Scene();
+
+// Render targets that the elemental maps will be rendered to.
 const elementalTarget = new THREE.WebGLRenderTarget(1, 1, {
   format: THREE.RGBAFormat,
   type: THREE.FloatType,
@@ -55,17 +66,22 @@ function selectionUpdated(newSelection: ElementSelection[]) {
     const map = elementalMaps[channel.channel];
     if (channel.selected) {
       if (!map.loading && map.mesh == undefined) {
+        // Load unloaded selected maps.
         loadMap(channel);
       }
+
+      // Set the uniforms of the map to contain the selected color and thresholds.
       map.uniform.iColor.value.set(...hexToRgb(channel.color));
       map.uniform.iThreshold.value.set(Math.min(...channel.thresholds), Math.max(...channel.thresholds));
     } else {
       if (map.mesh != undefined) {
+        // Dispose of deselected maps
         disposeMap(channel.channel);
       }
     }
   });
 
+  // Rerender the elemental maps after the selection has changed.
   requestAnimationFrame(render);
 }
 
@@ -82,19 +98,23 @@ function loadMap(element: ElementSelection) {
     (texture) => {
       texture.colorSpace = THREE.NoColorSpace;
 
+      // Set the texture uniform for the elemental map
       map.uniform.tMap = {
         type: "t",
         value: texture,
       };
 
+      // Create a square
       const shape = new THREE.Shape();
       shape.moveTo(0, 0);
       shape.lineTo(1, 0);
       shape.lineTo(1, 1);
       shape.lineTo(0, 1);
 
+      // Create the geometry
       const geometry = new THREE.ShapeGeometry(shape);
 
+      // Create the shader material that will render the map
       const material = new THREE.RawShaderMaterial({
         fragmentShader: elementalFragment,
         vertexShader: elementalVertex,
@@ -105,12 +125,14 @@ function loadMap(element: ElementSelection) {
         blending: THREE.AdditiveBlending,
       });
 
+      // Store the mesh
       map.mesh = new THREE.Mesh(geometry, material);
-
       map.loading = false;
 
+      // Add the elemental map to the scene
       elementalScene.add(map.mesh);
 
+      // Rerender elemental maps after adding new map to the scene.
       requestAnimationFrame(render);
     },
     () => {
@@ -126,20 +148,25 @@ function loadMap(element: ElementSelection) {
 function disposeMap(channel: number) {
   const map = elementalMaps[channel];
   if (map.mesh != undefined) {
+    // Remove the map from the scene
     const uuid = map.mesh.uuid;
     const child = elementalScene.children.filter((mesh) => mesh.uuid == uuid)[0];
     elementalScene.remove(child);
 
+    // Gather some typed variables
     const mesh = child as THREE.Mesh;
     const material = mesh.material as THREE.RawShaderMaterial;
     const uniforms = material.uniforms as ElementalUniform;
 
+    // Remove the texture associated with the map
     uniforms.tMap?.value.dispose();
     uniforms.tMap = undefined;
 
+    // Remove the material and geometry
     material.dispose();
     mesh.geometry.dispose();
 
+    // Remove the last reference to the mesh
     map.mesh = undefined;
   }
 }
@@ -194,6 +221,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
 
   // Setup elemental maps
   Object.keys(elementalMaps).forEach((key) => {
+    // Dispose of all previous maps
     disposeMap(parseInt(key));
   });
   elementalMaps = {};
@@ -217,6 +245,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   loadLayerFromTexture(layer, elementalTarget.texture);
   registerLayer(layer, recipe);
 
+  // Create layer group
   layerGroups.value.elemental = {
     name: "Elemental maps",
     description: "Generated layer",
