@@ -403,7 +403,7 @@ def list_element_averages_selection(data_source: str):
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(path, mask, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask, names)
 
     try:
         return json.dumps(composition)

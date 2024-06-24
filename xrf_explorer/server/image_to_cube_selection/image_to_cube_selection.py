@@ -6,7 +6,7 @@ import numpy as np
 
 from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
 
-from xrf_explorer.server.file_system.cubes import parse_rpl
+from xrf_explorer.server.file_system.cubes import parse_rpl, get_elemental_datacube_dimensions
 from xrf_explorer.server.image_register import load_points, compute_fitting_dimensions_by_aspect
 from xrf_explorer.server.file_system.workspace import (
     get_elemental_cube_path,
@@ -247,15 +247,20 @@ def get_selection(
     cube_w: int
     img_h, img_w, _ = imread(base_img_dir).shape
 
-    # get paths to files
-    path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
+    # Needs to be changed when considering multiple cubes
+    match cube_type:
+        case CubeType.Raw:
+            # get paths to files
+            path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
 
-    # get dimensions from rpl file
-    info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
-    cube_w = int(info['width'])
-    cube_h = int(info['height'])
+            # get dimensions from rpl file
+            info = parse_rpl(path_to_rpl)
+            if not info:
+                return np.empty(0)
+            cube_w = int(info['width'])
+            cube_h = int(info['height'])
+        case CubeType.Elemental:
+            cube_w, cube_h, _, _ = get_elemental_datacube_dimensions(data_source_folder)
 
     cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
 
