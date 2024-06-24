@@ -11,8 +11,8 @@ from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_pa
 class TestSpectral:
     RESOURCES_PATH = Path('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    CUSTOM_CONFIG_PATH = str(Path(RESOURCES_PATH, "configs", "spectra.yml"))
-    TEST_RAW_PATH = str(Path(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw"))
+    CUSTOM_CONFIG_PATH = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
+    TEST_RAW_PATH = str(Path(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")).replace("\\","/")
     
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -54,7 +54,7 @@ class TestSpectral:
     def test_get_spectra_params(self):
         params: dict = get_spectra_params(self.DATA_SOURCE_FOLDER_NAME)
         
-        assert params["low"] == 0 and params["high"] == 4 and params["binSize"] == 2
+        assert params["low"] == 1 and params["high"] == 5 and params["binSize"] == 2
         
     def test_get_spectra_params_file_not_found(self):
         
@@ -65,12 +65,12 @@ class TestSpectral:
     
     def test_bin_data_identity(self):
         # setup
-        data: np.ndarray = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
-                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]],
-                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]]], dtype=np.uint16)
+        data: np.ndarray = np.array([[[3, 1, 3, 4], [1, 2, 4, 4], [1, 2, 4, 4]],
+                         [[2, 2, 4, 4], [2, 1, 3, 4], [2, 1, 3, 4]],
+                         [[2, 1, 3, 4], [2, 0, 2, 4], [2, 2, 4, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
-        bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 4, 1)
+        bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 2, 1)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
         assert data.all() == binned_data.all()
         

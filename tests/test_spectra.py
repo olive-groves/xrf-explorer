@@ -1,4 +1,3 @@
-from ntpath import join
 from pathlib import Path
 import numpy as np
 import pytest
