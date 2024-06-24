@@ -50,7 +50,7 @@ def get_data_source_files(data_source: str) -> list[str]:
     # Path to folder where the files are stored
     path: str = join(config['uploads-folder'], data_source)
 
-    # Return empty list of folder does not exist
+    # Return empty list if folder does not exist
     if not isdir(path):
         return []
 
