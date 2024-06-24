@@ -50,6 +50,10 @@ def get_data_source_files(data_source: str) -> list[str]:
     # Path to folder where the files are stored
     path: str = join(config['uploads-folder'], data_source)
 
+    # Return empty list of folder does not exist
+    if not isdir(path):
+        return []
+
     # Return list of all data source names in the folder
     # The data source names are the names of the folders in the data folder that contain a workspace.json
     files: list[str] = [filename for filename in listdir(path) if isfile(join(path, filename))]
