@@ -55,7 +55,6 @@ const selectionToolActive = computed(() =>
 );
 
 let camera: THREE.OrthographicCamera;
-let renderer: THREE.WebGLRenderer;
 
 const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
@@ -79,7 +78,7 @@ function setup() {
   if (appState.workspace != null) resetViewport();
 
   camera = new THREE.OrthographicCamera();
-  renderer = new THREE.WebGLRenderer({
+  scene.renderer = new THREE.WebGLRenderer({
     alpha: true,
     canvas: glcanvas.value!,
   });
@@ -104,8 +103,8 @@ function render() {
     layer.uniform.uRadius.value = lensSize;
   });
 
-  renderer.setSize(width.value, height.value);
-  renderer.render(scene.scene, camera);
+  scene.renderer?.setSize(width.value, height.value);
+  scene.renderer?.render(scene.scene, camera);
 
   requestAnimationFrame(render);
 }
