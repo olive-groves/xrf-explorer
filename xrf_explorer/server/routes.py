@@ -39,7 +39,7 @@ from xrf_explorer.server.file_system.cubes import (
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
     get_spectra_params,
-    bin_data, get_elemental_datacube_dimensions
+    bin_data, get_elemental_datacube_dimensions, parse_rpl, update_bin_params
 )
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import (
@@ -52,7 +52,7 @@ from xrf_explorer.server.file_system.workspace import (
     get_workspace_dict,
     get_elemental_cube_path,
     get_elemental_cube_recipe_path,
-    get_base_image_name
+    get_base_image_name, get_raw_rpl_paths
 )
 
 from xrf_explorer.server.spectra import (
