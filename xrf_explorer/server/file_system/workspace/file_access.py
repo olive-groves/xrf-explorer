@@ -7,7 +7,7 @@ from os.path import isfile, join, exists, abspath
 from pathlib import Path
 
 from xrf_explorer.server.file_system import get_config
-from .workspace_handler import get_path_to_workspace
+from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -85,8 +85,7 @@ def get_elemental_cube_path(data_source_folder: str) -> str | None:
 
     # raise error is the path does not exist
     if not isfile(path):
-        raise OSError(
-            "Provided datasource does not have an elemental cube file")
+        raise OSError(f"Provided datasource '{data_source_folder}' does not have an elemental cube file")
 
     return path
 

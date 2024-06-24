@@ -1,0 +1,11 @@
+{
+  "elementalCubes": [
+    {
+      "dataLocation": "test.csv",
+      "fileType": "csv",
+      "name": "Datacube",
+      "recipeLocation": ""
+    }
+  ],
+  "name": "csv"
+}

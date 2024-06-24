@@ -13,7 +13,13 @@ export const appState = reactive<AppState>({
       points: [],
     },
     elements: [],
-    colorSegmentation: [],
+    colorSegmentation: {
+      element: 0,
+      enabled: Array(1).fill(false),
+      colors: [],
+      k: 20,
+      threshold: 20,
+    },
     dimensionalityReduction: {
       color: "#ffffff",
       area: {

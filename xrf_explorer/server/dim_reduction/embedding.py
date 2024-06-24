@@ -7,10 +7,13 @@ import numpy as np
 
 from umap import UMAP
 
+from xrf_explorer.server.dim_reduction.general import (
+    valid_element,
+    get_path_to_dr_folder,
+    create_image_of_indices_to_embedding
+)
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.cubes import normalize_ndarray_to_grayscale, get_elemental_data_cube
-from xrf_explorer.server.file_system.workspace import get_elemental_cube_path
-from .general import valid_element, get_path_to_dr_folder, create_image_of_indices_to_embedding
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -101,8 +104,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     umap_parameters.update(new_umap_parameters)
 
     # get data cube
-    path_to_cube: str = get_elemental_cube_path(data_source)
-    data_cube: np.ndarray = get_elemental_data_cube(path_to_cube)
+    data_cube: np.ndarray = get_elemental_data_cube(data_source)
     if len(data_cube) == 0:
         return "error"
 

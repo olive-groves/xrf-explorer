@@ -17,6 +17,7 @@ import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 
 const spectraChart = ref<HTMLElement>();
+let ready: boolean = false;
 // SVG container
 let svg = d3.select(spectraChart.value!);
 let x = d3.scaleLinear();
@@ -33,7 +34,6 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
-let ready: boolean;
 
 // set the dimensions and margins of the graph
 const margin = { top: 30, right: 30, bottom: 70, left: 60 },

@@ -3,8 +3,7 @@ import logging
 from os import makedirs
 from os.path import join, isdir
 
-from xrf_explorer.server.file_system import get_config
-from xrf_explorer.server.process import get_path_to_generated_folder
+from xrf_explorer.server.file_system import get_config, get_path_to_generated_folder
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ def get_path_to_cs_folder(data_source: str) -> str:
         return ""
 
     # Path to the color segmentation folder
-    path_to_cs_folder: str = join(path_to_generated_folder, backend_config['color-segmentation']['folder-name'])
+    path_to_cs_folder: str = join(path_to_generated_folder, backend_config['cs-folder-name'])
 
     # Check if the color segmentation folder exists, otherwise create it
     if not isdir(path_to_cs_folder):
