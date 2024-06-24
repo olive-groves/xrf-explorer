@@ -29,12 +29,12 @@ function loadWorkspace(workspace: WorkspaceConfig) {
   console.info("Loading new workspace into layer system");
 
   // Create base image layer
-  // createBaseLayer(workspace.baseImage);
+  createBaseLayer(workspace.baseImage);
 
   // Create other contextual image layers
-  // workspace.contextualImages.forEach((image) => {
-  //   createContextualLayer(image);
-  // });
+  workspace.contextualImages.forEach((image) => {
+    createContextualLayer(image);
+  });
 
   // Create elemental layers
   createElementalLayers(workspace);
