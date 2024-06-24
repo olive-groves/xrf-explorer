@@ -1,15 +1,13 @@
-import json
-import numpy as np
 from logging import Logger, getLogger
-from math import ceil
+from math import ceil, floor
 from os import makedirs
 from os.path import join, isfile, isdir
 
 import numpy as np
+import json
 
-from xrf_explorer.server.file_system import get_path_to_generated_folderfrom math import ceil, floor
-
-from xrf_explorer.server.file_system.workspace import get_raw_rpl_paths, (
+from xrf_explorer.server.file_system import get_path_to_generated_folder
+from xrf_explorer.server.file_system.workspace import (
     get_raw_rpl_paths,
     get_workspace_dict,
     get_raw_rpl_names,
@@ -191,3 +189,97 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
         raise FileNotFoundError
 
     return workspace_dict["spectralParams"]
+
+
+def bin_data(data_source: str, low: int, high: int, bin_size: int):
+    """Reduces the raw data of a data source to channels in range [low:high] and averages channels per bin.
+
+    :param data_source: the name of the data source containing the raw data
+    :param low: the lower channel boundary
+    :param high: the higher channel boundary
+    :param bin_size: the number of channels per bin
+    """
+    # get paths to files
+    path_to_raw: str
+    path_to_rpl: str
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    # get dimensions of original data
+    width: int = int(info['width'])
+    height: int = int(info['height'])
+    channels: int = int(info['depth'])
+
+    # if default settings, don't do anything
+    if low == 0 and high == 4096 and bin_size == 1:
+        set_binned(data_source, True)
+        return
+
+    try:
+        # load raw file and parse it as 3d array with correct dimensions
+        datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
+    except OSError as err:
+        LOG.error("error while loading raw file for binning: {%s}", err)
+        raise
+    datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
+    # if we just need to crop
+    if bin_size == 1:
+        new_cube: np.ndarray = datacube[:, :, low:high]
+    else:
+        # compute number of bins
+        nr_bins: int = ceil((high - low) / bin_size)
+        # initialize  array
+        new_cube: np.ndarray = np.zeros(
+            shape=(height, width, nr_bins), dtype=np.int16)
+
+        for i in range(nr_bins):
+            # convert bin number to start channel in original data (i.e. in range [0, 4096])
+            start_channel = low + i * bin_size
+            bin_average = np.mean(
+                datacube[:, :, start_channel:start_channel + bin_size], axis=2)
+            new_cube[:, :, i] = bin_average
+
+    # overwrite file
+    try:
+        new_cube.flatten().tofile(path_to_raw)
+    except Exception as e:
+        LOG.error("Failed to write binned data: {%s}", e)
+    set_binned(data_source, True)
+
+
+def update_bin_params(data_source: str):
+    """
+    Converts the low, high and binsize parameters in the workspace from energy to channel.
+    
+    :param data_source: Name of the data source containing the workspace to modify.
+    """
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    try:
+        offset: int = int(info['depthscaleorigin'])
+    except:
+        offset: int = 0
+    
+    workspace_dict: dict | None = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        raise FileNotFoundError
+    low: float = workspace_dict["spectralParams"]["low"]
+    high: float = workspace_dict["spectralParams"]["high"]
+    bin_size: float = workspace_dict["spectralParams"]["binSize"]
+    
+    increment: float = (40 - offset) / 4096
+    workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
+    workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
+    workspace_dict["spectralParams"]["binSize"] = round(bin_size / increment)
+    
+    workspace_path = get_path_to_workspace(data_source)
+
+    with open(workspace_path, 'w') as f:
+        json.dump(workspace_dict, f)
