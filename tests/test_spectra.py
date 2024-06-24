@@ -8,7 +8,7 @@ from xrf_explorer.server.spectra.spectra import get_average_selection
 
 
 class TestSpectra:
-    RESOURCES_PATH: str = join('resources')
+    RESOURCES_PATH: str = join('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "Data_source"
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "spectra.yml")
     TEST_RAW_PATH: str = join(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")
