@@ -5,17 +5,12 @@ import { LabeledSlider } from "@/components/ui/slider";
 import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen, SearchX } from "lucide-vue-next";
 import { Tool, ToolState } from "./types";
 import { FrontendConfig } from "@/lib/config";
-import { inject, defineEmits } from "vue";
+import { inject } from "vue";
 
 const config = inject<FrontendConfig>("config")!;
 
 const state = defineModel<ToolState>("state", { required: true });
-const emit = defineEmits(["reset-viewport", "clear-selection"]);
-
-const resetViewport = () => {
-  // Emit reset viewport message to imageViewer
-  emit("reset-viewport");
-};
+const emit = defineEmits(["resetViewport", "clearSelection"]);
 </script>
 
 <template>
@@ -38,10 +33,10 @@ const resetViewport = () => {
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />
-    <Button variant="ghost" class="size-8 p-2" title="Cancel selection" @click="emit('clear-selection')">
+    <Button variant="ghost" class="size-8 p-2" title="Clear selection" @click="emit('clearSelection')">
       <SearchX />
     </Button>
-    <Button variant="ghost" class="size-8 p-2" title="Reset painting location" @click="resetViewport">
+    <Button variant="ghost" class="size-8 p-2" title="Reset painting location" @click="emit('resetViewport')">
       <Fullscreen />
     </Button>
     <Separator orientation="vertical" class="h-8" />

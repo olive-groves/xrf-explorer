@@ -155,16 +155,19 @@ function onMouseDown(event: MouseEvent) {
     onMouseMove(event);
   }
 
-  if (!selectionToolActive.value) {
+  if (event.button == 0 && !selectionToolActive.value) {
     dragging.value = true;
   }
 }
 
 /**
  * Event handler for the onMouseUp event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseUp() {
-  dragging.value = false;
+function onMouseUp(event: MouseEvent) {
+  if (event.button == 0) {
+    dragging.value = false;
+  }
 }
 
 /**
