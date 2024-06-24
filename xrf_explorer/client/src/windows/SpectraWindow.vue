@@ -33,7 +33,7 @@ watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
 watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
 
 // Binning parameters
-const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
+const high = computed(() => appState.workspace?.spectralParams?.high ?? 40);
 const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
 const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
 const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
@@ -233,7 +233,7 @@ function makeChart() {
       .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y2", 430);
   });
-  
+
   // modify visibility based on checkbox status
   updateElement();
 }
