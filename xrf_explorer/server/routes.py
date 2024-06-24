@@ -186,6 +186,7 @@ def remove_data_source(data_source: str):
     """Removes workspace.json from a data source,
 
     :param data_source: The name of the data source to be aborted
+    :return: json with directory name
     """
     # Get config
     config: dict | None = get_config()
@@ -218,7 +219,7 @@ def remove_data_source(data_source: str):
         # remove directory if it is empty
         rmdir(data_source_path)
 
-    return "", 200
+    return jsonify({"dataSourceDir": data_source})
 
 
 @app.route("/api/<data_source>/delete", methods=["DELETE"])
@@ -226,6 +227,7 @@ def delete_data_source(data_source: str):
     """Completely deletes and removes all files from data source.
     
     :param data_source: The data source to delete.
+    :return: json with directory name
     """
     # Get config
     config: dict = get_config()
@@ -247,7 +249,7 @@ def delete_data_source(data_source: str):
     LOG.info(f"Removing data source directory at {data_source_dir}")
     rmtree(data_source_dir)
 
-    return "", 200
+    return jsonify({"dataSourceDir": data_source})
 
 
 @app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
