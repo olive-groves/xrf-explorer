@@ -11,6 +11,10 @@ const props = defineProps<{
    */
   title: string;
   /**
+   * Whether or not the window is disabled.
+   */
+  disabled?: boolean;
+  /**
    * Whether or not to open the window by default.
    */
   opened?: boolean;
@@ -35,11 +39,15 @@ if (!(id in windowState)) {
     id: id,
     title: props.title,
     scrollable: !props.noScroll,
+    disabled: props.disabled,
     opened: props.opened ?? false,
     location: props.location ?? "left",
     portalMounted: false,
   };
 }
+
+const disabled = toRef(props, "disabled");
+watch(disabled, (value) => (windowState[id].disabled = value));
 
 const state = toRef(windowState, id);
 const content = ref<HTMLElement | null>(null);
