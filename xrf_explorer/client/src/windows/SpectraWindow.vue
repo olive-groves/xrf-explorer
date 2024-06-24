@@ -15,9 +15,14 @@ import {
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
+
+const loadingSelection = ref(false);
+const loadingGlobal = ref(false);
+
 // SVG container
 let svg = d3.select(spectraChart.value!);
 let x = d3.scaleLinear();
@@ -31,6 +36,8 @@ watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
  * Sets up export of chart.
  */
 watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
+
+let abortController = new AbortController();
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;
@@ -198,6 +205,7 @@ const excitation = ref(0);
 async function getAverageSpectrum() {
   if (ready) {
     try {
+      loadingGlobal.value = true;
       const size = await getTargetSize();
       const request_body: SelectionAreaSelection = {
         type: SelectionAreaType.Rectangle,
@@ -217,6 +225,7 @@ async function getAverageSpectrum() {
       const data = await response.json();
       globalData = data;
       makeChart();
+      loadingGlobal.value = false;
     } catch (e) {
       console.error("Error getting global average spectrum", e);
     }
@@ -234,6 +243,11 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
     const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
 
     try {
+      // Abort any previous requests
+      abortController.abort();
+      abortController = new AbortController();
+      loadingSelection.value = true;
+
       //make api call
       const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
@@ -241,10 +255,12 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(request_body),
+        signal: abortController.signal,
       });
       const data = await response.json();
       selectionData = data;
       makeChart();
+      loadingSelection.value = false;
     } catch (e) {
       console.error("Error getting selection average spectrum", e);
     }
@@ -410,7 +426,17 @@ function updateElementSpectrum() {
       <!-- PLOTTING THE CHART -->
       <Separator class="mt-2" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
-      <svg class="ml-1" ref="spectraChart"></svg>
+      <div class="relative">
+        <svg class="ml-1" ref="spectraChart"></svg>
+        <div
+          v-if="loadingGlobal || loadingSelection"
+          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+        >
+          <div class="size-6">
+            <LoaderPinwheel class="size-full animate-spin" />
+          </div>
+        </div>
+      </div>
     </div>
   </Window>
 </template>
