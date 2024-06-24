@@ -21,7 +21,7 @@ class TestSpectra:
     def test_get_average_global(self):
         # setup
         data: np.ndarray = np.array([[[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
-                        [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]])
+                                    [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]])
         expected_result: list[float] = [1.0, 2.0, 3.0, 4.0]
 
         # execute
@@ -32,15 +32,15 @@ class TestSpectra:
 
     def test_get_average_selection(self):
         # setup
-        data = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
-                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]],
-                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]]], dtype=np.uint16)
+        data: np.ndarray = np.array([[[3, 4], [1, 2], [1, 2]],
+                                    [[2, 2], [2, 0], [2, 2]],
+                                    [[2, 2], [2, 0], [2, 2]]], dtype=np.uint16)
         
         mask = np.array([[True, False, True],
                          [False, True, True],
                          [True, False, False]])
         
-        expected_result: list[float] = [2.0, 2.0, 3.0, 4.0]
+        expected_result: list[float] = [2.0, 2.0]
         
         # execute
         self.numpy_to_raw(data, self.TEST_RAW_PATH)

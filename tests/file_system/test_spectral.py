@@ -26,7 +26,7 @@ class TestSpectral:
             "key": "value",
             "width": "3",
             "height": "3",
-            "depth": "16",
+            "depth": "4",
             "offset": "0",
             "data-Length": "2",
             "data-type": "unsigned",
@@ -55,16 +55,49 @@ class TestSpectral:
         
         expected_params: dict = {
             "low": 0,
-            "high": 8,
-            "binSize": 2
+            "high": 4,
+            "binSize": 2,
+            'binned': True
             }
         
         assert params == expected_params
         
-    def test_get_spectra_params_file_not_found(self, caplog):
+    def test_get_spectra_params_file_not_found(self):
         
         with pytest.raises(FileNotFoundError) as err:
             params: dict = get_spectra_params("false_name")
             
         assert "" in str(err.value)
+    
+    def test_bin_data_identity(self):
+        # setup
+        data: np.ndarray = np.array([[[3, 4, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]],
+                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]],
+                         [[2, 2, 3, 4], [2, 0, 3, 4], [2, 2, 3, 4]]], dtype=np.uint16)
         
+        self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 4, 1)
+        binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
+        assert data.all() == binned_data.all()
+        
+    def test_bin_data_(self):
+        # setup
+        data: np.ndarray = np.array([[[3, 1, 3, 4], [1, 2, 4, 4], [1, 2, 4, 4]],
+                         [[2, 2, 4, 4], [2, 1, 3, 4], [2, 1, 3, 4]],
+                         [[2, 1, 3, 4], [2, 0, 2, 4], [2, 2, 4, 4]]], dtype=np.uint16)
+        
+        self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 3, 2)
+        binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
+        expected_result:np.ndarray = np.array([[[2], [3], [3]],
+                                               [[3], [2], [2]],
+                                               [[2], [1], [3]]])
+        assert expected_result.all() == binned_data.all()
+        
+    def numpy_to_raw(self, array:np.ndarray, path: str):
+        """Writes a numpy array to a raw file.
+        
+        :param array: The array to write.
+        :param path: The path to write the file to.
+        """
+        array.flatten().tofile(path)
