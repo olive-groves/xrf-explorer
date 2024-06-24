@@ -374,6 +374,7 @@ function updateCharts() {
  * Set up the window when it is mounted. Global elemental averages are fetched only once at this point.
  */
 async function setupWindow() {
+  updateCharts();
   await fetchGlobalAverages();
   updateCharts();
 }
