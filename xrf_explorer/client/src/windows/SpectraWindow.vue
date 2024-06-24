@@ -2,7 +2,7 @@
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
+import { appState, datasource, elements } from "@/lib/appState";
 import { ElementalChannel } from "@/lib/workspace";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
@@ -31,6 +31,12 @@ watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
  * Sets up export of chart.
  */
 watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
+
+// Binning parameters
+const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
+const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
+const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
+const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
 
 const config = inject<FrontendConfig>("config")!;
 const url = config.api.endpoint;

@@ -39,10 +39,8 @@ export const datasource = computed(() => appState.workspace?.name ?? "");
 export const elements = computed(
   () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
 );
-export const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
-export const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
-export const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
-export const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
+export const elementalData = computed(() => appState.workspace?.elementalCubes.length ?? 0 > 0);
+export const spectralData = computed(() => appState.workspace?.spectralCubes.length ?? 0 > 0);
 
 /**
  * Type describing the state of the client.
