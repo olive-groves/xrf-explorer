@@ -27,7 +27,7 @@ class TestSpectral:
             "key": "value",
             "width": "3",
             "height": "3",
-            "depth": "4",
+            "depth": "6",
             "offset": "0",
             "data-Length": "2",
             "data-type": "unsigned",
@@ -65,9 +65,9 @@ class TestSpectral:
     
     def test_bin_data_identity(self):
         # setup
-        data: np.ndarray = np.array([[[3, 1, 3, 4], [1, 2, 4, 4], [1, 2, 4, 4]],
-                         [[2, 2, 4, 4], [2, 1, 3, 4], [2, 1, 3, 4]],
-                         [[2, 1, 3, 4], [2, 0, 2, 4], [2, 2, 4, 4]]], dtype=np.uint16)
+        data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 0, 4], [1, 2, 4, 4, 0, 4]],
+                         [[2, 2, 4, 4, 0, 4], [2, 1, 3, 4, 0, 4], [2, 1, 3, 4, 0, 4]],
+                         [[2, 1, 3, 4, 0, 4], [2, 0, 2, 4, 0, 4], [2, 2, 4, 4, 0, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 2, 1)
@@ -76,16 +76,16 @@ class TestSpectral:
         
     def test_bin_data_(self):
         # setup
-        data: np.ndarray = np.array([[[3, 1, 3, 4], [1, 2, 4, 4], [1, 2, 4, 4]],
-                         [[2, 2, 4, 4], [2, 1, 3, 4], [2, 1, 3, 4]],
-                         [[2, 1, 3, 4], [2, 0, 2, 4], [2, 2, 4, 4]]], dtype=np.uint16)
+        data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 2, 4], [1, 2, 4, 2, 0, 4]],
+                                    [[2, 2, 4, 4, 0, 4], [2, 1, 3, 3, 1, 4], [2, 1, 3, 4, 0, 4]],
+                                    [[2, 1, 3, 4, 2, 4], [2, 0, 2, 2, 0, 4], [2, 2, 4, 4, 2, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 5, 2)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
-        expected_result:np.ndarray = np.array([[[2], [3], [3]],
-                                               [[3], [2], [2]],
-                                               [[2], [1], [3]]])
+        expected_result:np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
+                                               [[3, 2], [2, 2], [2, 2]],
+                                               [[2, 3], [1, 1], [3, 3]]])
         assert expected_result.all() == binned_data.all()
         
     def numpy_to_raw(self, array:np.ndarray, path: str):
