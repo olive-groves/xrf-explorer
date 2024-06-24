@@ -34,12 +34,12 @@ from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
     get_element_names,
-    get_short_element_names,
     get_element_averages,
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
     parse_rpl,
     get_spectra_params,
+    update_bin_params,
     bin_data
 )
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
@@ -61,7 +61,7 @@ from xrf_explorer.server.spectra import (
     get_average_global,
     get_raw_data,
     get_average_selection,
-    get_theoretical_data,
+    get_theoretical_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
