@@ -6,7 +6,7 @@ from .contextual_images import (
     get_contextual_image,
     get_contextual_image_recipe_path,
     get_path_to_base_image,
-    is_base_image,
+    is_base_image
 )
 from .file_access import (
     get_elemental_cube_path,
