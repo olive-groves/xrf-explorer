@@ -70,12 +70,15 @@ def get_elemental_data_cube(data_source: str) -> np.ndarray:
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
 
-    path_to_elemental_cube: str = get_elemental_cube_path(data_source)
-    # Get the elemental data cube
-    elemental_cube: np.ndarray
+    path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
+    if path_to_elemental_cube is None:
+        LOG.error(f"Could not get path to elemental datacube of data source {data_source}")
+        return np.empty(0)
 
     LOG.info(f"Reading elemental data cube from {path_to_elemental_cube}")
 
+    # Get the elemental data cube
+    elemental_cube: np.ndarray
     try:
         # Choose the correct method to read the elemental data cube
         if path_to_elemental_cube.endswith('.csv'):
@@ -124,24 +127,28 @@ def get_elemental_map(element: int, path: str) -> np.ndarray:
     return elemental_cube
 
 
-def get_element_names(path: str) -> list[str]:
+def get_element_names(data_source: str) -> list[str]:
     """Get the names of the elements stored in the elemental data cube.
 
-    :param path: Path to data cube.
+    :param data_source: Data source folder name.
     :return: List of the names of the elements. Empty list if error occurred.
     """
+    path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
+    if path_to_elemental_cube is None:
+        LOG.error(f"Could not get path to elemental datacube of data source {data_source}")
+        return np.empty(0)
+    
     # Return the elemental data cube
     elements: list[str]
 
-    LOG.info(f"Reading elements from {path}")
-
     try:
         # Choose the correct method to read the elemental names
-        if path.endswith('.csv'):
-            elements = get_elements_from_csv(path)
-        elif path.endswith('.dms'):
-            elements = get_elements_from_dms(path)
+        if path_to_elemental_cube.endswith('.csv'):
+            elements = get_elements_from_csv(path_to_elemental_cube)
+        elif path_to_elemental_cube.endswith('.dms'):
+            elements = get_elements_from_dms(path_to_elemental_cube)
         else:
+            LOG.error(f"Unknown elemental cube format: {path_to_elemental_cube}")
             elements = []
 
     except Exception as e:
@@ -153,15 +160,16 @@ def get_element_names(path: str) -> list[str]:
     return elements
 
 
-def get_short_element_names(path: str) -> list[str]:
+def get_short_element_names(data_source: str) -> list[str]:
     """Get the short names of the elements stored in the elemental data cube.
 
-    :param path: Path to data cube.
+    :param data_source: Data source folder name.
     :return: List of the names of the elements. Empty list if error occurred.
     """
     # Get regular names
-    element_names: list[str] = get_element_names(path)
+    element_names: list[str] = get_element_names(data_source)
     if not element_names:
+        LOG.error("Could not get element names")
         return []
 
     short_names: list[str] = []
@@ -180,17 +188,16 @@ def get_short_element_names(path: str) -> list[str]:
     return short_names
 
 
-def get_element_averages(path: str) -> list[dict[str, str | float]]:
+def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in the painting.
 
-    :param path: Path to data cube.
+    :param data_source: Name of the data source.
     :return: List of the names and average composition of the elements.
     """
 
     # Get the elemental data cube and the names of the elements
-    source_folder: str = basename(str(Path(path).parent))
-    raw_cube: np.ndarray = get_elemental_data_cube(source_folder)
-    names: list[str] = get_short_element_names(path)
+    raw_cube: np.ndarray = get_elemental_data_cube(data_source)
+    names: list[str] = get_short_element_names(data_source)
 
     # Check if the data was loaded correctly
     if raw_cube.size == 0 or names == []:
@@ -212,22 +219,26 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
     return composition
 
 
-def get_element_averages_selection(path: str, mask: np.ndarray, names: list[str]) -> list[dict[str, str | float]]:
+def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in (a subarea of) the painting.
 
-    :param path: The path to the data cube to get the selection averages from.
+    :param data_source: Name of the data source.
     :param mask: A 2D mask of the selected pixels
-    :param names: The names of the elements present in the painting.
     :return: List of the names and average composition of the elements.
     """
-    raw_cube: np.ndarray = get_elemental_data_cube(path)
-    data_cube: np.ndarray = normalize_elemental_cube_per_layer(raw_cube)
+    # Get the elemental data cube and the names of the elements
+    raw_cube: np.ndarray = get_elemental_data_cube(data_source)
+    names: list[str] = get_short_element_names(data_source)
 
-    length = data_cube.shape[0]
-    averages = np.zeros(length)
+    # Normalize the elemental data cube
+    image_cube: np.ndarray = normalize_elemental_cube_per_layer(raw_cube)
 
+    length: int = image_cube.shape[0]
+    averages: np.ndarray = np.zeros(length)
+
+    # Calculate the average composition of the elements in selection
     for index in range(length):
-        averages[index] = np.ma.array(data_cube[index], mask=np.logical_not(mask)).mean()
+        averages[index] = np.ma.array(image_cube[index], mask=np.logical_not(mask)).mean()
 
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str, str | float]] = \

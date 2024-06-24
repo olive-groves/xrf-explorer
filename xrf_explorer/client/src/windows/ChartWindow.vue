@@ -198,8 +198,8 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
 function setupChart(barChartData: Element[], lineChartData: Element[]) {
   // Declare chart dimensions and margins
   const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
-  const width: number = 860 - margin.left - margin.right;
-  const height: number = 400 - margin.top - margin.bottom;
+  const width: number = 1000;
+  const height: number = 600;
 
   // Get the maximum for the y-axis
   const maxBarChart: number = d3.max(barChartData, (d) => d.average) as number;
@@ -213,8 +213,6 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
-
-  console.log(barChartData, lineChartData);
 
   // Declare the horizontal position scale
   x = d3
@@ -392,7 +390,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
     <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
     <p class="ml-2 font-bold">Average abundance chart:</p>
-    <AspectRatio :ratio="5 / 2">
+    <AspectRatio :ratio="5 / 3">
       <svg class="ml-2" ref="chart"></svg>
     </AspectRatio>
   </Window>
