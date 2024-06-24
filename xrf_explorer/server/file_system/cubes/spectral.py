@@ -26,6 +26,12 @@ def parse_rpl(path: str) -> dict:
         - data type
         - byte order
         - record by
+        - depth bin size
+        - depth1
+        - depth2
+        - depth scale origin
+        - depth scale increment
+        - depth scale units
 
     :param path: path to the rpl file
     :return: Dictionary containing the attributes' name and value
