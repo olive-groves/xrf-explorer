@@ -36,6 +36,9 @@ function loadWorkspace(workspace: WorkspaceConfig) {
     createContextualLayer(image);
   });
 
+  // Return if there is no elemental data as the other visualizations do not work in that case.
+  if (workspace.elementalCubes.length == 0) return;
+
   // Create elemental layers
   createElementalLayers(workspace);
 
