@@ -5,7 +5,7 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { ElementSelection, SelectionAreaSelection } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
-import { appState, datasource, elements } from "@/lib/appState";
+import { appState, datasource, elementalData, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
@@ -370,7 +370,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
+  <Window title="Elemental charts" @window-mounted="setupWindow" location="right" :disabled="!elementalData">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>
