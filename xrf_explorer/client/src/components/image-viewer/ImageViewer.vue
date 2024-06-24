@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -120,22 +120,53 @@ async function resetViewport() {
   viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
+/**
+ * Cancels the selection made in the image viewer.
+ */
+function clearSelection() {
+  const tool = toolState.value.tool;
+  toolState.value.tool = Tool.Grab;
+  appState.selection.imageViewer.type = undefined;
+  nextTick(() => (toolState.value.tool = tool));
+}
+
 const dragging = ref(false);
+const lensLocked = ref(false);
+
+/**
+ * Event handler for the onClick event on the glcanvas.
+ * @param event - The mouse event.
+ */
+function onClick(event: MouseEvent) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
+    event.preventDefault();
+  }
+}
 
 /**
  * Event handler for the onMouseDown event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseDown() {
-  if (!selectionToolActive.value) {
+function onMouseDown(event: MouseEvent) {
+  if (event.button == 2) {
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+  }
+
+  if (event.button == 0 && !selectionToolActive.value) {
     dragging.value = true;
   }
 }
 
 /**
  * Event handler for the onMouseUp event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseUp() {
-  dragging.value = false;
+function onMouseUp(event: MouseEvent) {
+  if (event.button == 0) {
+    dragging.value = false;
+  }
 }
 
 /**
@@ -166,9 +197,12 @@ function onMouseMove(event: MouseEvent) {
   const normalizedX = (width.value * mouseX) / rect.width;
   const normalizedY = height.value * (1 - mouseY / rect.height);
 
-  layers.value.forEach((layer) => {
-    layer.uniform.uMouse.value.set(normalizedX, normalizedY);
-  });
+  // Only update lens position in the shader if the mouse is not locked.
+  if (!lensLocked.value) {
+    layers.value.forEach((layer) => {
+      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+    });
+  }
 }
 
 /**
@@ -212,6 +246,8 @@ const cursor = computed(() => {
     :style="{
       cursor: cursor,
     }"
+    @click="onClick"
+    @contextmenu="onClick"
     @dblclick="resetViewport"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
@@ -228,6 +264,6 @@ const cursor = computed(() => {
       :w="viewbox.w"
       :h="viewbox.h"
     />
-    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
   </div>
 </template>

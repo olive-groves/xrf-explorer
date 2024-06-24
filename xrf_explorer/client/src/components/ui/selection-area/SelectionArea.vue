@@ -65,9 +65,9 @@ const nearInitial = computed(() => {
 });
 
 /**
- * The path for the last line in the candidate lasso selection.
+ * The path for the last line in the candidate polygon selection.
  */
-const lastLassoCandidateLine = computed(() => {
+const lastPolygonCandidateLine = computed(() => {
   const length = candidatePoints.value.length;
   const first = candidatePoints.value[length - 2];
   const last = nearInitial.value ? candidatePoints.value[0] : candidatePoints.value[length - 1];
@@ -92,15 +92,15 @@ function mapLocation(client: Point2D): Point2D {
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (props.type == SelectionAreaType.Lasso) {
+  if (props.type == SelectionAreaType.Polygon) {
     const point = mapLocation({ x: event.clientX, y: event.clientY });
-    if (candidateType.value == SelectionAreaType.Lasso) {
+    if (candidateType.value == SelectionAreaType.Polygon) {
       // If selection is already started, end it if the clicked point is close to the starting position.
       // Add a new point to the selection otherwise.
       if (nearInitial.value) {
         if (candidatePoints.value.length > 3) {
           model.value = {
-            type: SelectionAreaType.Lasso,
+            type: SelectionAreaType.Polygon,
             points: candidatePoints.value.slice(0, -1),
           };
         } else {
@@ -112,8 +112,8 @@ function onClick(event: MouseEvent) {
         candidatePoints.value.push(point);
       }
     } else {
-      // Start new lasso selection
-      candidateType.value = SelectionAreaType.Lasso;
+      // Start new polygon selection
+      candidateType.value = SelectionAreaType.Polygon;
       candidatePoints.value = [deepClone(point), deepClone(point)];
     }
   }
@@ -187,7 +187,7 @@ function onMouseMove(event: MouseEvent) {
         class="fill-selection stroke-selection-foreground stroke-2"
       />
       <path
-        v-if="model.type == SelectionAreaType.Lasso"
+        v-if="model.type == SelectionAreaType.Polygon"
         :d="`M${model.points.map((point) => `${point.x} ${point.y}`).join(' L')} Z`"
         vector-effect="non-scaling-stroke"
         fill-opacity="var(--selection-opacity)"
@@ -205,7 +205,7 @@ function onMouseMove(event: MouseEvent) {
         class="stroke-primary stroke-2"
       />
       <path
-        v-if="candidateType == SelectionAreaType.Lasso"
+        v-if="candidateType == SelectionAreaType.Polygon"
         :d="`M${candidatePoints
           .slice(0, -1)
           .map((point) => `${point.x} ${point.y}`)
@@ -214,8 +214,8 @@ function onMouseMove(event: MouseEvent) {
         class="stroke-primary stroke-2"
       />
       <path
-        v-if="candidateType == SelectionAreaType.Lasso"
-        :d="lastLassoCandidateLine"
+        v-if="candidateType == SelectionAreaType.Polygon"
+        :d="lastPolygonCandidateLine"
         vector-effect="non-scaling-stroke"
         class="stroke-primary stroke-2"
       />
