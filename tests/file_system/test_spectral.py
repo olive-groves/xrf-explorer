@@ -81,7 +81,7 @@ class TestSpectral:
                          [[2, 1, 3, 4], [2, 0, 2, 4], [2, 2, 4, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
-        bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 3, 2)
+        bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 5, 2)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
         expected_result:np.ndarray = np.array([[[2], [3], [3]],
                                                [[3], [2], [2]],
