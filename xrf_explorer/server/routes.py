@@ -31,7 +31,7 @@ from xrf_explorer.server.image_to_cube_selection import get_selection, Selection
 
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.cubes import (
-    normalize_ndarray_to_grayscale,
+    normalize_elemental_cube_per_layer,
     get_elemental_map,
     get_element_names,
     get_short_element_names,
@@ -630,7 +630,7 @@ def elemental_map(data_source: str, channel: int):
 
     # Get the elemental map
     image_array: np.ndarray = get_elemental_map(channel, path)
-    image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array)
+    image_normalized: np.ndarray = normalize_elemental_cube_per_layer(image_array)
     image: Image = fromarray(image_normalized).convert("L")
 
     # Save the image to an io buffer

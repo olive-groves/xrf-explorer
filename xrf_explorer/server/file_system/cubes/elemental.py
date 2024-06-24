@@ -198,7 +198,7 @@ def get_element_averages(path: str) -> list[dict[str, str | float]]:
         return []
 
     # Normalize the elemental data cube
-    image_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+    image_cube: np.ndarray = normalize_elemental_cube_per_layer(raw_cube)
 
     # Calculate the average composition of the elements
     averages: np.ndarray = np.mean(image_cube, axis=(1, 2))
@@ -221,7 +221,7 @@ def get_element_averages_selection(path: str, mask: np.ndarray, names: list[str]
     :return: List of the names and average composition of the elements.
     """
     raw_cube: np.ndarray = get_elemental_data_cube(path)
-    data_cube: np.ndarray = normalize_ndarray_to_grayscale(raw_cube)
+    data_cube: np.ndarray = normalize_elemental_cube_per_layer(raw_cube)
 
     length = data_cube.shape[0]
     averages = np.zeros(length)
