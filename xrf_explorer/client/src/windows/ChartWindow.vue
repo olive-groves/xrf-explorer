@@ -64,6 +64,9 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
     return false;
   }
 
+  // Don't make the request if the required data is not present
+  if (!elementalData.value) return;
+
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
