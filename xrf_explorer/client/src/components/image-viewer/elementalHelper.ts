@@ -226,7 +226,5 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     ...layerGroupDefaults,
   };
 
-  console.log(layers);
-
   updateLayerGroupLayers(layerGroups.value.elemental);
 }
