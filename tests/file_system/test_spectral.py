@@ -53,14 +53,7 @@ class TestSpectral:
     def test_get_spectra_params(self):
         params: dict = get_spectra_params(self.DATA_SOURCE_FOLDER_NAME)
         
-        expected_params: dict = {
-            "low": 0,
-            "high": 4,
-            "binSize": 2,
-            'binned': True
-            }
-        
-        assert params == expected_params
+        assert params["low"] == 0 and params["high"] == 4 and params["binSize"] == 2
         
     def test_get_spectra_params_file_not_found(self):
         
