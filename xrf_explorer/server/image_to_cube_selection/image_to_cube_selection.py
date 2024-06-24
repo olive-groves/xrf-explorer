@@ -6,13 +6,12 @@ import numpy as np
 
 from cv2 import fillPoly, imread, perspectiveTransform, getPerspectiveTransform, convexHull
 
-from xrf_explorer.server.file_system.cubes import parse_rpl
+from xrf_explorer.server.file_system.cubes import parse_rpl, get_elemental_datacube_dimensions
+from xrf_explorer.server.file_system.workspace.file_access import get_elemental_cube_recipe_path, get_spectral_cube_recipe_path
 from xrf_explorer.server.image_register import load_points, compute_fitting_dimensions_by_aspect
 from xrf_explorer.server.file_system.workspace import (
-    get_elemental_cube_path,
     get_base_image_path,
     get_raw_rpl_paths,
-    get_cube_recipe_path,
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -217,47 +216,40 @@ def get_selection(
         LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
         return None
 
-    cube_dir: str | None
-
-    match cube_type:
-        case CubeType.Elemental:
-            cube_dir = get_elemental_cube_path(data_source_folder)
-        case CubeType.Raw:
-            cube_dir = get_raw_rpl_paths(data_source_folder)[0]
-        case _:
-            LOG.error(f"Incorrect cube type: {cube_type}")
-            return None
-
-    if cube_dir is None:
-        LOG.error(f"Data source directory {data_source_folder} does not exist.")
-        return None
-
     base_img_dir: str | None = get_base_image_path(data_source_folder)
 
     if base_img_dir is None:
         LOG.error(f"Error occurred while retrieving the path of the base image of {data_source_folder}")
-        LOG.error(
-            f"Error occurred while retrieving the path of the base image of {data_source_folder}"
-        )
         return None
 
     img_h: int
     img_w: int
     cube_h: int
     cube_w: int
+    cube_recipe_path: str | None
+
     img_h, img_w, _ = imread(base_img_dir).shape
 
-    # get paths to files
-    path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
+    match cube_type:
+        case CubeType.Elemental:
+            dims = get_elemental_datacube_dimensions(data_source_folder)
 
-    # get dimensions from rpl file
-    info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
-    cube_w = int(info['width'])
-    cube_h = int(info['height'])
+            if dims is None:
+                LOG.error(f"Could not retrieve dimension of elemental cube in data source folder {data_source_folder}.")
+                return None
 
-    cube_recipe_path: str | None = get_cube_recipe_path(data_source_folder)
+            cube_w, cube_h, _, _ = dims
+            cube_recipe_path = get_elemental_cube_recipe_path(data_source_folder)
+        case CubeType.Raw:
+            path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
+            info = parse_rpl(path_to_rpl)
+
+            cube_w, cube_h = int(info['width']), int(info['height'])
+            cube_recipe_path = get_spectral_cube_recipe_path(data_source_folder)
+        case _:
+            LOG.error(f"Incorrect cube type: {cube_type}")
+            return None
+
 
     if cube_recipe_path is None:
         # If the data cube has no recipe, simply scale the selection coordinates to match the dimensions of the cube.
