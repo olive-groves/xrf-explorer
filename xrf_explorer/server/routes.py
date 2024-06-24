@@ -307,7 +307,7 @@ def bin_raw_data(data_source: str):
         return "Data already binned", 200
 
 
-@app.route("/api/<data_source>/get_offset/", methods=["GET"])
+@app.route("/api/<data_source>/get_offset", methods=["GET"])
 def get_offset(data_source: str):
     """Returns the depth offset energy of the raw data, that is the energy level of channel 0.
     
