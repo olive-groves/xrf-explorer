@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { appState, datasource, elements, elementalData } from "@/lib/appState";
+import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
@@ -181,7 +181,7 @@ async function updateEmbedding() {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" location="left" :disabled="!elementalData">
+  <Window title="Dimensionality reduction" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
       <p class="-mb-2 font-bold">Embedding</p>

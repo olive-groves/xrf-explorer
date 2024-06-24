@@ -2,7 +2,7 @@
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { appState, datasource, elements, spectralData } from "@/lib/appState";
+import { appState, datasource, elements, spectralDataPresent } from "@/lib/appState";
 import { ElementalChannel } from "@/lib/workspace";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
@@ -399,7 +399,7 @@ function updateElementSpectrum() {
 </script>
 
 <template>
-  <Window title="Spectrum" location="right" @window-mounted="setup" :disabled="!spectralData">
+  <Window title="Spectrum" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">

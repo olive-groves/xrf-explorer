@@ -39,8 +39,8 @@ export const datasource = computed(() => appState.workspace?.name ?? "");
 export const elements = computed(
   () => appState.workspace?.elementalChannels.filter((element) => element.enabled) ?? [],
 );
-export const elementalData = computed(() => (appState.workspace?.elementalCubes.length ?? 0) > 0);
-export const spectralData = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
+export const elementalDataPresent = computed(() => (appState.workspace?.elementalCubes.length ?? 0) > 0);
+export const spectralDataPresent = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
 
 /**
  * Type describing the state of the client.

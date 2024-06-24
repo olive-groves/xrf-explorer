@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, inject, computed } from "vue";
-import { appState, datasource, elements, elementalData } from "@/lib/appState";
+import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
@@ -128,7 +128,7 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window title="Color segmentation" location="right" :disabled="!elementalData">
+  <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
