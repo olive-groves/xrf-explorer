@@ -2,8 +2,9 @@ import json
 import logging
 
 from io import BytesIO
-from os import rmdir, mkdir
+from os import rmdir, mkdir, unlink, listdir
 from os.path import isfile, isdir, exists, abspath, join
+from shutil import rmtree
 
 import numpy as np
 
@@ -180,9 +181,9 @@ def create_data_source_dir(data_source: str):
     return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/<data_source>/abort", methods=["GET", "POST"])
-def remove_data_source_dir(data_source: str):
-    """Abort creation of a directory for a data source.
+@app.route("/api/<data_source>/remove", methods=["POST"])
+def remove_data_source(data_source: str):
+    """Removes workspace.json from a data source,
 
     :param data_source: The name of the data source to be aborted
     :return: json with directory name
@@ -201,6 +202,42 @@ def remove_data_source_dir(data_source: str):
         LOG.error(error_msg)
         return error_msg, 400
 
+    data_source_path: str = join(config['uploads-folder'], data_source)
+    workspace_path: str = join(data_source_path, "workspace.json")
+    generated_path: str = join(data_source_path, "generated")
+
+    if isdir(generated_path):
+        # remove generated files
+        rmtree(generated_path)
+
+    if isfile(workspace_path):
+        # remove workspace.json
+        LOG.info(f"Removing workspace.json at {workspace_path}")
+        unlink(workspace_path)
+
+    if isdir(data_source_path) and len(listdir(data_source_path)) == 0:
+        # remove directory if it is empty
+        rmdir(data_source_path)
+
+    return jsonify({"dataSourceDir": data_source})
+
+
+@app.route("/api/<data_source>/delete", methods=["DELETE"])
+def delete_data_source(data_source: str):
+    """Completely deletes and removes all files from data source.
+    
+    :param data_source: The data source to delete.
+    :return: json with directory name
+    """
+    # Get config
+    config: dict = get_config()
+    LOG.info(f"Aborting data source directory creation for {data_source}")
+
+    if data_source == "":
+        error_msg: str = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+
     data_source_dir: str = join(config['uploads-folder'], data_source)
 
     if not isdir(data_source_dir):
@@ -210,7 +247,7 @@ def remove_data_source_dir(data_source: str):
 
     # remove data source dir
     LOG.info(f"Removing data source directory at {data_source_dir}")
-    rmdir(data_source_dir)
+    rmtree(data_source_dir)
 
     return jsonify({"dataSourceDir": data_source})
 
