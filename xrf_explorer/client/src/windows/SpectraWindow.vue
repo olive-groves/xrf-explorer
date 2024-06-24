@@ -39,7 +39,6 @@ const binned = computed(() => appState.workspace?.spectralParams?.binned ?? fals
 const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
 
 const config = inject<FrontendConfig>("config")!;
-const url = config.api.endpoint;
 
 // set the dimensions and margins of the graph
 const margin = { top: 30, right: 30, bottom: 70, left: 60 },
@@ -83,12 +82,7 @@ async function setup() {
 async function getOffset() {
   try {
     //make api call
-    const response = await fetch(`${url}/${datasource.value}/get_offset`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_offset`);
     const offset = await response.json();
     return offset;
   } catch (e) {
@@ -259,7 +253,7 @@ async function getAverageSpectrum() {
         ],
       };
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
+      const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -312,12 +306,9 @@ async function getElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_element_spectrum/${element}/${excitation}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${config.api.endpoint}/${datasource.value}/get_element_spectrum/${element}/${excitation}`,
+      );
       const data = await response.json();
       elementData = data[0];
       elementPeaks = data[1];
