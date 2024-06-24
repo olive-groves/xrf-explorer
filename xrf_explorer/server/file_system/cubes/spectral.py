@@ -83,10 +83,10 @@ def update_bin_params(data_source: str):
     high: float = workspace_dict["spectralParams"]["high"]
     bin_size: float = workspace_dict["spectralParams"]["binSize"]
     
-    increment: float = (40-offset)/4096
-    workspace_dict["spectralParams"]["low"] = floor((low - offset)/increment)
-    workspace_dict["spectralParams"]["high"] = ceil((high - offset)/increment)
-    workspace_dict["spectralParams"]["binSize"] = round(bin_size/increment)
+    increment: float = (40 - offset) / 4096
+    workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
+    workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
+    workspace_dict["spectralParams"]["binSize"] = round(bin_size / increment)
     
     workspace_path = get_path_to_workspace(data_source)
 

@@ -287,8 +287,8 @@ def bin_raw_data(data_source: str):
     try:
         params: dict = get_spectra_params(data_source)
     except FileNotFoundError as err:
-            
-        return ("error while loading workspace to retrieve spectra params: {%s}", err), 500
+        return f"error while loading workspace to retrieve spectra params: {str(err)}", 500
+    
     binned: bool = params["binned"]
     
     if not binned:
@@ -304,9 +304,7 @@ def bin_raw_data(data_source: str):
             return "Binned data", 200
         
         except FileNotFoundError as err:
-            LOG.error(
-                "error while loading workspace to retrieve spectra params: {%s}", err)
-            return 500
+            return f"error while loading workspace to retrieve spectra params: {str(err)}", 5000
     else:
         return "Data already binned", 200
 

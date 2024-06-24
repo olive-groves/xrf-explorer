@@ -227,8 +227,7 @@ function makeChart() {
       .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y2", 430);
   });
-
-  console.log(elementData);
+  
   // modify visibility based on checkbox status
   updateElement();
 }
