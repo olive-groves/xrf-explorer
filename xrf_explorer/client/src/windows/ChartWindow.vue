@@ -184,7 +184,6 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
   const selecting: boolean = selection != undefined;
 
   if (selecting) {
-    console.log("Updating selection things");
     await fetchSelectionAverages();
     updateCharts();
   }
@@ -213,8 +212,6 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
-
-  console.log(barChartData, lineChartData);
 
   // Declare the horizontal position scale
   x = d3
