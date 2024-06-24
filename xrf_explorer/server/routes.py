@@ -316,7 +316,7 @@ def get_offset(data_source: str):
     :param data_source: the data source containing the raw data
     :return: The depth offset
     """
-    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
@@ -325,7 +325,7 @@ def get_offset(data_source: str):
 
     try:
         return json.dumps(float(info['depthscaleorigin']))
-    except:
+    except Exception:
         # If we can't get the offset, set default values
         return json.dumps(0)
 
