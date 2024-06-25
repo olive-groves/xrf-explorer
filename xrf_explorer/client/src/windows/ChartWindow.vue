@@ -12,6 +12,7 @@ const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 // Sets up export of chart.
 watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
@@ -29,6 +30,11 @@ const lineChecked = ref(false);
 let svg = d3.select(chart.value!);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
+
+// Network state
+let abortController = new AbortController();
+const loadingSelection = ref(false);
+const loadingGlobal = ref(false);
 
 // Averages returned by the last fetching operation
 let fetchedAverages: Element[] = [];
@@ -68,7 +74,16 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
   // If the request is for a selection, change the request accordingly
-  if (selectionRequest) request_url += `_selection`;
+  if (selectionRequest) {
+    request_url += `_selection`;
+
+    // Abort previous request
+    abortController.abort();
+    abortController = new AbortController();
+    loadingSelection.value = true;
+  } else {
+    loadingGlobal.value = true;
+  }
 
   // Make API call
   const response: Response = await fetch(request_url, {
@@ -77,8 +92,12 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
       "Content-Type": "application/json",
     },
     body: JSON.stringify(flipSelectionAreaSelection(selection, (await getTargetSize()).height)),
+    signal: selectionRequest ? abortController.signal : undefined,
   });
   let fetchSuccessful: boolean = false;
+
+  if (selectionRequest) loadingSelection.value = false;
+  else loadingGlobal.value = false;
 
   // Check that fetching the names was successful
   if (response.ok) {
@@ -184,7 +203,6 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
   const selecting: boolean = selection != undefined;
 
   if (selecting) {
-    console.log("Updating selection things");
     await fetchSelectionAverages();
     updateCharts();
   }
@@ -356,6 +374,7 @@ function updateCharts() {
  * Set up the window when it is mounted. Global elemental averages are fetched only once at this point.
  */
 async function setupWindow() {
+  updateCharts();
   await fetchGlobalAverages();
   updateCharts();
 }
@@ -391,7 +410,17 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
     <Separator class="mb-1 mt-2" />
     <p class="ml-2 font-bold">Average abundance chart (%):</p>
     <AspectRatio :ratio="5 / 3">
-      <svg class="ml-2" ref="chart"></svg>
+      <div class="relative">
+        <svg class="ml-2" ref="chart"></svg>
+        <div
+          v-if="loadingGlobal || loadingSelection"
+          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+        >
+          <div class="size-6">
+            <LoaderPinwheel class="size-full animate-spin" />
+          </div>
+        </div>
+      </div>
     </AspectRatio>
   </Window>
 </template>

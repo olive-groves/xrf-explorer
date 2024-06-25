@@ -60,7 +60,7 @@ async function onSelectionUpdate(newSelection: SelectionAreaSelection) {
     return;
   }
   // edge case: polygon selection must have at least 3 points
-  if (newSelection.type == SelectionAreaType.Lasso && newSelection.points.length < 3) {
+  if (newSelection.type == SelectionAreaType.Polygon && newSelection.points.length < 3) {
     console.error("Invalid polygon selection. Expected at least 3 points but got: ", newSelection);
     return;
   }
@@ -138,7 +138,7 @@ function isPointInSelection(point: Point2D, selection: SelectionAreaSelection): 
     case SelectionAreaType.Rectangle:
       return isInRectangle(point, selection.points);
 
-    case SelectionAreaType.Lasso:
+    case SelectionAreaType.Polygon:
       return isInPolygon(point, selection.points);
 
     default: {

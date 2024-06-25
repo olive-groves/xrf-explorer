@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Dialog } from "@/components/ui/dialog";
-import { WorkspaceCard } from ".";
+import { DeleteWorkspaceDialog, WorkspaceCard } from ".";
 import { Atom, AudioWaveform, Image, ImagePlus, Layers3 } from "lucide-vue-next";
 import { appState, datasource } from "@/lib/appState";
 import { FrontendConfig } from "@/lib/config";
@@ -24,6 +24,7 @@ watch(datasource, () => {
 
 const fileDialog = ref(false);
 const channelsDialog = ref(false);
+const deletionDialog = ref(false);
 
 /**
  * Update the workspace persistently.
@@ -109,6 +110,10 @@ function updateWorkspace() {
           </WorkspaceCard>
         </div>
       </div>
+      <Button variant="destructive" @click="deletionDialog = true"> Delete project </Button>
+      <Dialog v-model:open="deletionDialog">
+        <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
+      </Dialog>
       <Dialog v-model:open="fileDialog">
         <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
