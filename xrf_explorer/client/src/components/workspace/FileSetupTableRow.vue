@@ -16,7 +16,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="col-start-3 w-full">
+  <div class="col-start-3 w-full min-w-0">
     <Select v-model:model-value="model">
       <SelectTrigger>
         <SelectValue :placeholder="`Select ${props.type} file`" />

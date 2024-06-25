@@ -118,7 +118,7 @@ export enum Tool {
   Grab = "grab",
   Lens = "lens",
   Rectangle = SelectionAreaType.Rectangle,
-  Lasso = SelectionAreaType.Lasso,
+  Polygon = SelectionAreaType.Polygon,
 }
 
 /**

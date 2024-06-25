@@ -146,9 +146,9 @@ function flipPoints(points: Point2D[], height: number): Point2D[] {
  */
 export function flipSelectionAreaSelection(selection: SelectionAreaSelection, height: number): SelectionAreaSelection {
   switch (selection.type) {
-    case SelectionAreaType.Lasso: {
+    case SelectionAreaType.Polygon: {
       return {
-        type: SelectionAreaType.Lasso,
+        type: SelectionAreaType.Polygon,
         points: flipPoints(selection.points, height),
       };
     }

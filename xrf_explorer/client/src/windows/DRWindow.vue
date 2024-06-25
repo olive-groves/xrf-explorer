@@ -275,7 +275,7 @@ async function updateEmbedding() {
           <ToggleGroupItem class="size-8 p-2" title="Rectangle selection" :value="SelectionAreaType.Rectangle">
             <SquareMousePointer />
           </ToggleGroupItem>
-          <ToggleGroupItem class="size-8 p-2" title="Lasso selection" :value="SelectionAreaType.Lasso">
+          <ToggleGroupItem class="size-8 p-2" title="Polygon selection" :value="SelectionAreaType.Polygon">
             <LassoSelect />
           </ToggleGroupItem>
         </ToggleGroup>

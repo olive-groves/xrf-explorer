@@ -108,6 +108,6 @@ export type SelectionAreaSelection = {
  * Supported types of selection by the selection tool.
  */
 export enum SelectionAreaType {
-  Lasso = "lasso",
+  Polygon = "polygon",
   Rectangle = "rectangle",
 }
