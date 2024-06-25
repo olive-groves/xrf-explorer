@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from xrf_explorer.server.file_system.helper import set_config
+from xrf_explorer.server.file_system.cubes.spectral import numpy_to_raw
 from xrf_explorer.server.spectra import get_average_global
 from xrf_explorer.server.spectra.spectra import get_average_selection
 
@@ -43,16 +44,8 @@ class TestSpectra:
         expected_result: list[float] = [2.0, 2.0]
         
         # execute
-        self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        numpy_to_raw(data, self.TEST_RAW_PATH)
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
 
         # verify
         assert result == expected_result
-        
-    def numpy_to_raw(self, array:np.ndarray, path: str):
-        """Writes a numpy array to a raw file.
-        
-        :param array: The array to write.
-        :param path: The path to write the file to.
-        """
-        array.flatten().tofile(path)

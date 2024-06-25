@@ -57,6 +57,15 @@ def parse_rpl(path: str) -> dict:
 
     return parsed_rpl
 
+    
+def numpy_to_raw(array: np.ndarray, path: str):
+    """Writes a numpy array to a raw file.
+    
+    :param array: The array to write.
+    :param path: The path to write the file to.
+    """
+    array.flatten().tofile(path)
+
 
 def mipmap_exists(data_source: str, level: int) -> bool:
     """Checks if a specific mipmap level exists for a data source.
