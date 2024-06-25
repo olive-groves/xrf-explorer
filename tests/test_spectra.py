@@ -19,6 +19,7 @@ class TestSpectra:
     @pytest.fixture(autouse=True)
     def setup_environment(self):
         set_config(self.CUSTOM_CONFIG_PATH)
+        numpy_to_raw(self.TEST_RAW_DATA, self.TEST_RAW_PATH)
         yield
 
     def test_get_average_global(self):
@@ -42,7 +43,6 @@ class TestSpectra:
         expected_result: list[float] = [2.0, 2.0]
         
         # execute
-        numpy_to_raw(self.TEST_RAW_DATA, self.TEST_RAW_PATH)
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
 
         # verify
@@ -50,7 +50,6 @@ class TestSpectra:
 
     def test_get_raw_data(self):
         # execute
-        numpy_to_raw(self.TEST_RAW_DATA, self.TEST_RAW_PATH)
         result: np.memmap | np.ndarray = get_raw_data(self.DATA_SOURCE_FOLDER_NAME)
 
         # verify
@@ -96,3 +95,18 @@ class TestSpectra:
 
         # verify
         assert result_exists == expected_result_exists
+
+    def test_mipmap_data(self):
+        # setup
+        expected_exists: bool = True
+        
+        # execute
+        exists: bool = mipmap_exists(self.DATA_SOURCE_FOLDER_NAME, 1)
+        original_data: np.memmap | np.ndarray = get_raw_data(self.DATA_SOURCE_FOLDER_NAME)
+        mipmapped_data: np.memmap | np.ndarray = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 1)
+
+        # verify
+        assert expected_exists == exists
+        assert mipmapped_data.shape[0] * 2 - 1 == original_data.shape[0]
+        assert mipmapped_data.shape[1] * 2 - 1 == original_data.shape[1]
+        assert mipmapped_data.shape[2] == original_data.shape[2]
