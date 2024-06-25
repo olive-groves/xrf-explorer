@@ -74,7 +74,7 @@ async function initializeDataSource() {
     // Check if the name is empty
     if (name.trim() == "") {
       progress.value = Progress.Name;
-      toast.warning("Workspace name must not be empty");
+      toast.warning("Project name must not be empty");
       return;
     }
     // Create the data source directory
@@ -83,8 +83,8 @@ async function initializeDataSource() {
     // Check if the request was successful
     if (!response.ok) {
       progress.value = Progress.Name;
-      toast.error(`Failed to create workspace "${name}"`, {
-        description: "The workspace might already exist",
+      toast.error(`Failed to create project "${name}"`, {
+        description: "The project might already exist",
       });
       return;
     }
