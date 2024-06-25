@@ -112,6 +112,9 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     except OSError as err:
         LOG.error("Error while getting recipe of elemental cube: {%s}", err)
         return None
+    
+    if recipe_name == "":
+        return None
 
     return abspath(join(data_source_dir, recipe_name))
 
@@ -215,9 +218,9 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
         return None
 
 
-def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
+def get_spectral_cube_recipe_path(data_source_folder_name: str) -> str | None:
     """
-    Returns the path of the data cube recipe of the specified data source. If the data cube does not have a recipe, the
+    Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a recipe, the
     function returns None.
 
     :param data_source_folder_name: Name of the data source folder
@@ -229,18 +232,12 @@ def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
         LOG.error("Config is empty")
         return None
 
-    workspace_dict: dict = get_workspace_dict(data_source_folder_name)
+    workspace_dict: dict | None = get_workspace_dict(data_source_folder_name)
 
     if workspace_dict is None:
         return None
 
-    # Needs to be changed when considering multiple cubes
-    if len(workspace_dict["elementalCubes"]) > 0:
-        recipe_name: str = workspace_dict["elementalCubes"][0]["recipeLocation"]
-    elif len(workspace_dict["spectralCubes"]) > 0:
-        recipe_name: str = workspace_dict["spectralCubes"][0]["recipeLocation"]
-    else:
-        recipe_name: str = ""
+    recipe_name: str = workspace_dict["spectralCubes"][0]["recipeLocation"]
 
     if recipe_name == "":
         return None
