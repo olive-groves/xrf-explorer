@@ -2,7 +2,7 @@
 import { DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { useFetch } from "@vueuse/core";
-import { computed, inject, ref, toRef } from "vue";
+import { computed, inject, toRef } from "vue";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -16,16 +16,9 @@ const props = defineProps<{
 const emit = defineEmits(["deleted"]);
 
 const name = toRef(props, "name");
-const files = ref();
-
-/**
- * Fetches all files for the current project.
- */
-async function getFiles() {
-  const fileUrl = computed(() => `${config.api.endpoint}/${name.value}/files`);
-  const fileFetch = useFetch<string>(fileUrl, { refetch: true });
-  files.value = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
-}
+const fileUrl = computed(() => `${config.api.endpoint}/${name.value}/files`);
+const fileFetch = useFetch<string>(fileUrl, { refetch: true, immediate: false });
+const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
 
 /**
  * Deletes all files and recreates the project directory.
@@ -38,7 +31,7 @@ async function deleteFiles() {
 </script>
 
 <template>
-  <DialogContent v-model:open="getFiles">
+  <DialogContent>
     <DialogTitle class="font-bold">Existing files</DialogTitle>
     <div>There are preexisting files for project {{ name }}.</div>
     <div>
