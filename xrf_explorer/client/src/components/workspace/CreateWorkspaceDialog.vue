@@ -55,7 +55,7 @@ enum Progress {
 
 const progress = ref(Progress.Name);
 
-// Data source name
+// Project name
 const sourceName = ref("");
 
 // Dialogs for file and channel setup
@@ -64,7 +64,7 @@ const fileDialog = ref(false);
 const channelDialog = ref(false);
 
 /**
- * Creates the data source directory in the backend if it does not yet exist with a workspace.json inside.
+ * Creates the project/data source directory in the backend if it does not yet exist with a workspace.json inside.
  */
 async function initializeDataSource() {
   if (progress.value == Progress.Name) {
@@ -77,7 +77,7 @@ async function initializeDataSource() {
       toast.warning("Project name must not be empty");
       return;
     }
-    // Create the data source directory
+    // Create the project directory
     const response = await fetch(`${config.api.endpoint}/${name}/create`, { method: "POST" });
 
     // Check if the request was successful
@@ -131,7 +131,7 @@ function deletedExistingFiles() {
 }
 
 /**
- * Resets the progress for creating a new data source.
+ * Resets the progress for creating a new project/data source.
  */
 function resetProgress() {
   progress.value = Progress.Busy;
@@ -151,10 +151,10 @@ async function abortDataSourceCreation() {
 
     if (response.ok) {
       const data = await response.json();
-      console.info(`Data source directory removed: ${data.dataSourceDir}`);
+      console.info(`Project directory removed: ${data.dataSourceDir}`);
     } else {
       const error = await response.text();
-      console.error(`Error removing data source directory: ${error}`);
+      console.error(`Error removing project directory: ${error}`);
     }
   } catch (error) {
     console.error(`An error occurred: ${error}`);
@@ -287,8 +287,8 @@ async function binData() {
 
 <template>
   <DialogContent ref="dialog">
-    <DialogTitle class="mb-2 font-bold"> Create new data source </DialogTitle>
-    <Input placeholder="Data source name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
+    <DialogTitle class="mb-2 font-bold"> Create new project </DialogTitle>
+    <Input placeholder="Project name" :disabled="progress != Progress.Name" v-model:model-value="sourceName" />
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-1.5" v-if="progress == Progress.Name">
         <TriangleAlert class="size-5 text-primary" />
