@@ -444,12 +444,7 @@ def list_element_names(data_source: str):
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
-    path: str | None = get_elemental_cube_path(data_source)
-
-    if path is None:
-        return "Error getting elemental datacube path", 500
-
-    names: list[str] = get_element_names(path)
+    names: list[str] = get_element_names(data_source)
     try:
         return json.dumps(names)
     except Exception as e:
