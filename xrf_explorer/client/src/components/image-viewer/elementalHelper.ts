@@ -1,6 +1,6 @@
 import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
-import { computed, unref, watch } from "vue";
+import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerType } from "./types";
 import { loadLayerFromTexture, scene } from "./scene";
@@ -74,7 +74,7 @@ function selectionUpdated(newSelection: ElementSelection[]) {
       // Set the uniforms of the map to contain the selected color and thresholds.
       map.uniform.iColor.value.set(...hexToRgb(channel.color));
       map.uniform.iThreshold.value.set(Math.min(...channel.thresholds), Math.max(...channel.thresholds));
-    } 
+    }
 
     if (map != undefined && !channel.selected) {
       if (map.mesh != undefined) {

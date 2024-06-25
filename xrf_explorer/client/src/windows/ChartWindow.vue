@@ -223,8 +223,8 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
   const height: number = 600;
 
   // Get the maximum for the y-axis
-  const maxBarChart: number = barChecked.value ? d3.max(barChartData, (d) => d.average) as number : 0;
-  const maxLineChart: number = lineChecked.value ? d3.max(lineChartData, (d) => d.average) as number : 0;
+  const maxBarChart: number = barChecked.value ? (d3.max(barChartData, (d) => d.average) as number) : 0;
+  const maxLineChart: number = lineChecked.value ? (d3.max(lineChartData, (d) => d.average) as number) : 0;
   const max: number = d3.max([maxBarChart, maxLineChart]) as number;
 
   // Select SVG container
