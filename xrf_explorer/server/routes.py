@@ -406,7 +406,7 @@ def list_element_averages_selection(data_source: str):
     try:
         selection_type_parsed: SelectionType = SelectionType(selection_type)
     except ValueError:
-        return "Error parsing selection type", 400
+        return f"Error parsing selection of type {selection_type}", 400
 
     # validate and parse points
     if not isinstance(points, list):
