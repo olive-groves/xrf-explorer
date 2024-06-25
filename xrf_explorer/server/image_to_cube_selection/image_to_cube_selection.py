@@ -250,7 +250,6 @@ def get_selection(
             LOG.error(f"Incorrect cube type: {cube_type}")
             return None
 
-
     if cube_recipe_path is None:
         # If the data cube has no recipe, simply scale the selection coordinates to match the dimensions of the cube.
         selection_coords_scaled: list[tuple[int, int]] = get_scaled_cube_coordinates(
