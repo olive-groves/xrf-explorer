@@ -233,7 +233,7 @@ def get_selection(
     match cube_type:
         case CubeType.Elemental:
             # Get the dimension of the elemental data cube
-            dims = get_elemental_datacube_dimensions(data_source_folder)
+            dims: tuple[int, int, int, int] | None = get_elemental_datacube_dimensions(data_source_folder)
 
             if dims is None:
                 LOG.error(f"Could not retrieve dimension of elemental cube in data source folder {data_source_folder}.")
@@ -242,7 +242,7 @@ def get_selection(
             cube_w, cube_h, _, _ = dims
 
             # Load the recipe path for the elemental cube
-            cube_recipe_path = get_elemental_cube_recipe_path(data_source_folder)
+            cube_recipe_path: str | None = get_elemental_cube_recipe_path(data_source_folder)
         case CubeType.Raw:
             # Get the path to the rpl file
             path_to_rpl = get_raw_rpl_paths(data_source_folder)[1]
@@ -254,7 +254,7 @@ def get_selection(
             cube_w, cube_h = int(info["width"]), int(info["height"])
 
             # Load the recipe path for the sepctral cube
-            cube_recipe_path = get_spectral_cube_recipe_path(data_source_folder)
+            cube_recipe_path: str | None = get_spectral_cube_recipe_path(data_source_folder)
         case _:
             LOG.error(f"Incorrect cube type: {cube_type}")
             return None
