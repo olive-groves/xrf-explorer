@@ -74,7 +74,7 @@ async function initializeDataSource() {
     // Check if the name is empty
     if (name.trim() == "") {
       progress.value = Progress.Name;
-      toast.warning("Data source name must not be empty");
+      toast.warning("Workspace name must not be empty");
       return;
     }
     // Create the data source directory
@@ -84,7 +84,7 @@ async function initializeDataSource() {
     if (!response.ok) {
       progress.value = Progress.Name;
       toast.error(`Failed to create workspace "${name}"`, {
-        description: "The data source might already exist",
+        description: "The workspace might already exist",
       });
       return;
     }
