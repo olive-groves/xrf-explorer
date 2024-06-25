@@ -83,7 +83,7 @@ async function initializeDataSource() {
     // Check if the request was successful
     if (!response.ok) {
       progress.value = Progress.Name;
-      toast.error(`Failed to create data source "${name}"`, {
+      toast.error(`Failed to create workspace "${name}"`, {
         description: "The data source might already exist",
       });
       return;
