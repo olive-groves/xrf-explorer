@@ -14,7 +14,7 @@ const emit = defineEmits(["filesUploaded"]);
 
 const props = defineProps<{
   /**
-   * The name of the data source to upload files to.
+   * The name of the project/data source to upload files to.
    */
   dataSource: string;
 }>();

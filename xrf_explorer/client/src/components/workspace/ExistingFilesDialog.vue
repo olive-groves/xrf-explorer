@@ -8,7 +8,7 @@ const config = inject<FrontendConfig>("config")!;
 
 const props = defineProps<{
   /**
-   * The name of the relevant data source.
+   * The name of the relevant project.
    */
   name: string;
 }>();
@@ -22,7 +22,7 @@ const fileFetch = useFetch<string>(fileUrl, { refetch: true });
 const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
 
 /**
- * Deletes all files and recreates the data source directory.
+ * Deletes all files and recreates the project directory.
  */
 async function deleteFiles() {
   await fetch(`${config.api.endpoint}/${name.value}/delete`, { method: "DELETE" });
