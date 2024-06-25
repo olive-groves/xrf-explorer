@@ -33,6 +33,7 @@ from xrf_explorer.server.image_to_cube_selection import get_selection, Selection
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
+    get_elemental_datacube_dimensions,
     get_elemental_map,
     get_element_names,
     get_element_averages,
