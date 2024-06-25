@@ -83,6 +83,7 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     # Get the path to the generated folder
     path_to_generated_folder: str = get_path_to_generated_folder(data_source)
     if not path_to_generated_folder:
+        LOG.error("Could not get path to generated folder")
         return False
 
     mipmap_path: str = str(join(path_to_generated_folder, "mipmaps", str(level), raw_name))

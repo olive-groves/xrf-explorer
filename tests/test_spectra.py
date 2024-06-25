@@ -3,16 +3,15 @@ import numpy as np
 import pytest
 
 from xrf_explorer.server.file_system.helper import set_config
-from xrf_explorer.server.file_system.cubes.spectral import numpy_to_raw
-from xrf_explorer.server.spectra import get_average_global
-from xrf_explorer.server.spectra.spectra import get_average_selection
+from xrf_explorer.server.file_system.cubes.spectral import numpy_to_raw, mipmap_exists, mipmap_raw_cube
+from xrf_explorer.server.spectra import get_average_global, get_average_selection
 
 
 class TestSpectra:
     RESOURCES_PATH = Path('tests', 'resources')
-    DATA_SOURCE_FOLDER_NAME: str = "Data_source"
+    DATA_SOURCE_FOLDER_NAME: str = "spectra_source"
     CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
-    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")).replace("\\","/")
+    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\","/")
     
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -49,3 +48,44 @@ class TestSpectra:
 
         # verify
         assert result == expected_result
+
+    def test_mipmap_not_exist(self):
+        # setup
+        expected_result: bool = False
+        
+        # execute
+        result: bool = mipmap_exists(self.DATA_SOURCE_FOLDER_NAME, 10)
+
+        # verify
+        assert result == expected_result
+
+    def test_mipmap_inexistent_data_source(self):
+        # setup
+        expected_result: bool = False
+        
+        # execute
+        result: bool = mipmap_exists("inexistent", 10)
+
+        # verify
+        assert result == expected_result
+
+    def test_mipmap_low_level(self):
+        # setup
+        expected_result: bool = True
+        
+        # execute
+        result: bool = mipmap_exists("inexistent", 0)
+
+        # verify
+        assert result == expected_result
+
+    def test_mipmap_create(self):
+        # setup
+        expected_result_exists: bool = True
+        
+        # execute
+        mipmap_raw_cube(self.DATA_SOURCE_FOLDER_NAME, 1)
+        result_exists: bool = mipmap_exists(self.DATA_SOURCE_FOLDER_NAME, 1)
+
+        # verify
+        assert result_exists == expected_result_exists
