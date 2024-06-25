@@ -27,6 +27,7 @@ from xrf_explorer.server.dim_reduction import (
     create_embedding_image,
     get_image_of_indices_to_embedding
 )
+from xrf_explorer.server.file_system.cubes.spectral import update_bin_params
 from xrf_explorer.server.image_register import load_points_dict
 from xrf_explorer.server.image_to_cube_selection import get_selection, SelectionType, CubeType
 
