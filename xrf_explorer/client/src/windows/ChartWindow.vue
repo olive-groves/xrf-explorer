@@ -219,8 +219,8 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
 function setupChart(barChartData: Element[], lineChartData: Element[]) {
   // Declare chart dimensions and margins
   const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
-  const width: number = 860 - margin.left - margin.right;
-  const height: number = 400 - margin.top - margin.bottom;
+  const width: number = 1000;
+  const height: number = 600;
 
   // Get the maximum for the y-axis
   const maxBarChart: number = d3.max(barChartData, (d) => d.average) as number;
@@ -254,7 +254,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).tickSizeOuter(0))
     .selectAll("text")
-    .style("font-size", "18px")
+    .style("font-size", "20px")
     .attr("transform", "translate(-13, 15)rotate(-45)");
 
   svg
@@ -270,7 +270,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
         .attr("stroke-opacity", 0.1),
     )
     .selectAll("text")
-    .style("font-size", "18px");
+    .style("font-size", "20px");
 }
 
 /**
@@ -414,8 +414,8 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
     </div>
     <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
-    <p class="ml-2 font-bold">Average abundance chart:</p>
-    <AspectRatio :ratio="5 / 2">
+    <p class="ml-2 font-bold">Average abundance chart (%):</p>
+    <AspectRatio :ratio="5 / 3">
       <div class="relative">
         <svg class="ml-2" ref="chart"></svg>
         <div

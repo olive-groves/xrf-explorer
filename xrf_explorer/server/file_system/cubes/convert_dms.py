@@ -76,7 +76,11 @@ def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
 
     # get data dimensions
     data_source: str = data_source_name_from_cube_path(path)
-    (w, h, c, header_size) = get_elemental_datacube_dimensions(data_source)
+    dimensions: tuple[int, int, int, int] | None = get_elemental_datacube_dimensions(data_source)
+    if dimensions is None:
+        LOG.error("Could not get elemental datacube dimensions")
+        return np.empty(0)
+    (w, h, c, header_size) = dimensions
 
     # list of raw elemental data
     list_raw_elemental_cube: np.ndarray = np.fromfile(path, offset=header_size, count=w * h * c, dtype=np.float32)

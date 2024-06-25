@@ -19,7 +19,7 @@ def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
     :return: Names of the elemental cube files
     """
 
-    workspace_dict = get_workspace_dict(data_source)
+    workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
         return None
 

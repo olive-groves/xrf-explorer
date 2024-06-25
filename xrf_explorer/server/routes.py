@@ -35,12 +35,13 @@ from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
     get_element_names,
-    get_short_element_names,
     get_element_averages,
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
     get_spectra_params,
-    bin_data, get_elemental_datacube_dimensions, parse_rpl, update_bin_params
+    update_bin_params,
+    parse_rpl,
+    bin_data
 )
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import (
@@ -60,7 +61,7 @@ from xrf_explorer.server.spectra import (
     get_average_global,
     get_raw_data,
     get_average_selection,
-    get_theoretical_data,
+    get_theoretical_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -351,7 +352,7 @@ def get_offset(data_source: str):
     :param data_source: the data source containing the raw data
     :return: The depth offset
     """
-    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
@@ -360,7 +361,7 @@ def get_offset(data_source: str):
 
     try:
         return json.dumps(float(info['depthscaleorigin']))
-    except:
+    except Exception:
         # If we can't get the offset, set default values
         return json.dumps(0)
 
@@ -372,13 +373,8 @@ def list_element_averages(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
+    composition: list[dict[str, str | float]] = get_element_averages(data_source)
 
-    path: str | None = get_elemental_cube_path(data_source)
-
-    if path is None:
-        return "Error occurred while getting elemental datacube path", 500
-
-    composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -393,12 +389,6 @@ def list_element_averages_selection(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
-    # path to elemental cube
-    path: str | None = get_elemental_cube_path(data_source)
-
-    if path is None:
-        return "Error getting elemental datacube path", 500
-
     # parse JSON payload
     data: dict[str, str] | None = request.get_json()
     if data is None:
@@ -436,11 +426,8 @@ def list_element_averages_selection(data_source: str):
     if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
-    # get names
-    names: list[str] = get_short_element_names(path)
-
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask)
 
     try:
         return json.dumps(composition)
