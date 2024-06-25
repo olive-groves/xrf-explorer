@@ -9,10 +9,10 @@ from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_pa
 
 
 class TestSpectral:
-    RESOURCES_PATH = Path('tests', 'resources')
-    DATA_SOURCE_FOLDER_NAME: str = "Data_source"
-    CUSTOM_CONFIG_PATH = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
-    TEST_RAW_PATH = str(Path(RESOURCES_PATH, "spectra", "data", "Data_source", "data.raw")).replace("\\","/")
+    RESOURCES_PATH: Path = Path('tests', 'resources')
+    DATA_SOURCE_FOLDER_NAME: str = "spectra_source"
+    CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
+    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\","/")
     
     @pytest.fixture(autouse=True)
     def setup_environment(self):
