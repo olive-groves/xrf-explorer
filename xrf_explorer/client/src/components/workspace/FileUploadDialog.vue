@@ -166,7 +166,7 @@ function dialogUpdate(open: boolean) {
       <Button variant="outline">Upload files</Button>
     </DialogTrigger>
     <DialogContent>
-      <div class="space-y-4">
+      <div class="max-w-[30rem] space-y-4">
         <!-- HEADER -->
         <DialogTitle class="font-bold">Upload files</DialogTitle>
 

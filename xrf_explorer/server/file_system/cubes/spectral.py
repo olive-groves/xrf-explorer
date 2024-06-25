@@ -1,9 +1,10 @@
 from logging import Logger, getLogger
-from math import ceil
+from math import ceil, floor
 from os import makedirs
 from os.path import join, isfile, isdir
 
 import numpy as np
+import json
 
 from xrf_explorer.server.file_system import get_path_to_generated_folder
 from xrf_explorer.server.file_system.workspace import (
@@ -12,6 +13,7 @@ from xrf_explorer.server.file_system.workspace import (
     get_raw_rpl_names,
     set_binned
 )
+from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace
 
 LOG: Logger = getLogger(__name__)
 
@@ -262,3 +264,38 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     except Exception as e:
         LOG.error("Failed to write binned data: {%s}", e)
     set_binned(data_source, True)
+
+
+def update_bin_params(data_source: str):
+    """
+    Converts the low, high and binsize parameters in the workspace from energy to channel.
+    
+    :param data_source: Name of the data source containing the workspace to modify.
+    """
+    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
+    try:
+        offset: int = int(info['depthscaleorigin'])
+    except:
+        offset: int = 0
+    
+    workspace_dict: dict | None = get_workspace_dict(data_source)
+    if workspace_dict is None:
+        raise FileNotFoundError
+    low: float = workspace_dict["spectralParams"]["low"]
+    high: float = workspace_dict["spectralParams"]["high"]
+    bin_size: float = workspace_dict["spectralParams"]["binSize"]
+    
+    increment: float = (40 - offset) / 4096
+    workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
+    workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
+    workspace_dict["spectralParams"]["binSize"] = round(bin_size / increment)
+    
+    workspace_path = get_path_to_workspace(data_source)
+
+    with open(workspace_path, 'w') as f:
+        json.dump(workspace_dict, f)

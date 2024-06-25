@@ -1,4 +1,4 @@
-#  module responsible for giving the different paths corresponding to the files of a data source
+# Module responsible for giving the different paths corresponding to the files of a data source
 
 import json
 import logging
@@ -19,7 +19,7 @@ def get_elemental_cube_file_names(data_source: str) -> list[str] | None:
     :return: Names of the elemental cube files
     """
 
-    workspace_dict = get_workspace_dict(data_source)
+    workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
         return None
 
@@ -111,6 +111,9 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
             recipe_name: str = data["elementalCubes"][0]["recipeLocation"]
     except OSError as err:
         LOG.error("Error while getting recipe of elemental cube: {%s}", err)
+        return None
+    
+    if recipe_name == "":
         return None
 
     return abspath(join(data_source_dir, recipe_name))
@@ -215,9 +218,9 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
         return None
 
 
-def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
+def get_spectral_cube_recipe_path(data_source_folder_name: str) -> str | None:
     """
-    Returns the path of the data cube recipe of the specified data source. If the data cube does not have a recipe, the
+    Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a recipe, the
     function returns None.
 
     :param data_source_folder_name: Name of the data source folder
@@ -229,12 +232,12 @@ def get_cube_recipe_path(data_source_folder_name: str) -> str | None:
         LOG.error("Config is empty")
         return None
 
-    workspace_dict: dict = get_workspace_dict(data_source_folder_name)
+    workspace_dict: dict | None = get_workspace_dict(data_source_folder_name)
 
     if workspace_dict is None:
         return None
 
-    recipe_name: str = workspace_dict["elementalCubes"][0]["recipeLocation"]
+    recipe_name: str = workspace_dict["spectralCubes"][0]["recipeLocation"]
 
     if recipe_name == "":
         return None

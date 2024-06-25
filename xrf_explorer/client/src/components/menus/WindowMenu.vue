@@ -29,7 +29,12 @@ function toggleSecondViewer() {
   <MenubarMenu>
     <MenubarTrigger> View </MenubarTrigger>
     <MenubarContent>
-      <MenubarCheckboxItem v-for="window in windowState" v-model:checked="window.opened" :key="window.id">
+      <MenubarCheckboxItem
+        v-for="window in windowState"
+        v-model:checked="window.opened"
+        :disabled="window.disabled"
+        :key="window.id"
+      >
         {{ window.title }}
       </MenubarCheckboxItem>
       <MenubarSeparator v-if="hasSlot" />

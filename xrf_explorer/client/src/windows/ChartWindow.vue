@@ -5,13 +5,14 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { ElementSelection, SelectionAreaSelection } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
-import { appState, datasource, elements } from "@/lib/appState";
+import { appState, datasource, elementalDataPresent, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 // Sets up export of chart.
 watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
@@ -29,6 +30,11 @@ const lineChecked = ref(false);
 let svg = d3.select(chart.value!);
 let x = d3.scaleBand();
 let y = d3.scaleLinear();
+
+// Network state
+let abortController = new AbortController();
+const loadingSelection = ref(false);
+const loadingGlobal = ref(false);
 
 // Averages returned by the last fetching operation
 let fetchedAverages: Element[] = [];
@@ -64,11 +70,23 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
     return false;
   }
 
+  // Don't make the request if the required data is not present
+  if (!elementalDataPresent.value) return false;
+
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
 
   // If the request is for a selection, change the request accordingly
-  if (selectionRequest) request_url += `_selection`;
+  if (selectionRequest) {
+    request_url += `_selection`;
+
+    // Abort previous request
+    abortController.abort();
+    abortController = new AbortController();
+    loadingSelection.value = true;
+  } else {
+    loadingGlobal.value = true;
+  }
 
   // Make API call
   const response: Response = await fetch(request_url, {
@@ -77,8 +95,12 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
       "Content-Type": "application/json",
     },
     body: JSON.stringify(flipSelectionAreaSelection(selection, (await getTargetSize()).height)),
+    signal: selectionRequest ? abortController.signal : undefined,
   });
   let fetchSuccessful: boolean = false;
+
+  if (selectionRequest) loadingSelection.value = false;
+  else loadingGlobal.value = false;
 
   // Check that fetching the names was successful
   if (response.ok) {
@@ -184,7 +206,6 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
   const selecting: boolean = selection != undefined;
 
   if (selecting) {
-    console.log("Updating selection things");
     await fetchSelectionAverages();
     updateCharts();
   }
@@ -198,8 +219,8 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
 function setupChart(barChartData: Element[], lineChartData: Element[]) {
   // Declare chart dimensions and margins
   const margin: { [key: string]: number } = { top: 30, right: 30, bottom: 70, left: 60 };
-  const width: number = 860 - margin.left - margin.right;
-  const height: number = 400 - margin.top - margin.bottom;
+  const width: number = 1000;
+  const height: number = 600;
 
   // Get the maximum for the y-axis
   const maxBarChart: number = d3.max(barChartData, (d) => d.average) as number;
@@ -213,8 +234,6 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
     .attr("style", "max-width: 100%; height: auto;");
-
-  console.log(barChartData, lineChartData);
 
   // Declare the horizontal position scale
   x = d3
@@ -235,7 +254,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
     .attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).tickSizeOuter(0))
     .selectAll("text")
-    .style("font-size", "18px")
+    .style("font-size", "20px")
     .attr("transform", "translate(-13, 15)rotate(-45)");
 
   svg
@@ -251,7 +270,7 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
         .attr("stroke-opacity", 0.1),
     )
     .selectAll("text")
-    .style("font-size", "18px");
+    .style("font-size", "20px");
 }
 
 /**
@@ -323,6 +342,9 @@ function updateBarChart(data: Element[]) {
  * Update the charts being displayed.
  */
 function updateCharts() {
+  // Do not update if the required data does not exist
+  if (!elementalDataPresent.value) return;
+
   // Mask the data with the selected elements
   const maskedGlobalAverages: Element[] = maskData(globalAverages, elementSelection.value);
   const maskedSelectionAverages: Element[] = maskData(selectionAverages, elementSelection.value);
@@ -358,6 +380,7 @@ function updateCharts() {
  * Set up the window when it is mounted. Global elemental averages are fetched only once at this point.
  */
 async function setupWindow() {
+  updateCharts();
   await fetchGlobalAverages();
   updateCharts();
 }
@@ -370,7 +393,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
+  <Window title="Elemental charts" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>
@@ -391,9 +414,19 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
     </div>
     <!-- CHART DISPLAY -->
     <Separator class="mb-1 mt-2" />
-    <p class="ml-2 font-bold">Average abundance chart:</p>
-    <AspectRatio :ratio="5 / 2">
-      <svg class="ml-2" ref="chart"></svg>
+    <p class="ml-2 font-bold">Average abundance chart (%):</p>
+    <AspectRatio :ratio="5 / 3">
+      <div class="relative">
+        <svg class="ml-2" ref="chart"></svg>
+        <div
+          v-if="loadingGlobal || loadingSelection"
+          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+        >
+          <div class="size-6">
+            <LoaderPinwheel class="size-full animate-spin" />
+          </div>
+        </div>
+      </div>
     </AspectRatio>
   </Window>
 </template>

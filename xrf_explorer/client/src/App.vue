@@ -24,21 +24,21 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
 
 <template>
   <Toaster position="top-center" />
-  <BaseContextMenu>
-    <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
-      <Header />
-      <WindowContainer>
-        <ImageViewerContainer />
+  <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
+    <Header />
+    <WindowContainer>
+      <ImageViewerContainer />
 
+      <BaseContextMenu>
         <!-- Place all windows below here -->
+        <SpectraWindow />
+        <ChartWindow />
         <ElementalChannelWindow />
+        <CSWindow />
+        <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
-        <ChartWindow />
-        <DRWindow />
-        <SpectraWindow />
-        <CSWindow />
-      </WindowContainer>
-    </div>
-  </BaseContextMenu>
+      </BaseContextMenu>
+    </WindowContainer>
+  </div>
 </template>

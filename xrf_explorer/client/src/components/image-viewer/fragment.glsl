@@ -107,21 +107,14 @@ void main() {
 
   // Modify color based on layer type
   if (iLayerType == TYPE_ELEMENTAL) {
-    // Get auxiliary data from texture
-    // Texture is 256x2 (wxh), we can hence sample at (channel/256, 0) for the color
-    // and (channel/256, 1) for the thresholds.
-    // We get the color from the auxiliary and render in alphascale.
-    vec4 auxiliaryColor = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 0.0));
-    vec2 threshold = texture(tAuxiliary, vec2(float(iAuxiliary) / 256.0, 1.0)).xy;
-    if (auxiliaryColor.w == 0.0) {
-      fragColor = transparent;
-    } else {
-      float alpha = (fragColor.x - threshold.x) / (threshold.y - threshold.x);
-      fragColor = vec4(
-        auxiliaryColor.xyz,
-        clamp(alpha, 0.0, 1.0)
-      );
-    }
+    // Display the elemental maps.
+    // The order independent blend of the maps has been calculated by elementalHelper.ts
+    // tImage contains accumulated values, the sum of all color contributions and the sum of intensities.
+    // tAuxiliary contains the maximum intensity values
+    // Color is calculated as the weighted mean, sum of colors divided by sum of intensities.
+    // Alpha is equal to the maximum alpha in the pixel as stored in tAuxiliary.
+    fragColor.xyz = fragColor.xyz / fragColor.w;
+    fragColor.w = texture(tAuxiliary, uv.xy).w;
   } else if (iLayerType == TYPE_CS) {
     // Get auxiliary data from texture
     // Element index j given by iAuxiliary, cluster index i given by R value
@@ -158,5 +151,5 @@ void main() {
   fragColor.xyz = pow(fragColor.xyz, vec3(1.0 / uGamma));
   
   // Apply opacity
-  fragColor = vec4(fragColor.xyz, fragColor.w * uOpacity);
+  fragColor.w = fragColor.w * uOpacity;
 }

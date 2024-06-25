@@ -2,8 +2,9 @@ import json
 import logging
 
 from io import BytesIO
-from os import rmdir, mkdir
+from os import rmdir, mkdir, unlink, listdir
 from os.path import isfile, isdir, exists, abspath, join
+from shutil import rmtree
 
 import numpy as np
 
@@ -34,12 +35,12 @@ from xrf_explorer.server.file_system.cubes import (
     normalize_ndarray_to_grayscale,
     get_elemental_map,
     get_element_names,
-    get_short_element_names,
     get_element_averages,
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
-    parse_rpl,
     get_spectra_params,
+    update_bin_params,
+    parse_rpl,
     bin_data
 )
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
@@ -53,15 +54,14 @@ from xrf_explorer.server.file_system.workspace import (
     get_workspace_dict,
     get_elemental_cube_path,
     get_elemental_cube_recipe_path,
-    get_raw_rpl_paths,
-    get_base_image_name
+    get_base_image_name, get_raw_rpl_paths
 )
 
 from xrf_explorer.server.spectra import (
     get_average_global,
     get_raw_data,
     get_average_selection,
-    get_theoretical_data,
+    get_theoretical_data
 )
 
 LOG: logging.Logger = logging.getLogger(__name__)
@@ -180,9 +180,9 @@ def create_data_source_dir(data_source: str):
     return jsonify({"dataSourceDir": data_source})
 
 
-@app.route("/api/<data_source>/abort", methods=["GET", "POST"])
-def remove_data_source_dir(data_source: str):
-    """Abort creation of a directory for a data source.
+@app.route("/api/<data_source>/remove", methods=["POST"])
+def remove_data_source(data_source: str):
+    """Removes workspace.json from a data source,
 
     :param data_source: The name of the data source to be aborted
     :return: json with directory name
@@ -201,6 +201,42 @@ def remove_data_source_dir(data_source: str):
         LOG.error(error_msg)
         return error_msg, 400
 
+    data_source_path: str = join(config['uploads-folder'], data_source)
+    workspace_path: str = join(data_source_path, "workspace.json")
+    generated_path: str = join(data_source_path, "generated")
+
+    if isdir(generated_path):
+        # remove generated files
+        rmtree(generated_path)
+
+    if isfile(workspace_path):
+        # remove workspace.json
+        LOG.info(f"Removing workspace.json at {workspace_path}")
+        unlink(workspace_path)
+
+    if isdir(data_source_path) and len(listdir(data_source_path)) == 0:
+        # remove directory if it is empty
+        rmdir(data_source_path)
+
+    return jsonify({"dataSourceDir": data_source})
+
+
+@app.route("/api/<data_source>/delete", methods=["DELETE"])
+def delete_data_source(data_source: str):
+    """Completely deletes and removes all files from data source.
+    
+    :param data_source: The data source to delete.
+    :return: json with directory name
+    """
+    # Get config
+    config: dict = get_config()
+    LOG.info(f"Aborting data source directory creation for {data_source}")
+
+    if data_source == "":
+        error_msg: str = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+
     data_source_dir: str = join(config['uploads-folder'], data_source)
 
     if not isdir(data_source_dir):
@@ -210,7 +246,7 @@ def remove_data_source_dir(data_source: str):
 
     # remove data source dir
     LOG.info(f"Removing data source directory at {data_source_dir}")
-    rmdir(data_source_dir)
+    rmtree(data_source_dir)
 
     return jsonify({"dataSourceDir": data_source})
 
@@ -277,26 +313,57 @@ def convert_elemental_cube(data_source: str):
     return "Converted elemental data cube to .dms format", 200
 
 
-@app.route("/api/<data_source>/bin_raw/<bin_params>/", methods=["POST"])
-def bin_raw_data(data_source: str, bin_params: str):
+@app.route("/api/<data_source>/bin_raw/", methods=["POST"])
+def bin_raw_data(data_source: str):
     """Bins the raw data files channels to compress the file.
 
     :param data_source: the data source containing the raw data to bin
-    :param bin_params: the JSON list of parameters: low, high, binSize
     :return: A boolean indicating if the binning was successful
     """
-    params: dict = json.loads(bin_params)
-    low: int = params["low"]
-    high: int = params["high"]
-    bin_size: int = params["binSize"]
+    try:
+        params: dict = get_spectra_params(data_source)
+    except FileNotFoundError as err:
+        return f"error while loading workspace to retrieve spectra params: {str(err)}", 500
+    
+    binned: bool = params["binned"]
+    
+    if not binned:
+        try:
+            update_bin_params(data_source)
+            params: dict = get_spectra_params(data_source)
+            low: int = params["low"]
+            high: int = params["high"]
+            bin_size: int = params["binSize"]
+            
+            bin_data(data_source, low, high, bin_size)
+            LOG.info("binned")
+            return "Binned data", 200
+        
+        except FileNotFoundError as err:
+            return f"error while loading workspace to retrieve spectra params: {str(err)}", 5000
+    else:
+        return "Data already binned", 200
+
+
+@app.route("/api/<data_source>/get_offset", methods=["GET"])
+def get_offset(data_source: str):
+    """Returns the depth offset energy of the raw data, that is the energy level of channel 0.
+    
+    :param data_source: the data source containing the raw data
+    :return: The depth offset
+    """
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
+
+    # get dimensions from rpl file
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        return np.empty(0)
 
     try:
-        bin_data(data_source, low, high, bin_size)
-        LOG.info("binned")
-    except Exception as e:
-        LOG.error("error while loading raw file: {%s}", e)
-
-    return "Binned data", 200
+        return json.dumps(float(info['depthscaleorigin']))
+    except Exception:
+        # If we can't get the offset, set default values
+        return json.dumps(0)
 
 
 @app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
@@ -306,13 +373,8 @@ def list_element_averages(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
+    composition: list[dict[str, str | float]] = get_element_averages(data_source)
 
-    path: str | None = get_elemental_cube_path(data_source)
-
-    if path is None:
-        return "Error occurred while getting elemental datacube path", 500
-
-    composition: list[dict[str, str | float]] = get_element_averages(path)
     try:
         return json.dumps(composition)
     except Exception as e:
@@ -327,12 +389,6 @@ def list_element_averages_selection(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
-    # path to elemental cube
-    path: str | None = get_elemental_cube_path(data_source)
-
-    if path is None:
-        return "Error getting elemental datacube path", 500
-
     # parse JSON payload
     data: dict[str, str] | None = request.get_json()
     if data is None:
@@ -370,11 +426,8 @@ def list_element_averages_selection(data_source: str):
     if mask is None:
         return "Error occurred while getting selection from datacube", 500
 
-    # get names
-    names: list[str] = get_short_element_names(path)
-
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(path, mask, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask)
 
     try:
         return json.dumps(composition)
@@ -549,16 +602,13 @@ def data_cube_size(data_source: str):
     :return: the size of the data cubes
     """
 
-    # As XRF-Explorer only supports a single data cube, we take the size of the first spectral cube
-    _, path = get_raw_rpl_paths(data_source)
-
-    # Parse the .rpl file
-    rpl_data = parse_rpl(path)
+    # this does not work for elemental datacubes in the csv format
+    width, height, _, _ = get_elemental_datacube_dimensions(data_source)
 
     # Return the width and height
     return {
-        "width": rpl_data["width"],
-        "height": rpl_data["height"]
+        "width": width,
+        "height": height
     }, 200
 
 
@@ -628,7 +678,7 @@ def get_average_data(data_source: str):
 
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
-def get_element_spectra(data_source: str, element: str, excitation: int):
+def get_element_spectra(data_source: str, element: str, excitation: float):
     """Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the
     element's peaks energies and intensity.
 
@@ -649,7 +699,7 @@ def get_element_spectra(data_source: str, element: str, excitation: int):
     high: int = params["high"]
     bin_size: int = params["binSize"]
     response = get_theoretical_data(
-        element, int(excitation), low, high, bin_size)
+        element, float(excitation), low, high, bin_size)
 
     response = json.dumps(response)
 

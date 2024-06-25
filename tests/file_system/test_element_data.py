@@ -40,13 +40,9 @@ class TestElementalData:
 
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict | None = get_config()
-        assert custom_config is not None
-
-        path: str = str(join(custom_config["uploads-folder"], source))
 
         # execute
-        result: list[str] = get_element_names(path)
+        result: list[str] = get_element_names(source)
 
         # verify
         assert len(result) == 2
@@ -88,8 +84,8 @@ class TestElementalData:
         assert expected_output in caplog.text
 
     def test_get_element_names(self, caplog):
-        self.do_test_get_element_names(join(self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS), caplog)
-        self.do_test_get_element_names(join(self.SOURCE_FOLDER_CSV, self.DATA_CUBE_CSV), caplog)
+        self.do_test_get_element_names(self.SOURCE_FOLDER_DMS, caplog)
+        self.do_test_get_element_names(self.SOURCE_FOLDER_CSV, caplog)
 
     def test_get_elemental_cube(self, caplog):
         # setup
@@ -116,18 +112,16 @@ class TestElementalData:
 
         # load custom config
         set_config(self.CUSTOM_CONFIG_PATH)
-        custom_config: dict | None = get_config()
-        assert custom_config is not None
-
-        path: str = join(custom_config["uploads-folder"], self.SOURCE_FOLDER_DMS, self.DATA_CUBE_DMS)
 
         # execute
-        result: list[dict[str, str | float]] = get_element_averages(path)
+        result_dms: list[dict[str, str | float]] = get_element_averages(self.SOURCE_FOLDER_DMS)
+        result_csv: list[dict[str, str | float]] = get_element_averages(self.SOURCE_FOLDER_CSV)
 
         # verify
-        assert len(result) == 2
-        assert result[0]['name'] == self.ELEMENTS[0]
-        assert result[1]['name'] == self.ELEMENTS[1]
+        assert len(result_dms) == 2
+        assert result_dms[0]['name'] == self.ELEMENTS[0]
+        assert result_dms[1]['name'] == self.ELEMENTS[1]
+        assert result_dms == result_csv
         assert expected_output in caplog.text
 
     def test_csv_to_dms(self, caplog):
@@ -159,7 +153,7 @@ class TestElementalData:
 
         # verify
         assert result
-        self.do_test_get_element_names(join(folder_name, self.NAME_CUBE_FROM_CSV + '.dms'), caplog)
+        self.do_test_get_element_names(folder_name, caplog)
         self.do_test_get_elemental_cube(folder_name, caplog)
 
         # cleanup

@@ -11,5 +11,5 @@ from .elemental import (
     get_elemental_data_cube,
     normalize_elemental_cube_per_layer,
 )
-from .spectral import parse_rpl, get_spectra_params, get_raw_data, bin_data, numpy_to_raw
+from .spectral import parse_rpl, get_spectra_params, get_raw_data, bin_data, numpy_to_raw, update_bin_params
 from .convert_dms import get_elemental_datacube_dimensions

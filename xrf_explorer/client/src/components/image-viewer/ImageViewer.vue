@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -9,8 +9,6 @@ import * as THREE from "three";
 import { scene } from "./scene";
 import { datasource, appState } from "@/lib/appState";
 import { getTargetSize } from "./api";
-import { BaseContextMenu } from "../menus";
-import { ContextMenuItem } from "../ui/context-menu";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
@@ -57,7 +55,6 @@ const selectionToolActive = computed(() =>
 );
 
 let camera: THREE.OrthographicCamera;
-let renderer: THREE.WebGLRenderer;
 
 const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
@@ -81,7 +78,7 @@ function setup() {
   if (appState.workspace != null) resetViewport();
 
   camera = new THREE.OrthographicCamera();
-  renderer = new THREE.WebGLRenderer({
+  scene.renderer = new THREE.WebGLRenderer({
     alpha: true,
     canvas: glcanvas.value!,
   });
@@ -106,8 +103,8 @@ function render() {
     layer.uniform.uRadius.value = lensSize;
   });
 
-  renderer.setSize(width.value, height.value);
-  renderer.render(scene.scene, camera);
+  scene.renderer?.setSize(width.value, height.value);
+  scene.renderer?.render(scene.scene, camera);
 
   requestAnimationFrame(render);
 }
@@ -123,22 +120,53 @@ async function resetViewport() {
   viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
+/**
+ * Cancels the selection made in the image viewer.
+ */
+function clearSelection() {
+  const tool = toolState.value.tool;
+  toolState.value.tool = Tool.Grab;
+  appState.selection.imageViewer.type = undefined;
+  nextTick(() => (toolState.value.tool = tool));
+}
+
 const dragging = ref(false);
+const lensLocked = ref(false);
+
+/**
+ * Event handler for the onClick event on the glcanvas.
+ * @param event - The mouse event.
+ */
+function onClick(event: MouseEvent) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
+    event.preventDefault();
+  }
+}
 
 /**
  * Event handler for the onMouseDown event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseDown() {
-  if (!selectionToolActive.value) {
+function onMouseDown(event: MouseEvent) {
+  if (event.button == 2) {
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+  }
+
+  if (event.button == 0 && !selectionToolActive.value) {
     dragging.value = true;
   }
 }
 
 /**
  * Event handler for the onMouseUp event on the glcanvas.
+ * @param event - The mouse event.
  */
-function onMouseUp() {
-  dragging.value = false;
+function onMouseUp(event: MouseEvent) {
+  if (event.button == 0) {
+    dragging.value = false;
+  }
 }
 
 /**
@@ -169,9 +197,12 @@ function onMouseMove(event: MouseEvent) {
   const normalizedX = (width.value * mouseX) / rect.width;
   const normalizedY = height.value * (1 - mouseY / rect.height);
 
-  layers.value.forEach((layer) => {
-    layer.uniform.uMouse.value.set(normalizedX, normalizedY);
-  });
+  // Only update lens position in the shader if the mouse is not locked.
+  if (!lensLocked.value) {
+    layers.value.forEach((layer) => {
+      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+    });
+  }
 }
 
 /**
@@ -209,33 +240,30 @@ const cursor = computed(() => {
 </script>
 
 <template>
-  <BaseContextMenu>
-    <div
-      ref="glcontainer"
-      class="relative size-full"
-      :style="{
-        cursor: cursor,
-      }"
-      @dblclick="resetViewport"
-      @mousedown="onMouseDown"
-      @mouseup="onMouseUp"
-      @mouseleave="onMouseLeave"
-      @mousemove="onMouseMove"
-      @wheel="onWheel"
-    >
-      <canvas ref="glcanvas" />
-      <SelectionArea
-        v-model="appState.selection.imageViewer"
-        :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
-        :x="viewbox.x"
-        :y="viewbox.y"
-        :w="viewbox.w"
-        :h="viewbox.h"
-      />
-      <Toolbar v-model:state="toolState" />
-    </div>
-    <template #menu>
-      <ContextMenuItem @click="resetViewport"> Reset viewport </ContextMenuItem>
-    </template>
-  </BaseContextMenu>
+  <div
+    ref="glcontainer"
+    class="relative size-full"
+    :style="{
+      cursor: cursor,
+    }"
+    @click="onClick"
+    @contextmenu="onClick"
+    @dblclick="resetViewport"
+    @mousedown="onMouseDown"
+    @mouseup="onMouseUp"
+    @mouseleave="onMouseLeave"
+    @mousemove="onMouseMove"
+    @wheel="onWheel"
+  >
+    <canvas ref="glcanvas" />
+    <SelectionArea
+      v-model="appState.selection.imageViewer"
+      :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+    />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
+  </div>
 </template>

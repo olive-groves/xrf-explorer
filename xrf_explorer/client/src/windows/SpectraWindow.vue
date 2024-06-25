@@ -2,7 +2,7 @@
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { appState, binned, binSize, datasource, elements, high, low } from "@/lib/appState";
+import { appState, datasource, elements, spectralDataPresent } from "@/lib/appState";
 import { ElementalChannel } from "@/lib/workspace";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
@@ -15,9 +15,14 @@ import {
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { LoaderPinwheel } from "lucide-vue-next";
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
+
+const loadingSelection = ref(false);
+const loadingGlobal = ref(false);
+
 // SVG container
 let svg = d3.select(spectraChart.value!);
 let x = d3.scaleLinear();
@@ -32,8 +37,15 @@ watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
  */
 watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
 
+// Binning parameters
+const high = computed(() => appState.workspace?.spectralParams?.high ?? 40);
+const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
+const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
+const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
+
+let abortController = new AbortController();
+
 const config = inject<FrontendConfig>("config")!;
-const url = config.api.endpoint;
 
 // set the dimensions and margins of the graph
 const margin = { top: 30, right: 30, bottom: 70, left: 60 },
@@ -53,6 +65,8 @@ let selectionData: number[] = [];
 let elementData: number[] = [];
 // Coordinates of the theoretical element peaks
 let elementPeaks: number[] = [];
+// X-axis offset
+let offset: number = 0;
 
 /**
  * Setup the svg and axis of the graph.
@@ -63,8 +77,25 @@ async function setup() {
   watch(binned, () => {
     ready = binned.value;
   });
+  offset = await getOffset();
   await getAverageSpectrum();
   makeChart();
+}
+
+/**
+ * Fetches the x-axis offset of the spectra.
+ * @returns - The offset.
+ */
+async function getOffset() {
+  try {
+    //make api call
+    const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_offset`);
+    const offset = await response.json();
+    return offset;
+  } catch (e) {
+    console.error("Error getting energy offset", e);
+    return 0;
+  }
 }
 
 /**
@@ -85,11 +116,11 @@ function makeChart() {
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([0, (high.value - low.value) / binSize.value]);
+    .domain([low.value * ((40 - offset) / 4096) + offset, high.value * ((40 - offset) / 4096) + offset]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain([0, max]);
+    .domain([0, max * (100 / 255)]);
 
   // append the svg object to the body of the page
   svg = d3
@@ -103,15 +134,36 @@ function makeChart() {
   svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .call(d3.axisBottom(x));
+    .call(d3.axisBottom(x))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", 50)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text("Energy (keV)"),
+    );
 
-  svg.append("g").attr("transform", `translate(${margin.left}, 0)`).call(d3.axisLeft(y));
+  svg
+    .append("g")
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(y))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", -margin.left)
+        .attr("y", 20)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text("Average intensity (%)"),
+    );
 
   // create line
   const globalLine = d3
     .line<number>()
-    .x((_, i) => x(i))
-    .y((d, _) => y(d));
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg
@@ -133,8 +185,8 @@ function makeChart() {
   // create line
   const line = d3
     .line<number>()
-    .x((_, i) => x(i))
-    .y((d, _) => y(d));
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg
@@ -157,31 +209,32 @@ function makeChart() {
   // create line
   const elementLine = d3
     .line<number>()
-    .x((_, i) => x(i))
-    .y((d, _) => y(d));
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .y((d, _) => y(d * (100 / 255)));
 
   // Add the line to chart
   svg
     .append("path")
     .datum(elementData)
     .attr("fill", "none")
-    .attr("stroke", "red")
+    .attr("stroke", "orange")
     .attr("stroke-width", 1)
     .attr("id", "elementLine")
     .attr("d", elementLine)
     .style("opacity", 0);
 
   //Add peaks
-  elementPeaks.forEach((peak, index) => {
+  elementPeaks.forEach((index) => {
     svg
       .append("line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x(index))
+      .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y1", 30)
-      .attr("x2", x(peak))
+      .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
       .attr("y2", 430);
   });
+
   // modify visibility based on checkbox status
   updateElement();
 }
@@ -198,6 +251,7 @@ const excitation = ref(0);
 async function getAverageSpectrum() {
   if (ready) {
     try {
+      loadingGlobal.value = true;
       const size = await getTargetSize();
       const request_body: SelectionAreaSelection = {
         type: SelectionAreaType.Rectangle,
@@ -207,7 +261,7 @@ async function getAverageSpectrum() {
         ],
       };
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
+      const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -217,6 +271,7 @@ async function getAverageSpectrum() {
       const data = await response.json();
       globalData = data;
       makeChart();
+      loadingGlobal.value = false;
     } catch (e) {
       console.error("Error getting global average spectrum", e);
     }
@@ -234,17 +289,24 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
     const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
 
     try {
+      // Abort any previous requests
+      abortController.abort();
+      abortController = new AbortController();
+      loadingSelection.value = true;
+
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_selection_spectrum`, {
+      const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(request_body),
+        signal: abortController.signal,
       });
       const data = await response.json();
       selectionData = data;
       makeChart();
+      loadingSelection.value = false;
     } catch (e) {
       console.error("Error getting selection average spectrum", e);
     }
@@ -260,12 +322,9 @@ async function getElementSpectrum(element: string, excitation: number) {
   if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
     try {
       //make api call
-      const response = await fetch(`${url}/${datasource.value}/get_element_spectrum/${element}/${excitation}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${config.api.endpoint}/${datasource.value}/get_element_spectrum/${element}/${excitation}`,
+      );
       const data = await response.json();
       elementData = data[0];
       elementPeaks = data[1];
@@ -356,7 +415,7 @@ function updateElementSpectrum() {
 </script>
 
 <template>
-  <Window title="Spectrum" location="right" @window-mounted="setup">
+  <Window title="Spectrum" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
@@ -400,6 +459,8 @@ function updateElementSpectrum() {
         class="ml-1 mt-1 w-64"
         v-model="excitation"
         @update:model-value="updateElementSpectrum"
+        :min="0"
+        :max="40"
       >
         <NumberFieldContent>
           <NumberFieldInput />
@@ -410,7 +471,17 @@ function updateElementSpectrum() {
       <!-- PLOTTING THE CHART -->
       <Separator class="mt-2" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
-      <svg class="ml-1" ref="spectraChart"></svg>
+      <div class="relative">
+        <svg class="ml-1" ref="spectraChart"></svg>
+        <div
+          v-if="loadingGlobal || loadingSelection"
+          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+        >
+          <div class="size-6">
+            <LoaderPinwheel class="size-full animate-spin" />
+          </div>
+        </div>
+      </div>
     </div>
   </Window>
 </template>

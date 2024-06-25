@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, watch } from "vue";
-import { appState, datasource, elements } from "@/lib/appState";
+import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
@@ -181,7 +181,7 @@ async function updateEmbedding() {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" location="left">
+  <Window title="Dimensionality reduction" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
       <p class="-mb-2 font-bold">Embedding</p>
@@ -275,7 +275,7 @@ async function updateEmbedding() {
           <ToggleGroupItem class="size-8 p-2" title="Rectangle selection" :value="SelectionAreaType.Rectangle">
             <SquareMousePointer />
           </ToggleGroupItem>
-          <ToggleGroupItem class="size-8 p-2" title="Lasso selection" :value="SelectionAreaType.Lasso">
+          <ToggleGroupItem class="size-8 p-2" title="Polygon selection" :value="SelectionAreaType.Polygon">
             <LassoSelect />
           </ToggleGroupItem>
         </ToggleGroup>
