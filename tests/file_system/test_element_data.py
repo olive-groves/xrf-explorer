@@ -5,6 +5,7 @@ from os import makedirs
 from os.path import join
 
 from numpy import ndarray, array_equal, array, float32
+import pytest
 
 from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
 from xrf_explorer.server.file_system.cubes.elemental import (
@@ -32,14 +33,16 @@ class TestElementalData:
         [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     ], dtype=float32)
 
+    @pytest.fixture(autouse=True)
+    def setup_environment(self):
+        set_config(self.CUSTOM_CONFIG_PATH)
+        yield
+
     def do_test_get_element_names(self, source, caplog):
         caplog.set_level(INFO)
 
         # setup
         expected_output: str = f"Elements loaded. Total elements: {len(self.ELEMENTS)}"
-
-        # load custom config
-        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
         result: list[str] = get_element_names(source)
@@ -70,7 +73,6 @@ class TestElementalData:
         expected_output: str = f"Elemental map loaded. Shape: {elemental_map.shape}"
 
         # load custom config
-        set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict | None = get_config()
         assert custom_config is not None
 
@@ -89,7 +91,6 @@ class TestElementalData:
 
     def test_get_elemental_cube(self, caplog):
         # setup
-        set_config(self.CUSTOM_CONFIG_PATH)
         source_folder: str = "csv"
 
         # execute & verify
@@ -110,9 +111,6 @@ class TestElementalData:
         # setup
         expected_output: str = "Calculated the average composition of the elements."
 
-        # load custom config
-        set_config(self.CUSTOM_CONFIG_PATH)
-
         # execute
         result_dms: list[dict[str, str | float]] = get_element_averages(self.SOURCE_FOLDER_DMS)
         result_csv: list[dict[str, str | float]] = get_element_averages(self.SOURCE_FOLDER_CSV)
@@ -126,7 +124,6 @@ class TestElementalData:
 
     def test_csv_to_dms(self, caplog):
         # setup
-        set_config(self.CUSTOM_CONFIG_PATH)
         custom_config: dict | None = get_config()
         assert custom_config is not None
 
