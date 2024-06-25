@@ -7,11 +7,15 @@ import { BaseContextMenu } from "@/components/menus";
 import { remToPx } from "@/lib/utils";
 
 const leftWindows = computed(() =>
-  Object.keys(windowState).filter((key) => windowState[key].opened && windowState[key].location == "left"),
+  Object.keys(windowState).filter(
+    (key) => !windowState[key].disabled && windowState[key].opened && windowState[key].location == "left",
+  ),
 );
 
 const rightWindows = computed(() =>
-  Object.keys(windowState).filter((key) => windowState[key].opened && windowState[key].location == "right"),
+  Object.keys(windowState).filter(
+    (key) => !windowState[key].disabled && windowState[key].opened && windowState[key].location == "right",
+  ),
 );
 
 const leftPanel = ref<InstanceType<typeof ResizablePanel>>();

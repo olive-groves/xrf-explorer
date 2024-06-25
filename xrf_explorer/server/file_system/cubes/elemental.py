@@ -69,7 +69,6 @@ def get_elemental_data_cube(data_source: str) -> np.ndarray:
     :param data_source: the path to the .raw file
     :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
     """
-
     path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
     if path_to_elemental_cube is None:
         LOG.error(f"Could not get path to elemental datacube of data source {data_source}")
@@ -222,7 +221,7 @@ def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
 def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[dict[str, str | float]]:
     """Get the names and averages of the elements present in (a subarea of) the painting.
 
-    :param data_source: Name of the data source.
+    :param data_source: The data source to get the selection averages from.
     :param mask: A 2D mask of the selected pixels
     :return: List of the names and average composition of the elements.
     """
@@ -274,7 +273,7 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     # Check other file types
     if cube_path.endswith(".csv"):
         # Convert elemental data cube to .dms format
-        cube = get_elemental_data_cube(cube_path)
+        cube = get_elemental_data_cube(data_source)
         element_names = get_element_names(cube_path)
     else:
         LOG.error(f"Cannot convert {cube_path} to .dms format.")

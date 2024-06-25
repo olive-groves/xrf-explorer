@@ -22,6 +22,10 @@ export type WindowState = {
    */
   scrollable: boolean;
   /**
+   * If the window has been disabled.
+   */
+  disabled: boolean;
+  /**
    * If the window has been opened.
    */
   opened: boolean;
