@@ -18,7 +18,6 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   }
 
   // Check if the spectral cubes have names and associated files, and are valid
-  if (workspace.spectralCubes.length == 0) return [false, "A spectral cube is required"];
   if (workspace.spectralCubes.length > 1) return [false, "Having multiple spectral cubes is currently not supported"];
   for (const cube of workspace.spectralCubes) {
     if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
@@ -28,7 +27,6 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   }
 
   // Check if the elemental cubes have names and associated files, and are valid
-  if (workspace.elementalCubes.length == 0) return [false, "An elemental cube is required"];
   if (workspace.elementalCubes.length > 1) return [false, "Having multiple elemental cubes is currently not supported"];
   for (const cube of workspace.elementalCubes) {
     if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];

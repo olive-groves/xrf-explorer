@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
-import { appState, elements } from "@/lib/appState";
+import { appState, elements, elementalDataPresent } from "@/lib/appState";
 import { Input } from "@/components/ui/input";
 import { LabeledSlider } from "@/components/ui/slider";
 
@@ -42,7 +42,7 @@ const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
-  <Window title="Elemental channels" location="left">
+  <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"

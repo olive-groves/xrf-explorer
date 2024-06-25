@@ -5,7 +5,7 @@ import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { ElementSelection, SelectionAreaSelection } from "@/lib/selection";
 import { ElementalChannel } from "@/lib/workspace";
-import { appState, datasource, elements } from "@/lib/appState";
+import { appState, datasource, elementalDataPresent, elements } from "@/lib/appState";
 import { exportableElements } from "@/lib/export";
 
 const chart = ref<HTMLElement>();
@@ -69,6 +69,9 @@ async function fetchAverages(url: string, selectionRequest: boolean, selection: 
     console.debug("No workspace selected; not fetching elemental averages");
     return false;
   }
+
+  // Don't make the request if the required data is not present
+  if (!elementalDataPresent.value) return false;
 
   // Build the URL
   let request_url: string = `${url}/${datasource.value}/element_averages`;
@@ -339,6 +342,9 @@ function updateBarChart(data: Element[]) {
  * Update the charts being displayed.
  */
 function updateCharts() {
+  // Do not update if the required data does not exist
+  if (!elementalDataPresent.value) return;
+
   // Mask the data with the selected elements
   const maskedGlobalAverages: Element[] = maskData(globalAverages, elementSelection.value);
   const maskedSelectionAverages: Element[] = maskData(selectionAverages, elementSelection.value);
@@ -387,7 +393,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="setupWindow" location="right">
+  <Window title="Elemental charts" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>

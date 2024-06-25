@@ -39,9 +39,8 @@ from xrf_explorer.server.file_system.cubes import (
     get_element_averages,
     get_element_averages_selection,
     convert_elemental_cube_to_dms,
-    parse_rpl,
     get_spectra_params,
-    bin_data
+    bin_data, get_elemental_datacube_dimensions, parse_rpl, update_bin_params
 )
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import (
@@ -54,8 +53,7 @@ from xrf_explorer.server.file_system.workspace import (
     get_workspace_dict,
     get_elemental_cube_path,
     get_elemental_cube_recipe_path,
-    get_raw_rpl_paths,
-    get_base_image_name
+    get_base_image_name, get_raw_rpl_paths
 )
 
 from xrf_explorer.server.spectra import (
@@ -346,7 +344,7 @@ def bin_raw_data(data_source: str):
         return "Data already binned", 200
 
 
-@app.route("/api/<data_source>/get_offset/", methods=["GET"])
+@app.route("/api/<data_source>/get_offset", methods=["GET"])
 def get_offset(data_source: str):
     """Returns the depth offset energy of the raw data, that is the energy level of channel 0.
     
@@ -442,7 +440,7 @@ def list_element_averages_selection(data_source: str):
     names: list[str] = get_short_element_names(path)
 
     # get averages
-    composition: list[dict[str, str | float]] = get_element_averages_selection(path, mask, names)
+    composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask, names)
 
     try:
         return json.dumps(composition)
@@ -617,16 +615,13 @@ def data_cube_size(data_source: str):
     :return: the size of the data cubes
     """
 
-    # As XRF-Explorer only supports a single data cube, we take the size of the first spectral cube
-    _, path = get_raw_rpl_paths(data_source)
-
-    # Parse the .rpl file
-    rpl_data = parse_rpl(path)
+    # this does not work for elemental datacubes in the csv format
+    width, height, _, _ = get_elemental_datacube_dimensions(data_source)
 
     # Return the width and height
     return {
-        "width": rpl_data["width"],
-        "height": rpl_data["height"]
+        "width": width,
+        "height": height
     }, 200
 
 

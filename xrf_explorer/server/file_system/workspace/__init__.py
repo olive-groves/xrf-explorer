@@ -16,7 +16,6 @@ from .file_access import (
     get_workspace_dict,
     get_elemental_cube_path_from_name,
     get_base_image_path,
-    get_cube_recipe_path,
     set_binned,
     get_raw_rpl_names
 )
