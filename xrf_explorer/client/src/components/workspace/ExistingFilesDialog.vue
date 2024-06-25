@@ -18,6 +18,9 @@ const emit = defineEmits(["deleted"]);
 const name = toRef(props, "name");
 const files = ref();
 
+/**
+ * Fetches all files for the current project.
+ */
 async function getFiles() {
   const fileUrl = computed(() => `${config.api.endpoint}/${name.value}/files`);
   const fileFetch = useFetch<string>(fileUrl, { refetch: true });
