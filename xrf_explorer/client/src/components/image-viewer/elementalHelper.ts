@@ -1,6 +1,6 @@
 import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
-import { computed, watch } from "vue";
+import { computed, unref, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
 import { LayerType } from "./types";
 import { loadLayerFromTexture, scene } from "./scene";
@@ -64,7 +64,8 @@ function selectionUpdated(newSelection: ElementSelection[]) {
   if (newSelection == undefined) return;
   newSelection.forEach((channel) => {
     const map = elementalMaps[channel.channel];
-    if (channel.selected) {
+
+    if (map != undefined && channel.selected) {
       if (!map.loading && map.mesh == undefined) {
         // Load unloaded selected maps.
         loadMap(channel);
@@ -73,7 +74,9 @@ function selectionUpdated(newSelection: ElementSelection[]) {
       // Set the uniforms of the map to contain the selected color and thresholds.
       map.uniform.iColor.value.set(...hexToRgb(channel.color));
       map.uniform.iThreshold.value.set(Math.min(...channel.thresholds), Math.max(...channel.thresholds));
-    } else {
+    } 
+
+    if (map != undefined && !channel.selected) {
       if (map.mesh != undefined) {
         // Dispose of deselected maps
         disposeMap(channel.channel);
