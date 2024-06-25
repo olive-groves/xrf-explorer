@@ -616,7 +616,7 @@ def elemental_map(data_source: str, channel: int):
 
     # Get the elemental map
     image_array: np.ndarray = get_elemental_map(channel, path)
-    image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array, 100)
+    image_normalized: np.ndarray = normalize_ndarray_to_grayscale(image_array)
     image: Image = fromarray(image_normalized).convert("L")
 
     # Save the image to an io buffer
