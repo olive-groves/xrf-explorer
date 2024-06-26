@@ -23,10 +23,10 @@ class SelectionType(str, Enum):
     
     Attributes:
         Rectangle: Represents the rectangle selection tool.
-        Lasso: Represents the lasso selection tool.
+        Polygon: Represents the polygon selection tool.
     """
     Rectangle = "rectangle"  # The rectangle selection tool
-    Lasso = "lasso"  # The lasso selection tool
+    Polygon = "polygon"  # The polygon selection tool
 
 
 class CubeType(Enum):
@@ -212,7 +212,7 @@ def get_selection(
         LOG.error(f"Expected 2 points for rectangle selection but got {len(selection_coords)}")
         return None
 
-    if selection_type == SelectionType.Lasso and len(selection_coords) < 3:
+    if selection_type == SelectionType.Polygon and len(selection_coords) < 3:
         LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
         return None
 
