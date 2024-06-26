@@ -750,7 +750,8 @@ def get_selection_spectra(data_source: str):
 
 @app.route('/api/<data_source>/cs/clusters/<int:elem>/<int:k>/<int:elem_threshold>', methods=['GET'])
 def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int):
-    """Gets the colors corresponding to the image-wide color clusters, and saves the corresponding bitmasks.
+    """Gets the colors corresponding to the image-wide/element-wise color clusters, and caches them as well as the
+    corresponding bitmasks.
 
     :param data_source: data_source to get the clusters from
     :param elem: index of selected element (0 if whole painting, channel+1 if element)
@@ -823,7 +824,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
 
 @app.route('/api/<data_source>/cs/bitmask/<int:elem>/<int:k>/<int:elem_threshold>', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshold: int):
-    """Returns the png bitmask for the color clusters over the whole painting.
+    """Returns the png bitmask for the color clusters over the whole painting/selected element.
 
     :param data_source: data_source to get the bitmask from
     :param elem: index of selected element (0 if whole painting, channel+1 if element)
