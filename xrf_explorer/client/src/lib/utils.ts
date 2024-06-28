@@ -94,18 +94,6 @@ export function resetWindow() {
 }
 
 /**
- * Removes a specific value from an array.
- * @param array - The array to remove the value from.
- * @param value - The value to remove.
- */
-export function removeValue<Type>(array: Type[], value: Type) {
-  const index = array.indexOf(value);
-  if (index > -1) {
-    array.splice(index);
-  }
-}
-
-/**
  * Sorts the points of a rectangle selection, putting the minimal coordinates in the first point.
  * @param points - The points to sort.
  * @returns The sorted point coordinates.

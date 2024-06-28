@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
+    "test": "vitest",
     "style:check": "eslint .",
     "style:fix": "eslint . --fix"
   },
@@ -24,6 +25,7 @@
     "d3": "^7.9.0",
     "file-saver": "^2.0.5",
     "html-to-image": "^1.11.11",
+    "jsdom": "^24.1.0",
     "lucide-vue-next": "^0.378.0",
     "mathjs": "^12.4.2",
     "radix-vue": "^1.7.2",
@@ -47,6 +49,7 @@
     "@typescript-eslint/parser": "^7.11.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",
+    "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
@@ -62,6 +65,7 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vite-plugin-top-level-await": "^1.4.1",
+    "vitest": "^1.6.0",
     "vue-eslint-parser": "^9.4.2",
     "vue-tsc": "^2.0.6"
   }

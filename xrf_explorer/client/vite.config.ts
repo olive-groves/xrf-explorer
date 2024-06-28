@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import topLevelAwait from "vite-plugin-top-level-await";
@@ -31,4 +32,8 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    environment: 'jsdom'
+    // globals: true,
+  }
 });
