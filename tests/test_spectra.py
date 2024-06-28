@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +37,7 @@ class TestSpectra:
         assert result == expected_result
 
     def test_get_average_selection(self, caplog):
+        caplog.set_level(logging.INFO)
         # setup
         mask: np.ndarray = np.array([[True, False, True],
                                      [False, True, True],
@@ -47,6 +49,7 @@ class TestSpectra:
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
 
         # verify
+        assert "Calculated the average spectrum for the selection." in caplog.text
         assert result == expected_result
 
     def test_get_raw_data(self):
