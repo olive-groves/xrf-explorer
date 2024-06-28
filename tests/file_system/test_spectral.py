@@ -83,7 +83,7 @@ class TestSpectral:
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 5, 2)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
-        expected_result:np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
+        expected_result: np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
                                                [[3, 2], [2, 2], [2, 2]],
                                                [[2, 3], [1, 1], [3, 3]]])
         assert expected_result.all() == binned_data.all()
