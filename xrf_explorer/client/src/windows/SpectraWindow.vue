@@ -80,7 +80,7 @@ async function setup() {
     ready = binned.value;
     binningData.value = !ready;
     if (globalData.length == 0) {
-        getAverageSpectrum();
+      getAverageSpectrum();
     }
   });
   offset = await getOffset();
