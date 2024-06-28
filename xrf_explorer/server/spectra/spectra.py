@@ -81,7 +81,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
 
 def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element.
-        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
+        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096, 0 <=excitation_energy_kev <= 40
 
         :param element: symbol of the element
         :param excitation_energy_kev: excitation energy

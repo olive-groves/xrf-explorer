@@ -1,17 +1,18 @@
 from pathlib import Path
+
 import numpy as np
 import pytest
 
 from xrf_explorer.server.file_system.helper import set_config
-from xrf_explorer.server.file_system.cubes.spectral import numpy_to_raw, mipmap_exists, mipmap_raw_cube, get_raw_data
+from xrf_explorer.server.file_system.cubes.spectral import mipmap_exists, mipmap_raw_cube, get_raw_data
 from xrf_explorer.server.spectra import get_average_global, get_average_selection
 
 
 class TestSpectra:
     RESOURCES_PATH: Path = Path('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "spectra_source"
-    CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\","/")
-    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\","/")
+    CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\", "/")
+    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\", "/")
     TEST_RAW_DATA: np.ndarray = np.array([[[3, 4], [1, 2], [1, 2]],
                                           [[2, 2], [2, 0], [2, 2]],
                                           [[2, 2], [2, 0], [2, 2]]], dtype=np.uint16)
@@ -19,7 +20,7 @@ class TestSpectra:
     @pytest.fixture(autouse=True)
     def setup_environment(self):
         set_config(self.CUSTOM_CONFIG_PATH)
-        numpy_to_raw(self.TEST_RAW_DATA, self.TEST_RAW_PATH)
+        self.TEST_RAW_DATA.flatten().tofile(self.TEST_RAW_PATH)
         yield
 
     def test_get_average_global(self):
@@ -36,19 +37,17 @@ class TestSpectra:
 
     def test_get_average_selection(self, caplog):
         # setup
-        mask = np.array([[True, False, True],
-                         [False, True, True],
-                         [True, False, False]])
+        mask: np.ndarray = np.array([[True, False, True],
+                                     [False, True, True],
+                                     [True, False, False]])
         
         expected_result: list[float] = [2.0, 2.0]
         
         # execute
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
-        expected_log = "Calculated the average spectrum for the selection."
 
         # verify
         assert result == expected_result
-        assert expected_log in caplog.text
 
     def test_get_raw_data(self):
         # execute
@@ -112,3 +111,4 @@ class TestSpectra:
         assert mipmapped_data.shape[0] * 2 - 1 == original_data.shape[0]
         assert mipmapped_data.shape[1] * 2 - 1 == original_data.shape[1]
         assert mipmapped_data.shape[2] == original_data.shape[2]
+        

@@ -59,15 +59,6 @@ def parse_rpl(path: str) -> dict:
 
     return parsed_rpl
 
-    
-def numpy_to_raw(array: np.ndarray, path: str):
-    """Writes a numpy array to a raw file.
-    
-    :param array: The array to write.
-    :param path: The path to write the file to.
-    """
-    array.flatten().tofile(path)
-
 
 def mipmap_exists(data_source: str, level: int) -> bool:
     """Checks if a specific mipmap level exists for a data source.
@@ -85,7 +76,7 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     # Get the path to the generated folder
     path_to_generated_folder: str = get_path_to_generated_folder(data_source)
     if not path_to_generated_folder:
-        LOG.error("Could not get path to generated folder")
+        LOG.error(f"Could not get path to generated folder for {data_source}")
         return False
 
     mipmap_path: str = str(join(path_to_generated_folder, "mipmaps", str(level), raw_name))
@@ -198,7 +189,8 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
     Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
 
     :param data_source: Name of the data source.
-    :return: dictionary with the low, high and bin size values
+    :raises FileNotFoundError: There is no workspace in the data source
+    :return: dictionary with the low, high and bin size values.
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
@@ -222,8 +214,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
+    if info == {}:
+        LOG.error(f"error while binning data: rpl is empty for {data_source}")
+        return
     # get dimensions of original data
     width: int = int(info['width'])
     height: int = int(info['height'])
@@ -238,9 +231,13 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         # load raw file and parse it as 3d array with correct dimensions
         datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
     except OSError as err:
-        LOG.error("error while loading raw file for binning: {%s}", err)
+        LOG.error(f"error while loading raw file for binning: {err}")
         raise
-    datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
+    try:
+        datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
+    except ValueError as err:
+        LOG.error(f"error while reshaping raw data: {err}")
+        return
     # if we just need to crop
     if bin_size == 1:
         new_cube: np.ndarray = datacube[:, :, low:high]
@@ -293,7 +290,7 @@ def update_bin_params(data_source: str):
     increment: float = (40 - offset) / 4096
     workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
     workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
-    workspace_dict["spectralParams"]["binSize"] = round(bin_size / increment)
+    workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
     
     workspace_path = get_path_to_workspace(data_source)
 
