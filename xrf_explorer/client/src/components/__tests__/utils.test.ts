@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem } from "@/lib/utils";
+import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem, cn, deepClone } from "@/lib/utils";
 
 describe('hexToRgb and rgbToHex Test', () => {
     const color1 = {rgb: [77, 184, 39]  as [number, number, number], hex: "#4db827"}
@@ -105,4 +105,70 @@ describe('remToPx and pxToRem Test', () => {
     test('CSS large px to rem', () => {
         expect(pxToRem(CSSlarge.px)).toStrictEqual(CSSlarge.rem)
     })
+})
+
+describe('cn Test', () => {
+    const classes1 = ['text-red-500', 'bg-blue-200'];
+    const classes2 = ['font-bold', 'text-lg'];
+    const classes3 = ['bg-blue-200', 'text-2'];
+
+    const expected1 = 'text-red-500 bg-blue-200';
+    const expected2 = 'font-bold text-lg';
+    const expected3 = 'bg-blue-200 text-2';
+
+    test('text color and background color', () => {
+        expect(cn(classes1)).toStrictEqual(expected1)
+    })
+
+    test('font type and text size', () => {
+        expect(cn(classes2)).toStrictEqual(expected2)
+    })
+
+    test('background color and text size', () => {
+        expect(cn(classes3)).toStrictEqual(expected3)
+    })
+});
+
+describe('deepClone Test', () => {
+    const obj1 = { name: 'John', age: 30 };
+    const clonedObj1 = deepClone(obj1);
+
+    const obj2 = { foo: { bar: 'baz' } };
+    const clonedObj2 = deepClone(obj2);
+
+    const obj3 = [1, 2, 3];
+    const clonedObj3 = deepClone(obj3);
+
+    const objEmpty = {};
+    const clonedObjEmpty = deepClone(objEmpty);
+
+    const objModif = { name: 'John', age: 30 };
+    const clonedObjModif = deepClone(objModif);
+
+    test('deepClone name and age', () => {
+        expect(clonedObj1).toEqual(obj1);
+        expect(clonedObj1).not.toBe(obj1);
+    })
+    
+    test('deepClone foo', () => {
+        expect(clonedObj2).toEqual(obj2);
+        expect(clonedObj2).not.toBe(obj2);
+    })
+
+    test('deepClone number array', () => {  
+        expect(clonedObj3).toEqual(obj3);
+        expect(clonedObj3).not.toBe(obj3);
+    })
+
+    test('deepClone empty object', () => {    
+        expect(clonedObjEmpty).toEqual(objEmpty);
+        expect(clonedObjEmpty).not.toBe(objEmpty);
+    });
+
+    test('deepClone and modify original object', () => {
+        objModif.name = 'Jane';
+        objModif.age = 25;
+
+        expect(clonedObjModif).toEqual({ name: 'John', age: 30 });
+    });
 })
