@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { hexToRgb, rgbToHex, sortRectanglePoints } from "@/lib/utils";
+import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem } from "@/lib/utils";
 
 describe('hexToRgb and rgbToHex Test', () => {
     const color1 = {rgb: [77, 184, 39], hex: "#4db827"}
@@ -59,5 +59,50 @@ describe('sortRectanglePoints Test', () => {
             })
         });
 
+    })
+})
+
+describe('remToPx and pxToRem Test', () => {
+    const CSS1 = {rem: 1, px: 16}
+    const CSS2 = {rem: 108, px: 1728}
+
+    const CSSzero = {rem: 0, px: 0}
+
+    const CSSnegative = {rem: -1, px: -16}
+
+    const CSSlarge = {rem: 1000000, px: 16000000}
+
+    test('random CSS rem to px unit', () => {
+        expect(remToPx(CSS1.rem)).toStrictEqual(CSS1.px)
+        expect(remToPx(CSS2.rem)).toStrictEqual(CSS2.px)
+    })
+
+    test('random CSS px to rem', () => {
+        expect(pxToRem(CSS1.px)).toStrictEqual(CSS1.rem)
+        expect(pxToRem(CSS2.px)).toStrictEqual(CSS2.rem)
+    })
+
+    test('CSS zero rem to px unit', () => {
+        expect(remToPx(CSSzero.rem)).toStrictEqual(CSSzero.px)
+    })
+
+    test('CSS zero px to rem', () => {
+        expect(pxToRem(CSSzero.px)).toStrictEqual(CSSzero.rem)
+    })
+
+    test('CSS negative rem to px unit', () => {
+        expect(remToPx(CSSnegative.rem)).toStrictEqual(CSSnegative.px)
+    })
+
+    test('CSS negative px to rem', () => {
+        expect(pxToRem(CSSnegative.px)).toStrictEqual(CSSnegative.rem)
+    })
+
+    test('CSS large rem to px unit', () => {
+        expect(remToPx(CSSlarge.rem)).toStrictEqual(CSSlarge.px)
+    })
+
+    test('CSS large px to rem', () => {
+        expect(pxToRem(CSSlarge.px)).toStrictEqual(CSSlarge.rem)
     })
 })
