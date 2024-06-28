@@ -20,10 +20,13 @@ const fileUrl = computed(() => `${config.api.endpoint}/${name.value}/files`);
 const fileFetch = useFetch<string>(fileUrl, { immediate: false });
 const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
 
-watch(name, (value) => {
-  if (value != "")
-    fileFetch.execute();
-}, { immediate: true, deep: true });
+watch(
+  name,
+  (value) => {
+    if (value != "") fileFetch.execute();
+  },
+  { immediate: true, deep: true },
+);
 
 /**
  * Deletes all files and recreates the project directory.
