@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem, cn, deepClone } from "@/lib/utils";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection.ts";
+import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem, cn, deepClone, flipSelectionAreaSelection } from "@/lib/utils";
 
 describe('hexToRgb and rgbToHex Test', () => {
     const color1 = {rgb: [77, 184, 39]  as [number, number, number], hex: "#4db827"}
@@ -172,3 +173,64 @@ describe('deepClone Test', () => {
         expect(clonedObjModif).toEqual({ name: 'John', age: 30 });
     });
 })
+
+
+describe('flipSelectionAreaSelection Test', () => {
+    const height = 100;
+    
+    const polygonSelection: SelectionAreaSelection = {
+        type: SelectionAreaType.Polygon,
+        points: [
+            { x: 10, y: 20 },
+            { x: 30, y: 40 },
+            { x: 50, y: 60 },
+        ],
+    };
+
+    const rectangleSelection: SelectionAreaSelection = {
+        type: SelectionAreaType.Rectangle,
+        points: [
+            { x: 10, y: 20 },
+            { x: 30, y: 40 },
+        ],
+    };
+
+    const emptySelection: SelectionAreaSelection = {
+        type: undefined,
+        points: [],
+    };
+
+    test('flip polygon selection', () => {
+        const flippedPolygonSelection = flipSelectionAreaSelection(polygonSelection, height);
+        const expectedFlippedPolygonSelection: SelectionAreaSelection = {
+            type: SelectionAreaType.Polygon,
+            points: [
+                { x: 10, y: 80 },
+                { x: 30, y: 60 },
+                { x: 50, y: 40 },
+            ],
+        };
+        expect(flippedPolygonSelection).toEqual(expectedFlippedPolygonSelection);
+    });
+
+    test('flip rectangle selection', () => {
+        const flippedRectangleSelection = flipSelectionAreaSelection(rectangleSelection, height);
+        const expectedFlippedRectangleSelection: SelectionAreaSelection = {
+            type: SelectionAreaType.Rectangle,
+            points: [
+                { x: 10, y: 60 },
+                { x: 30, y: 40 },
+            ],
+        };
+        expect(flippedRectangleSelection).toEqual(expectedFlippedRectangleSelection);
+    });
+
+    test('flip empty selection', () => {
+        const flippedEmptySelection = flipSelectionAreaSelection(emptySelection, height);
+        const expectedFlippedEmptySelection: SelectionAreaSelection = {
+            type: undefined,
+            points: [],
+        };
+        expect(flippedEmptySelection).toEqual(expectedFlippedEmptySelection);
+    });
+});
