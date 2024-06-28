@@ -2,7 +2,7 @@
 import { DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { useFetch } from "@vueuse/core";
-import { computed, inject, toRef } from "vue";
+import { computed, inject, toRef, watch } from "vue";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -17,8 +17,13 @@ const emit = defineEmits(["deleted"]);
 
 const name = toRef(props, "name");
 const fileUrl = computed(() => `${config.api.endpoint}/${name.value}/files`);
-const fileFetch = useFetch<string>(fileUrl, { refetch: true, immediate: false });
+const fileFetch = useFetch<string>(fileUrl, { immediate: false });
 const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
+
+watch(name, (value) => {
+  if (value != "")
+    fileFetch.execute();
+}, { immediate: true, deep: true });
 
 /**
  * Deletes all files and recreates the project directory.
