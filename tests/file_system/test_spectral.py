@@ -18,6 +18,14 @@ class TestSpectral:
     def setup_environment(self):
         set_config(self.CUSTOM_CONFIG_PATH)
         yield
+        
+    def numpy_to_raw(self, array:np.ndarray, path: str):
+        """Writes a numpy array to a raw file.
+        
+        :param array: The array to write.
+        :param path: The path to write the file to.
+        """
+        array.flatten().tofile(path)
     
     def test_parse_rpl(self):
         _, path = get_raw_rpl_paths(self.DATA_SOURCE_FOLDER_NAME)
@@ -66,32 +74,28 @@ class TestSpectral:
     def test_bin_data_identity(self):
         # setup
         data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 0, 4], [1, 2, 4, 4, 0, 4]],
-                         [[2, 2, 4, 4, 0, 4], [2, 1, 3, 4, 0, 4], [2, 1, 3, 4, 0, 4]],
-                         [[2, 1, 3, 4, 0, 4], [2, 0, 2, 4, 0, 4], [2, 2, 4, 4, 0, 4]]], dtype=np.uint16)
+                                     [[2, 2, 4, 4, 0, 4], [2, 1, 3, 4, 0, 4], [2, 1, 3, 4, 0, 4]],
+                                     [[2, 1, 3, 4, 0, 4], [2, 0, 2, 4, 0, 4], [2, 2, 4, 4, 0, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        
+        #execute
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 2, 1)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
+        
+        #verify
         assert data.all() == binned_data.all()
         
     def test_bin_data_(self):
         # setup
         data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 2, 4], [1, 2, 4, 2, 0, 4]],
-                                    [[2, 2, 4, 4, 0, 4], [2, 1, 3, 3, 1, 4], [2, 1, 3, 4, 0, 4]],
-                                    [[2, 1, 3, 4, 2, 4], [2, 0, 2, 2, 0, 4], [2, 2, 4, 4, 2, 4]]], dtype=np.uint16)
+                                     [[2, 2, 4, 4, 0, 4], [2, 1, 3, 3, 1, 4], [2, 1, 3, 4, 0, 4]],
+                                     [[2, 1, 3, 4, 2, 4], [2, 0, 2, 2, 0, 4], [2, 2, 4, 4, 2, 4]]], dtype=np.uint16)
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 5, 2)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
         expected_result: np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
-                                               [[3, 2], [2, 2], [2, 2]],
-                                               [[2, 3], [1, 1], [3, 3]]])
+                                                [[3, 2], [2, 2], [2, 2]],
+                                                [[2, 3], [1, 1], [3, 3]]])
         assert expected_result.all() == binned_data.all()
-        
-    def numpy_to_raw(self, array:np.ndarray, path: str):
-        """Writes a numpy array to a raw file.
-        
-        :param array: The array to write.
-        :param path: The path to write the file to.
-        """
-        array.flatten().tofile(path)

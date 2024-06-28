@@ -34,7 +34,7 @@ class TestSpectra:
         # verify
         assert result == expected_result
 
-    def test_get_average_selection(self):
+    def test_get_average_selection(self, caplog):
         # setup
         mask = np.array([[True, False, True],
                          [False, True, True],
@@ -44,9 +44,11 @@ class TestSpectra:
         
         # execute
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
+        expected_log = "Calculated the average spectrum for the selection."
 
         # verify
         assert result == expected_result
+        assert expected_log in caplog.text
 
     def test_get_raw_data(self):
         # execute

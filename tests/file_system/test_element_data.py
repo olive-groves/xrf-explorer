@@ -4,8 +4,9 @@ from shutil import rmtree
 from os import makedirs
 from os.path import join
 
-from numpy import ndarray, array_equal, array, float32
 import pytest
+
+from numpy import ndarray, array_equal, array, float32
 
 from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
 from xrf_explorer.server.file_system.cubes.elemental import (

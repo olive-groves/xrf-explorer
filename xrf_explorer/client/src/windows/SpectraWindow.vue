@@ -39,7 +39,7 @@ watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immed
 
 // Binning parameters
 const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
-const high = computed(() => appState.workspace?.spectralParams?.high ?? 4090);
+const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
 const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
 const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
 
