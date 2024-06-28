@@ -23,9 +23,9 @@ Loading the overlay can take a couple of seconds, depending on the size of the e
 
 Use the selection tool 
 ---------------------------
-When showing an embedding image, the user can use the lasso tool to see the relation between the painting and the embedding.
-For this, select the lasso tool or the rectangle tool from the toolbar in the dimensionality reduction window.
-By clicking (in the case of the lasso tool), or clicking and dragging (in the case of the rectangle tool), the user can select a region in the embedding.
+When showing an embedding image, the user can use the polygon tool to see the relation between the painting and the embedding.
+For this, select the polygon tool or the rectangle tool from the toolbar in the dimensionality reduction window.
+By clicking (in the case of the polygon tool), or clicking and dragging (in the case of the rectangle tool), the user can select a region in the embedding.
 The indices corresponding to the selected region are then shown in the painting.
 
 
@@ -41,9 +41,9 @@ To combat this, the server will down sample the data at random to the maximum al
 This maximum is set to make sure that the generation time of the embedding is not too long.
 When the indices are down sampled, a pop-up message will appear indication that this has happened.
 
-For the lasso tool, the non-down sampled indices are used.
+For the polygon tool, the non-down sampled indices are used.
 The values in the embedding corresponding to the indices that were not in the down sampled set are determined by nearest neighbor interpolation.
-This is done to make the highlighting of the lasso tool more visible.
+This is done to make the highlighting of the polygon tool more visible.
 
 
 Interpretation of the embedding

@@ -152,20 +152,20 @@ class TestImageToCubeSelection:
         bottom_right: tuple[int, int] = (345, 678)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
+        coords_polygon: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
             self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
-        selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Polygon, CubeType.Elemental
+        selection_data_polygon: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_polygon, SelectionType.Polygon, CubeType.Elemental
         )
 
         # verify
         assert selection_data_rect is not None
-        assert selection_data_lasso is not None
-        assert np.array_equal(selection_data_rect, selection_data_lasso)
+        assert selection_data_polygon is not None
+        assert np.array_equal(selection_data_rect, selection_data_polygon)
 
     def test_negative_coordinates(self):
         # setup
@@ -180,32 +180,32 @@ class TestImageToCubeSelection:
         bottom_left_outside: tuple[int, int] = (0, img_h + 10)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
+        coords_polygon: list[tuple[int, int]] = [top_left, top_right, bottom_right, bottom_left]
         coords_rect_outside: list[tuple[int, int]] = [top_left_outside, bottom_right]
-        coords_lasso_outside: list[tuple[int, int]] = [top_left_outside, top_right, bottom_right, bottom_left_outside]
+        coords_polygon_outside: list[tuple[int, int]] = [top_left_outside, top_right, bottom_right, bottom_left_outside]
 
         # execute
         selection_data_rect: np.ndarray | None = get_selection(
             self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
-        selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Polygon, CubeType.Elemental
+        selection_data_polygon: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_polygon, SelectionType.Polygon, CubeType.Elemental
         )
         selection_data_rect_outside: np.ndarray | None = get_selection(
             self.DATA_SOURCE_FOLDER_NAME, coords_rect_outside, SelectionType.Rectangle, CubeType.Elemental
         )
-        selection_data_lasso_outside: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso_outside, SelectionType.Polygon, CubeType.Elemental
+        selection_data_polygon_outside: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_polygon_outside, SelectionType.Polygon, CubeType.Elemental
         )
 
         # verify
         assert selection_data_rect is not None
-        assert selection_data_lasso is not None
+        assert selection_data_polygon is not None
         assert selection_data_rect_outside is not None
-        assert selection_data_lasso_outside is not None
+        assert selection_data_polygon_outside is not None
 
-        assert np.array_equal(selection_data_rect, selection_data_lasso)
-        assert np.array_equal(selection_data_rect_outside, selection_data_lasso_outside)
+        assert np.array_equal(selection_data_rect, selection_data_polygon)
+        assert np.array_equal(selection_data_rect_outside, selection_data_polygon_outside)
         assert np.array_equal(selection_data_rect_outside, selection_data_rect)
 
     def test_ribbon_selection(self):
@@ -218,7 +218,7 @@ class TestImageToCubeSelection:
         bottom_right: tuple[int, int] = (img_w - 1, img_h - 1)
 
         coords_rect: list[tuple[int, int]] = [top_left, bottom_right]
-        coords_lasso: list[tuple[int, int]] = [top_left, bottom_right, top_right, bottom_left]
+        coords_polygon: list[tuple[int, int]] = [top_left, bottom_right, top_right, bottom_left]
 
         tolerance_percentage: float = 0.01  # 1% tolerance
 
@@ -226,17 +226,17 @@ class TestImageToCubeSelection:
         selection_data_rect: np.ndarray | None = get_selection(
             self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Elemental
         )
-        selection_data_lasso: np.ndarray | None = get_selection(
-            self.DATA_SOURCE_FOLDER_NAME, coords_lasso, SelectionType.Polygon, CubeType.Elemental
+        selection_data_polygon: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_polygon, SelectionType.Polygon, CubeType.Elemental
         )
         tolerance: float = np.count_nonzero(selection_data_rect) * tolerance_percentage
 
         # verify
         assert selection_data_rect is not None
-        assert selection_data_lasso is not None
+        assert selection_data_polygon is not None
 
         # ribbon selection must be about half of the rect selection
-        assert abs(np.count_nonzero(selection_data_rect) - np.count_nonzero(selection_data_lasso) * 2) <= tolerance
+        assert abs(np.count_nonzero(selection_data_rect) - np.count_nonzero(selection_data_polygon) * 2) <= tolerance
 
     # Return true if cube_coord_expected is within tolerance_pixels from the cube coordinate calculated by
     # deregister_coord.
