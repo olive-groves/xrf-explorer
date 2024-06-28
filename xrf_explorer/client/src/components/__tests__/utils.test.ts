@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem } from "@/lib/utils";
+import { hexToRgb, rgbToHex, sortRectanglePoints, remToPx, pxToRem, cn } from "@/lib/utils";
 
 describe('hexToRgb and rgbToHex Test', () => {
     const color1 = {rgb: [77, 184, 39]  as [number, number, number], hex: "#4db827"}
@@ -106,3 +106,25 @@ describe('remToPx and pxToRem Test', () => {
         expect(pxToRem(CSSlarge.px)).toStrictEqual(CSSlarge.rem)
     })
 })
+
+describe('cn Test', () => {
+    const classes1 = ['text-red-500', 'bg-blue-200'];
+    const classes2 = ['font-bold', 'text-lg'];
+    const classes3 = ['bg-blue-200', 'text-2'];
+
+    const expected1 = 'text-red-500 bg-blue-200';
+    const expected2 = 'font-bold text-lg';
+    const expected3 = 'bg-blue-200 text-2';
+
+    test('text color and background color', () => {
+        expect(cn(classes1)).toStrictEqual(expected1)
+    })
+
+    test('font type and text size', () => {
+        expect(cn(classes2)).toStrictEqual(expected2)
+    })
+
+    test('background color and text size', () => {
+        expect(cn(classes3)).toStrictEqual(expected3)
+    })
+});
