@@ -155,7 +155,7 @@ class TestColorSegmentation:
         image = image_to_rgb(image)
 
         # Verify
-        assert np.array_equal(original_image, original_image)
+        assert np.array_equal(original_image, image)
 
     def test_rgb_to_lab(self):
         # Set-up
