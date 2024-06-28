@@ -20,6 +20,7 @@ import { LoaderPinwheel } from "lucide-vue-next";
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
 
+const binningData = ref(false);
 const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
 
@@ -74,8 +75,13 @@ let offset: number = 0;
 async function setup() {
   trimmedList.value.unshift({ name: "No element", channel: -1, enabled: false });
   ready = binned.value;
+  binningData.value = !ready;
   watch(binned, () => {
     ready = binned.value;
+    binningData.value = !ready;
+    if (globalData.length == 0) {
+      getAverageSpectrum();
+    }
   });
   offset = await getOffset();
   await getAverageSpectrum();
@@ -474,7 +480,7 @@ function updateElementSpectrum() {
       <div class="relative">
         <svg class="ml-1" ref="spectraChart"></svg>
         <div
-          v-if="loadingGlobal || loadingSelection"
+          v-if="loadingGlobal || loadingSelection || binningData"
           class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
         >
           <div class="size-6">
