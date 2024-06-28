@@ -190,7 +190,7 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
 
     :param data_source: Name of the data source.
     :raises FileNotFoundError: There is no workspace in the data source
-    :return: dictionary with the low, high and bin size values.
+    :return: dictionary with the low, high, bin size and binned values.
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
@@ -269,28 +269,27 @@ def update_bin_params(data_source: str):
     
     :param data_source: Name of the data source containing the workspace to modify.
     """
-    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
+
     try:
         offset: int = int(info['depthscaleorigin'])
     except:
         offset: int = 0
     
     workspace_dict: dict | None = get_workspace_dict(data_source)
-    if workspace_dict is None:
-        raise FileNotFoundError
-    low: float = workspace_dict["spectralParams"]["low"]
-    high: float = workspace_dict["spectralParams"]["high"]
-    bin_size: float = workspace_dict["spectralParams"]["binSize"]
-    
-    increment: float = (40 - offset) / 4096
-    workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
-    workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
-    workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
+
+    if workspace_dict is not None:
+        low: float = workspace_dict["spectralParams"]["low"]
+        high: float = workspace_dict["spectralParams"]["high"]
+        bin_size: float = workspace_dict["spectralParams"]["binSize"]
+        
+        increment: float = (40 - offset) / 4096
+        workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
+        workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
+        workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
     
     workspace_path = get_path_to_workspace(data_source)
 

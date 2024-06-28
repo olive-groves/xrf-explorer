@@ -51,6 +51,13 @@ class TestSpectra:
         # verify
         assert "Calculated the average spectrum for the selection." in caplog.text
         assert result == expected_result
+    
+    def test_get_average_selection_config_none(self, caplog):
+        set_config("fake_path")
+        result: list = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, np.ndarray([]))
+        
+        assert result == []
+        assert "Could not get backend configuration" in caplog.text
 
     def test_get_raw_data(self):
         # execute

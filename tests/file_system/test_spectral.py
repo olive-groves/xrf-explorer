@@ -18,6 +18,8 @@ class TestSpectral:
     EMPTY_SOURCE_NAME: str = "empty_source"
     NO_RAW_SOURCE_NAME: str = "no_raw_source"
     WRONG_SIZE_NAME: str = "wrong_size_source"
+    NO_OFFSET_NAME: str = "no_offset_source"
+    NO_WORKSPACE_NAME: str = "wo_workspace_source"
     
     @pytest.fixture(autouse=True)
     def setup_environment(self):
@@ -87,11 +89,11 @@ class TestSpectral:
         
     def test_update_bin_params_default(self):
         workspace_dict: dict | None = get_workspace_dict(self.WRONG_SIZE_NAME)
-        if workspace_dict is None:
-            raise FileNotFoundError
-        workspace_dict["spectralParams"]["low"] = 0
-        workspace_dict["spectralParams"]["high"] = 40
-        workspace_dict["spectralParams"]["binSize"] = 40 / 4096
+        if workspace_dict is not None:
+            workspace_dict["spectralParams"]["low"] = 0
+            workspace_dict["spectralParams"]["high"] = 40
+            workspace_dict["spectralParams"]["binSize"] = 40 / 4096
+            workspace_dict["spectralParams"]["binned"] = True
         
         workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
 
@@ -105,11 +107,11 @@ class TestSpectral:
         
     def test_update_bin_params(self):
         workspace_dict: dict | None = get_workspace_dict(self.WRONG_SIZE_NAME)
-        if workspace_dict is None:
-            raise FileNotFoundError
-        workspace_dict["spectralParams"]["low"] = 0.5
-        workspace_dict["spectralParams"]["high"] = 20
-        workspace_dict["spectralParams"]["binSize"] = 0.05
+        if workspace_dict is not None:
+            workspace_dict["spectralParams"]["low"] = 0.5
+            workspace_dict["spectralParams"]["high"] = 20
+            workspace_dict["spectralParams"]["binSize"] = 0.05
+            workspace_dict["spectralParams"]["binned"] = True
         
         workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
 
@@ -120,6 +122,31 @@ class TestSpectral:
         
         params: dict = get_spectra_params(self.WRONG_SIZE_NAME)
         assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
+        
+    def test_update_bin_params_no_offset(self):
+        workspace_dict: dict | None = get_workspace_dict(self.NO_OFFSET_NAME)
+        if workspace_dict is not None:
+            workspace_dict["spectralParams"]["low"] = 0.5
+            workspace_dict["spectralParams"]["high"] = 20
+            workspace_dict["spectralParams"]["binSize"] = 0.05
+            workspace_dict["spectralParams"]["binned"] = True
+        
+        workspace_path = get_path_to_workspace(self.NO_OFFSET_NAME)
+
+        with open(workspace_path, 'w') as f:
+            json.dump(workspace_dict, f)
+                 
+        update_bin_params(self.NO_OFFSET_NAME)
+        
+        params: dict = get_spectra_params(self.NO_OFFSET_NAME)
+        assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
+        
+    def test_update_bin_params_no_workspace(self):
+        with pytest.raises(FileNotFoundError) as err:
+            _: dict = get_spectra_params("false_name")
+            
+        assert "" in str(err.value)
+    
     
     def test_bin_data_identity(self):
         # setup
@@ -151,7 +178,32 @@ class TestSpectral:
                                                [[3, 2], [2, 2], [2, 2]],
                                                [[2, 3], [1, 1], [3, 3]]])
         assert expected_result.all() == binned_data.all()
-   
+    
+    def test_bin_data_default_params(self):
+        #setup
+        data: np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
+                                     [[3, 2], [2, 2], [2, 2]],
+                                     [[2, 3], [1, 1], [3, 3]]], dtype=np.uint16)
+        self.numpy_to_raw(data, self.TEST_RAW_PATH)
+        
+        workspace_dict: dict | None = get_workspace_dict(self.WRONG_SIZE_NAME)
+        if workspace_dict is not None:
+            workspace_dict["spectralParams"]["binned"] = False
+        
+        workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
+        with open(workspace_path, 'w') as f:
+            json.dump(workspace_dict, f)
+        
+        #execute
+        bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 4096, 1)
+        binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
+        params = get_spectra_params(self.DATA_SOURCE_FOLDER_NAME)
+        
+        #assert
+        assert binned_data.all() == data.all()
+        assert params["binned"]
+        
+
     def test_bin_data_empty_rpl(self, caplog):
         bin_data(self.EMPTY_SOURCE_NAME, 0, 4, 1)
         assert f"error while binning data: rpl is empty for {self.EMPTY_SOURCE_NAME}" in caplog.text
