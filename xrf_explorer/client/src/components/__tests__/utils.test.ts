@@ -2,15 +2,15 @@ import { describe, expect, test } from 'vitest'
 import { hexToRgb, rgbToHex, sortRectanglePoints } from "@/lib/utils";
 
 describe('hexToRgb and rgbToHex Test', () => {
-    const color1 = {rgb: [77, 184, 39], hex: "#4db827"}
-    const color2 = {rgb: [158, 87, 153], hex: "#9e5799"}
+    const color1 = {rgb: [77, 184, 39]  as [number, number, number], hex: "#4db827"}
+    const color2 = {rgb: [158, 87, 153]  as [number, number, number], hex: "#9e5799"}
 
-    const black = {rgb: [0, 0, 0], hex: "#000000"}
-    const white = {rgb: [255, 255, 255], hex: "#ffffff"}
+    const black = {rgb: [0, 0, 0]  as [number, number, number], hex: "#000000"}
+    const white = {rgb: [255, 255, 255]  as [number, number, number], hex: "#ffffff"}
 
-    const red = {rgb: [255, 0, 0], hex: "#ff0000"}
-    const green = {rgb: [0, 255, 0], hex: "#00ff00"}
-    const blue = {rgb: [0, 0, 255], hex: "#0000ff"}
+    const red = {rgb: [255, 0, 0]  as [number, number, number], hex: "#ff0000"}
+    const green = {rgb: [0, 255, 0]  as [number, number, number], hex: "#00ff00"}
+    const blue = {rgb: [0, 0, 255]  as [number, number, number], hex: "#0000ff"}
 
     test('random colors hex to rgb', () => {
         expect(hexToRgb(color1.hex)).toStrictEqual(color1.rgb)
@@ -48,8 +48,8 @@ describe('hexToRgb and rgbToHex Test', () => {
 describe('sortRectanglePoints Test', () => {
     const signs = [-1, 1]
     const theRectangle = [{x: -1, y: -1}, {x: 1, y: 1}]
-    test('sortRectanglePoints', () => {
 
+    test('sortRectanglePoints', () => {
         signs.forEach(e => {
             signs.forEach(f => {
                 const point1 = {x: e, y: f}
