@@ -495,7 +495,7 @@ def get_dr_overlay(data_source: str, overlay_type: str):
 
 @app.route("/api/<data_source>/dr/embedding/mapping")
 def get_dr_embedding_mapping(data_source: str):
-    """Creates the image for lasso selection that decodes to which points in the embedding the pixels of the elemental
+    """Creates the image for polygon selection that decodes to which points in the embedding the pixels of the elemental
     data cube are mapped. Uses the current embedding and indices for the given data source to create the image.
 
     :param data_source: data source to get the overlay from

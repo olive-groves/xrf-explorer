@@ -204,7 +204,9 @@ def get_selection(
 
     :param data_source_folder: The data source folder name.
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
-    :param selection_type: The type of selection being performed. selection, the list must contain the two opposite corners of the selection rectangle. In case of lasso selection, the list must contain the points in the order in which they form the selection area.
+    :param selection_type: The type of selection being performed. selection, the list must contain the two opposite
+    corners of the selection rectangle. In case of polygon selection, the list must contain the points in the order in
+    which they form the selection area.
     :param cube_type: The type of the cube the selection is made on.
     :return: A boolean mask over the data cube indicating which pixels are part of the selection.
     """
@@ -213,7 +215,7 @@ def get_selection(
         return None
 
     if selection_type == SelectionType.Polygon and len(selection_coords) < 3:
-        LOG.error(f"Expected at least 3 points for lasso selection but got {len(selection_coords)}")
+        LOG.error(f"Expected at least 3 points for polygon selection but got {len(selection_coords)}")
         return None
 
     base_img_dir: str | None = get_base_image_path(data_source_folder)

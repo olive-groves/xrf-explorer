@@ -66,7 +66,7 @@ def get_path_to_dr_folder(data_source: str) -> str:
 
 
 def create_image_of_indices_to_embedding(data_source: str) -> bool:
-    """Creates the image for lasso selection that decodes to which points in the embedding the pixels of the elemental
+    """Creates the image for polygon selection that decodes to which points in the embedding the pixels of the elemental
     data cube are mapped. Uses the current embedding and indices to create the image.
 
     :param data_source: Name of the data source
