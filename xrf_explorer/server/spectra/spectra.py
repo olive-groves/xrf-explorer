@@ -129,7 +129,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
     x_peaks = data[2] * 4096 / abs(data[0].max() - data[0].min())
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_peaks = data[3] * 255
+    _ = data[3] * 255
 
     peaks = []
     for i in range(len(x_peaks)):
