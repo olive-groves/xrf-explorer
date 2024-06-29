@@ -25,6 +25,7 @@
     "d3": "^7.9.0",
     "file-saver": "^2.0.5",
     "html-to-image": "^1.11.11",
+    "jest-mock": "^29.7.0",
     "jsdom": "^24.1.0",
     "lucide-vue-next": "^0.378.0",
     "mathjs": "^12.4.2",

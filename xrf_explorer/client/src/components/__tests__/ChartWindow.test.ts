@@ -1,6 +1,7 @@
-<script setup lang="ts">
 import { shallowMount } from "@vue/test-utils";
 import ChartWindow from "@/windows/ChartWindow.vue";
+import { describe, expect, it } from "vitest";
+import jest from "jest";
 
 describe("ChartWindow", () => {
   it("renders the component", () => {
@@ -143,4 +144,3 @@ describe("ChartWindow", () => {
     expect(fetchAverages).not.toHaveBeenCalled();
   });
 });
-</script>
