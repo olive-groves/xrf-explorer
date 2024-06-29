@@ -102,16 +102,15 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
         LOG.error("Config is empty")
         return None
 
-    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
-    workspace_path: str = join(data_source_dir, "workspace.json")
-    try:
-        with open(workspace_path, 'r') as workspace:
-            data_json: str = workspace.read()
-            data = json.loads(data_json)
-            recipe_name: str = data["elementalCubes"][0]["recipeLocation"]
-    except OSError as err:
-        LOG.error("Error while getting recipe of elemental cube: {%s}", err)
+    # load workspace
+    workspace: dict = get_workspace_dict(data_source)
+    if workspace is None:
+        LOG.error(f"Could not get path to elemental recipe cube for project {data_source}")
         return None
+
+    # get recipe file name and location
+    recipe_name: str = workspace["elementalCubes"][0]["recipeLocation"]
+    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
     
     if recipe_name == "":
         return None
@@ -131,9 +130,7 @@ def get_raw_rpl_names(data_source: str) -> tuple[str, str]:
         LOG.error("Config is empty")
         return "", ""
 
-    data_source_dir: str = join(
-        Path(backend_config["uploads-folder"]), data_source, "workspace.json"
-    )
+    data_source_dir: str = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, "r") as workspace:
             data_json: str = workspace.read()
