@@ -150,6 +150,8 @@ class TestSpectral:
         expected_result:np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
                                                [[3, 2], [2, 2], [2, 2]],
                                                [[2, 3], [1, 1], [3, 3]]])
+
+        # verify
         assert expected_result.all() == binned_data.all()
    
     def test_bin_data_empty_rpl(self, caplog):
@@ -167,4 +169,3 @@ class TestSpectral:
         
         assert "[Errno 2] No such file or directory" in str(err.value)
         assert f"error while loading raw file for binning:" in caplog.text
-        
