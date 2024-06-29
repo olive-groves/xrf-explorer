@@ -29,7 +29,7 @@ function loadWorkspace(source: string) {
       description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
     }
   }
-  
+
   fetch(`${config.api.endpoint}/${source}/workspace`).then(
     async (value) => {
       value.json().then(
