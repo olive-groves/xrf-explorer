@@ -68,7 +68,7 @@ export type SpectralCube = {
    */
   rplLocation: string;
   /**
-   * The location of the registering recipe, used by the backend.
+   * The location of the registering recipe of the spectral cube, used by the backend.
    */
   recipeLocation: string;
 };
@@ -100,15 +100,15 @@ export type SpectralParams = {
  */
 export type ElementalCube = {
   /**
-   * A unique name for the spectral cube.
+   * A unique name for the elemental cube.
    */
   name: string;
   /**
-   * The location of the raw data file, used by the backend.
+   * The location of the dms data file, used by the backend.
    */
   dataLocation: string;
   /**
-   * The location of the registering recipe, used by the backend.
+   * The location of the registering recipe of the elemental cube, used by the backend.
    */
   recipeLocation: string;
 };
