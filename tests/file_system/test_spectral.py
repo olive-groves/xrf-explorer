@@ -4,7 +4,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from xrf_explorer.server.file_system.cubes.spectral import parse_rpl, get_raw_data, get_spectra_params, bin_data, update_bin_params
+from xrf_explorer.server.file_system.cubes.spectral import (
+    parse_rpl, 
+    get_raw_data, 
+    get_spectra_params, 
+    bin_data, 
+    update_bin_params
+)
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.file_system.workspace.file_access import get_raw_rpl_paths, get_workspace_dict
 from xrf_explorer.server.file_system.workspace.workspace_handler import get_path_to_workspace
@@ -14,7 +20,8 @@ class TestSpectral:
     RESOURCES_PATH: Path = Path('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "spectra_source"
     CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\", "/")
-    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\", "/")
+    TEST_RAW_PATH: str = (str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw"))  
+                          .replace("\\", "/"))
     EMPTY_SOURCE_NAME: str = "empty_source"
     NO_RAW_SOURCE_NAME: str = "no_raw_source"
     WRONG_SIZE_NAME: str = "wrong_size_source"
@@ -156,11 +163,11 @@ class TestSpectral:
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         
-        #execute
+        # execute
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 2, 1)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
         
-        #verify
+        # verify
         assert data.all() == binned_data.all()
         
     def test_bin_data_(self):
@@ -171,10 +178,10 @@ class TestSpectral:
         
         self.numpy_to_raw(data, self.TEST_RAW_PATH)
         
-        #execute
+        # execute
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 1, 5, 2)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
-        expected_result:np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
+        expected_result: np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
                                                [[3, 2], [2, 2], [2, 2]],
                                                [[2, 3], [1, 1], [3, 3]]])
 
@@ -182,7 +189,7 @@ class TestSpectral:
         assert expected_result.all() == binned_data.all()
     
     def test_bin_data_default_params(self):
-        #setup
+        # setup
         data: np.ndarray = np.array([[[2, 2], [3, 3], [3, 1]],
                                      [[3, 2], [2, 2], [2, 2]],
                                      [[2, 3], [1, 1], [3, 3]]], dtype=np.uint16)
@@ -196,12 +203,12 @@ class TestSpectral:
         with open(workspace_path, 'w') as f:
             json.dump(workspace_dict, f)
         
-        #execute
+        # execute
         bin_data(self.DATA_SOURCE_FOLDER_NAME, 0, 4096, 1)
         binned_data = get_raw_data(self.DATA_SOURCE_FOLDER_NAME, 0)
         params = get_spectra_params(self.DATA_SOURCE_FOLDER_NAME)
         
-        #assert
+        # assert
         assert binned_data.all() == data.all()
         assert params["binned"]
         
@@ -212,7 +219,7 @@ class TestSpectral:
         
     def test_bin_data_wrong_size(self, caplog):
         bin_data(self.WRONG_SIZE_NAME, 0, 4, 1)
-        assert f"error while reshaping raw data: cannot reshape array of size 0 into shape (3,3,6)" in caplog.text
+        assert "error while reshaping raw data: cannot reshape array of size 0 into shape (3,3,6)" in caplog.text  
     
     def test_bin_data_no_raw(self, caplog):
         
@@ -220,4 +227,4 @@ class TestSpectral:
             bin_data(self.NO_RAW_SOURCE_NAME, 0, 4, 1)
         
         assert "[Errno 2] No such file or directory" in str(err.value)
-        assert f"error while loading raw file for binning:" in caplog.text
+        assert "error while loading raw file for binning:" in caplog.text

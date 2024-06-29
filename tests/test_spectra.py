@@ -13,7 +13,8 @@ class TestSpectra:
     RESOURCES_PATH: Path = Path('tests', 'resources')
     DATA_SOURCE_FOLDER_NAME: str = "spectra_source"
     CUSTOM_CONFIG_PATH: str = str(Path(RESOURCES_PATH, "configs", "spectra.yml")).replace("\\", "/")
-    TEST_RAW_PATH: str = str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw")).replace("\\", "/")
+    TEST_RAW_PATH: str = (str(Path(RESOURCES_PATH, "spectra", "data", DATA_SOURCE_FOLDER_NAME, "data.raw"))  
+                          .replace("\\", "/"))
     TEST_RAW_DATA: np.ndarray = np.array([[[3, 4], [1, 2], [1, 2]],
                                           [[2, 2], [2, 0], [2, 2]],
                                           [[2, 2], [2, 0], [2, 2]]], dtype=np.uint16)
@@ -49,6 +50,7 @@ class TestSpectra:
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)
 
         # verify
+        assert "Getting selection at mip level 0" in caplog.text
         assert "Calculated the average spectrum for the selection." in caplog.text
         assert result == expected_result
     
