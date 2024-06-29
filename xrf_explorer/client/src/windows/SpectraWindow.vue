@@ -16,6 +16,7 @@ import {
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
+import { clearChart } from "./charts"
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
@@ -105,17 +106,10 @@ async function getOffset() {
 }
 
 /**
- * Clear the whole chart (including axes).
- */
-function clearChart() {
-  svg.selectAll("*").remove();
-}
-
-/**
  * Set up the axis and plot the data.
  */
 function makeChart() {
-  clearChart();
+  clearChart(svg);
 
   const max = getMax();
   // Add X and Y axis
@@ -166,10 +160,7 @@ function makeChart() {
     );
 
   // create line
-  const globalLine = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const globalLine = createLine()
 
   // Add the line to chart
   svg
@@ -189,10 +180,7 @@ function makeChart() {
   svg.select("#selectionLine").remove();
 
   // create line
-  const line = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const selectionLine = createLine()
 
   // Add the line to chart
   svg
@@ -202,7 +190,7 @@ function makeChart() {
     .attr("stroke", "green")
     .attr("stroke-width", 1)
     .attr("id", "selectionLine")
-    .attr("d", line)
+    .attr("d", selectionLine)
     .style("opacity", 0);
 
   // modify visibility based on checkbox status
@@ -213,10 +201,7 @@ function makeChart() {
   svg.selectAll("line").remove();
 
   // create line
-  const elementLine = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const elementLine = createLine()
 
   // Add the line to chart
   svg
@@ -250,6 +235,15 @@ const elementChecked = ref(false);
 const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
+
+/**
+ * Generates a D3 line based on the current binning parameters.
+ */
+function createLine(){
+ return d3.line<number>()
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .y((d, _) => y(d * (100 / 255)));
+}
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
@@ -303,9 +297,7 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
       //make api call
       const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request_body),
         signal: abortController.signal,
       });
