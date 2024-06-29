@@ -172,8 +172,7 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
 
 
 def set_binned(data_source: str, binned: bool):
-    """
-    Sets the binned boolean attribute of a workspace.
+    """Sets the binned boolean attribute of a workspace.
 
     :param data_source: Name of the data source
     :param binned: Boolean to set binned to
@@ -193,8 +192,7 @@ def set_binned(data_source: str, binned: bool):
 
 
 def get_workspace_dict(data_source_folder_name: str) -> dict | None:
-    """
-    Returns the workspace of the specified data source in dictionary format.
+    """Returns the workspace of the specified data source in dictionary format.
 
     :param data_source_folder_name: Name of the data source folder
     :return: Dictionary format of the workspace.json
@@ -213,15 +211,13 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
             workspace_json = json.loads(workspace.read())
             return workspace_json
     except Exception:
-        LOG.error(
-            f"Error while reading workspace json of data source with folder name {data_source_folder_name}")
+        LOG.error(f"Error while reading workspace json of data source with folder name {data_source_folder_name}")
         return None
 
 
 def get_spectral_cube_recipe_path(data_source_folder_name: str) -> str | None:
-    """
-    Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a recipe, the
-    function returns None.
+    """Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a
+    recipe, the function returns None.
 
     :param data_source_folder_name: Name of the data source folder
     :return: Path of the data cube recipe
