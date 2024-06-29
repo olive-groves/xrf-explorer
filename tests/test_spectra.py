@@ -114,4 +114,3 @@ class TestSpectra:
         assert mipmapped_data.shape[0] * 2 - 1 == original_data.shape[0]
         assert mipmapped_data.shape[1] * 2 - 1 == original_data.shape[1]
         assert mipmapped_data.shape[2] == original_data.shape[2]
-        
