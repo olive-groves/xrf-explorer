@@ -297,9 +297,7 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
       //make api call
       const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(request_body),
         signal: abortController.signal,
       });
