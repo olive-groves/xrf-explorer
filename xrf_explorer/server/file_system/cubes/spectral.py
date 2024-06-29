@@ -269,7 +269,7 @@ def update_bin_params(data_source: str):
     
     :param data_source: Name of the data source containing the workspace to modify.
     """
-    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
