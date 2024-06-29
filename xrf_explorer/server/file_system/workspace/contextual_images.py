@@ -56,8 +56,8 @@ def get_contextual_image_path(data_source: str, name: str) -> str | None:
     happen if the config file is empty.
 
     :param data_source: The data source to fetch the image from
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
-    :return: The path to the file
+    :param name: The name of the image. Must be present in `workspace.json` for the data source as the base image or a contextual image
+    :return: The path to the requested contextual image
     """
 
     # Get the contextual image
@@ -79,8 +79,8 @@ def get_contextual_image_recipe_path(data_source: str, name: str) -> str | None:
     None. This will also happen if the config file is empty.
 
     :param data_source: The data source to fetch the image from
-    :param name: The name of the image. Must be present in workspace.json for the data source as the base image or a contextual image
-    :return: The path to the file
+    :param name: The name of the image. Must be present in `workspace.json` for the data source as the base image or a contextual image
+    :return: The path to the recipe of the requested contextual image
     """
 
     # Get the contextual image
