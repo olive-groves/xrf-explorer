@@ -160,10 +160,7 @@ function makeChart() {
     );
 
   // create line
-  const globalLine = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const globalLine = createLine()
 
   // Add the line to chart
   svg
@@ -183,10 +180,7 @@ function makeChart() {
   svg.select("#selectionLine").remove();
 
   // create line
-  const line = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const selectionLine = createLine()
 
   // Add the line to chart
   svg
@@ -196,7 +190,7 @@ function makeChart() {
     .attr("stroke", "green")
     .attr("stroke-width", 1)
     .attr("id", "selectionLine")
-    .attr("d", line)
+    .attr("d", selectionLine)
     .style("opacity", 0);
 
   // modify visibility based on checkbox status
@@ -207,10 +201,7 @@ function makeChart() {
   svg.selectAll("line").remove();
 
   // create line
-  const elementLine = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-    .y((d, _) => y(d * (100 / 255)));
+  const elementLine = createLine()
 
   // Add the line to chart
   svg
@@ -244,6 +235,15 @@ const elementChecked = ref(false);
 const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
+
+/**
+ * Generates a D3 line based on the current binning parameters.
+ */
+function createLine(){
+ return d3.line<number>()
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .y((d, _) => y(d * (100 / 255)));
+}
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
