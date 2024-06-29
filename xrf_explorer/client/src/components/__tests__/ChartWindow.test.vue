@@ -1,21 +1,21 @@
-<script>
-import { shallowMount } from '@vue/test-utils';
-import ChartWindow from '@/windows/ChartWindow.vue';
+<script setup lang="ts">
+import { shallowMount } from "@vue/test-utils";
+import ChartWindow from "@/windows/ChartWindow.vue";
 
-describe('ChartWindow', () => {
-  it('renders the component', () => {
+describe("ChartWindow", () => {
+  it("renders the component", () => {
     const wrapper = shallowMount(ChartWindow);
     expect(wrapper.exists()).toBe(true);
   });
 
-  it('fetches global averages on window mount', async () => {
+  it("fetches global averages on window mount", async () => {
     const fetchGlobalAverages = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           fetchGlobalAverages,
         },
@@ -27,14 +27,14 @@ describe('ChartWindow', () => {
     expect(fetchGlobalAverages).toHaveBeenCalled();
   });
 
-  it('updates charts when workspace elements are updated', async () => {
+  it("updates charts when workspace elements are updated", async () => {
     const updateCharts = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           updateCharts,
         },
@@ -46,14 +46,14 @@ describe('ChartWindow', () => {
     expect(updateCharts).toHaveBeenCalled();
   });
 
-  it('updates charts when element selection is updated', async () => {
+  it("updates charts when element selection is updated", async () => {
     const updateCharts = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           updateCharts,
         },
@@ -65,14 +65,14 @@ describe('ChartWindow', () => {
     expect(updateCharts).toHaveBeenCalled();
   });
 
-  it('fetches selection averages when area selection is updated', async () => {
+  it("fetches selection averages when area selection is updated", async () => {
     const fetchSelectionAverages = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           fetchSelectionAverages,
         },
@@ -84,14 +84,14 @@ describe('ChartWindow', () => {
     expect(fetchSelectionAverages).toHaveBeenCalled();
   });
 
-  it('clears the chart when area selection is cancelled', async () => {
+  it("clears the chart when area selection is cancelled", async () => {
     const clearChart = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           clearChart,
         },
@@ -103,41 +103,41 @@ describe('ChartWindow', () => {
     expect(clearChart).toHaveBeenCalled();
   });
 
-  it('fetches averages when datasource is selected', async () => {
+  it("fetches averages when datasource is selected", async () => {
     const fetchAverages = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           fetchAverages,
         },
       },
     });
 
-    wrapper.vm.$data.datasource = 'example-datasource';
+    wrapper.vm.$data.datasource = "example-datasource";
     await wrapper.vm.$nextTick();
 
     expect(fetchAverages).toHaveBeenCalled();
   });
 
-  it('does not fetch averages when no datasource is selected', async () => {
+  it("does not fetch averages when no datasource is selected", async () => {
     const fetchAverages = jest.fn();
     const wrapper = shallowMount(ChartWindow, {
       global: {
         mocks: {
           $nextTick: jest.fn(),
         },
-        stubs: ['Window'],
+        stubs: ["Window"],
         provide: {
           fetchAverages,
         },
       },
     });
 
-    wrapper.vm.$data.datasource = '';
+    wrapper.vm.$data.datasource = "";
     await wrapper.vm.$nextTick();
 
     expect(fetchAverages).not.toHaveBeenCalled();
