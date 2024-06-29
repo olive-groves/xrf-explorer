@@ -13,7 +13,7 @@ const config = inject<FrontendConfig>("config")!;
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
-import { clearChart } from "./charts"
+import { clearChart } from "./charts";
 
 // Sets up export of chart.
 watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });

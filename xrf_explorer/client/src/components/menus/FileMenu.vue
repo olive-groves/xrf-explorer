@@ -27,8 +27,8 @@ function loadWorkspace(source: string) {
     message: `Failed to load workspace ${source}`,
     data: {
       description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
-    }
-  }
+    },
+  };
 
   fetch(`${config.api.endpoint}/${source}/workspace`).then(
     async (value) => {
@@ -40,12 +40,10 @@ function loadWorkspace(source: string) {
           console.info(`Loading workspace ${source}`);
           appState.workspace = workspace;
         },
-        () =>
-          toast.error(errorMsg.message, errorMsg.data),
+        () => toast.error(errorMsg.message, errorMsg.data),
       );
     },
-    () =>
-      toast.error(errorMsg.message, errorMsg.data),
+    () => toast.error(errorMsg.message, errorMsg.data),
   );
 }
 </script>
