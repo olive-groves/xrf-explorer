@@ -250,24 +250,19 @@ def get_base_image_name(data_source_folder_name: str) -> str | None:
     :param data_source_folder_name: Name of the data source folder
     :return: Name of the rgb image
     """
-    # load backend config
-    backend_config: dict | None = get_config()
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return None
-
     workspace_dict: dict = get_workspace_dict(data_source_folder_name)
     if workspace_dict is None:
+        LOG.error(f"Could not get the name of the RGB image of project {data_source_folder_name}")
         return None
 
     return workspace_dict["baseImage"]["name"]
 
 
 def get_base_image_path(data_source_folder_name: str) -> str | None:
-    """Get the path to rgb image of a data source.
+    """Get the path to RGB image of a data source.
 
     :param data_source_folder_name: Name of the data source folder
-    :return: Path to the rgb image
+    :return: Path to the RGB image
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -277,6 +272,7 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
 
     workspace_dict: dict = get_workspace_dict(data_source_folder_name)
     if workspace_dict is None:
+        LOG.error(f"Could not get the path to the RGB image of project {data_source_folder_name}")
         return None
 
     filename: str | None = workspace_dict["baseImage"]["imageLocation"]
