@@ -154,7 +154,6 @@ class TestSpectral:
             
         assert "" in str(err.value)
     
-    
     def test_bin_data_identity(self):
         # setup
         data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 0, 4], [1, 2, 4, 4, 0, 4]],
@@ -211,7 +210,6 @@ class TestSpectral:
         # assert
         assert binned_data.all() == data.all()
         assert params["binned"]
-        
 
     def test_bin_data_empty_rpl(self, caplog):
         bin_data(self.EMPTY_SOURCE_NAME, 0, 4, 1)
