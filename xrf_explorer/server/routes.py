@@ -67,6 +67,20 @@ from xrf_explorer.server.spectra import (
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+def validate_data_source(data_source_name: str) -> tuple[str, int] | None:
+    if data_source_name == "":
+        error_msg: str = "Data source name provided, but empty."
+        LOG.error(error_msg)
+        return error_msg, 400
+    return None
+
+def validate_config(config: dict | None) -> tuple[str, int] | None:
+    if not config:
+        error_msg: str = "Error occurred while getting backend config"
+        LOG.error(error_msg)
+        return error_msg, 500
+    return None
+
 
 @app.route("/api")
 def api():
@@ -156,15 +170,13 @@ def create_data_source_dir(data_source: str):
     # Get config
     config: dict | None = get_config()
 
-    if not config:
-        error_msg: str = "Error occurred while creating data source directory"
-        LOG.error(error_msg)
-        return error_msg, 500
+    error_response_config: tuple[str, int] | None = validate_config(config)
+    if error_response_config:
+        return error_response_config
 
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
+    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
+    if error_response_ds:
+        return error_response_ds
 
     if data_source in get_data_sources_names():
         error_msg: str = "Data source name already exists."
@@ -192,15 +204,13 @@ def remove_data_source(data_source: str):
     config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
 
-    if not config:
-        error_msg: str = "Error occurred while removing data source directory"
-        LOG.error(error_msg)
-        return error_msg, 500
+    error_resonse_config: tuple[str, int] | None = validate_config(config)
+    if error_resonse_config:
+        return error_resonse_config
 
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
+    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
+    if error_response_ds:
+        return error_response_ds
 
     data_source_path: str = join(config['uploads-folder'], data_source)
     workspace_path: str = join(data_source_path, "workspace.json")
@@ -230,13 +240,12 @@ def delete_data_source(data_source: str):
     :return: json with directory name
     """
     # Get config
-    config: dict = get_config()
+    config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
 
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
+    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
+    if error_response_ds:
+        return error_response_ds
 
     data_source_dir: str = join(config['uploads-folder'], data_source)
 
@@ -264,10 +273,9 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     # get config
     config: dict | None = get_config()
 
-    if not config:
-        error_msg: str = "Error occurred while uploading file chunk"
-        LOG.error(error_msg)
-        return error_msg, 500
+    error_resonse_config: tuple[str, int] | None = validate_config(config)
+    if error_resonse_config:
+        return error_resonse_config
 
     # get file location
     path: str = abspath(join(config['uploads-folder'], data_source, file_name))
@@ -834,8 +842,10 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
     """
     LOG.info(f'Bitmasks for k={k}, elem={elem}, elme_Threshold={elem_threshold}')
     config: dict | None = get_config()
-    if not config:
-        return 'Error occurred while getting backend config', 500
+
+    error_resonse_config: tuple[str, int] | None = validate_config(config)
+    if error_resonse_config:
+        return error_resonse_config
 
     # Path to save bitmask to
     path_to_save: str = get_path_to_cs_folder(data_source)
