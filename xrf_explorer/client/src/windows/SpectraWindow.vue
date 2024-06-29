@@ -16,6 +16,7 @@ import {
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
+import { clearChart } from "./charts"
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
@@ -99,17 +100,10 @@ async function getOffset() {
 }
 
 /**
- * Clear the whole chart (including axes).
- */
-function clearChart() {
-  svg.selectAll("*").remove();
-}
-
-/**
  * Set up the axis and plot the data.
  */
 function makeChart() {
-  clearChart();
+  clearChart(svg);
 
   const max = getMax();
   // Add X and Y axis
