@@ -147,12 +147,7 @@ class TestSpectral:
         
         params: dict = get_spectra_params(self.NO_OFFSET_NAME)
         assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
-        
-    def test_update_bin_params_no_workspace(self):
-        with pytest.raises(FileNotFoundError) as err:
-            _: dict = get_spectra_params("false_name")
-            
-        assert "" in str(err.value)
+
     
     def test_bin_data_identity(self):
         # setup

@@ -221,39 +221,6 @@ def get_element_spectrum(
     else:
         return y_spectrum
 
-
-def get_element_spectra(elements: list, x_kevs: np.ndarray, excitation_energy_kev: float) -> tuple[list, np.ndarray]:
-    """Compute theoretical emission spectrum for multiple elements. Sorts elements according to largest (alpha) peak.
-    Based on xraydb.
-
-    :param elements: symbols of the elements
-    :param x_kevs: pre-determined x values
-    :param excitation_energy_kev: excitation energy
-    :returns: elements, element_spectra
-    """
-
-    n_channels = len(x_kevs)
-    n_elements = len(elements)
-
-    element_spectra = np.zeros([n_elements, n_channels])
-
-    for i, elem in enumerate(elements):
-        element_spectra[i] = get_element_spectrum(
-            elem, excitation_energy_kev, x_kevs=x_kevs)
-
-        # normalize
-        element_spectra[i] = element_spectra[i] / element_spectra[i].max()
-
-    # sort according to energy of largest (=alpha) peak
-    alpha_idxs = np.argmax(element_spectra, axis=1)
-    alpha_order = np.argsort(alpha_idxs)
-
-    elements = [elements[i] for i in alpha_order]
-    element_spectra = element_spectra[alpha_order]
-
-    return elements, element_spectra
-
-
 def gaussian_convolve(
         peak_energies: np.ndarray, peak_intensities: np.ndarray, x_kevs: np.ndarray | None = None, std: float = 0.01
 ) -> tuple[np.ndarray, np.ndarray]:
