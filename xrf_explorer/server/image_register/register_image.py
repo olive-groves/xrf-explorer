@@ -251,7 +251,7 @@ def inverse_register_image(
     """Inverse register the given image to match the new width and height with transformation given by the source and
     destination points.
 
-    :param image: The image to be registered
+    :param image: The image to be inverse registered
     :param new_width: The new width of the image
     :param new_height: The new height of the image
     :param points_source: The source points
