@@ -17,6 +17,13 @@ from xrf_explorer.server.color_segmentation.helper import get_path_to_cs_folder
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
+def empty_array(array: list[np.ndarray]):
+    empty: np.ndarray = np.empty(0)
+    for i in range(0, len(array)):
+        if not np.array_equal(empty, array[i]):
+            return False
+    return True
+
 
 class TestColorSegmentation:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'color-segmentation.yml')
@@ -36,13 +43,6 @@ class TestColorSegmentation:
     elem_threshold: float = 0.1
     num_attempts: int = 10
     k: int = 2
-
-    def empty_array(self, array: np.ndarray):
-        empty: np.ndarray = np.empty(0)
-        for i in range(0, len(array)):
-            if not np.array_equal(empty, array[0]):
-                return False
-        return True
 
     def test_get_clusters_using_k_means_colors(self, caplog):
         caplog.set_level(logging.INFO)
@@ -209,26 +209,26 @@ class TestColorSegmentation:
 
     def test_get_elem_clusters_using_k_means_elemental_not_found(self, caplog):
         # Execute
-        clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[list[np.ndarray]] = []
+        clusters_per_elem: list[np.ndarray]
+        bitmasks_per_elem: list[list[np.ndarray]]
         clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("datasource")
 
         # Verify
-        assert self.empty_array(clusters_per_elem)
-        assert self.empty_array(bitmasks_per_elem)
+        assert empty_array(clusters_per_elem)
+        assert empty_array(bitmasks_per_elem)
 
         # Verify log message
         assert "Elemental data cube not found" in caplog.text
 
     def test_get_elem_clusters_using_k_means_register_fail(self, caplog):
         # Execute
-        clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[list[np.ndarray]] = []
+        clusters_per_elem: list[np.ndarray]
+        bitmasks_per_elem: list[list[np.ndarray]]
         clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("image")
 
         # Verify
-        assert self.empty_array(clusters_per_elem)
-        assert self.empty_array(bitmasks_per_elem)
+        assert empty_array(clusters_per_elem)
+        assert empty_array(bitmasks_per_elem)
 
         # Verify log message
         assert "Image could not be registered to data cube" in caplog.text
@@ -241,7 +241,7 @@ class TestColorSegmentation:
         high_elem_threshold: float = 1000
 
         # Execute
-        bitmask: np.ndarray
+        bitmask: list[np.ndarray]
         clusters: np.ndarray
         clusters, bitmask = get_elemental_clusters_using_k_means(
             self.DATA_SOURCE, self.IMAGE_NAME, 0, high_elem_threshold, self.k, self.num_attempts

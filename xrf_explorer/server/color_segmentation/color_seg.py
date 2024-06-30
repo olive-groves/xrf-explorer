@@ -88,7 +88,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
     reshaped_image: np.ndarray = reshape_image(image)
@@ -152,7 +152,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
@@ -174,7 +174,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # If empty image, continue (elem. not present)
     if masked_image.size == 0:
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     # k cannot be bigger than number of pixels w/element present
     k = min(k, masked_image.size)
