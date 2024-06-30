@@ -1,6 +1,5 @@
 import logging
 
-from os import mkdir
 from os.path import isdir, join
 
 import numpy as np
@@ -45,7 +44,7 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
 
 
 def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
-                          threshold: int, max_indices: int) -> tuple[np.ndarray, bool]:
+                          threshold: int, max_indices: int) -> tuple[np.ndarray, np.ndarray]:
     """Get indices for which the value of the given element in the normalized elemental data cube is above the
     threshold.
 
@@ -78,7 +77,7 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
     return all_indices, all_indices
 
 
-def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters: dict[str, str] = {}) -> str:
+def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters=None) -> str:
     """Generate the embedding (lower dimensional representation of the data) of the elemental data cube using the
     dimensionality reduction method "UMAP". The embedding with the list of indices (which pixels from the elemental data
     cube are in the embedding) are stored in the folder specified in the backend config file. The order the indices
@@ -92,6 +91,8 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     """
 
     # load backend config
+    if new_umap_parameters is None:
+        new_umap_parameters = {}
     backend_config: dict = get_config()
     if not backend_config:  # config is empty
         LOG.error("Failed to compute DR embedding")
@@ -101,7 +102,8 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     umap_parameters: dict[str, str] = backend_config['dim-reduction']['umap-parameters']
 
     # update the default parameters with the given parameters
-    umap_parameters.update(new_umap_parameters)
+    if new_umap_parameters is not None:
+        umap_parameters.update(new_umap_parameters)
 
     # get data cube
     data_cube: np.ndarray = get_elemental_data_cube(data_source)
@@ -137,8 +139,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
 
     # Check if the folder exists, otherwise create it
     if not isdir(dr_folder):
-        LOG.error(f"Creating folder: {dr_folder}")
-        mkdir(dr_folder)
+        return "error"
 
     # save indices and embedded data
     np.save(join(dr_folder, 'indices.npy'), reduced_indices)

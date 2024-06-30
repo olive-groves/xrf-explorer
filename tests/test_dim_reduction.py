@@ -17,6 +17,7 @@ class TestDimReduction:
     CUSTOM_CONFIG_PATH_NO_EMBEDDING: str = join(RESOURCES_PATH, 'configs', 'dim-reduction-no-embedding.yml')
     CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT: str = join(RESOURCES_PATH, 'configs', 'dim-reduction-embedding-present.yml')
     TEST_DATA_SOURCE: str = 'test_data_source'
+    NO_CUBE_DATA_SOURCE: str = 'no_cube_data_source'
     PATH_TEST_CUBE: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'test_cube.dms')
     PATH_GENERATED_FOLDER: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'from_dim_reduction')
 
@@ -75,6 +76,22 @@ class TestDimReduction:
         # verify log messages
         assert 'Invalid element: 1000000' in caplog.text
 
+    def test_no_cube_for_embedding(self, caplog):
+        # setup
+        element: int = 2
+        threshold: int = 0
+        umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: str = generate_embedding(self.NO_CUBE_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
+
+        # verify
+        assert result == 'error'
+
+        # verify log messages
+        assert f"Could not get path to elemental datacube of data source {self.NO_CUBE_DATA_SOURCE}" in caplog.text
+
     def test_invalid_umap(self, caplog):
         # setup
         element: int = 2
@@ -105,12 +122,11 @@ class TestDimReduction:
         # verify log messages
         assert 'Failed to load indices and/or embedding data.' in caplog.text
 
-    def test_valid_embedding(self, caplog):
+    def do_test_embedding(self, caplog, threshold: int = 100, expected_result: str = 'success'):
         caplog.set_level(logging.INFO)
 
         # setup
         element: int = 2
-        threshold: int = 0
         umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
         path_generated = join(
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
@@ -125,7 +141,7 @@ class TestDimReduction:
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
-        assert result == 'success'
+        assert result == expected_result
         assert isfile(path_embedding)
         assert isfile(path_indices)
         assert isfile(path_all_indices)
@@ -137,6 +153,12 @@ class TestDimReduction:
         remove(path_indices)
         remove(path_all_indices)
         remove(path_mapping_image)
+
+    def test_valid_embedding(self, caplog):
+        self.do_test_embedding(caplog)
+    
+    def test_valid_embedding_downsampled(self, caplog):
+        self.do_test_embedding(caplog, threshold=0, expected_result='downsampled')
 
     def test_high_threshold(self, caplog):
         # setup

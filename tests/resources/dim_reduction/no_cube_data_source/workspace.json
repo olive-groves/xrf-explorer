@@ -1,0 +1,19 @@
+{
+  "baseImage": {
+    "imageLocation": "196_1989_RGB.tif",
+    "name": "RGB",
+    "recipeLocation": ""
+  },
+  "contextualImages": [],
+  "elementalChannels": [],
+  "elementalCubes": [],
+  "name": "test_data_source",
+  "spectralCubes": [
+    {
+      "name": "Datacube",
+      "rawLocation": "",
+      "recipeLocation": "",
+      "rplLocation": ""
+    }
+  ]
+}
