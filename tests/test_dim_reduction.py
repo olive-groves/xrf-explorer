@@ -231,6 +231,36 @@ class TestDimReduction:
         # verify
         assert not path
         assert 'File image_index_to_embedding.png not found.' in caplog.text
+    
+    def test_invalid_create_image_of_indices_no_cube(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding(self.NO_CUBE_DATA_SOURCE)
+
+        # verify
+        assert not result
+    
+    def test_invalid_create_image_of_indices_invalid_data_source(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding('this_is_not_a_data_source')
+
+        # verify
+        assert not result
+    
+    def test_invalid_create_image_of_indices_no_files(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+
+        # verify
+        assert not result
 
     def test_valid_create_embedding_image(self, caplog):
         caplog.set_level(logging.INFO)
@@ -240,6 +270,7 @@ class TestDimReduction:
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
         )
         path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # execute
         result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
