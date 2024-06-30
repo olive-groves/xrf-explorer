@@ -1,0 +1,16 @@
+key        	 value
+width      	 3
+height     	 3
+depth      	 6
+offset     	 0
+data-Length	 2
+data-type  	 unsigned
+byte-order 	 little-endian
+record-by  	 vector
+depthbinsize             1
+depth1                  200
+depth2                 3000
+depthscaleorigin       0
+depthscaleincrement    0.010002
+depthscaleunits         keV
+

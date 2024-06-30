@@ -81,7 +81,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
 
 def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, high: int, bin_size: int) -> list:
     """Get the theoretical spectrum and peaks of an element.
-        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096
+        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096, 0 <=excitation_energy_kev <= 40
 
         :param element: symbol of the element
         :param excitation_energy_kev: excitation energy
@@ -129,7 +129,7 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
     x_peaks = data[2] * 4096 / abs(data[0].max() - data[0].min())
 
     # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_peaks = data[3] * 255
+    _ = data[3] * 255
 
     peaks = []
     for i in range(len(x_peaks)):
@@ -220,39 +220,6 @@ def get_element_spectrum(
 
     else:
         return y_spectrum
-
-
-def get_element_spectra(elements: list, x_kevs: np.ndarray, excitation_energy_kev: float) -> tuple[list, np.ndarray]:
-    """Compute theoretical emission spectrum for multiple elements. Sorts elements according to largest (alpha) peak.
-    Based on xraydb.
-
-    :param elements: symbols of the elements
-    :param x_kevs: pre-determined x values
-    :param excitation_energy_kev: excitation energy
-    :returns: elements, element_spectra
-    """
-
-    n_channels = len(x_kevs)
-    n_elements = len(elements)
-
-    element_spectra = np.zeros([n_elements, n_channels])
-
-    for i, elem in enumerate(elements):
-        element_spectra[i] = get_element_spectrum(
-            elem, excitation_energy_kev, x_kevs=x_kevs)
-
-        # normalize
-        element_spectra[i] = element_spectra[i] / element_spectra[i].max()
-
-    # sort according to energy of largest (=alpha) peak
-    alpha_idxs = np.argmax(element_spectra, axis=1)
-    alpha_order = np.argsort(alpha_idxs)
-
-    elements = [elements[i] for i in alpha_order]
-    element_spectra = element_spectra[alpha_order]
-
-    return elements, element_spectra
-
 
 def gaussian_convolve(
         peak_energies: np.ndarray, peak_intensities: np.ndarray, x_kevs: np.ndarray | None = None, std: float = 0.01
