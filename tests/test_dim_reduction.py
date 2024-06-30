@@ -62,20 +62,6 @@ class TestDimReduction:
         assert 'Invalid element: -1' in caplog.text
         assert 'Invalid element: 1000000' in caplog.text
 
-    def test_invalid_element_creating_image(self, caplog):
-        # setup
-        overlay_type: str = 'elemental_1000000'
-        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
-
-        # execute
-        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
-
-        # verify
-        assert not result
-
-        # verify log messages
-        assert 'Invalid element: 1000000' in caplog.text
-
     def test_no_cube_for_embedding(self, caplog):
         # setup
         element: int = 2
@@ -107,20 +93,6 @@ class TestDimReduction:
 
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
-
-    def test_no_embedding(self, caplog):
-        # setup
-        overlay_type: str = 'elemental_1'
-        set_config(self.CUSTOM_CONFIG_PATH_NO_EMBEDDING)
-
-        # execute
-        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
-
-        # verify
-        assert not result
-
-        # verify log messages
-        assert 'Failed to load indices and/or embedding data.' in caplog.text
 
     def do_test_embedding(self, caplog, threshold: int = 100, expected_result: str = 'success'):
         caplog.set_level(logging.INFO)
@@ -156,7 +128,7 @@ class TestDimReduction:
 
     def test_valid_embedding(self, caplog):
         self.do_test_embedding(caplog)
-    
+
     def test_valid_embedding_downsampled(self, caplog):
         self.do_test_embedding(caplog, threshold=0, expected_result='downsampled')
 
@@ -176,11 +148,10 @@ class TestDimReduction:
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
 
-    def test_valid_image(self, caplog):
+    def do_test_valid_image(self, caplog, overlay_type: str):
         caplog.set_level(logging.INFO)
 
         # setup
-        overlay_type: str = 'elemental_1'
         path_generated_folder: str = join(
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
         )
@@ -197,6 +168,46 @@ class TestDimReduction:
 
         # cleanup
         remove(path_embedding_image)
+
+    def test_valid_elemental_image(self, caplog):
+        self.do_test_valid_image(caplog, 'elemental_1')
+
+    def test_valid_contextual_image(self, caplog):
+        self.do_test_valid_image(caplog, 'contextual_RGB')
+
+    def do_test_invalid_embedding_image(
+            self, caplog, overlay_type: str,
+            expected_caplog: str = "", folder_name: str = 'embedding_present',
+            config: str = CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT
+    ):
+        # setup
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', folder_name
+        )
+        path_embedding_image: str = join(path_generated_folder, 'embedding.png')
+        set_config(config)
+
+        # execute
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
+
+        # verify
+        assert not result
+        assert not isfile(path_embedding_image)
+        assert expected_caplog in caplog.text
+
+    def test_invalid_element_creating_image(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'elemental_1000000', expected_caplog='Invalid element: 1000000')
+
+    def test_no_embedding(self, caplog):
+        self.do_test_invalid_embedding_image(
+            caplog, 'elemental_1',
+            expected_caplog='Failed to load indices and/or embedding data.',
+            config=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING,
+            folder_name='no_embedding'
+        )
+
+    def test_invalid_image_type(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'invalid', expected_caplog='Invalid overlay type: invalid')
 
     def test_valid_create_embedding_image(self, caplog):
         caplog.set_level(logging.INFO)
