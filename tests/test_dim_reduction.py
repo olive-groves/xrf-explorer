@@ -19,7 +19,9 @@ class TestDimReduction:
     TEST_DATA_SOURCE: str = 'test_data_source'
     NO_CUBE_DATA_SOURCE: str = 'no_cube_data_source'
     PATH_TEST_CUBE: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'test_cube.dms')
-    PATH_GENERATED_FOLDER: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'from_dim_reduction')
+    PATH_GENERATED_FOLDER: str = join(
+        RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
+    )
 
     def test_config_not_found(self, caplog):
         # setup
@@ -208,6 +210,27 @@ class TestDimReduction:
 
     def test_invalid_image_type(self, caplog):
         self.do_test_invalid_embedding_image(caplog, 'invalid', expected_caplog='Invalid overlay type: invalid')
+
+    def test_invalid_getting_image_of_indices_invalid_data_source(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+
+        # execute
+        path: str = get_image_of_indices_to_embedding("non_existent_data_source")
+        
+        # verify
+        assert not path
+    
+    def test_invalid_getting_image_of_indices_no_image(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+
+        # execute
+        path: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+
+        # verify
+        assert not path
+        assert 'File image_index_to_embedding.png not found.' in caplog.text
 
     def test_valid_create_embedding_image(self, caplog):
         caplog.set_level(logging.INFO)
