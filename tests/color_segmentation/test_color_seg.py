@@ -1,6 +1,6 @@
 import logging
 
-from os.path import join
+from os.path import join, normpath
 
 import numpy as np
 import cv2
@@ -17,7 +17,8 @@ from xrf_explorer.server.color_segmentation.helper import get_path_to_cs_folder
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
-def empty_array(array: list[np.ndarray]):
+
+def empty_array(array: list[np.ndarray] | list[list[np.ndarray]]):
     empty: np.ndarray = np.empty(0)
     for i in range(0, len(array)):
         if not np.array_equal(empty, array[i]):
@@ -198,9 +199,8 @@ class TestColorSegmentation:
         ])
 
         # Execute
-        clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[list[np.ndarray]] = []
-        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("")
+        clusters_per_elem: list[np.ndarray]
+        clusters_per_elem, _ = self.setup_get_elemental_clusters("")
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)
@@ -329,7 +329,7 @@ class TestColorSegmentation:
         path: str = get_path_to_cs_folder(self.DATA_SOURCE)
 
         # Verify
-        assert path == expected_path
+        assert normpath(path) == normpath(expected_path)
 
     def test_get_path_to_cs_folder_wrong_datasource(self, caplog):
         # Set-up

@@ -143,7 +143,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     data_cube: np.ndarray = get_elemental_data_cube(data_source)
     if data_cube.size == 0:
         LOG.error("Elemental data cube not found")
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
