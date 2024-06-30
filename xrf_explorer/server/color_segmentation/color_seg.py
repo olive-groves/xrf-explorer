@@ -71,7 +71,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
-                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
@@ -117,12 +117,12 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     colors = np.array([lab_to_rgb(c) for c in colors])
     LOG.info("Initial color clusters extracted successfully.")
 
-    return colors, np.array(bitmasks)
+    return colors, bitmasks
 
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
                                          elem_threshold: float = 0.1, k: int = 30,
-                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
@@ -200,10 +200,10 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # Transform back to rgb
     center = np.array([lab_to_rgb(c) for c in center])
-    return center, np.array(bitmasks)
+    return center, bitmasks
 
 
-def combine_bitmasks(bitmasks: np.ndarray) -> np.ndarray:
+def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     """Merges array of bitmasks into single bitmask, by setting the Green value of each pixel to store the index of
     the corresponding bitmask.
 

@@ -33,17 +33,26 @@ class TestColorSegmentation:
     DATA_CUBE_PATH: str = join(PATH_DATA_SOURCE, 'test_cube.dms')
     REG_TEST_IMAGE_PATH: str = join(PATH_DATA_SOURCE, 'registered_test_image.png')
 
+    elem_threshold: float = 0.1
+    num_attempts: int = 10
+    k: int = 2
+
+    def empty_array(self, array: np.ndarray):
+        empty: np.ndarray = np.empty(0)
+        for i in range(0, len(array)):
+            if not np.array_equal(empty, array[0]):
+                return False
+        return True
+
     def test_get_clusters_using_k_means_colors(self, caplog):
         caplog.set_level(logging.INFO)
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # Set-up
         result: np.ndarray
-        num_attempts: int = 10
-        k: int = 2
 
         # Execute
-        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, k, num_attempts)
+        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, self.k, self.num_attempts)
         # Verify
         # The image has 2 colors
         assert len(result) == 2
@@ -59,12 +68,10 @@ class TestColorSegmentation:
 
         # Set-up
         result: np.ndarray
-        num_attempts: int = 10
-        k: int = 2
         empty: np.ndarray = np.empty(0)
 
         # Execute
-        result, _ = get_clusters_using_k_means("", self.IMAGE_NAME, k, num_attempts)
+        result, _ = get_clusters_using_k_means("", self.IMAGE_NAME, self.k, self.num_attempts)
 
         # Verify
         assert np.array_equal(empty, result)
@@ -164,19 +171,16 @@ class TestColorSegmentation:
             [0, 0, 0],
             [211, 211, 211]
         ])
-        elem_threshold: float = 0.1
-        num_attempts: int = 10
-        k: int = 2
 
         # Execute
         clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[np.ndarray] = []
+        bitmasks_per_elem: list[list[np.ndarray]] = []
 
         for i in range(3):
-            bitmask: np.ndarray
+            bitmask: list[np.ndarray]
             clusters: np.ndarray
             clusters, bitmask = get_elemental_clusters_using_k_means(
-                self.DATA_SOURCE, self.IMAGE_NAME, i, elem_threshold, k, num_attempts
+                self.DATA_SOURCE, self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
             )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
@@ -191,15 +195,13 @@ class TestColorSegmentation:
 
         # Set-up
         empty: np.ndarray = np.empty([0])
-        elem_threshold: float = 1000
-        num_attempts: int = 10
-        k: int = 2
+        high_elem_threshold: float = 1000
 
         # Execute
         bitmask: np.ndarray
         clusters: np.ndarray
         clusters, bitmask = get_elemental_clusters_using_k_means(
-        self.DATA_SOURCE, self.IMAGE_NAME, 0, elem_threshold, k, num_attempts
+            self.DATA_SOURCE, self.IMAGE_NAME, 0, high_elem_threshold, self.k, self.num_attempts
         )
 
         # Verify
@@ -207,61 +209,49 @@ class TestColorSegmentation:
         assert np.array_equal(bitmask, empty)
 
     def test_get_elem_clusters_using_k_means_elemental_not_found(self, caplog):
-        set_config(self.CUSTOM_CONFIG_PATH)
-
         # Set-up
-        elem_threshold: float = 0.1
-        num_attempts: int = 10
-        k: int = 2
-        empty: np.ndarray = np.empty(0)
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # Execute
         clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[np.ndarray] = []
+        bitmasks_per_elem: list[list[np.ndarray]] = []
 
         for i in range(3):
-            bitmask: np.ndarray
+            bitmask: list[np.ndarray]
             clusters: np.ndarray
             clusters, bitmask = get_elemental_clusters_using_k_means(
-                "", self.IMAGE_NAME, i, elem_threshold, k, num_attempts
+                "", self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
             )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
 
         # Verify
-        assert np.array_equal(clusters_per_elem[0], empty)
-        assert np.array_equal(clusters_per_elem[1], empty)
-        assert np.array_equal(clusters_per_elem[2], empty)
+        assert self.empty_array(clusters_per_elem)
+        assert self.empty_array(bitmask)
 
         # Verify log message
         assert "Elemental data cube not found" in caplog.text
 
     def test_get_elem_clusters_using_k_means_register_fail(self, caplog):
-        set_config(self.CUSTOM_CONFIG_PATH)
-
         # Set-up
-        elem_threshold: float = 0.1
-        num_attempts: int = 10
-        k: int = 2
-        empty: np.ndarray = np.empty(0)
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # Execute
         clusters_per_elem: list[np.ndarray] = []
-        bitmasks_per_elem: list[np.ndarray] = []
+        bitmasks_per_elem: list[list[np.ndarray]] = []
 
         for i in range(3):
-            bitmask: np.ndarray
+            bitmask: list[np.ndarray]
             clusters: np.ndarray
             clusters, bitmask = get_elemental_clusters_using_k_means(
-                self.DATA_SOURCE, "", i, elem_threshold, k, num_attempts
+                self.DATA_SOURCE, "", i, self.elem_threshold, self.k, self.num_attempts
             )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
 
         # Verify
-        assert np.array_equal(clusters_per_elem[0], empty)
-        assert np.array_equal(clusters_per_elem[1], empty)
-        assert np.array_equal(clusters_per_elem[2], empty)
+        assert self.empty_array(clusters_per_elem)
+        assert self.empty_array(bitmask)
 
         # Verify log message
         assert "Image could not be registered to data cube" in caplog.text
@@ -276,7 +266,7 @@ class TestColorSegmentation:
         image = image_to_rgb(image)
 
         # Verify
-        assert np.array_equal(original_image, original_image)
+        assert np.array_equal(original_image, image)
 
     def test_rgb_to_lab(self):
         # Set-up
@@ -338,7 +328,7 @@ class TestColorSegmentation:
 
     def test_get_path_to_cs_folder(self):
         # Set-up
-        expected_path: str = 'tests/resources/color_segmentation/data_source/generated/color_segmentation'
+        expected_path: str = join(self.PATH_DATA_SOURCE, 'generated', 'color_segmentation')
 
         # Execute
         path: str = get_path_to_cs_folder(self.DATA_SOURCE)
@@ -354,7 +344,7 @@ class TestColorSegmentation:
         path: str = get_path_to_cs_folder(self.DATA_SOURCE)
 
         # Verify
-        assert path == ""
+        assert not path
 
         # Verify log message
         assert "Config is empty" in caplog.text
