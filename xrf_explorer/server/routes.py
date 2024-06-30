@@ -82,6 +82,30 @@ def validate_config(config: dict | None) -> tuple[str, int] | None:
     return None
 
 
+def parse_selection(selection_data: dict[str: str]) -> tuple[SelectionType, list[tuple[int, int]]] | tuple[str, int]:
+    # get selection type and points
+    selection_type: str | None = selection_data.get('type')
+    points: list[dict[str, float]] | None = selection_data.get('points')
+    if selection_type is None or points is None:
+        return "Error occurred while getting selection type or points from request body", 400
+
+    # validate and parse selection type
+    try:
+        selection_type_parsed: SelectionType = SelectionType(selection_type)
+    except ValueError:
+        return "Error parsing selection type", 400
+
+    # validate and parse points
+    if not isinstance(points, list):
+        return f"Error parsing points: expected a list of points, got {type(points)}", 400
+    try:
+        points_parsed: list[tuple[int, int]] = [(round(point['x']), round(point['y'])) for point in points]
+    except ValueError:
+        return "Error parsing points", 400
+
+    return selection_type_parsed, points_parsed
+
+
 @app.route("/api")
 def api():
     """Returns a list of all api endpoints.
@@ -399,38 +423,12 @@ def list_element_averages_selection(data_source: str):
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
     # parse JSON payload
-    data: dict[str, str] | None = request.get_json()
-    if data is None:
-        return "Error parsing request body", 400
-
-    # get selection type and points
-    selection_type: str | None = data.get('type')
-    points: list[dict[str, float]] | None = data.get('points')
-
-    if selection_type is None or points is None:
-        return "Error occurred while getting selection type or points from request body", 400
-
-    # validate and parse selection type
-    try:
-        selection_type_parsed: SelectionType = SelectionType(selection_type)
-    except ValueError:
-        return f"Error parsing selection of type {selection_type}", 400
-
-    # validate and parse points
-    if not isinstance(points, list):
-        return "Error parsing points; expected a list of points", 400
-
-    try:
-        points_parsed: list[tuple[int, int]] = [
-            (round(point['x']), round(point['y'])) for point in points
-        ]
-    except ValueError:
-        return "Error parsing points", 400
+    selection: SelectionType
+    points: list[tuple[int, int]]
+    selection, points = parse_selection(request.get_json())
 
     # get selection
-    mask: np.ndarray | None = get_selection(
-        data_source, points_parsed, selection_type_parsed, CubeType.Elemental
-    )
+    mask: np.ndarray | None = get_selection(data_source, points, selection, CubeType.Elemental)
 
     if mask is None:
         return "Error occurred while getting selection from datacube", 500
@@ -718,32 +716,13 @@ def get_selection_spectra(data_source: str):
     :return: JSON array where the index is the channel number and the value is the average intensity of that channel
     """
 
-    selection: dict[str, any] | None = request.get_json()
-    if selection is None:
-        return "Error parsing request body", 400
-
-    # get selection type and points
-    selection_type: str | None = selection.get('type')
-    points: list[dict[str, float]] | None = selection.get('points')
-    if selection_type is None or points is None:
-        return "Error occurred while getting selection type or points from request body", 400
-
-    # validate and parse selection type
-    try:
-        selection_type_parsed: SelectionType = SelectionType(selection_type)
-    except ValueError:
-        return "Error parsing selection type", 400
-
-    # validate and parse points
-    if not isinstance(points, list):
-        return "Error parsing points; expected a list of points", 400
-    try:
-        points_parsed: list[tuple[int, int]] = [(round(point['x']), round(point['y'])) for point in points]
-    except ValueError:
-        return "Error parsing points", 400
+    # parse JSON payload
+    selection: SelectionType
+    points: list[tuple[int, int]]
+    selection, points = parse_selection(request.get_json())
 
     # get selection
-    mask: np.ndarray | None = get_selection(data_source, points_parsed, selection_type_parsed, CubeType.Raw)
+    mask: np.ndarray | None = get_selection(data_source, points, selection, CubeType.Raw)
     if mask is None:
         return "Error occurred while getting selection from datacube", 500
 

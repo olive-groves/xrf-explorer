@@ -68,7 +68,7 @@ def get_contextual_image_path(data_source: str, name: str) -> str | None:
     # Find the folder where the contextual image is stored.
     backend_config: dict = get_config()
     if not backend_config:
-        LOG.error("Config file is empty.")
+        LOG.error("Could not find path to contextual image: config file is empty.")
         return None
 
     return abspath(join(Path(backend_config["uploads-folder"]), data_source, image["imageLocation"]))
@@ -96,7 +96,7 @@ def get_contextual_image_recipe_path(data_source: str, name: str) -> str | None:
     # Find the folder where the contextual image is stored.
     backend_config: dict = get_config()
     if not backend_config:
-        LOG.error("Config file is empty.")
+        LOG.error("Could not find path to recipe of contextual image: config file is empty.")
         return None
 
     return abspath(join(Path(backend_config["uploads-folder"]), data_source, location))
