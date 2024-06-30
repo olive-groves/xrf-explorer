@@ -1,7 +1,8 @@
 import logging
 
 from os import remove
-from os.path import isfile, join, normpath
+from os.path import isfile, join, normpath, isdir
+from shutil import rmtree
 
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.dim_reduction import (
@@ -110,6 +111,10 @@ class TestDimReduction:
         path_all_indices: str = join(path_generated, 'all_indices.npy')
         path_mapping_image: str = join(path_generated, 'image_index_to_embedding.png')
         set_config(self.CUSTOM_CONFIG_PATH)
+
+        # remove folder if it exists such that it has to be created
+        if isdir(path_generated):
+            rmtree(path_generated)
 
         # execute
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
