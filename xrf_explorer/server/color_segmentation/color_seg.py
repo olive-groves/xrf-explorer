@@ -29,7 +29,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
     if clusters.size == 0 or bitmasks.size == 0:
         LOG.warning("Cluster or bitmask array length is zero")
-        return np.ndarray([]), np.ndarray([])
+        return np.empty(0), np.empty(0)
 
     # Transform colors to LAB format
     # (in LAB format, euclidean distance represent
@@ -71,7 +71,7 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
-                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
@@ -88,7 +88,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return np.ndarray([]), np.ndarray([])
+        return np.empty(0), []
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
     reshaped_image: np.ndarray = reshape_image(image)
@@ -117,12 +117,12 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     colors = np.array([lab_to_rgb(c) for c in colors])
     LOG.info("Initial color clusters extracted successfully.")
 
-    return colors, np.array(bitmasks)
+    return colors, bitmasks
 
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
                                          elem_threshold: float = 0.1, k: int = 30,
-                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, np.ndarray]:
+                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
@@ -143,7 +143,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     data_cube: np.ndarray = get_elemental_data_cube(data_source)
     if data_cube.size == 0:
         LOG.error("Elemental data cube not found")
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
@@ -152,7 +152,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:
         LOG.error("Image could not be registered to data cube")
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
@@ -174,7 +174,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # If empty image, continue (elem. not present)
     if masked_image.size == 0:
-        return np.empty(0), np.empty(0)
+        return np.empty(0), []
 
     # k cannot be bigger than number of pixels w/element present
     k = min(k, masked_image.size)
@@ -200,10 +200,10 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # Transform back to rgb
     center = np.array([lab_to_rgb(c) for c in center])
-    return center, np.array(bitmasks)
+    return center, bitmasks
 
 
-def combine_bitmasks(bitmasks: np.ndarray) -> np.ndarray:
+def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     """Merges array of bitmasks into single bitmask, by setting the Green value of each pixel to store the index of
     the corresponding bitmask.
 
@@ -211,7 +211,7 @@ def combine_bitmasks(bitmasks: np.ndarray) -> np.ndarray:
     :return: a single bitmask in the form of an image corresponding to the combination of all bitmasks
     """
     if len(bitmasks) == 0:
-        return np.ndarray([])
+        return np.empty(0)
 
     height, width = bitmasks[0].shape
 
@@ -326,26 +326,6 @@ def reshape_image(small_image: np.ndarray) -> np.ndarray:
     return np.float32(small_image.reshape((-1, 3)))
 
 
-def get_image(image_file_path: str) -> np.ndarray:
-    """Read an image from the specified file path and convert it from BGR to RGB color space.
-
-    :param image_file_path: the path to the image file
-    :return: The image represented as a NumPy array in RGB color space
-    """
-
-    raw_image: np.ndarray = cv2.imread(image_file_path)
-    try:
-        raw_image: np.ndarray = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
-    except Exception as e:
-        LOG.error(f"The path '{image_file_path}' is not a valid file path: {e}")
-        return np.empty(0)
-
-    if raw_image is None:
-        LOG.error(f"The path '{image_file_path}' is not a valid file path.")
-        return np.empty(0)
-    return raw_image
-
-
 def rgb_to_hex(r: int, g: int, b: int) -> str:
     """Turns a rgb triple into hex format.
 
@@ -358,14 +338,14 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
 
 
-def convert_to_hex(clusters: np.array) -> np.array:
+def convert_to_hex(clusters: np.ndarray) -> np.ndarray:
     """ Converts clusters to hex format.
 
     :param clusters: the list of clusters in rgb format
     :return: clusters in hex format
     """
 
-    hex_clusters: np.array = []
+    hex_clusters: np.ndarray = []
     for col in clusters:
         hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
     return hex_clusters

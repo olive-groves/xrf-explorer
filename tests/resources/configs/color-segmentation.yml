@@ -1,1 +1,3 @@
 uploads-folder: "tests/resources/color_segmentation"
+generated-folder-name: "generated"
+cs-folder-name: "color_segmentation"
