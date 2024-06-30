@@ -89,13 +89,15 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     :param new_umap_parameters: The parameters passed on to the UMAP algorithm
     :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled
     """
+    
+    backend_config: dict = get_config() # get the backend config
+    dr_folder: str = get_path_to_dr_folder(data_source) # get path to folder to store the embedding and the indices
+    data_cube: np.ndarray = get_elemental_data_cube(data_source) # get data cube
 
-    # load backend config
-    if new_umap_parameters is None:
-        new_umap_parameters = {}
-    backend_config: dict = get_config()
-    if not backend_config:  # config is empty
-        LOG.error("Failed to compute DR embedding")
+    if not backend_config or not isdir(dr_folder) or len(data_cube) == 0:
+        LOG.error("Failed to load a necessary file")
+        return "error"
+    elif not valid_element(element, data_cube):
         return "error"
 
     # get default dim reduction config
@@ -104,15 +106,6 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     # update the default parameters with the given parameters
     if new_umap_parameters is not None:
         umap_parameters.update(new_umap_parameters)
-
-    # get data cube
-    data_cube: np.ndarray = get_elemental_data_cube(data_source)
-    if len(data_cube) == 0:
-        return "error"
-
-    # check if element is valid
-    if not valid_element(element, data_cube):
-        return "error"
 
     # filter data
     max_samples: int = int(backend_config['dim-reduction']['max-samples'])
@@ -132,13 +125,6 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
 
     if embedded_data is None:
         LOG.error("Failed to compute embedding")
-        return "error"
-
-    # get path to folder to store the embedding and the indices
-    dr_folder: str = get_path_to_dr_folder(data_source)
-
-    # Check if the folder exists, otherwise create it
-    if not isdir(dr_folder):
         return "error"
 
     # save indices and embedded data

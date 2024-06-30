@@ -4,11 +4,14 @@ from os import remove
 from os.path import isfile, join, normpath, isdir
 from shutil import rmtree
 
+import numpy as np
+
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
 from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
+from xrf_explorer.server.dim_reduction.overlay import plot_embedding_with_overlay
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -215,6 +218,9 @@ class TestDimReduction:
 
     def test_invalid_image_type(self, caplog):
         self.do_test_invalid_embedding_image(caplog, 'invalid', expected_caplog='Invalid overlay type: invalid')
+    
+    def test_invalid_contextual_image_type(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'contextual_invalid')
 
     def test_invalid_getting_image_of_indices_invalid_data_source(self, caplog):
         # setup
@@ -290,3 +296,16 @@ class TestDimReduction:
 
         # cleanup
         remove(path_image)
+
+    def test_nan_embedding(self, caplog):
+        # setup
+        embedding: np.ndarray = np.full((9, 2), np.nan)
+        overlay: np.ndarray = np.full((9,), 0.0)
+        path_to_save: str = ""
+
+        # execute
+        result: str = plot_embedding_with_overlay(embedding, overlay, path_to_save)
+
+        # verify
+        assert not result
+        assert 'Failed to create embedding image. The embedding data contains NaN values.' in caplog.text
