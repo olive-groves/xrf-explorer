@@ -155,7 +155,7 @@ class TestColorSegmentation:
         # Verify
         assert np.array_equal(result, empty)
 
-    def setup_get_elemental_clusters(self, caplog, missing_param: str):
+    def setup_get_elemental_clusters(self, missing_param: str):
         # Set-up
         set_config(self.CUSTOM_CONFIG_PATH)
 
@@ -182,9 +182,7 @@ class TestColorSegmentation:
             bitmasks_per_elem.append(bitmask)
         return clusters_per_elem, bitmasks_per_elem
 
-    def test_get_elem_clusters_using_k_means(self, caplog):
-        set_config(self.CUSTOM_CONFIG_PATH)
-
+    def test_get_elem_clusters_using_k_means(self):
         # Set-up
         expected_result0: np.ndarray = np.array([
             [0, 0, 0],
@@ -202,7 +200,7 @@ class TestColorSegmentation:
         # Execute
         clusters_per_elem: list[np.ndarray] = []
         bitmasks_per_elem: list[list[np.ndarray]] = []
-        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters(caplog, "")
+        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("")
 
         # Verify
         assert np.array_equal(clusters_per_elem[0], expected_result0)
@@ -213,7 +211,7 @@ class TestColorSegmentation:
         # Execute
         clusters_per_elem: list[np.ndarray] = []
         bitmasks_per_elem: list[list[np.ndarray]] = []
-        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters(caplog, "datasource")
+        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("datasource")
 
         # Verify
         assert self.empty_array(clusters_per_elem)
@@ -226,7 +224,7 @@ class TestColorSegmentation:
         # Execute
         clusters_per_elem: list[np.ndarray] = []
         bitmasks_per_elem: list[list[np.ndarray]] = []
-        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters(caplog, "image")
+        clusters_per_elem, bitmasks_per_elem = self.setup_get_elemental_clusters("image")
 
         # Verify
         assert self.empty_array(clusters_per_elem)
