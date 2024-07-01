@@ -1,0 +1,1 @@
+{"name": "empty_source", "spectralCubes": [{"rawLocation": "empty.raw", "rplLocation": "empty.rpl"}], "spectralParams": {"low": 1, "high": 5, "binSize": 2, "binned": true}}

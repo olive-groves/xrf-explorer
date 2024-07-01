@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary components
 import {
   MenubarContent,
   MenubarItem,
@@ -13,7 +14,9 @@ import { ResetClientDialog } from "@/components/workspace";
 import { ref } from "vue";
 import { useColorMode } from "@vueuse/core";
 
+// Dialog visibility variable
 const dialogOpen = ref(false);
+// Color mode variable
 const colorMode = useColorMode({ emitAuto: true });
 </script>
 

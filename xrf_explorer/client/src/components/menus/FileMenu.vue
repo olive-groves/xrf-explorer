@@ -8,6 +8,7 @@ import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
 import { CreateWorkspaceDialog } from "@/components/workspace";
 
+// Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
@@ -16,6 +17,7 @@ const sources = computed(() => {
   return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });
 
+// Dialog visibility variable
 const dialogOpen = ref(false);
 
 /**
@@ -33,10 +35,12 @@ function loadWorkspace(source: string) {
   fetch(`${config.api.endpoint}/${source}/workspace`).then(
     async (value) => {
       value.json().then(
+        // Load the workspace
         (workspace) => {
           toast.info(`Loading workspace ${source}`, {
             description: "This may take a couple of minutes",
           });
+          // Update the app state
           console.info(`Loading workspace ${source}`);
           appState.workspace = workspace;
         },

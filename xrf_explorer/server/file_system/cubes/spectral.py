@@ -28,6 +28,12 @@ def parse_rpl(path: str) -> dict:
         - data type
         - byte order
         - record by
+        - depth bin size
+        - depth1
+        - depth2
+        - depth scale origin
+        - depth scale increment
+        - depth scale units
 
     :param path: path to the rpl file
     :return: Dictionary containing the attributes' name and value
@@ -70,6 +76,7 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     # Get the path to the generated folder
     path_to_generated_folder: str = get_path_to_generated_folder(data_source)
     if not path_to_generated_folder:
+        LOG.error(f"Could not get path to generated folder for {data_source}")
         return False
 
     mipmap_path: str = str(join(path_to_generated_folder, "mipmaps", str(level), raw_name))
@@ -181,7 +188,8 @@ def get_spectra_params(data_source: str) -> dict[str, int]:
     """Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
 
     :param data_source: Name of the data source.
-    :return: dictionary with the low, high and bin size values
+    :raises FileNotFoundError: There is no workspace in the data source
+    :return: dictionary with the low, high, bin size and binned values.
     """
     workspace_dict: dict | None = get_workspace_dict(data_source)
     if workspace_dict is None:
@@ -205,8 +213,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
+    if info == {}:
+        LOG.error(f"error while binning data: rpl is empty for {data_source}")
+        return
     # get dimensions of original data
     width: int = int(info['width'])
     height: int = int(info['height'])
@@ -221,9 +230,13 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         # load raw file and parse it as 3d array with correct dimensions
         datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
     except OSError as err:
-        LOG.error("error while loading raw file for binning: {%s}", err)
+        LOG.error(f"error while loading raw file for binning: {err}")
         raise
-    datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
+    try:
+        datacube: np.ndarray = np.reshape(datacube, (height, width, channels))
+    except ValueError as err:
+        LOG.error(f"error while reshaping raw data: {err}")
+        return
     # if we just need to crop
     if bin_size == 1:
         new_cube: np.ndarray = datacube[:, :, low:high]
@@ -232,7 +245,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         nr_bins: int = ceil((high - low) / bin_size)
         # initialize  array
         new_cube: np.ndarray = np.zeros(
-            shape=(height, width, nr_bins), dtype=np.int16)
+            shape=(height, width, nr_bins), dtype=np.uint16)
 
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
@@ -254,28 +267,27 @@ def update_bin_params(data_source: str):
     
     :param data_source: Name of the data source containing the workspace to modify.
     """
-    path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
+
     try:
         offset: int = int(info['depthscaleorigin'])
     except:
         offset: int = 0
     
     workspace_dict: dict | None = get_workspace_dict(data_source)
-    if workspace_dict is None:
-        raise FileNotFoundError
-    low: float = workspace_dict["spectralParams"]["low"]
-    high: float = workspace_dict["spectralParams"]["high"]
-    bin_size: float = workspace_dict["spectralParams"]["binSize"]
-    
-    increment: float = (40 - offset) / 4096
-    workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
-    workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
-    workspace_dict["spectralParams"]["binSize"] = round(bin_size / increment)
+
+    if workspace_dict is not None:
+        low: float = workspace_dict["spectralParams"]["low"]
+        high: float = workspace_dict["spectralParams"]["high"]
+        bin_size: float = workspace_dict["spectralParams"]["binSize"]
+        
+        increment: float = (40 - offset) / 4096
+        workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
+        workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
+        workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
     
     workspace_path = get_path_to_workspace(data_source)
 

@@ -7,6 +7,7 @@ import { resetWindow } from "@/lib/utils";
 import { inject, ref, toRef } from "vue";
 import { toast } from "vue-sonner";
 
+// Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
 const props = defineProps<{
@@ -16,10 +17,13 @@ const props = defineProps<{
   name: string;
 }>();
 
+// Define the emits
 const emit = defineEmits(["close"]);
 
+// Define the name of the workspace
 const name = toRef(props, "name");
 
+// Variable for deleting files
 const deleteFiles = ref(false);
 
 /**
@@ -33,6 +37,7 @@ async function deleteWorkspace() {
 
   const response = await fetch(url, { method: method });
 
+  // Check if the request was successful
   if (response.ok) {
     toast.success("Deleted project", { description: "Please reload the page" });
     emit("close");

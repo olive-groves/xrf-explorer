@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem } from "@/components/ui/menubar";
 import { datasource } from "@/lib/appState";
 import { exportElement, exportScene, exportableElements } from "@/lib/export";

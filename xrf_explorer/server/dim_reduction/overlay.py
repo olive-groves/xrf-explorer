@@ -65,11 +65,9 @@ def create_embedding_image(data_source: str, overlay_type: str) -> str:
 
         # Get elemental data cube
         data_cube: np.ndarray = get_elemental_data_cube(data_source)
-        if len(data_cube) == 0:
-            return ""
 
-        # Verify valid element
-        if not valid_element(element, data_cube):
+        # Check if the data cube is loaded and the element is valid
+        if len(data_cube) == 0 or not valid_element(element, data_cube):
             return ""
 
         # Create the overlay

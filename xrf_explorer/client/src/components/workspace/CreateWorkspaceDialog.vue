@@ -35,7 +35,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
     spectralParams: {
       low: 0,
       high: 40,
-      binSize: 1,
+      binSize: 40 / 4096,
       binned: false,
     },
   };
