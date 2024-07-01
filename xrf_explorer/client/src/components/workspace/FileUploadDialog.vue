@@ -149,13 +149,12 @@ function dialogUpdate(open: boolean) {
 
     // Reset dialog to clean state
     fileLog.value = [];
-  } else {
+  } else if (processing.value) {
     // Dialog can only be closed if not processing uploads
-    if (processing.value) {
-      toast.info("Dialog can not be closed while uploading files");
-    } else {
-      dialogOpen.value = false;
-    }
+    toast.info("Dialog cannot be closed while uploading files");
+
+  } else {
+    dialogOpen.value = false;
   }
 }
 </script>

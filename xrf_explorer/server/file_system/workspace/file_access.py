@@ -37,7 +37,7 @@ def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str |
     # Load backend config
     backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
-        LOG.error("Config is empty")
+        LOG.error("Could not get path to elemental data cube: config is empty")
         return None
 
     # Load workspace
@@ -99,19 +99,18 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     # load backend config
     backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
-        LOG.error("Config is empty")
+        LOG.error("Could not get path to elemental cube recipe: config is empty")
         return None
 
-    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
-    workspace_path: str = join(data_source_dir, "workspace.json")
-    try:
-        with open(workspace_path, 'r') as workspace:
-            data_json: str = workspace.read()
-            data = json.loads(data_json)
-            recipe_name: str = data["elementalCubes"][0]["recipeLocation"]
-    except OSError as err:
-        LOG.error("Error while getting recipe of elemental cube: {%s}", err)
+    # load workspace
+    workspace: dict = get_workspace_dict(data_source)
+    if workspace is None:
+        LOG.error(f"Could not get path to elemental recipe cube for project {data_source}")
         return None
+
+    # get recipe file name and location
+    recipe_name: str = workspace["elementalCubes"][0]["recipeLocation"]
+    data_source_dir: str = join(backend_config["uploads-folder"], data_source)
     
     if recipe_name == "":
         return None
@@ -131,9 +130,7 @@ def get_raw_rpl_names(data_source: str) -> tuple[str, str]:
         LOG.error("Config is empty")
         return "", ""
 
-    data_source_dir: str = join(
-        Path(backend_config["uploads-folder"]), data_source, "workspace.json"
-    )
+    data_source_dir: str = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
     try:
         with open(data_source_dir, "r") as workspace:
             data_json: str = workspace.read()
@@ -172,8 +169,7 @@ def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
 
 
 def set_binned(data_source: str, binned: bool):
-    """
-    Sets the binned boolean attribute of a workspace.
+    """Sets the binned boolean attribute of a workspace.
 
     :param data_source: Name of the data source
     :param binned: Boolean to set binned to
@@ -193,8 +189,7 @@ def set_binned(data_source: str, binned: bool):
 
 
 def get_workspace_dict(data_source_folder_name: str) -> dict | None:
-    """
-    Returns the workspace of the specified data source in dictionary format.
+    """Returns the workspace of the specified data source in dictionary format.
 
     :param data_source_folder_name: Name of the data source folder
     :return: Dictionary format of the workspace.json
@@ -213,15 +208,13 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
             workspace_json = json.loads(workspace.read())
             return workspace_json
     except Exception:
-        LOG.error(
-            f"Error while reading workspace json of data source with folder name {data_source_folder_name}")
+        LOG.error(f"Error while reading workspace json of data source with folder name {data_source_folder_name}")
         return None
 
 
 def get_spectral_cube_recipe_path(data_source_folder_name: str) -> str | None:
-    """
-    Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a recipe, the
-    function returns None.
+    """Returns the path of the spectral data cube recipe of the specified data source. If the data cube does not have a
+    recipe, the function returns None.
 
     :param data_source_folder_name: Name of the data source folder
     :return: Path of the data cube recipe
@@ -257,24 +250,19 @@ def get_base_image_name(data_source_folder_name: str) -> str | None:
     :param data_source_folder_name: Name of the data source folder
     :return: Name of the rgb image
     """
-    # load backend config
-    backend_config: dict | None = get_config()
-    if not backend_config:  # config is empty
-        LOG.error("Config is empty")
-        return None
-
     workspace_dict: dict = get_workspace_dict(data_source_folder_name)
     if workspace_dict is None:
+        LOG.error(f"Could not get the name of the RGB image of project {data_source_folder_name}")
         return None
 
     return workspace_dict["baseImage"]["name"]
 
 
 def get_base_image_path(data_source_folder_name: str) -> str | None:
-    """Get the path to rgb image of a data source.
+    """Get the path to RGB image of a data source.
 
     :param data_source_folder_name: Name of the data source folder
-    :return: Path to the rgb image
+    :return: Path to the RGB image
     """
     # load backend config
     backend_config: dict | None = get_config()
@@ -284,6 +272,7 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
 
     workspace_dict: dict = get_workspace_dict(data_source_folder_name)
     if workspace_dict is None:
+        LOG.error(f"Could not get the path to the RGB image of project {data_source_folder_name}")
         return None
 
     filename: str | None = workspace_dict["baseImage"]["imageLocation"]

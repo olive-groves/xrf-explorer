@@ -185,8 +185,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
 
 
 def get_spectra_params(data_source: str) -> dict[str, int]:
-    """
-    Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
+    """Returns the spectrum parameters (low/high boundaries and bin size) of a data source.
 
     :param data_source: Name of the data source.
     :raises FileNotFoundError: There is no workspace in the data source
@@ -264,8 +263,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
 
 def update_bin_params(data_source: str):
-    """
-    Converts the low, high and binsize parameters in the workspace from energy to channel.
+    """Converts the low, high and binsize parameters in the workspace from energy to channel.
     
     :param data_source: Name of the data source containing the workspace to modify.
     """

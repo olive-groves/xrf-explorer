@@ -12,11 +12,10 @@ const model = defineModel<WorkspaceConfig>({ required: true });
 // Define the save event
 const emit = defineEmits(["save"]);
 
-// Validate the workspace model
-const modelValid = computed(() => validateWorkspace(model.value));
+const modelValidity = computed(() => validateWorkspace(model.value));
 
 /**
- * Emit the save event, prompting the containing element to save the updated setup.
+ * Emit the save event, thus prompting the containing element to save the updated setup.
  */
 function save() {
   emit("save");
@@ -35,12 +34,12 @@ function save() {
       <!-- Footer -->
       <div class="flex justify-between">
         <div class="flex items-center space-x-1.5">
-          <TriangleAlert v-if="!modelValid[0]" class="size-5 text-primary" />
-          <div class="text-muted-foreground" v-text="modelValid[1]" />
+          <TriangleAlert v-if="!modelValidity[0]" class="size-5 text-primary" />
+          <div class="text-muted-foreground" v-text="modelValidity[1]" />
         </div>
         <div class="space-x-2">
           <AdditionalSettingsDialog v-model="model" />
-          <Button :disabled="!modelValid[0]" @click="save" :title="modelValid[1]">Save</Button>
+          <Button :disabled="!modelValidity[0]" @click="save" :title="modelValidity[1]">Save</Button>
         </div>
       </div>
     </div>

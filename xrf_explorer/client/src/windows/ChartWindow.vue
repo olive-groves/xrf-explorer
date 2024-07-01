@@ -13,6 +13,7 @@ const config = inject<FrontendConfig>("config")!;
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
+import { clearChart } from "./charts";
 
 // Sets up export of chart.
 watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: true });
@@ -274,13 +275,6 @@ function setupChart(barChartData: Element[], lineChartData: Element[]) {
 }
 
 /**
- * Clear the whole chart (including axes).
- */
-function clearChart() {
-  svg.selectAll("*").remove();
-}
-
-/**
  * Add the line chart to the SVG container with updated data.
  * @param data Element data array that we want to display on the chart.
  */
@@ -360,7 +354,7 @@ function updateCharts() {
   const lineChartData: Element[] = displayGrey.value ? workspaceSelectionAverages : workspaceMaskedSelectionAverages;
 
   // Clear all previous instances of the chart
-  clearChart();
+  clearChart(svg);
 
   // Set up the chart for the new data
   setupChart(barChartData, lineChartData);

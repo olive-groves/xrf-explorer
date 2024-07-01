@@ -25,7 +25,13 @@ const dialogOpen = ref(false);
  * @param source - The source to load.
  */
 function loadWorkspace(source: string) {
-  // Fetch the workspace
+  const errorMsg = {
+    message: `Failed to load workspace ${source}`,
+    data: {
+      description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
+    },
+  };
+
   fetch(`${config.api.endpoint}/${source}/workspace`).then(
     async (value) => {
       value.json().then(
@@ -38,18 +44,10 @@ function loadWorkspace(source: string) {
           console.info(`Loading workspace ${source}`);
           appState.workspace = workspace;
         },
-        // Error handling
-        () =>
-          toast.error(`Failed to load workspace ${source}`, {
-            description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
-          }),
+        () => toast.error(errorMsg.message, errorMsg.data),
       );
     },
-    // Error handling
-    () =>
-      toast.error(`Failed to load workspace ${source}`, {
-        description: markRaw(h("div", [h("code", "workspace.json"), " might be missing or malformed"])),
-      }),
+    () => toast.error(errorMsg.message, errorMsg.data),
   );
 }
 </script>
