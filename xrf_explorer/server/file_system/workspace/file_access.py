@@ -37,7 +37,7 @@ def get_elemental_cube_path_from_name(data_source: str, cube_name: str) -> str |
     # Load backend config
     backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
-        LOG.error("Config is empty")
+        LOG.error("Could not get path to elemental data cube: config is empty")
         return None
 
     # Load workspace
@@ -99,7 +99,7 @@ def get_elemental_cube_recipe_path(data_source: str) -> str | None:
     # load backend config
     backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
-        LOG.error("Config is empty")
+        LOG.error("Could not get path to elemental cube recipe: config is empty")
         return None
 
     # load workspace
