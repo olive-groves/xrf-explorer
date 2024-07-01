@@ -230,7 +230,7 @@ def remove_data_source(data_source: str):
     config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
 
-    error_resonse_config: tuple[str, int] | None = validate_config(config)
+    error_response_config: tuple[str, int] | None = validate_config(config)
     if error_resonse_config:
         return error_resonse_config
 
