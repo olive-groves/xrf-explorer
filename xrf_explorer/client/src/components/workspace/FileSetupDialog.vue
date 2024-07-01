@@ -6,10 +6,13 @@ import { validateWorkspace } from "./utils";
 import { computed } from "vue";
 import { TriangleAlert } from "lucide-vue-next";
 
+// Define the workspace model
 const model = defineModel<WorkspaceConfig>({ required: true });
 
+// Define the save event
 const emit = defineEmits(["save"]);
 
+// Validate the workspace model
 const modelValid = computed(() => validateWorkspace(model.value));
 
 /**

@@ -1,14 +1,18 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
+// Import the necessary icons
 import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen, SquareX } from "lucide-vue-next";
 import { Tool, ToolState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { inject } from "vue";
 
+// Inject the configuration
 const config = inject<FrontendConfig>("config")!;
 
+// Define the model and emits
 const state = defineModel<ToolState>("state", { required: true });
 const emit = defineEmits(["resetViewport", "clearSelection"]);
 </script>
