@@ -298,8 +298,9 @@ describe("validateWorkspace Test", () => {
 
   const deepCloneEmpty3 = deepClone(deepCloneEmpty2);
   deepCloneEmpty3.baseImage.imageLocation = "base";
+  deepCloneEmpty3.baseImage.recipeLocation = "base";
   test("empty workspace with base image and image location", () => {
-    const expected = [false, "Contextual image must have a name"];
+    const expected = [true, ""];
     expect(validateWorkspace(deepCloneEmpty3)).toEqual(expected);
   });
 
@@ -313,8 +314,9 @@ describe("validateWorkspace Test", () => {
 
   const deepCloneEmpty5 = deepClone(deepCloneEmpty4);
   deepCloneEmpty5.contextualImages[0].imageLocation = "context1";
+  deepCloneEmpty5.contextualImages[0].recipeLocation = "context1";
   test("empty workspace with base image, image location, contextual image and image location", () => {
-    const expected = [false, "Spectral cube must have a name"];
+    const expected = [true, ""];
     expect(validateWorkspace(deepCloneEmpty5)).toEqual(expected);
   });
 
@@ -343,7 +345,7 @@ describe("validateWorkspace Test", () => {
   const deepCloneEmpty9 = deepClone(deepCloneEmpty8);
   deepCloneEmpty9.spectralCubes[0].recipeLocation = "cube1";
   test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location, rpl location and recipe location", () => {
-    const expected = [false, "Elemental cube must have a name"];
+    const expected = [true, ""];
     expect(validateWorkspace(deepCloneEmpty9)).toEqual(expected);
   });
 
