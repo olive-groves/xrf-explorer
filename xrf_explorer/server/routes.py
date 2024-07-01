@@ -75,6 +75,7 @@ def validate_data_source(data_source_name: str) -> tuple[str, int] | None:
         return error_msg, 400
     return None
 
+
 def validate_config(config: dict | None) -> tuple[str, int] | None:
     if not config:
         error_msg: str = "Error occurred while getting backend config"
