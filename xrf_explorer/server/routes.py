@@ -67,6 +67,7 @@ from xrf_explorer.server.spectra import (
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+
 def validate_data_source(data_source_name: str) -> tuple[str, int] | None:
     if data_source_name == "":
         error_msg: str = "Data source name provided, but empty."
