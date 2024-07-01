@@ -10,7 +10,10 @@ import {
   deepClone,
   flipSelectionAreaSelection,
 } from "@/lib/utils";
+import { WorkspaceConfig } from "@/lib/workspace";
+import { validateWorkspace } from "@/components/workspace/utils";
 
+// LIB UTIL TESTS -----------------------------------------------------------------------------------------------
 describe("hexToRgb and rgbToHex Test", () => {
   const color1 = { rgb: [77, 184, 39] as [number, number, number], hex: "#4db827" };
   const color2 = { rgb: [158, 87, 153] as [number, number, number], hex: "#9e5799" };
@@ -242,5 +245,127 @@ describe("flipSelectionAreaSelection Test", () => {
       points: [],
     };
     expect(flippedEmptySelection).toEqual(expectedFlippedEmptySelection);
+  });
+});
+
+
+// WORKSPACE UTIL TESTS -----------------------------------------------------------------------------------------
+describe("validateWorkspace Test", () => {
+  const randomWorkspace: WorkspaceConfig = {
+    name: "random",
+    baseImage: { name: "base", imageLocation: "base", recipeLocation: "base" },
+    contextualImages: [
+      { name: "context1", imageLocation: "context1", recipeLocation: "context1"},
+      { name: "context2", imageLocation: "context2", recipeLocation: "context2" },
+    ],
+    spectralCubes: [
+      { name: "cube1", rawLocation: "cube1", rplLocation: "cube1", recipeLocation: "cube1" },
+    ],
+    elementalCubes: [
+      { name: "element1", dataLocation: "element1", recipeLocation: "element1" },
+    ],
+    elementalChannels: [],
+    spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+  };
+
+  let emptyWorkspace: WorkspaceConfig = {
+    name: "",
+    baseImage: { name: "", imageLocation: "", recipeLocation: "" },
+    contextualImages: [],
+    spectralCubes: [],
+    elementalCubes: [],
+    elementalChannels: [],
+    spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+  };
+
+  test("random workspace", () => {
+    const expected = [true, ""];
+    expect(validateWorkspace(randomWorkspace)).toEqual(expected);
+  });
+
+  const deepCloneEmpty = deepClone(emptyWorkspace);
+  test("empty workspace", () => {
+    const expected = [false, "Base image must have a name"];
+    expect(validateWorkspace(deepCloneEmpty)).toEqual(expected);
+  });
+
+  const deepCloneEmpty2 = deepClone(emptyWorkspace);
+  deepCloneEmpty2.baseImage.name = "base";
+  test("empty workspace with base image", () => {
+    const expected = [false, "Base image must have an associated image file"];
+    expect(validateWorkspace(deepCloneEmpty2)).toEqual(expected);
+  });
+
+  const deepCloneEmpty3 = deepClone(deepCloneEmpty2);
+  deepCloneEmpty3.baseImage.imageLocation = "base";
+  test("empty workspace with base image and image location", () => {
+    const expected = [false, "Contextual image must have a name"];
+    expect(validateWorkspace(deepCloneEmpty3)).toEqual(expected);
+  });
+
+  const deepCloneEmpty4 = deepClone(deepCloneEmpty3);
+  deepCloneEmpty4.contextualImages.push({ name: "", imageLocation: "", recipeLocation: "" });
+  deepCloneEmpty4.contextualImages[0].name = "context1";
+  test("empty workspace with base image, image location and contextual image", () => {
+    const expected = [false, "Contextual image must have an associated image file"];
+    expect(validateWorkspace(deepCloneEmpty4)).toEqual(expected);
+  });
+
+  const deepCloneEmpty5 = deepClone(deepCloneEmpty4);
+  deepCloneEmpty5.contextualImages[0].imageLocation = "context1";
+  test("empty workspace with base image, image location, contextual image and image location", () => {
+    const expected = [false, "Spectral cube must have a name"];
+    expect(validateWorkspace(deepCloneEmpty5)).toEqual(expected);
+  });
+
+  const deepCloneEmpty6 = deepClone(deepCloneEmpty5);
+  deepCloneEmpty6.spectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
+  deepCloneEmpty6.spectralCubes[0].name = "cube1";
+  test("empty workspace with base image, image location, contextual image, image location and spectral cube", () => {
+    const expected = [false, "Spectral cube must have an associatiated raw file"];
+    expect(validateWorkspace(deepCloneEmpty6)).toEqual(expected);
+  });
+
+  const deepCloneEmpty7 = deepClone(deepCloneEmpty6);
+  deepCloneEmpty7.spectralCubes[0].rawLocation = "cube1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube and raw location", () => {
+    const expected = [false, "Spectral cube must have an associatiated rpl file"];
+    expect(validateWorkspace(deepCloneEmpty7)).toEqual(expected);
+  });
+
+  const deepCloneEmpty8 = deepClone(deepCloneEmpty7);
+  deepCloneEmpty8.spectralCubes[0].rplLocation = "cube1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location and rpl location", () => {
+    const expected = [false, "Spectral cube must have an associatiated recipe file"];
+    expect(validateWorkspace(deepCloneEmpty8)).toEqual(expected);
+  });
+
+  const deepCloneEmpty9 = deepClone(deepCloneEmpty8);
+  deepCloneEmpty9.spectralCubes[0].recipeLocation = "cube1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location, rpl location and recipe location", () => {
+    const expected = [false, "Elemental cube must have a name"];
+    expect(validateWorkspace(deepCloneEmpty9)).toEqual(expected);
+  });
+
+  const deepCloneEmpty10 = deepClone(deepCloneEmpty9);
+  deepCloneEmpty10.elementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
+  deepCloneEmpty10.elementalCubes[0].name = "element1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location, rpl location, recipe location and elemental cube", () => {
+    const expected = [false, "Elemental cube must have an associatiated data file"];
+    expect(validateWorkspace(deepCloneEmpty10)).toEqual(expected);
+  });
+
+  const deepCloneEmpty11 = deepClone(deepCloneEmpty10);
+  deepCloneEmpty11.elementalCubes[0].dataLocation = "element1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location, rpl location, recipe location, elemental cube and data location", () => {
+    const expected = [false, "Elemental cube must have an associatiated recipe file"];
+    expect(validateWorkspace(deepCloneEmpty11)).toEqual(expected);
+  });
+
+  const deepCloneEmpty12 = deepClone(deepCloneEmpty11);
+  deepCloneEmpty12.elementalCubes[0].recipeLocation = "element1";
+  test("empty workspace with base image, image location, contextual image, image location, spectral cube, raw location, rpl location, recipe location, elemental cube, data location and recipe location", () => {
+    const expected = [true, ""];
+    expect(validateWorkspace(deepCloneEmpty12)).toEqual(expected);
   });
 });
