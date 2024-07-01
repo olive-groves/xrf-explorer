@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary components
 import { Menubar } from "@/components/ui/menubar";
 import { ExportMenu, FileMenu, MainMenu, WindowMenu } from ".";
 </script>

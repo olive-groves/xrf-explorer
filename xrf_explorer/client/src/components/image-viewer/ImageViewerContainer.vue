@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary components
 import { appState } from "@/lib/appState";
 import { ImageViewer } from ".";
 </script>

@@ -9,10 +9,13 @@ import { toast } from "vue-sonner";
 import { ChannelSetupDialog, FileSetupDialog } from "@/components/workspace";
 import { deepClone } from "@/lib/utils";
 
+// Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
+// Define the workspace model
 const workspace = computed(() => appState.workspace);
 
+// Create a local copy of the workspace
 const localWorkspace = ref(workspace.value == undefined ? undefined : deepClone(workspace.value));
 
 /**
@@ -22,6 +25,7 @@ watch(datasource, () => {
   localWorkspace.value = deepClone(workspace.value);
 });
 
+// Dialog visibility variables
 const fileDialog = ref(false);
 const channelsDialog = ref(false);
 const deletionDialog = ref(false);
@@ -30,6 +34,7 @@ const deletionDialog = ref(false);
  * Update the workspace persistently.
  */
 function updateWorkspace() {
+  // deepClone the local workspace to avoid reactivity issues
   const newWorkspace = deepClone(localWorkspace.value!);
   console.info("Saving changes to workspace", newWorkspace);
 
