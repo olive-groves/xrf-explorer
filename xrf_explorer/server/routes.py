@@ -232,7 +232,7 @@ def remove_data_source(data_source: str):
 
     error_response_config: tuple[str, int] | None = validate_config(config)
     if error_response_config:
-        return error_resonse_config
+        return error_response_config
 
     error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
     if error_response_ds:
