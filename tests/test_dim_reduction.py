@@ -1,13 +1,17 @@
 import logging
 
 from os import remove
-from os.path import isfile, join, normpath
+from os.path import isfile, join, normpath, isdir
+from shutil import rmtree
+
+import numpy as np
 
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.dim_reduction import (
     generate_embedding, create_embedding_image, get_image_of_indices_to_embedding
 )
 from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
+from xrf_explorer.server.dim_reduction.overlay import plot_embedding_with_overlay
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -17,8 +21,11 @@ class TestDimReduction:
     CUSTOM_CONFIG_PATH_NO_EMBEDDING: str = join(RESOURCES_PATH, 'configs', 'dim-reduction-no-embedding.yml')
     CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT: str = join(RESOURCES_PATH, 'configs', 'dim-reduction-embedding-present.yml')
     TEST_DATA_SOURCE: str = 'test_data_source'
+    NO_CUBE_DATA_SOURCE: str = 'no_cube_data_source'
     PATH_TEST_CUBE: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'test_cube.dms')
-    PATH_GENERATED_FOLDER: str = join(RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'from_dim_reduction')
+    PATH_GENERATED_FOLDER: str = join(
+        RESOURCES_PATH, 'dim_reduction', TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
+    )
 
     def test_config_not_found(self, caplog):
         # setup
@@ -61,19 +68,21 @@ class TestDimReduction:
         assert 'Invalid element: -1' in caplog.text
         assert 'Invalid element: 1000000' in caplog.text
 
-    def test_invalid_element_creating_image(self, caplog):
+    def test_no_cube_for_embedding(self, caplog):
         # setup
-        overlay_type: str = 'elemental_1000000'
-        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+        element: int = 2
+        threshold: int = 0
+        umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
+        set_config(self.CUSTOM_CONFIG_PATH)
 
         # execute
-        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
+        result: str = generate_embedding(self.NO_CUBE_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
-        assert not result
+        assert result == 'error'
 
         # verify log messages
-        assert 'Invalid element: 1000000' in caplog.text
+        assert f"Could not get path to elemental datacube of data source {self.NO_CUBE_DATA_SOURCE}" in caplog.text
 
     def test_invalid_umap(self, caplog):
         # setup
@@ -91,26 +100,11 @@ class TestDimReduction:
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
 
-    def test_no_embedding(self, caplog):
-        # setup
-        overlay_type: str = 'elemental_1'
-        set_config(self.CUSTOM_CONFIG_PATH_NO_EMBEDDING)
-
-        # execute
-        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
-
-        # verify
-        assert not result
-
-        # verify log messages
-        assert 'Failed to load indices and/or embedding data.' in caplog.text
-
-    def test_valid_embedding(self, caplog):
+    def do_test_embedding(self, caplog, threshold: int = 100, expected_result: str = 'success'):
         caplog.set_level(logging.INFO)
 
         # setup
         element: int = 2
-        threshold: int = 0
         umap_args: dict[str, str] = {'n-neighbors': '2', 'metric': 'euclidean'}
         path_generated = join(
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'from_dim_reduction'
@@ -121,11 +115,15 @@ class TestDimReduction:
         path_mapping_image: str = join(path_generated, 'image_index_to_embedding.png')
         set_config(self.CUSTOM_CONFIG_PATH)
 
+        # remove folder if it exists such that it has to be created
+        if isdir(path_generated):
+            rmtree(path_generated)
+
         # execute
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
 
         # verify
-        assert result == 'success'
+        assert result == expected_result
         assert isfile(path_embedding)
         assert isfile(path_indices)
         assert isfile(path_all_indices)
@@ -137,6 +135,12 @@ class TestDimReduction:
         remove(path_indices)
         remove(path_all_indices)
         remove(path_mapping_image)
+
+    def test_valid_embedding(self, caplog):
+        self.do_test_embedding(caplog)
+
+    def test_valid_embedding_downsampled(self, caplog):
+        self.do_test_embedding(caplog, threshold=0, expected_result='downsampled')
 
     def test_high_threshold(self, caplog):
         # setup
@@ -154,11 +158,10 @@ class TestDimReduction:
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
 
-    def test_valid_image(self, caplog):
+    def do_test_valid_image(self, caplog, overlay_type: str):
         caplog.set_level(logging.INFO)
 
         # setup
-        overlay_type: str = 'elemental_1'
         path_generated_folder: str = join(
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
         )
@@ -176,6 +179,100 @@ class TestDimReduction:
         # cleanup
         remove(path_embedding_image)
 
+    def test_valid_elemental_image(self, caplog):
+        self.do_test_valid_image(caplog, 'elemental_1')
+
+    def test_valid_contextual_image(self, caplog):
+        self.do_test_valid_image(caplog, 'contextual_RGB')
+
+    def do_test_invalid_embedding_image(
+            self, caplog, overlay_type: str,
+            expected_caplog: str = "", folder_name: str = 'embedding_present',
+            config: str = CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT
+    ):
+        # setup
+        path_generated_folder: str = join(
+            RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', folder_name
+        )
+        path_embedding_image: str = join(path_generated_folder, 'embedding.png')
+        set_config(config)
+
+        # execute
+        result: str = create_embedding_image(self.TEST_DATA_SOURCE, overlay_type)
+
+        # verify
+        assert not result
+        assert not isfile(path_embedding_image)
+        assert expected_caplog in caplog.text
+
+    def test_invalid_element_creating_image(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'elemental_1000000', expected_caplog='Invalid element: 1000000')
+
+    def test_no_embedding(self, caplog):
+        self.do_test_invalid_embedding_image(
+            caplog, 'elemental_1',
+            expected_caplog='Failed to load indices and/or embedding data.',
+            config=self.CUSTOM_CONFIG_PATH_NO_EMBEDDING,
+            folder_name='no_embedding'
+        )
+
+    def test_invalid_image_type(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'invalid', expected_caplog='Invalid overlay type: invalid')
+    
+    def test_invalid_contextual_image_type(self, caplog):
+        self.do_test_invalid_embedding_image(caplog, 'contextual_invalid')
+
+    def test_invalid_getting_image_of_indices_invalid_data_source(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+
+        # execute
+        path: str = get_image_of_indices_to_embedding("non_existent_data_source")
+        
+        # verify
+        assert not path
+    
+    def test_invalid_getting_image_of_indices_no_image(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
+
+        # execute
+        path: str = get_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+
+        # verify
+        assert not path
+        assert 'File image_index_to_embedding.png not found.' in caplog.text
+    
+    def test_invalid_create_image_of_indices_no_cube(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding(self.NO_CUBE_DATA_SOURCE)
+
+        # verify
+        assert not result
+    
+    def test_invalid_create_image_of_indices_invalid_data_source(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding('this_is_not_a_data_source')
+
+        # verify
+        assert not result
+    
+    def test_invalid_create_image_of_indices_no_files(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
+
+        # verify
+        assert not result
+
     def test_valid_create_embedding_image(self, caplog):
         caplog.set_level(logging.INFO)
 
@@ -184,6 +281,7 @@ class TestDimReduction:
             RESOURCES_PATH, 'dim_reduction', self.TEST_DATA_SOURCE, 'generated', 'embedding_present'
         )
         path_image: str = join(path_generated_folder, 'image_index_to_embedding.png')
+        set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
         # execute
         result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
@@ -198,3 +296,16 @@ class TestDimReduction:
 
         # cleanup
         remove(path_image)
+
+    def test_nan_embedding(self, caplog):
+        # setup
+        embedding: np.ndarray = np.full((9, 2), np.nan)
+        overlay: np.ndarray = np.full((9,), 0.0)
+        path_to_save: str = ""
+
+        # execute
+        result: str = plot_embedding_with_overlay(embedding, overlay, path_to_save)
+
+        # verify
+        assert not result
+        assert 'Failed to create embedding image. The embedding data contains NaN values.' in caplog.text

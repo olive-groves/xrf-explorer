@@ -39,10 +39,10 @@ watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
 watch(spectraChart, (value) => (exportableElements["Spectral"] = value), { immediate: true });
 
 // Binning parameters
-const high = computed(() => appState.workspace?.spectralParams?.high ?? 40);
+const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
+const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
 const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
 const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
-const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
 
 let abortController = new AbortController();
 

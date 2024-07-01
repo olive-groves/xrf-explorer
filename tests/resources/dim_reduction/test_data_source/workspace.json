@@ -1,6 +1,6 @@
 {
   "baseImage": {
-    "imageLocation": "196_1989_RGB.tif",
+    "imageLocation": "rgb.png",
     "name": "RGB",
     "recipeLocation": ""
   },
@@ -27,7 +27,7 @@
       "dataLocation": "test_cube.dms",
       "fileType": "dms",
       "name": "Datacube",
-      "recipeLocation": ""
+      "recipeLocation": "recipe.csv"
     }
   ],
   "name": "test_data_source",

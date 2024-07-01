@@ -1,0 +1,1 @@
+{"name": "Data source", "spectralCubes": [{"rawLocation": "data.raw", "rplLocation": "data.rpl"}], "spectralParams": {"low": 1, "high": 5, "binSize": 2, "binned": true}}

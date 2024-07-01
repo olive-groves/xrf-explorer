@@ -1,0 +1,3 @@
+uploads-folder: "tests/resources/spectra/data"
+generated-folder-name: "generated"
+max-spectrum-points: 9000

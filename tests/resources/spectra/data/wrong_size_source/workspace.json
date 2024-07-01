@@ -1,0 +1,1 @@
+{"name": "wrong_size_source", "spectralCubes": [{"rawLocation": "empty.raw", "rplLocation": "data.rpl"}], "spectralParams": {"low": 51, "high": 2048, "binSize": 6, "binned": false}}
