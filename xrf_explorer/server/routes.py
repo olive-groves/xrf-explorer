@@ -231,7 +231,7 @@ def remove_data_source(data_source: str):
     LOG.info(f"Aborting data source directory creation for {data_source}")
 
     error_response_config: tuple[str, int] | None = validate_config(config)
-    if error_resonse_config:
+    if error_response_config:
         return error_resonse_config
 
     error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
