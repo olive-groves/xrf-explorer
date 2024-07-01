@@ -92,7 +92,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     
     backend_config: dict = get_config() # get the backend config
     dr_folder: str = get_path_to_dr_folder(data_source) # get path to folder to store the embedding and the indices
-    data_cube: np.ndarray = get_elemental_data_cube(data_source) # get data cube
+    data_cube: np.ndarray = get_elemental_data_cube(data_source)  # get data cube
 
     if not backend_config or not isdir(dr_folder) or len(data_cube) == 0:
         LOG.error("Failed to load a necessary file")

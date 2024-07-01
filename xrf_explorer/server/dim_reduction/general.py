@@ -73,7 +73,6 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
     :return: True if the image was created successfully, otherwise False
     """
 
-    
     dr_folder: str = get_path_to_dr_folder(data_source) # Get the path to the dimensionality reduction folder
     elemental_cube: np.ndarray | None = get_elemental_data_cube(data_source) # Load the elemental data cube
     
