@@ -3,7 +3,6 @@ import json
 from logging import Logger, getLogger
 from os import remove
 from os.path import basename, dirname, splitext
-from pathlib import Path
 
 import numpy as np
 
@@ -274,7 +273,7 @@ def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
     if cube_path.endswith(".csv"):
         # Convert elemental data cube to .dms format
         cube = get_elemental_data_cube(data_source)
-        element_names = get_element_names(cube_path)
+        element_names = get_element_names(data_source)
     else:
         LOG.error(f"Cannot convert {cube_path} to .dms format.")
         return False
