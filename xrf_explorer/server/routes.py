@@ -301,7 +301,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
 
     error_resonse_config: tuple[str, int] | None = validate_config(config)
     if error_resonse_config:
-        return error_resonse_config
+        return error_response_config
 
     # get file location
     path: str = abspath(join(config['uploads-folder'], data_source, file_name))
