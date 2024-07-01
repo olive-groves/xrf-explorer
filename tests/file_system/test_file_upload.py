@@ -4,7 +4,7 @@ from os.path import join, isdir
 from werkzeug.datastructures.file_storage import FileStorage
 
 from xrf_explorer.server.file_system.helper import set_config, get_config
-from xrf_explorer.server.file_system.sources.data_listing import get_data_sources_names
+from xrf_explorer.server.file_system.sources.data_listing import get_data_sources_names, get_data_source_files
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -43,3 +43,15 @@ class TestUploadFileToServer:
 
         # validate
         assert result == []
+
+    def test_get_data_source_files(self, caplog):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        files: list[str] = get_data_source_files('test_data_source')
+
+        # validate
+        assert len(files) == 2
+        assert 'test_data_cube.txt' in files
+        assert 'workspace.json' in files
