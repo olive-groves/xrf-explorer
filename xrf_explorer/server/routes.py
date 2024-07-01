@@ -826,7 +826,7 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
 
     error_response_config: tuple[str, int] | None = validate_config(config)
     if error_response_config:
-        return error_resonse_config
+        return error_response_config
 
     # Path to save bitmask to
     path_to_save: str = get_path_to_cs_folder(data_source)
