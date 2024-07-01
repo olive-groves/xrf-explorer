@@ -90,7 +90,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled
     """
     
-    backend_config: dict = get_config()  # get the backend config
+    backend_config: dict | None = get_config()  # get the backend config
     dr_folder: str = get_path_to_dr_folder(data_source)  # get path to folder to store the embedding and the indices
     data_cube: np.ndarray = get_elemental_data_cube(data_source)  # get data cube
 

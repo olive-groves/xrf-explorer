@@ -222,7 +222,7 @@ class TestDimReduction:
     def test_invalid_contextual_image_type(self, caplog):
         self.do_test_invalid_embedding_image(caplog, 'contextual_invalid')
 
-    def test_invalid_getting_image_of_indices_invalid_data_source(self, caplog):
+    def test_invalid_getting_image_of_indices_invalid_data_source(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH_EMBEDDING_PRESENT)
 
@@ -243,7 +243,7 @@ class TestDimReduction:
         assert not path
         assert 'File image_index_to_embedding.png not found.' in caplog.text
     
-    def test_invalid_create_image_of_indices_no_cube(self, caplog):
+    def test_invalid_create_image_of_indices_no_cube(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
 
@@ -253,7 +253,7 @@ class TestDimReduction:
         # verify
         assert not result
     
-    def test_invalid_create_image_of_indices_invalid_data_source(self, caplog):
+    def test_invalid_create_image_of_indices_invalid_data_source(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
 
@@ -263,7 +263,7 @@ class TestDimReduction:
         # verify
         assert not result
     
-    def test_invalid_create_image_of_indices_no_files(self, caplog):
+    def test_invalid_create_image_of_indices_no_files(self):
         # setup
         set_config(self.CUSTOM_CONFIG_PATH)
 
