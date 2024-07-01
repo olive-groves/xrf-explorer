@@ -151,7 +151,8 @@ function dialogUpdate(open: boolean) {
     fileLog.value = [];
   } else if (processing.value) {
     // Dialog can only be closed if not processing uploads
-    toast.info("Dialog can not be closed while uploading files");
+    toast.info("Dialog cannot be closed while uploading files");
+
   } else {
     dialogOpen.value = false;
   }
