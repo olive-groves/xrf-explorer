@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { ContextMenuItem, ContextMenuSeparator, ContextMenuCheckboxItem } from "@/components/ui/context-menu";
 import { ResizablePanel } from "../resizable";
 import { WindowLocation, windowState } from "./state";
