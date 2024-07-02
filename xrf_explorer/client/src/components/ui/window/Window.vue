@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Import the necessary functions and components
-import { Teleport, ref, toRef, watch } from "vue";
+import { ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 import { appState } from "@/lib/appState";
