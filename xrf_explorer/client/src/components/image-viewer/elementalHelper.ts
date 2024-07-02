@@ -12,6 +12,7 @@ import { config } from "@/main";
 import * as THREE from "three";
 import { hexToRgb } from "@/lib/utils";
 
+// Elemental maps
 import elementalFragment from "./elementalFragment.glsl?raw";
 import elementalVertex from "./elementalVertex.glsl?raw";
 

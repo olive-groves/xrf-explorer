@@ -1,6 +1,7 @@
 precision highp float;
 precision highp int;
 
+// Layer types
 const int TRANSPARENT = 0x00;
 const int IN_LENS = 0x01;
 const int OUTSIDE_LENS = 0x02;
@@ -11,6 +12,7 @@ const int TYPE_CS = 0x02;
 const int TYPE_DR = 0x03;
 const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
 
+// Uniforms
 uniform int iLayerType;
 uniform sampler2D tImage;
 uniform mat3 mRegister;
@@ -27,6 +29,7 @@ uniform float uBrightness;
 
 in vec2 vUv;
 
+// Output
 out vec4 fragColor;
 
 // Convert RGB to HSL
@@ -91,6 +94,7 @@ void main() {
   }
   
   float distance = distance(gl_FragCoord.xy, uMouse);
+  // Check if the pixel is inside the lens radius
   if (distance <= uRadius) {
     if ((iShowLayer & IN_LENS) != 0) {
       fragColor = texture(tImage, uv.xy);

@@ -1,3 +1,4 @@
+// Import necessary modules
 import { appState, datasource } from "@/lib/appState";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
@@ -78,6 +79,7 @@ export async function loadPlaceholderLayer() {
   layer.uniform.iAuxiliary = { value: 0 };
   layer.uniform.tAuxiliary = { value: dataTexture, type: "t" };
 
+  // Add layer to color clusters layer group
   layerGroups.value.colorClusters = {
     name: "Color clusters",
     description: "Generated layer",
