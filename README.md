@@ -4,7 +4,7 @@ Repository for the XRF Explorer team.
 
 ## Files to be excluded from testing
 
-Goodbye to our nice README
+- All files under `xrf_explorer/client/src/components/ui` except the files under `/selection-area` and `/window`. 
 
 ## Development information
 
