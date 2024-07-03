@@ -131,6 +131,8 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.get_data(as_text=True) == "Data source name already exists."
 
+    # NOTE: This test is working as expected. The data source will actually be removed.
+    # Disregard the deletal of the data source directory.
     def test_remove_data_source(self, client: FlaskClient):
         # execute
         response = client.post(f"/api/{self.DATA_SOURCE}/remove")
