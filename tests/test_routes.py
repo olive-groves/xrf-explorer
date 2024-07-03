@@ -64,32 +64,32 @@ class TestRoutes:
     
     def test_get_workspace(self, client: FlaskClient):
         # execute
-        file = client.get(f"/api/{self.DATA_SOURCE}/workspace").json
+        file: dict = client.get(f"/api/{self.DATA_SOURCE}/workspace").json
 
         # verify
         assert len(file) > 0
     
     def test_get_workspace_invalid_data_source(self, client: FlaskClient):
         # execute
-        file = client.get("/api/this is not a data source/workspace")
+        file: TestResponse = client.get("/api/this is not a data source/workspace")
 
         # verify
         assert file.status_code == 404
 
     def test_datasource_files(self, client: FlaskClient):
         # execute
-        response = client.get(f"/api/{self.DATA_SOURCE}/files")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/files")
 
         # verify
         assert response.status_code == 200
     
     def test_create_data_source_dir(self, client: FlaskClient):
         # setup
-        completely_new_data_source = "completely_new_data_source"
+        completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
 
         # execute
-        response = client.post(f"/api/{completely_new_data_source}/create")
+        response: TestResponse = client.post(f"/api/{completely_new_data_source}/create")
 
         # verify
         assert response.status_code == 200
@@ -101,7 +101,7 @@ class TestRoutes:
 
     def test_create_data_source_dir_existing_name(self, client: FlaskClient):
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/create")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/create")
 
         # verify
         assert response.status_code == 400
@@ -113,7 +113,7 @@ class TestRoutes:
         error_msg: str = "Error occurred while creating data source directory" 
 
         # execute
-        response = client.post("/api/completely_new_data_source/create")
+        response: TestResponse = client.post("/api/completely_new_data_source/create")
 
         # verify
         assert response.status_code == 500
@@ -122,7 +122,7 @@ class TestRoutes:
     
     def test_remove_data_source(self, client: FlaskClient):
         # setup
-        completely_new_data_source = "completely_new_data_source"
+        completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
 
         # setup - create data source with workspace and generated folder
@@ -132,7 +132,7 @@ class TestRoutes:
             f.write("{}")
 
         # execute
-        response = client.post(f"/api/{completely_new_data_source}/remove")
+        response: TestResponse = client.post(f"/api/{completely_new_data_source}/remove")
 
         # verify
         assert response.status_code == 200
@@ -145,7 +145,7 @@ class TestRoutes:
         error_msg: str = "Error occurred while removing data source directory"
 
         # execute
-        response = client.post(f"/api/completely_new_data_source/remove")
+        response: TestResponse = client.post(f"/api/completely_new_data_source/remove")
 
         # verify
         assert response.status_code == 500
@@ -158,7 +158,9 @@ class TestRoutes:
         file_path: str = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, file_name)
 
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/upload/{file_name}/0", data=b"This is a test chunk")
+        response: TestResponse = client.post(
+            f"/api/{self.DATA_SOURCE}/upload/{file_name}/0", data=b"This is a test chunk"
+        )
 
         # verify
         assert response.status_code == 200
@@ -174,7 +176,9 @@ class TestRoutes:
         error_msg: str = "Error occurred while uploading file chunk"
 
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/upload/a_new_file/0", data=b"This is a test chunk")
+        response: TestResponse = client.post(
+            f"/api/{self.DATA_SOURCE}/upload/a_new_file/0", data=b"This is a test chunk"
+        )
 
         # verify
         assert response.status_code == 500
@@ -183,7 +187,7 @@ class TestRoutes:
     
     def test_convert_elemental_cube(self, client: FlaskClient):
         # execute
-        response = client.get(f"/api/{self.DATA_SOURCE}/data/convert")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/data/convert")
 
         # verify
         assert response.status_code == 200
@@ -191,14 +195,14 @@ class TestRoutes:
 
     def test_convert_elemental_cube_invalid_data_source(self, client: FlaskClient):
         # execute
-        response = client.get("/api/this is not a data source/data/convert")
+        response: TestResponse = client.get("/api/this is not a data source/data/convert")
 
         # verify
         assert response.status_code == 500
     
     def test_bin_raw_data_already_binned(self, client: FlaskClient):
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/bin_raw/")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/bin_raw/")
 
         # verify
         assert response.status_code == 200
@@ -206,7 +210,7 @@ class TestRoutes:
 
     def test_bin_raw_data_invalid_data_source(self, client: FlaskClient):
         # execute
-        response = client.post("/api/this is not a data source/bin_raw/")
+        response: TestResponse = client.post("/api/this is not a data source/bin_raw/")
 
         # verify
         assert response.status_code == 500
@@ -220,10 +224,10 @@ class TestRoutes:
     
     def test_get_offset_invalid_data_source(self, client: FlaskClient):
         # execute
-        offset = client.get("/api/this is not a data source/get_offset").json
+        offset: dict = client.get("/api/this is not a data source/get_offset").text
 
         # verify
-        assert offset is None
+        assert offset == "0"
     
     def test_list_element_averages(self, client: FlaskClient):
         # execute
@@ -300,13 +304,13 @@ class TestRoutes:
 
     def test_data_cube_recipe_invalid_data_source(self, client: FlaskClient):
         # execute
-        recipe = client.get("/api/this is not a data source/data/recipe")
+        recipe: TestResponse = client.get("/api/this is not a data source/data/recipe")
 
         # verify
         assert recipe.status_code == 404
 
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
-        selection = {
+        selection: dict = {
             "type": "invalid_type",
             "points": [
                 {"x": 0, "y": 0},
@@ -315,7 +319,7 @@ class TestRoutes:
         }
 
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
 
         # verify
         assert response.status_code == 400
