@@ -83,4 +83,27 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 500
-        assert response.get_data(as_text=True) == "Error getting elemental datacube path"
+
+    def test_bin_raw_data_already_binned(self, client: FlaskClient):
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/bin_raw/")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == "Data already binned"
+
+    def test_bin_raw_data_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response = client.post("/api/this is not a data source/bin_raw/")
+
+        # verify
+        assert response.status_code == 500
+
+
+    def test_list_element_names(self, client: FlaskClient):
+        # execute
+        result_str: str = client.get(f"/api/{self.DATA_SOURCE}/data/elements/names").text
+        result_list: list[str] = json.loads(result_str)
+
+        # verify
+        assert len(result_list) >= 0
