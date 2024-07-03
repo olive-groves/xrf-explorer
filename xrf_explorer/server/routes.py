@@ -352,14 +352,7 @@ def list_element_averages(data_source: str):
     :param data_source: data_source to get the element averages from
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
-    composition: list[dict[str, str | float]] = get_element_averages(data_source)
-
-    try:
-        return json.dumps(composition)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element averages: {str(e)}")
-        return "Error occurred while listing element averages", 500
-
+    return json.dumps(get_element_averages(data_source))
 
 @app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
 def list_element_averages_selection(data_source: str):

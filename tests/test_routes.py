@@ -8,6 +8,8 @@ import json
 from flask import Response
 from flask.testing import FlaskClient
 
+import numpy as np
+
 from xrf_explorer import app
 from xrf_explorer.server.file_system.helper import set_config
 
@@ -18,6 +20,22 @@ class TestRoutes:
     DATA_SOURCES_FOLDER: str = join(RESOURCES_PATH, "data_sources")
 
     DATA_SOURCE: str = "test_data_source"
+
+    ELEMENTAL_CUBE: np.ndarray = np.array(
+        [[
+            [1, 2, 3], 
+            [4, 5, 6],
+            [7, 8, 9]
+        ], [
+            [10, 20, 30], 
+            [40, 50, 60],
+            [70, 80, 90]
+        ], [
+            [100, 200, 300], 
+            [400, 500, 600],
+            [700, 800, 900]
+        ]]
+    )
 
     @pytest.fixture()
     def client(self):
@@ -205,6 +223,13 @@ class TestRoutes:
 
         # verify
         assert offset is None
+    
+    def test_list_element_averages(self, client: FlaskClient):
+        # execute
+        result: str = client.get(f"/api/{self.DATA_SOURCE}/element_averages").text
+
+        # verify
+        assert len(json.loads(result)) == 3
     
     def test_list_element_names(self, client: FlaskClient):
         # execute
