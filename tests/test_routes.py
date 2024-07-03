@@ -88,6 +88,19 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.text == "Data source name already exists."
     
+    def test_create_data_source_dir_no_config(self, client: FlaskClient, caplog):
+        # setup
+        set_config("this is not a config file.yml")
+        error_msg: str = "Error occurred while creating data source directory" 
+
+        # execute
+        response = client.post("/api/completely_new_data_source/create")
+
+        # verify
+        assert response.status_code == 500
+        assert response.text == error_msg 
+        assert error_msg in caplog.text
+    
     def test_remove_data_source(self, client: FlaskClient):
         # setup
         completely_new_data_source = "completely_new_data_source"
@@ -107,6 +120,19 @@ class TestRoutes:
         assert response.get_json() == {"dataSourceDir": completely_new_data_source}
         assert not isdir(folder_path)
     
+    def test_remove_data_source_no_config(self, client: FlaskClient, caplog):
+        # setup
+        set_config("this is not a config file.yml")
+        error_msg: str = "Error occurred while removing data source directory"
+
+        # execute
+        response = client.post(f"/api/completely_new_data_source/remove")
+
+        # verify
+        assert response.status_code == 500
+        assert response.text == error_msg 
+        assert error_msg in caplog.text
+    
     def test_upload_chunk(self, client: FlaskClient):
         # setup
         file_name: str = "test_file.txt"
@@ -122,6 +148,19 @@ class TestRoutes:
 
         # cleanup
         remove(file_path)
+    
+    def test_upload_chunk_no_config(self, client: FlaskClient, caplog):
+        # setup
+        set_config("this is not a config file.yml")
+        error_msg: str = "Error occurred while uploading file chunk"
+
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/a_new_file/0", data=b"This is a test chunk")
+
+        # verify
+        assert response.status_code == 500
+        assert response.text == error_msg 
+        assert error_msg in caplog.text
     
     def test_convert_elemental_cube(self, client: FlaskClient):
         # execute

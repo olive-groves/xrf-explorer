@@ -153,11 +153,6 @@ def create_data_source_dir(data_source: str):
         LOG.error(error_msg)
         return error_msg, 500
 
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
-
     if data_source in get_data_sources_names():
         error_msg: str = "Data source name already exists."
         LOG.error(error_msg)
@@ -188,11 +183,6 @@ def remove_data_source(data_source: str):
         error_msg: str = "Error occurred while removing data source directory"
         LOG.error(error_msg)
         return error_msg, 500
-
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
 
     data_source_path: str = join(config['uploads-folder'], data_source)
     workspace_path: str = join(data_source_path, "workspace.json")
