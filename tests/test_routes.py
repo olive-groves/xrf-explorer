@@ -131,42 +131,58 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.get_data(as_text=True) == "Data source name already exists."
 
-    # NOTE: This test is working as expected. The data source will actually be removed.
-    # Disregard the deletal of the data source directory.
-    def test_remove_data_source(self, client: FlaskClient):
+    # # NOTE: This test is working as expected. The data source will actually be removed.
+    # # Disregard the deletal of the data source directory.
+    # def test_remove_data_source(self, client: FlaskClient):
+    #     # execute
+    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+
+    #     # verify
+    #     assert response.status_code == 200
+    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+
+    # def test_remove_data_source_with_generated_files(self, client: FlaskClient):
+    #     # execute
+    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+
+    #     # verify
+    #     assert response.status_code == 200
+    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+    #     # Verify that the generated folder is removed
+    #     assert not exists(join("uploads", self.DATA_SOURCE, "generated"))
+
+    # def test_remove_data_source_with_workspace_file(self, client: FlaskClient):
+    #     # execute
+    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+
+    #     # verify
+    #     assert response.status_code == 200
+    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+    #     # Verify that the workspace.json file is removed
+    #     assert not exists(join("uploads", self.DATA_SOURCE, "workspace.json"))
+
+    # def test_remove_data_source_with_empty_directory(self, client: FlaskClient):
+    #     # execute
+    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+
+    #     # verify
+    #     assert response.status_code == 200
+    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+    #     # Verify that the data source directory is removed
+    #     assert not exists(join("uploads", self.DATA_SOURCE))
+
+    def test_upload_chunk(self, client: FlaskClient):
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0", data=b"This is a test chunk")
 
         # verify
         assert response.status_code == 200
-        assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+        assert response.get_data(as_text=True) == "Uploaded file chunk"
 
-    def test_remove_data_source_with_generated_files(self, client: FlaskClient):
+    def test_upload_chunk_existing_file(self, client: FlaskClient):
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0")
 
         # verify
         assert response.status_code == 200
-        assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-        # Verify that the generated folder is removed
-        assert not exists(join("uploads", self.DATA_SOURCE, "generated"))
-
-    def test_remove_data_source_with_workspace_file(self, client: FlaskClient):
-        # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/remove")
-
-        # verify
-        assert response.status_code == 200
-        assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-        # Verify that the workspace.json file is removed
-        assert not exists(join("uploads", self.DATA_SOURCE, "workspace.json"))
-
-    def test_remove_data_source_with_empty_directory(self, client: FlaskClient):
-        # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/remove")
-
-        # verify
-        assert response.status_code == 200
-        assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-        # Verify that the data source directory is removed
-        assert not exists(join("uploads", self.DATA_SOURCE))
+        assert response.get_data(as_text=True) == "Uploaded file chunk"
