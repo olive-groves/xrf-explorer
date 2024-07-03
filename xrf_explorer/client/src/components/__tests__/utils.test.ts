@@ -365,4 +365,23 @@ describe("validateWorkspace Test", () => {
     const expected = [true, ""];
     expect(validateWorkspace(deepCloneEmpty12)).toEqual(expected);
   });
+
+  test("non-unique names", () => {
+    const workspace: WorkspaceConfig = {
+      name: "workspace",
+      baseImage: { name: "image1", imageLocation: "image1", recipeLocation: "recipe1" },
+      contextualImages: [
+        { name: "image2", imageLocation: "image2", recipeLocation: "recipe2" },
+        { name: "image1", imageLocation: "image3", recipeLocation: "recipe3" },
+      ],
+      spectralCubes: [{ name: "cube1", rawLocation: "raw1", rplLocation: "rpl1", recipeLocation: "recipe1" }],
+      elementalCubes: [{ name: "cube2", dataLocation: "data1", recipeLocation: "recipe2" }],
+      elementalChannels: [],
+      spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+    };
+
+    const [isValid, errorMessage] = validateWorkspace(workspace);
+    expect(isValid).toBe(false);
+    expect(errorMessage).toBe("Names must be unique");
+  });
 });
