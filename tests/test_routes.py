@@ -158,3 +158,19 @@ class TestRoutes:
         assert response.status_code == 200
         assert response.get_json() == {"dataSourceDir": completely_new_data_source}
         assert not isdir(folder_path)
+
+    def test_upload_chunk(self, client: FlaskClient):
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0", data=b"This is a test chunk")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == "Uploaded file chunk"
+
+    def test_upload_chunk_existing_file(self, client: FlaskClient):
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == "Uploaded file chunk"
