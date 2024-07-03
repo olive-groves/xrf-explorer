@@ -107,3 +107,26 @@ class TestRoutes:
 
         # verify
         assert len(result_list) >= 0
+
+    def test_datasource_files(self, client: FlaskClient):
+        # execute
+        response = client.get(f"/api/{self.DATA_SOURCE}/files")
+
+        # verify
+        assert response.status_code == 200
+
+    def test_create_data_source_dir(self, client: FlaskClient):
+        # execute
+        response = client.post("/api/completely_new_data_source/create")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_json() == {"dataSourceDir": "completely_new_data_source"}
+
+    def test_create_data_source_dir_existing_name(self, client: FlaskClient):
+        # execute
+        response = client.post("/api/test_data_source/create")
+
+        # verify
+        assert response.status_code == 400
+        assert response.get_data(as_text=True) == "Data source name already exists."
