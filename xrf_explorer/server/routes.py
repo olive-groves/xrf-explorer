@@ -354,6 +354,7 @@ def list_element_averages(data_source: str):
     """
     return json.dumps(get_element_averages(data_source))
 
+
 @app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
 def list_element_averages_selection(data_source: str):
     """Get the names and averages of the elements present in a rectangular selection of the painting.
@@ -362,9 +363,7 @@ def list_element_averages_selection(data_source: str):
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form {name: element name, average: element abundance}
     """
     # parse JSON payload
-    data: dict[str, str] | None = request.get_json()
-    if data is None:
-        return "Error parsing request body", 400
+    data: dict[str, str] = request.get_json()
 
     # get selection type and points
     selection_type: str | None = data.get('type')
@@ -401,11 +400,7 @@ def list_element_averages_selection(data_source: str):
     # get averages
     composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask)
 
-    try:
-        return json.dumps(composition)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element averages: {str(e)}")
-        return "Error occurred while listing element averages", 500
+    return json.dumps(composition)
 
 
 @app.route("/api/<data_source>/data/elements/names")

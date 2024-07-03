@@ -5,8 +5,8 @@ from os.path import join, exists, isdir, isfile
 import pytest
 import json
 
-from flask import Response
 from flask.testing import FlaskClient
+from werkzeug.test import TestResponse
 
 import numpy as np
 
@@ -14,6 +14,7 @@ from xrf_explorer import app
 from xrf_explorer.server.file_system.helper import set_config
 
 RESOURCES_PATH: str = join("tests", "resources")
+
 
 class TestRoutes:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "routes.yml")
@@ -230,6 +231,57 @@ class TestRoutes:
 
         # verify
         assert len(json.loads(result)) == 3
+    
+    def test_element_averages_selection_invalid_json(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
+            "something": "invalid"
+        })
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == "Error occurred while getting selection type or points from request body"
+    
+    def test_element_averages_selection_invalid_type(self, client: FlaskClient):
+        # setup
+        selection_type: str = "invalid_type"
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
+            "type": selection_type,
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        })
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == f"Error parsing selection of type {selection_type}"
+    
+    def test_element_averages_selection_invalid_points_type(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
+            "type": "rectangle",
+            "points": "not a list of points"
+        })
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == "Error parsing points; expected a list of points"
+    
+    def test_element_averages_selection(self, client: FlaskClient):
+        # execute
+        response: str = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }).text
+
+        # verify
+        assert len(json.loads(response)) == 3
     
     def test_list_element_names(self, client: FlaskClient):
         # execute
