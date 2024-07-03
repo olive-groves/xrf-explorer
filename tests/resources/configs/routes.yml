@@ -1,0 +1,16 @@
+temp-folder: "tests/resources/data_sources"
+uploads-folder: "tests/resources/data_sources"
+generated-folder-name: "generated"
+cs-folder-name: "color_segmentation"
+bind-address: 127.0.0.1
+port: 8001
+upload-buffer-size: 16384
+max-spectrum-points: 400
+dim-reduction:
+  folder-name: "dim_reduction"
+  max-samples: 8
+  umap-parameters:
+    n-neighbors: 10
+    min-dist: 0
+    n-components: 2
+    metric: "euclidean"

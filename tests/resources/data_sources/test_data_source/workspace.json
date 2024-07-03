@@ -1,0 +1,41 @@
+{
+    "baseImage": {
+        "imageLocation": "rgb.png",
+        "name": "BASE",
+        "recipeLocation": ""
+    },
+    "contextualImages": [],
+    "elementalChannels": [
+        {
+            "channel": 0,
+            "enabled": true,
+            "name": "yAl K"
+        },
+        {
+            "channel": 1,
+            "enabled": true,
+            "name": "Si K"
+        },
+        {
+            "channel": 2,
+            "enabled": true,
+            "name": "not an element"
+        }
+    ],
+    "elementalCubes": [
+        {
+            "dataLocation": "test_cube.dms",
+            "fileType": "dms",
+            "name": "Elemental cube",
+            "recipeLocation": "recipe_cubes.csv"
+        }
+    ],
+    "name": "Test data source",
+    "spectralCubes": [],
+    "spectralParams": {
+        "low": 0,
+        "high": 4096,
+        "binSize": 1,
+        "binned": true
+    }
+}
