@@ -4,6 +4,7 @@ from os.path import join
 import pytest
 import json
 
+from flask import Response
 from flask.testing import FlaskClient
 
 from xrf_explorer import app
@@ -25,6 +26,13 @@ class TestRoutes:
         set_config(self.CUSTOM_CONFIG_PATH)
         yield
 
+    def test_api(self, client: FlaskClient):
+        # execute
+        apis: str = client.get("/api").json
+
+        # verify
+        assert len(apis) >= 10
+    
     def test_get_datasources(self, client: FlaskClient):
         # execute
         result_str: str = client.get("/api/datasources").text
@@ -32,3 +40,10 @@ class TestRoutes:
 
         # verify
         assert len(result_list) == 1
+    
+    def test_get_workspace(self, client: FlaskClient):
+        # execute
+        file: Response = client.get(f"/api/{self.DATA_SOURCE}/workspace").json
+
+        # verify
+        assert len(file) > 0
