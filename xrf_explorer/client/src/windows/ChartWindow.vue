@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import {computed, ComputedRef, inject, ref, watch} from "vue";
-import {AspectRatio} from "@/components/ui/aspect-ratio";
-import {FrontendConfig} from "@/lib/config";
+import { computed, ComputedRef, inject, ref, watch } from "vue";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import {ElementSelection, SelectionAreaSelection} from "@/lib/selection";
-import {ElementalChannel} from "@/lib/workspace";
-import {appState, datasource, elementalDataPresent, elements} from "@/lib/appState";
-import {exportableElements} from "@/lib/export";
-import {flipSelectionAreaSelection} from "@/lib/utils";
-import {getTargetSize} from "@/components/image-viewer/api";
-import {LoaderPinwheel} from "lucide-vue-next";
-import {clearChart} from "./charts";
+import { ElementSelection, SelectionAreaSelection } from "@/lib/selection";
+import { ElementalChannel } from "@/lib/workspace";
+import { appState, datasource, elementalDataPresent, elements } from "@/lib/appState";
+import { exportableElements } from "@/lib/export";
+import { flipSelectionAreaSelection } from "@/lib/utils";
+import { getTargetSize } from "@/components/image-viewer/api";
+import { LoaderPinwheel } from "lucide-vue-next";
+import { clearChart } from "./charts";
 
 const chart = ref<HTMLElement>();
 const config = inject<FrontendConfig>("config")!;
@@ -175,9 +175,7 @@ async function fetchSelectionAverages() {
 function filterToWorkspaceElements(data: Element[]) {
   const elementalChannels: ElementalChannel[] = elements.value;
 
-  return data.filter((_, i) =>
-      elementalChannels.some((channel) => i == channel.channel && channel.enabled),
-  );
+  return data.filter((_, i) => elementalChannels.some((channel) => i == channel.channel && channel.enabled));
 }
 
 /**
@@ -189,9 +187,7 @@ function filterToWorkspaceElements(data: Element[]) {
 function maskData(data: Element[], selection: ElementSelection[]) {
   maskedElementSelection = selection.filter((element) => element.selected);
 
-  return data.filter((_, index) =>
-      maskedElementSelection.some((elementVis) => elementVis.channel == index),
-  );
+  return data.filter((_, index) => maskedElementSelection.some((elementVis) => elementVis.channel == index));
 }
 
 /**
