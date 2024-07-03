@@ -56,58 +56,6 @@ class TestRoutes:
 
         # verify
         assert file.status_code == 404
-    
-    def test_data_cube_recipe(self, client: FlaskClient):
-        # execute
-        recipe: dict = client.get(f"/api/{self.DATA_SOURCE}/data/recipe").json
-
-        # verify
-        assert len(recipe) > 0
-
-    def test_data_cube_recipe_invalid_data_source(self, client: FlaskClient):
-        # execute
-        recipe = client.get("/api/this is not a data source/data/recipe")
-
-        # verify
-        assert recipe.status_code == 404
-
-    def test_convert_elemental_cube(self, client: FlaskClient):
-        # execute
-        response = client.get(f"/api/{self.DATA_SOURCE}/data/convert")
-
-        # verify
-        assert response.status_code == 200
-        assert response.text == "Converted elemental data cube to .dms format"
-
-    def test_convert_elemental_cube_invalid_data_source(self, client: FlaskClient):
-        # execute
-        response = client.get("/api/this is not a data source/data/convert")
-
-        # verify
-        assert response.status_code == 500
-
-    def test_bin_raw_data_already_binned(self, client: FlaskClient):
-        # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/bin_raw/")
-
-        # verify
-        assert response.status_code == 200
-        assert response.text == "Data already binned"
-
-    def test_bin_raw_data_invalid_data_source(self, client: FlaskClient):
-        # execute
-        response = client.post("/api/this is not a data source/bin_raw/")
-
-        # verify
-        assert response.status_code == 500
-
-    def test_list_element_names(self, client: FlaskClient):
-        # execute
-        result_str: str = client.get(f"/api/{self.DATA_SOURCE}/data/elements/names").text
-        result_list: list[str] = json.loads(result_str)
-
-        # verify
-        assert len(result_list) >= 0
 
     def test_datasource_files(self, client: FlaskClient):
         # execute
@@ -115,7 +63,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 200
-
+    
     def test_create_data_source_dir(self, client: FlaskClient):
         # setup
         completely_new_data_source = "completely_new_data_source"
@@ -139,7 +87,7 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.text == "Data source name already exists."
-
+    
     def test_remove_data_source(self, client: FlaskClient):
         # setup
         completely_new_data_source = "completely_new_data_source"
@@ -158,7 +106,7 @@ class TestRoutes:
         assert response.status_code == 200
         assert response.get_json() == {"dataSourceDir": completely_new_data_source}
         assert not isdir(folder_path)
-
+    
     def test_upload_chunk(self, client: FlaskClient):
         # setup
         file_name: str = "test_file.txt"
@@ -174,6 +122,58 @@ class TestRoutes:
 
         # cleanup
         remove(file_path)
+    
+    def test_convert_elemental_cube(self, client: FlaskClient):
+        # execute
+        response = client.get(f"/api/{self.DATA_SOURCE}/data/convert")
+
+        # verify
+        assert response.status_code == 200
+        assert response.text == "Converted elemental data cube to .dms format"
+
+    def test_convert_elemental_cube_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response = client.get("/api/this is not a data source/data/convert")
+
+        # verify
+        assert response.status_code == 500
+    
+    def test_bin_raw_data_already_binned(self, client: FlaskClient):
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/bin_raw/")
+
+        # verify
+        assert response.status_code == 200
+        assert response.text == "Data already binned"
+
+    def test_bin_raw_data_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response = client.post("/api/this is not a data source/bin_raw/")
+
+        # verify
+        assert response.status_code == 500
+    
+    def test_list_element_names(self, client: FlaskClient):
+        # execute
+        result_str: str = client.get(f"/api/{self.DATA_SOURCE}/data/elements/names").text
+        result_list: list[str] = json.loads(result_str)
+
+        # verify
+        assert len(result_list) >= 0
+    
+    def test_data_cube_recipe(self, client: FlaskClient):
+        # execute
+        recipe: dict = client.get(f"/api/{self.DATA_SOURCE}/data/recipe").json
+
+        # verify
+        assert len(recipe) > 0
+
+    def test_data_cube_recipe_invalid_data_source(self, client: FlaskClient):
+        # execute
+        recipe = client.get("/api/this is not a data source/data/recipe")
+
+        # verify
+        assert recipe.status_code == 404
 
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
         selection = {

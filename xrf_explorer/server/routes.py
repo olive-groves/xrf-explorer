@@ -135,11 +135,7 @@ def datasource_files(data_source: str):
     :param data_source: The name of the data source to get the files for
     :return: json list of strings representing the file names
     """
-    try:
-        return json.dumps(get_data_source_files(data_source))
-    except Exception as e:
-        LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing files", 500
+    return json.dumps(get_data_source_files(data_source))
 
 
 @app.route("/api/<data_source>/create", methods=["POST"])
