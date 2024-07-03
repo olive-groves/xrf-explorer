@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { ScrollArea } from "../scroll-area";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { windowState } from "./state";
@@ -28,10 +29,12 @@ useResizeObserver(content, (entries) => {
   emit("contentHeight", entry.contentRect.height);
 });
 
+// Set the portal mounted state
 onMounted(() => {
   state.portalMounted = true;
 });
 
+// Unset the portal mounted state
 onBeforeUnmount(() => {
   state.portalMounted = false;
 });

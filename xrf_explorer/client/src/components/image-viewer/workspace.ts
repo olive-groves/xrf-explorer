@@ -1,3 +1,4 @@
+// Import necessary modules
 import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
 import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { computed, watch } from "vue";

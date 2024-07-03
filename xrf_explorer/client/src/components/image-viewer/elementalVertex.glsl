@@ -1,6 +1,7 @@
 precision highp float;
 precision highp int;
 
+// Attributes
 in vec3 position;
 in vec2 uv;
 
