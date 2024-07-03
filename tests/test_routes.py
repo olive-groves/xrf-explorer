@@ -1,6 +1,7 @@
 import logging
 
-from os.path import join, exists
+from os import rmdir, makedirs
+from os.path import join, exists, isdir
 import pytest
 import json
 
@@ -14,6 +15,7 @@ RESOURCES_PATH: str = join("tests", "resources")
 
 class TestRoutes:
     CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, "configs", "routes.yml")
+    DATA_SOURCES_FOLDER: str = join(RESOURCES_PATH, "data_sources")
 
     DATA_SOURCE: str = "test_data_source"
 
@@ -43,7 +45,7 @@ class TestRoutes:
     
     def test_get_workspace(self, client: FlaskClient):
         # execute
-        file: Response = client.get(f"/api/{self.DATA_SOURCE}/workspace").json
+        file = client.get(f"/api/{self.DATA_SOURCE}/workspace").json
 
         # verify
         assert len(file) > 0
@@ -75,7 +77,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 200
-        assert response.get_data(as_text=True) == "Converted elemental data cube to .dms format"
+        assert response.text == "Converted elemental data cube to .dms format"
 
     def test_convert_elemental_cube_invalid_data_source(self, client: FlaskClient):
         # execute
@@ -90,7 +92,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 200
-        assert response.get_data(as_text=True) == "Data already binned"
+        assert response.text == "Data already binned"
 
     def test_bin_raw_data_invalid_data_source(self, client: FlaskClient):
         # execute
@@ -98,7 +100,6 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 500
-
 
     def test_list_element_names(self, client: FlaskClient):
         # execute
@@ -116,60 +117,47 @@ class TestRoutes:
         assert response.status_code == 200
 
     def test_create_data_source_dir(self, client: FlaskClient):
+        # setup
+        completely_new_data_source = "completely_new_data_source"
+        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
+
         # execute
-        response = client.post("/api/completely_new_data_source/create")
+        response = client.post(f"/api/{completely_new_data_source}/create")
 
         # verify
         assert response.status_code == 200
-        assert response.get_json() == {"dataSourceDir": "completely_new_data_source"}
+        assert response.json == {"dataSourceDir": completely_new_data_source}
+        assert isdir(folder_path)
+
+        # cleanup
+        rmdir(folder_path)
 
     def test_create_data_source_dir_existing_name(self, client: FlaskClient):
         # execute
-        response = client.post("/api/test_data_source/create")
+        response = client.post(f"/api/{self.DATA_SOURCE}/create")
 
         # verify
         assert response.status_code == 400
-        assert response.get_data(as_text=True) == "Data source name already exists."
+        assert response.text == "Data source name already exists."
 
-    # # NOTE: This test is working as expected. The data source will actually be removed.
-    # # Disregard the deletal of the data source directory.
-    # def test_remove_data_source(self, client: FlaskClient):
-    #     # execute
-    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+    def test_remove_data_source(self, client: FlaskClient):
+        # setup
+        completely_new_data_source = "completely_new_data_source"
+        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
 
-    #     # verify
-    #     assert response.status_code == 200
-    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
+        # setup - create data source with workspace and generated folder
+        makedirs(folder_path)
+        makedirs(join(folder_path, "generated"))
+        with open(join(folder_path, "workspace.json"), "w") as f:
+            f.write("{}")
 
-    # def test_remove_data_source_with_generated_files(self, client: FlaskClient):
-    #     # execute
-    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
+        # execute
+        response = client.post(f"/api/{completely_new_data_source}/remove")
 
-    #     # verify
-    #     assert response.status_code == 200
-    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-    #     # Verify that the generated folder is removed
-    #     assert not exists(join("uploads", self.DATA_SOURCE, "generated"))
-
-    # def test_remove_data_source_with_workspace_file(self, client: FlaskClient):
-    #     # execute
-    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
-
-    #     # verify
-    #     assert response.status_code == 200
-    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-    #     # Verify that the workspace.json file is removed
-    #     assert not exists(join("uploads", self.DATA_SOURCE, "workspace.json"))
-
-    # def test_remove_data_source_with_empty_directory(self, client: FlaskClient):
-    #     # execute
-    #     response = client.post(f"/api/{self.DATA_SOURCE}/remove")
-
-    #     # verify
-    #     assert response.status_code == 200
-    #     assert response.get_json() == {"dataSourceDir": self.DATA_SOURCE}
-    #     # Verify that the data source directory is removed
-    #     assert not exists(join("uploads", self.DATA_SOURCE))
+        # verify
+        assert response.status_code == 200
+        assert response.get_json() == {"dataSourceDir": completely_new_data_source}
+        assert not isdir(folder_path)
 
     def test_upload_chunk(self, client: FlaskClient):
         # execute
