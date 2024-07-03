@@ -2,6 +2,8 @@ import logging
 
 from os import rmdir, makedirs, remove
 from os.path import join, exists, isdir, isfile
+from shutil import rmtree
+
 import pytest
 import json
 
@@ -21,6 +23,7 @@ class TestRoutes:
     DATA_SOURCES_FOLDER: str = join(RESOURCES_PATH, "data_sources")
 
     DATA_SOURCE: str = "test_data_source"
+    GENERATED_FOLDER: str = join(DATA_SOURCES_FOLDER, DATA_SOURCE, "generated")
 
     BASE_IMAGE: str = "BASE"
     ELEMENT_NAMES: list[str] = ["yAl K", "Si K", "not an element"]
@@ -392,3 +395,25 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.get_data(as_text=True) == "Error parsing selection type"
+
+    def test_get_color_clusters_whole_cube(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100")
+
+        # verify
+        assert response.status_code == 200
+        assert response.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
+    
+    def test_get_color_clusters_single_element(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0")
+
+        # verify
+        assert response.status_code == 200
+        assert response.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
