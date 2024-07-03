@@ -174,3 +174,19 @@ class TestRoutes:
 
         # cleanup
         remove(file_path)
+
+    def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
+        selection = {
+            "type": "invalid_type",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+
+        # execute
+        response = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.get_data(as_text=True) == "Error parsing selection type"
