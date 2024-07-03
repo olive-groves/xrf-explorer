@@ -54,3 +54,33 @@ class TestRoutes:
 
         # verify
         assert file.status_code == 404
+    
+    def test_data_cube_recipe(self, client: FlaskClient):
+        # execute
+        recipe: dict = client.get(f"/api/{self.DATA_SOURCE}/data/recipe").json
+
+        # verify
+        assert len(recipe) > 0
+
+    def test_data_cube_recipe_invalid_data_source(self, client: FlaskClient):
+        # execute
+        recipe = client.get("/api/this is not a data source/data/recipe")
+
+        # verify
+        assert recipe.status_code == 404
+
+    def test_convert_elemental_cube(self, client: FlaskClient):
+        # execute
+        response = client.get(f"/api/{self.DATA_SOURCE}/data/convert")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_data(as_text=True) == "Converted elemental data cube to .dms format"
+
+    def test_convert_elemental_cube_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response = client.get("/api/this is not a data source/data/convert")
+
+        # verify
+        assert response.status_code == 500
+        assert response.get_data(as_text=True) == "Error getting elemental datacube path"
