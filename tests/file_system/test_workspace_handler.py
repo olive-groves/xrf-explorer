@@ -4,7 +4,10 @@ from os import remove
 from os.path import join, normpath
 
 from xrf_explorer.server.file_system import set_config
-from xrf_explorer.server.file_system.workspace import get_path_to_workspace, update_workspace
+from xrf_explorer.server.file_system.workspace import (
+    get_path_to_workspace, update_workspace, get_base_image_name, get_base_image_path, get_workspace_dict
+)
+from xrf_explorer.server.file_system.workspace.file_access import get_spectral_cube_recipe_path
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -102,3 +105,87 @@ class TestWorkspaceHandler:
 
         # cleanup
         remove(path_to_workspace)
+
+    def test_get_get_workspace_dict_no_config(self, caplog):
+        # setup
+        set_config("imaginary-config-file.yml")
+
+        # execute
+        result: str | None = get_workspace_dict(self.DATASOURCE_NAME)
+
+        # verify
+        assert result is None 
+        assert "Config is empty" in caplog.text
+
+    def test_get_spectral_cube_recipe_path_no_config(self, caplog):
+        # setup
+        set_config("imaginary-config-file.yml")
+
+        # execute
+        result: str | None = get_spectral_cube_recipe_path(self.DATASOURCE_NAME)
+
+        # verify
+        assert result is None 
+        assert "Config is empty" in caplog.text
+    
+    def test_get_spectral_cube_recipe_path_no_workspace(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: str | None = get_spectral_cube_recipe_path(self.DATASOURCE_NAME_NO_WORKSPACE)
+
+        # verify
+        assert result is None
+
+    def test_get_base_image_name_no_config(self, caplog):
+        # setup
+        set_config("imaginary-config-file.yml")
+
+        # execute
+        result: str | None = get_base_image_name(self.DATASOURCE_NAME)
+
+        # verify
+        assert result is None 
+        assert "Config is empty" in caplog.text
+    
+    def test_get_base_image_name_no_workspace(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: str | None = get_base_image_name(self.DATASOURCE_NAME_NO_WORKSPACE)
+
+        # verify
+        assert result is None
+    
+    def test_get_base_image_name(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: str | None = get_base_image_name(self.DATASOURCE_NAME)
+
+        # verify
+        assert result == "RGB"
+
+    def test_get_base_image_path_no_config(self, caplog):
+        # setup
+        set_config("imaginary-config-file.yml")
+
+        # execute
+        result: str | None = get_base_image_path(self.DATASOURCE_NAME)
+
+        # verify
+        assert result is None 
+        assert "Config is empty" in caplog.text
+    
+    def test_get_base_image_path_no_filepath(self):
+        # setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result: str | None = get_base_image_path(self.DATASOURCE_NAME)
+
+        # verify
+        assert result is None

@@ -286,9 +286,9 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
     if workspace_dict is None:
         return None
 
-    filename: str | None = workspace_dict["baseImage"]["imageLocation"]
+    filename: str = workspace_dict["baseImage"]["imageLocation"]
 
-    if filename is not None:
+    if filename:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)
 
     return None
