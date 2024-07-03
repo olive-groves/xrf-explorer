@@ -379,7 +379,7 @@ describe("validateWorkspace Test", () => {
       elementalChannels: [],
       spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
     };
-  
+
     const [isValid, errorMessage] = validateWorkspace(workspace);
     expect(isValid).toBe(false);
     expect(errorMessage).toBe("Names must be unique");
