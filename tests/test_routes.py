@@ -47,3 +47,10 @@ class TestRoutes:
 
         # verify
         assert len(file) > 0
+    
+    def test_get_workspace_invalid_data_source(self, client: FlaskClient):
+        # execute
+        file = client.get("/api/this is not a data source/workspace")
+
+        # verify
+        assert file.status_code == 404

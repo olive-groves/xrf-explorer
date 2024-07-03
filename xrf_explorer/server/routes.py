@@ -93,11 +93,7 @@ def list_accessible_data_sources():
 
     :return: json list of strings representing the data sources names
     """
-    try:
-        return json.dumps(get_data_sources_names())
-    except Exception as e:
-        LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing data sources", 500
+    return json.dumps(get_data_sources_names())
 
 
 @app.route("/api/<data_source>/workspace", methods=["GET", "POST"])
