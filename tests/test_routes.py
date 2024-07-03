@@ -1,7 +1,7 @@
 import logging
 
-from os import rmdir, makedirs
-from os.path import join, exists, isdir
+from os import rmdir, makedirs, remove
+from os.path import join, exists, isdir, isfile
 import pytest
 import json
 
@@ -160,17 +160,17 @@ class TestRoutes:
         assert not isdir(folder_path)
 
     def test_upload_chunk(self, client: FlaskClient):
+        # setup
+        file_name: str = "test_file.txt"
+        file_path: str = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, file_name)
+
         # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0", data=b"This is a test chunk")
+        response = client.post(f"/api/{self.DATA_SOURCE}/upload/{file_name}/0", data=b"This is a test chunk")
 
         # verify
         assert response.status_code == 200
-        assert response.get_data(as_text=True) == "Uploaded file chunk"
+        assert response.text == "Uploaded file chunk"
+        assert isfile(file_path)
 
-    def test_upload_chunk_existing_file(self, client: FlaskClient):
-        # execute
-        response = client.post(f"/api/{self.DATA_SOURCE}/upload/test_file.txt/0")
-
-        # verify
-        assert response.status_code == 200
-        assert response.get_data(as_text=True) == "Uploaded file chunk"
+        # cleanup
+        remove(file_path)
