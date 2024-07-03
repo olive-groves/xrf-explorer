@@ -410,12 +410,7 @@ def list_element_names(data_source: str):
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
-    names: list[str] = get_element_names(data_source)
-    try:
-        return json.dumps(names)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element names: {str(e)}")
-        return "Error occurred while listing element names", 500
+    return json.dumps(get_element_names(data_source))
 
 
 @app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
@@ -634,9 +629,8 @@ def get_average_data(data_source: str):
     datacube: np.ndarray = get_raw_data(data_source)
 
     average_values: list = get_average_global(datacube)
-    response = json.dumps(average_values)
 
-    return response
+    return json.dumps(average_values)
 
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])

@@ -22,6 +22,8 @@ class TestRoutes:
 
     DATA_SOURCE: str = "test_data_source"
 
+    BASE_IMAGE: str = "BASE"
+    ELEMENT_NAMES: list[str] = ["yAl K", "Si K", "not an element"]
     ELEMENTAL_CUBE: np.ndarray = np.array(
         [[
             [1, 2, 3], 
@@ -290,11 +292,58 @@ class TestRoutes:
     def test_list_element_names(self, client: FlaskClient):
         # execute
         result_str: str = client.get(f"/api/{self.DATA_SOURCE}/data/elements/names").text
+        print(result_str)
         result_list: list[str] = json.loads(result_str)
 
         # verify
-        assert len(result_list) >= 0
+        assert result_list == self.ELEMENT_NAMES
     
+    def test_contextual_image(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{self.BASE_IMAGE}")
+
+        # verify
+        assert response.status_code == 200
+        assert response.data
+    
+    def test_contextual_image_invalid_image(self, client: FlaskClient):
+        # setup
+        name: str = "not an image"
+
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{name}")
+
+        # verify
+        assert response.status_code == 404
+        assert response.text == f"Image {name} not found in source {self.DATA_SOURCE}"
+    
+    def test_contextual_image_size(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{self.BASE_IMAGE}/size")
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == {"width": 3, "height": 3}
+    
+    def test_contextual_image_size_invalid_image(self, client: FlaskClient):
+        # setup
+        name: str = "not an image"
+
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{name}/size")
+
+        # verify
+        assert response.status_code == 404
+        assert response.text == f"Image {name} not found in source {self.DATA_SOURCE}"
+    
+    def test_data_cube_size(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/data/size")
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == {"width": 3, "height": 3}
+
     def test_data_cube_recipe(self, client: FlaskClient):
         # execute
         recipe: dict = client.get(f"/api/{self.DATA_SOURCE}/data/recipe").json
@@ -308,6 +357,25 @@ class TestRoutes:
 
         # verify
         assert recipe.status_code == 404
+    
+    def test_elemental_map(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/data/elements/map/0")
+
+        # verify
+        assert response.status_code == 200
+        assert response.data
+    
+    def test_elemental_map_invalid_data_source(self, client: FlaskClient):
+        # setup
+        data_source: str = "not a data source"
+
+        # execute
+        response: TestResponse = client.get(f"/api/{data_source}/data/elements/map/0")
+
+        # verify
+        assert response.status_code == 404
+        assert response.text == f"Could not find elemental data cube in source {data_source}"
 
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
         selection: dict = {
