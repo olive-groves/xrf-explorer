@@ -22,3 +22,6 @@ xrf_explorer/client/docs/
 **/*.rpl
 **/*.csv
 **/*.dms
+
+# Ignore test coverage files
+.coverage
