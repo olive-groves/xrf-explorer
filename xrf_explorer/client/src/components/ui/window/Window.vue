@@ -11,15 +11,15 @@ const props = defineProps<{
    */
   title: string;
   /**
-   * Whether or not the window is disabled.
+   * Whether the window is disabled.
    */
   disabled?: boolean;
   /**
-   * Whether or not to open the window by default.
+   * Whether to open the window by default.
    */
   opened?: boolean;
   /**
-   * Whether or not to allow scrolling inside the window.
+   * Whether to allow scrolling inside the window.
    *
    * Enabling noScroll could be useful for fixed size content such as charts.
    */

@@ -62,7 +62,7 @@ watch(
 );
 
 /**
- * Updates the visibility of the layer group outside of the lens.
+ * Updates the visibility of the layer group outside the lens.
  * @param group - The group to toggle and update.
  */
 function checkedOutsideLens(group: LayerGroup) {

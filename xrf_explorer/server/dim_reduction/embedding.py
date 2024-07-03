@@ -19,15 +19,18 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components: int,
                metric: str) -> np.ndarray | None:
-    """Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
+    """
+    Reduces the dimensionality of the given data using uniform manifold approximation and projection (UMAP).
     The original data is not modified. For more information on UMAP, see: https://umap-learn.readthedocs.io/en/latest/.
 
-    :param data: np.ndarray, shape (n_samples, n_features). The data on which UMAP is used to reduce the dimension of -features to n_components
+    :param data: np.ndarray, shape (n_samples, n_features). The data on which UMAP is used to reduce the dimension of
+        features to n_components
     :param n_neighbors: The size of local neighborhood. See UMAP documentation for more information
     :param min_dist: The minimum distance between points in the embedding. See UMAP documentation for more information
     :param n_components: The dimension of the embedded space. See UMAP documentation for more information
     :param metric: The metric to use for distance computation. See UMAP documentation for more information
-    :return: np.ndarray, shape (n_samples, n_components) containing the result of UMAP applied to given data with the given parameters. If UMAP fails, None is returned
+    :return: np.ndarray, shape (n_samples, n_components) containing the result of UMAP applied to given data with the
+        given parameters. If UMAP fails, None is returned
     """
 
     try:
@@ -45,14 +48,15 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
 
 def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
                           threshold: int, max_indices: int) -> tuple[np.ndarray, np.ndarray]:
-    """Get indices for which the value of the given element in the normalized elemental data cube is above the
-    threshold.
+    """
+    Get indices for which the value of the given element in the normalized elemental data cube is above the threshold.
 
     :param elemental_cube: shape (3, m, n) elemental data cube
     :param element: The element to filter on
     :param threshold: The threshold to filter by
     :param max_indices: The maximum number of indices to return
-    :return: Indices for which the value of the given element in the normalized elemental data cube is above the threshold; the reduced list of indices
+    :return: Indices for which the value of the given element in the normalized elemental data cube is above the
+        threshold; the reduced list of indices
     """
 
     # normalize the elemental map to [0, 255]
@@ -78,7 +82,8 @@ def filter_elemental_cube(elemental_cube: np.ndarray, element: int,
 
 
 def generate_embedding(data_source: str, element: int, threshold: int, new_umap_parameters=None) -> str:
-    """Generate the embedding (lower dimensional representation of the data) of the elemental data cube using the
+    """
+    Generate the embedding (lower dimensional representation of the data) of the elemental data cube using the
     dimensionality reduction method "UMAP". The embedding with the list of indices (which pixels from the elemental data
     cube are in the embedding) are stored in the folder specified in the backend config file. The order the indices
     occur in the indices list is the same order as the positions of the mapped pixels in the embedding.
@@ -87,7 +92,9 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
     :param element: The element to generate the embedding for
     :param threshold: The threshold to filter the data cube by
     :param new_umap_parameters: The parameters passed on to the UMAP algorithm
-    :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when embedding was generated successfully, "downsampled" when successful and the number of data points was downsampled
+    :return: string code indicating the status of the embedding generation. "error" when error occurred, "success" when
+        embedding was generated successfully, "downsampled" when successful and the number of data points was
+        downsampled
     """
     
     backend_config: dict | None = get_config()  # get the backend config

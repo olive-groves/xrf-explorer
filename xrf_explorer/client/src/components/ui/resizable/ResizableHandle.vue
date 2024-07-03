@@ -14,7 +14,7 @@ const props = defineProps<
     // eslint-disable-next-line vue/require-prop-comment
     class?: HTMLAttributes["class"];
     /**
-     * Determines whether the resizehandle shows an icon.
+     * Determines whether the resize handle shows an icon.
      */
     withHandle?: boolean;
   }

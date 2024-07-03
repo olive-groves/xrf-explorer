@@ -6,7 +6,8 @@ import pandas as pd
 
 
 def get_elements_from_csv(path: str | Path) -> list[str]:
-    """Get the names of the elements stored in the elemental data cube.
+    """
+    Get the names of the elements stored in the elemental data cube.
     Can raise error if file could not be read.
     
     :param path: Path to the csv file containing the elemental data cube.
@@ -25,11 +26,13 @@ def get_elements_from_csv(path: str | Path) -> list[str]:
 
 
 def get_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
-    """Get the elemental data cube from the csv file at the given path.
+    """
+    Get the elemental data cube from the csv file at the given path.
     Can raise error if file could not be read.
 
     :param path: Path to the csv file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+        x, y coordinates.
     """
 
     # Read the csv file. Pandas is used, since numpy is slow at reading csv files.
@@ -45,7 +48,8 @@ def get_elemental_data_cube_from_csv(path: str | Path) -> np.ndarray:
 
 
 def get_elemental_map_from_csv(element: int, path: str | Path) -> np.ndarray:
-    """Get the elemental map of the given element from the csv file.
+    """
+    Get the elemental map of the given element from the csv file.
     Can raise error if file could not be read.
 
     :param element: Index of the element in the elemental data cube.

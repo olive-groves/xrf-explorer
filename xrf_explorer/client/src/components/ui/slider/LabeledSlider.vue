@@ -23,7 +23,7 @@ const props = defineProps<{
    */
   max?: number;
   /**
-   * The stepsize of the slider.
+   * The step size of the slider.
    */
   step?: number;
   /**

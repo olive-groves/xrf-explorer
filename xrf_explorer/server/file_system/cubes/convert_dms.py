@@ -11,11 +11,13 @@ LOG: Logger = getLogger(__name__)
 
 
 def get_elemental_datacube_dimensions(data_source: str) -> tuple[int, int, int, int] | None:
-    """Get the dimensions of the elemental datacube. Error can be raised if
-    file could not be read.
+    """
+    Get the dimensions of the elemental datacube.
+    Can raise error if file could not be read.
     
     :param data_source: Name of the data source containing the raw data file in the server
-    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes). Tuple is as follows (width, height, channels, header size)
+    :return: 4-tuple of the dimensions of the raw elemental data and the header size (in bytes). Tuple is as follows
+        (width, height, channels, header size)
     """
 
     cube_path: str | None = get_elemental_cube_path(data_source)
@@ -40,7 +42,8 @@ def get_elemental_datacube_dimensions(data_source: str) -> tuple[int, int, int, 
 
 
 def get_elements_from_dms(path: str | Path) -> list[str]:
-    """Get the names of the elements stored in the elemental data cube.
+    """
+    Get the names of the elements stored in the elemental data cube.
     Can raise error if file could not be read.
     
     :param path: Path to the dms file containing the elemental data cube.
@@ -67,11 +70,13 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
 
 
 def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
-    """Get the elemental data cube from the dms file.
+    """
+    Get the elemental data cube from the dms file.
     Can raise error if file could not be read.
 
     :param path: Path to the dms file containing the elemental data cube.
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+        x, y coordinates
     """
 
     # get data dimensions
@@ -90,7 +95,8 @@ def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
 
 
 def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
-    """Get the elemental map of the given element from the dms file.
+    """
+    Get the elemental map of the given element from the dms file.
     Can raise error if file could not be read.
 
     :param element: Index of the element in the elemental data cube.
@@ -116,11 +122,13 @@ def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
 
 
 def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[str]) -> bool:
-    """Saves a numpy array and list of elements to a DMS file.
+    """
+    Saves a numpy array and list of elements to a DMS file.
 
     :param folder_path: Path to the folder where the DMS file will be saved.
     :param name_cube: Name of the elemental data cube. Without file extension, e.g. 'cube'.
-    :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
+    :param cube: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two
+        for x, y coordinates.
     :param elements: List of the names of the elements.
     :return: True if the cube was saved successfully, False otherwise.
     """

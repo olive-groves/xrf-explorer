@@ -12,7 +12,8 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 
 def get_average_global(data: np.ndarray) -> list[float]:
-    """Computes the average of the raw data for each bin on the whole painting.
+    """
+    Computes the average of the raw data for each bin on the whole painting.
 
     :param data: datacube containing the raw data
     :return: list where the index is the channel number and the value is the average global intensity of that channel
@@ -24,11 +25,13 @@ def get_average_global(data: np.ndarray) -> list[float]:
 
 
 def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
-    """Computes the average of the raw data for each bin on the selected pixels.
+    """
+    Computes the average of the raw data for each bin on the selected pixels.
 
     :param data_source: name of the data source to get the selection average from
     :param mask: The mask describing the selected pixels
-    :return: list where the index is the channel number and the value is the average intensity of that channel within the selection
+    :return: list where the index is the channel number and the value is the average intensity of that channel within
+        the selection
     """
 
     config: dict | None = get_config()
@@ -80,15 +83,17 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
 
 
 def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, high: int, bin_size: int) -> list:
-    """Get the theoretical spectrum and peaks of an element.
-        Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096, 0 <=excitation_energy_kev <= 40
+    """
+    Get the theoretical spectrum and peaks of an element.
+    Precondition: 0 <= low < high < 4096, 0 < bin_size <= 4096, 0 <=excitation_energy_kev <= 40
 
-        :param element: symbol of the element
-        :param excitation_energy_kev: excitation energy
-        :param low: lower channel boundary
-        :param high: higher channel boundary
-        :param bin_size: size of each bin
-        :return: list with first element being a list of dictionaries representing the spectra points, second being a list of dictionaries representing the peaks
+    :param element: symbol of the element
+    :param excitation_energy_kev: excitation energy
+    :param low: lower channel boundary
+    :param high: higher channel boundary
+    :param bin_size: size of each bin
+    :return: list with first element being a list of dictionaries representing the spectra points, second being a
+        list of dictionaries representing the peaks
     """
     # remove last character to get periodic table symbol
     element = element[:len(element) - 1].strip()
