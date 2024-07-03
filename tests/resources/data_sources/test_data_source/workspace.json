@@ -31,7 +31,14 @@
         }
     ],
     "name": "Test data source",
-    "spectralCubes": [],
+    "spectralCubes": [
+        {
+            "name": "Raw cube",
+            "rawLocation": "",
+            "recipeLocation": "recipe_cubes.csv",
+            "rplLocation": "spectral.rpl"
+        }
+    ],
     "spectralParams": {
         "low": 0,
         "high": 4096,

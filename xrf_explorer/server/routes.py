@@ -339,14 +339,10 @@ def get_offset(data_source: str):
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
-
-    try:
-        return json.dumps(float(info['depthscaleorigin']))
-    except Exception:
-        # If we can't get the offset, set default values
+    if 'depthscaleorigin' not in info:
         return json.dumps(0)
+
+    return json.dumps(float(info['depthscaleorigin']))
 
 
 @app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])

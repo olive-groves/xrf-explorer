@@ -192,6 +192,20 @@ class TestRoutes:
         # verify
         assert response.status_code == 500
     
+    def test_get_offset(self, client: FlaskClient):
+        # execute
+        offset: str = client.get(f"/api/{self.DATA_SOURCE}/get_offset").text
+
+        # verify
+        assert float(offset) == -0.956
+    
+    def test_get_offset_invalid_data_source(self, client: FlaskClient):
+        # execute
+        offset = client.get("/api/this is not a data source/get_offset").json
+
+        # verify
+        assert offset is None
+    
     def test_list_element_names(self, client: FlaskClient):
         # execute
         result_str: str = client.get(f"/api/{self.DATA_SOURCE}/data/elements/names").text
