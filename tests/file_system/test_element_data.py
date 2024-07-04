@@ -87,6 +87,7 @@ class TestElementalData:
         # verify
         assert array_equal(result, self.RAW_ELEMENTAL_CUBE)
         assert expected_output in caplog.text
+        assert expected_output in caplog.text
 
     def do_test_get_elemental_map(self, source, caplog):
         caplog.set_level(INFO)
@@ -222,6 +223,28 @@ class TestElementalData:
 
         # cleanup
         rmtree(folder_path)
+    
+    def test_to_dms_invalid_folder_path(self, caplog):
+        # setup
+        folder_path: str = "this is not a valid folder path"
+
+        # execute
+        result: bool = to_dms(folder_path, self.NAME_CUBE_FROM_CSV, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
+
+        # verify
+        assert not result
+        assert "Folder this is not a valid folder path does not exist." in caplog.text
+
+    def test_to_dms_cube_name_includes_file_extension(self, caplog):
+        # setup
+        cube_name: str = "cube.dms"
+
+        # execute
+        result: bool = to_dms(self.PATH_TO_TEST_FOLDER, cube_name, self.RAW_ELEMENTAL_CUBE, self.ELEMENTS)
+
+        # verify
+        assert not result
+        assert "Name of the cube should not contain a file extension." in caplog.text
 
     def test_get_element_averages_selection(self, caplog):
         caplog.set_level(INFO)
