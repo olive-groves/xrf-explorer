@@ -6,7 +6,7 @@ import pytest
 
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.file_system.cubes.spectral import mipmap_exists, mipmap_raw_cube, get_raw_data
-from xrf_explorer.server.spectra import get_average_global, get_average_selection
+from xrf_explorer.server.spectra import get_average_global, get_average_selection, get_theoretical_data
 
 
 class TestSpectra:
@@ -123,3 +123,23 @@ class TestSpectra:
         assert mipmapped_data.shape[0] * 2 - 1 == original_data.shape[0]
         assert mipmapped_data.shape[1] * 2 - 1 == original_data.shape[1]
         assert mipmapped_data.shape[2] == original_data.shape[2]
+    
+    def test_get_theoretical_data(self):
+        # execute
+        result: list[float] = get_theoretical_data('yAlK', 16, 0, 10, 1)
+
+        # verify
+        assert len(result) == 2
+    
+    def test_get_theoretical_data_invalid_element(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # setup
+        excitation_energy: float = 16.0
+
+        # execute
+        result: list[float] = get_theoretical_data('not an element', excitation_energy, 0, 10, 1)
+
+        # verify
+        assert not result
+        assert f"Could not get theoretical spectral for excitation energy {excitation_energy}" in caplog.text

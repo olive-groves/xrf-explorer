@@ -1,3 +1,4 @@
+# Import the necessary modules and create the Flask app
 from pathlib import Path
 
 from flask import Flask, send_from_directory

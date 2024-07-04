@@ -7,20 +7,6 @@ from xrf_explorer.server.image_to_cube_selection import SelectionType, get_selec
 LOG: Logger = getLogger(__name__)
 
 
-def validate_data_source(data_source_name: str) -> tuple[str, int] | None:
-    """
-    Checks that the name of the data source has a valid format.
-
-    :param data_source_name: name of the data source to verify
-    :return: None if the name is valid, otherwise a tuple with an error message and the HTTP response status code
-    """
-    if data_source_name == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
-    return None
-
-
 def validate_config(config: dict | None) -> tuple[str, int] | None:
     """
     Checks that the configuration has a valid format.
@@ -53,7 +39,7 @@ def parse_selection(selection_data: dict[str: str]) -> tuple[SelectionType, list
     try:
         selection_type_parsed: SelectionType = SelectionType(selection_type)
     except ValueError:
-        return "Error parsing selection type", 400
+        return f"Error parsing selection of type {selection_type}", 400
 
     # validate and parse points
     if not isinstance(points, list):
@@ -66,7 +52,7 @@ def parse_selection(selection_data: dict[str: str]) -> tuple[SelectionType, list
     return selection_type_parsed, points_parsed
 
 
-def encode_selection(selection_data: any, data_source: str, cube_type: CubeType) -> np.ndarray | None:
+def encode_selection(selection_data: any, data_source: str, cube_type: CubeType) -> np.ndarray | tuple[str, int]:
     """
     Creates a bitmask of the given cube from a selection in JSON format.
 
@@ -76,9 +62,12 @@ def encode_selection(selection_data: any, data_source: str, cube_type: CubeType)
     :return: bitmask of the cube encoding the selection or None if an error occurred
     """
     # parse JSON payload
-    selection: SelectionType
-    points: list[tuple[int, int]]
+    selection: SelectionType | str
+    points: list[tuple[int, int]] | int
     selection, points = parse_selection(selection_data)
+
+    if isinstance(points, int):
+        return selection, points
 
     # get selection
     return get_selection(data_source, points, selection, cube_type)

@@ -130,18 +130,15 @@ def get_raw_rpl_names(data_source: str) -> tuple[str, str]:
         LOG.error("Config is empty")
         return "", ""
 
-    data_source_dir: str = join(Path(backend_config["uploads-folder"]), data_source, "workspace.json")
-    try:
-        with open(data_source_dir, "r") as workspace:
-            data_json: str = workspace.read()
-            data = json.loads(data_json)
-            raw_data_name: str = data["spectralCubes"][0]["rawLocation"]
-            rpl_name: str = data["spectralCubes"][0]["rplLocation"]
-    except OSError as err:
-        LOG.error("Error while getting raw and rpl file locations: {%s}", err)
+    workspace: dict | None = get_workspace_dict(data_source)
+    if workspace is None:
         return "", ""
-
-    return raw_data_name, rpl_name
+    
+    spectralCubes: list[str] = workspace["spectralCubes"]
+    if len(spectralCubes) == 0:
+        return "", ""
+    
+    return spectralCubes[0]["rawLocation"], spectralCubes[0]["rplLocation"]
 
 
 def get_raw_rpl_paths(data_source: str) -> tuple[str, str]:
@@ -275,9 +272,9 @@ def get_base_image_path(data_source_folder_name: str) -> str | None:
         LOG.error(f"Could not get the path to the RGB image of project {data_source_folder_name}")
         return None
 
-    filename: str | None = workspace_dict["baseImage"]["imageLocation"]
+    filename: str = workspace_dict["baseImage"]["imageLocation"]
 
-    if filename is not None:
+    if filename:
         return join(backend_config["uploads-folder"], data_source_folder_name, filename)
 
     return None

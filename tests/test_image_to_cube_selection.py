@@ -50,6 +50,56 @@ class TestImageToCubeSelection:
 
         assert result is None
         assert expected_output in caplog.text
+    
+    def test_get_selected_data_cube_invalid_rectangle(self, caplog):
+        # setup
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (0, 1),
+            (1, 0),
+            (1, 1)
+        ]
+
+        # execute
+        result: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, rgb_points, SelectionType.Rectangle, CubeType.Elemental
+        )
+
+        # verify
+        assert result is None
+        assert f"Expected 2 points for rectangle selection but got {len(rgb_points)}" in caplog.text
+    
+    def test_get_selected_data_cube_invalid_polygon(self, caplog):
+        # setup
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (0, 1)
+        ]
+
+        # execute
+        result: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, rgb_points, SelectionType.Polygon, CubeType.Elemental
+        )
+
+        # verify
+        assert result is None
+        assert f"Expected at least 3 points for polygon selection but got {len(rgb_points)}" in caplog.text
+    
+    def test_get_selected_data_cube_invalid_cubetype(self, caplog):
+        # setup
+        rgb_points: list[tuple[int, int]] = [
+            (0, 0),
+            (0, 1)
+        ]
+
+        # execute
+        result: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, rgb_points, SelectionType.Rectangle, -1
+        )
+
+        # verify
+        assert result is None
+        assert f"Incorrect cube type: -1" in caplog.text
 
     def test_get_selected_data_cube_dir_found(self):
         # setup
@@ -165,6 +215,18 @@ class TestImageToCubeSelection:
         assert selection_data_rect is not None
         assert selection_data_polygon is not None
         assert np.array_equal(selection_data_rect, selection_data_polygon)
+    
+    def test_selection_raw_cube(self):
+        # setup
+        coords_rect: list[tuple[int, int]] = [(0, 0), (150, 150)]
+
+        # execute
+        selection_data_rect: np.ndarray | None = get_selection(
+            self.DATA_SOURCE_FOLDER_NAME, coords_rect, SelectionType.Rectangle, CubeType.Raw
+        )
+
+        # verify
+        assert selection_data_rect is not None
 
     def test_negative_coordinates(self):
         # setup

@@ -1,0 +1,26 @@
+{
+    "baseImage": {
+        "imageLocation": "",
+        "name": "RGB",
+        "recipeLocation": ""
+    },
+    "contextualImages": [],
+    "elementalChannels": [],
+    "elementalCubes": [
+        {
+            "dataLocation": "",
+            "fileType": "dms",
+            "name": "elemental cube",
+            "recipeLocation": ""
+        }
+    ],
+    "name": "A datasource",
+    "spectralCubes": [
+        {
+            "name": "Raw cube",
+            "rawLocation": "",
+            "recipeLocation": "",
+            "rplLocation": ""
+        }
+    ]
+}

@@ -83,12 +83,7 @@ def list_element_names(data_source: str):
     :param data_source: data source to get the element names from
     :return: JSON list of the short names of the elements.
     """
-    names: list[str] = get_element_names(data_source)
-    try:
-        return json.dumps(names)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element names: {str(e)}")
-        return "Error occurred while listing element names", 500
+    return json.dumps(get_element_names(data_source))
 
 
 @app.route("/api/<data_source>/data/elements/map/<int:channel>")
@@ -128,7 +123,7 @@ def convert_elemental_cube(data_source: str):
     Converts all elemental data cubes of a data source to .dms format.
 
     :param data_source: The name of the data source to convert the elemental data cube
-    TODO: return
+    :return: 200 if the conversion was successful, 500 otherwise
     """
 
     # Get elemental data cube paths
@@ -159,13 +154,7 @@ def list_element_averages(data_source: str):
             average: element abundance
         }
     """
-    composition: list[dict[str, str | float]] = get_element_averages(data_source)
-
-    try:
-        return json.dumps(composition)
-    except Exception as e:
-        LOG.error(f"Failed to serialize element averages: {str(e)}")
-        return "Error occurred while listing element averages", 500
+    return json.dumps(get_element_averages(data_source))
 
 
 @app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
@@ -180,10 +169,10 @@ def list_element_averages_selection(data_source: str):
             average: element abundance
         }
     """
-    mask: np.ndarray | None = encode_selection(request.get_json(), data_source, CubeType.Elemental)
+    mask: np.ndarray | tuple[str, int] = encode_selection(request.get_json(), data_source, CubeType.Elemental)
 
-    if mask is None:
-        return "Error occurred while getting selection from datacube", 500
+    if isinstance(mask, tuple):
+        return mask[0], mask[1]
 
     # get averages
     composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask)
