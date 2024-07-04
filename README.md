@@ -6,6 +6,7 @@ Repository for the XRF Explorer team.
 _Test locations in the next section_
 - All files under `/xrf_explorer/client/src/components/ui` except the files under `/selection-area` and `/window`.
 - Any and all `index.ts` files under `/xrf_explorer/client` as these are for exporting the components.
+- Any and all `__init__.py` files under `/xrf_explorer/server` as these are for importing the components.
 - Note that directly under `/xrf_explorer/client` there are various configuration files which should also not be tested. These are the following files: `postcss.config.js`, `tailwindcss.config.js`, `vite.config.ts` as well stylecheck files and various JSON files. 
 
 ## Test file locations
