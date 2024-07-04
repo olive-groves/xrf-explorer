@@ -1,7 +1,5 @@
-import logging
-
 from os import rmdir, makedirs, remove
-from os.path import join, exists, isdir, isfile
+from os.path import join, isdir, isfile
 from shutil import rmtree
 
 import pytest
@@ -45,8 +43,8 @@ class TestRoutes:
         ]]
     )
     RECIPE: dict = {
-        "moving":[[0.0,0.0],[0.0,1.0],[1.0,0.0],[1.0,1.0]],
-        "target":[[0.0,0.0],[0.0,1.0],[1.0,0.0],[1.0,1.0]]
+        "moving": [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]],
+        "target": [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]]
     }
 
     @pytest.fixture()
@@ -268,7 +266,7 @@ class TestRoutes:
     
     def test_get_offset_invalid_data_source(self, client: FlaskClient):
         # execute
-        offset: dict = client.get("/api/this is not a data source/get_offset").text
+        offset: str = client.get("/api/this is not a data source/get_offset").text
 
         # verify
         assert offset == "0"
