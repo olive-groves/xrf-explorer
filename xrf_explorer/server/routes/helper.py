@@ -7,20 +7,6 @@ from xrf_explorer.server.image_to_cube_selection import SelectionType, get_selec
 LOG: Logger = getLogger(__name__)
 
 
-def validate_data_source(data_source_name: str) -> tuple[str, int] | None:
-    """
-    Checks that the name of the data source has a valid format.
-
-    :param data_source_name: name of the data source to verify
-    :return: None if the name is valid, otherwise a tuple with an error message and the HTTP response status code
-    """
-    if data_source_name == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
-    return None
-
-
 def validate_config(config: dict | None) -> tuple[str, int] | None:
     """
     Checks that the configuration has a valid format.

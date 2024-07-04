@@ -12,7 +12,7 @@ from xrf_explorer import app
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import update_workspace, get_path_to_workspace
-from xrf_explorer.server.routes.helper import validate_config, validate_data_source
+from xrf_explorer.server.routes.helper import validate_config
 
 LOG: Logger = getLogger(__name__)
 
@@ -25,11 +25,7 @@ def list_accessible_data_sources():
 
     :return: JSON list of strings representing the data sources names
     """
-    try:
-        return json.dumps(get_data_sources_names())
-    except Exception as e:
-        LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing data sources", 500
+    return json.dumps(get_data_sources_names())
 
 
 @app.route("/api/<data_source>/files")
@@ -40,11 +36,7 @@ def datasource_files(data_source: str):
     :param data_source: The name of the data source to get the files for
     :return: JSON list of strings representing the file names
     """
-    try:
-        return json.dumps(get_data_source_files(data_source))
-    except Exception as e:
-        LOG.error(f"Failed to serialize files: {str(e)}")
-        return "Error occurred while listing files", 500
+    return json.dumps(get_data_source_files(data_source))
 
 
 @app.route("/api/<data_source>/workspace", methods=["GET", "POST"])
@@ -96,10 +88,6 @@ def create_data_source_dir(data_source: str):
     if error_response_config:
         return error_response_config
 
-    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
-    if error_response_ds:
-        return error_response_ds
-
     if data_source in get_data_sources_names():
         error_msg: str = "Data source name already exists."
         LOG.error(error_msg)
@@ -130,10 +118,6 @@ def remove_data_source(data_source: str):
     error_response_config: tuple[str, int] | None = validate_config(config)
     if error_response_config:
         return error_response_config
-
-    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
-    if error_response_ds:
-        return error_response_ds
 
     data_source_path: str = join(config['uploads-folder'], data_source)
     workspace_path: str = join(data_source_path, "workspace.json")
@@ -167,10 +151,6 @@ def delete_data_source(data_source: str):
     config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
 
-    error_response_ds: tuple[str, int] | None = validate_data_source(data_source)
-    if error_response_ds:
-        return error_response_ds
-
     data_source_dir: str = join(config['uploads-folder'], data_source)
 
     if not isdir(data_source_dir):
@@ -193,7 +173,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     :param data_source: The name of the data source to upload the chunk to
     :param file_name: The name of the file to upload the chunk to
     :param start: The start index of the chunk in the specified file
-    TODO: return
+    :return: A message indicating the success of the upload
     """
 
     # get config

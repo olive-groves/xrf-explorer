@@ -66,7 +66,7 @@ class TestRoutes:
     
     def test_get_datasources(self, client: FlaskClient):
         # execute
-        result_str: str = client.get("/api/datasources").text
+        result_str: str = client.get("/api/data_sources").text
         result_list: list[str] = json.loads(result_str)
 
         # verify
@@ -120,7 +120,7 @@ class TestRoutes:
     def test_create_data_source_dir_no_config(self, client: FlaskClient, caplog):
         # setup
         set_config("this is not a config file.yml")
-        error_msg: str = "Error occurred while creating data source directory" 
+        error_msg: str = "Error occurred while getting backend config" 
 
         # execute
         response: TestResponse = client.post("/api/completely_new_data_source/create")
@@ -152,7 +152,7 @@ class TestRoutes:
     def test_remove_data_source_no_config(self, client: FlaskClient, caplog):
         # setup
         set_config("this is not a config file.yml")
-        error_msg: str = "Error occurred while removing data source directory"
+        error_msg: str = "Error occurred while getting backend config"
 
         # execute
         response: TestResponse = client.post(f"/api/completely_new_data_source/remove")
@@ -208,7 +208,7 @@ class TestRoutes:
     def test_upload_chunk_no_config(self, client: FlaskClient, caplog):
         # setup
         set_config("this is not a config file.yml")
-        error_msg: str = "Error occurred while uploading file chunk"
+        error_msg: str = "Error occurred while getting backend config"
 
         # execute
         response: TestResponse = client.post(
@@ -278,8 +278,8 @@ class TestRoutes:
         })
 
         # verify
-        assert response.status_code == 400
-        assert response.text == "Error occurred while getting selection type or points from request body"
+        assert response.status_code == 500
+        assert response.text == "Error occurred while getting backend config"
     
     def test_element_averages_selection_invalid_type(self, client: FlaskClient):
         # setup

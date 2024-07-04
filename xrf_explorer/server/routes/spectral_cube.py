@@ -69,14 +69,10 @@ def get_offset(data_source: str):
 
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
-    if not info:
-        return np.empty(0)
-
-    try:
-        return json.dumps(float(info['depthscaleorigin']))
-    except Exception:
-        # If we can't get the offset, set default values
+    if 'depthscaleorigin' not in info:
         return json.dumps(0)
+
+    return json.dumps(float(info['depthscaleorigin']))
 
 
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
@@ -87,11 +83,12 @@ def get_average_data(data_source: str):
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
     datacube: np.ndarray = get_raw_data(data_source)
+    if len(datacube) == 0:
+        return "Error occurred while getting raw data", 404
 
     average_values: list = get_average_global(datacube)
-    response = json.dumps(average_values)
 
-    return response
+    return json.dumps(average_values)
 
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
@@ -119,9 +116,7 @@ def get_element_spectra(data_source: str, element: str, excitation: float):
     bin_size: int = params["binSize"]
     theoretical_data: list = get_theoretical_data(element, float(excitation), low, high, bin_size)
 
-    response: str = json.dumps(theoretical_data)
-
-    return response
+    return json.dumps(theoretical_data)
 
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['POST'])
