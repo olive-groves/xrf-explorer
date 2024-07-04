@@ -199,7 +199,6 @@ async function onSelectionAreaUpdate(selection: SelectionAreaSelection) {
   const selecting: boolean = selection.type != undefined;
 
   if (selecting) {
-    console.log("selecting: ", selecting);
     await fetchSelectionAverages();
     updateCharts();
   }
