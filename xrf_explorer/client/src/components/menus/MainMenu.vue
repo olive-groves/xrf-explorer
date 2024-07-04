@@ -12,6 +12,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ResetClientDialog } from "@/components/workspace";
 import { ref } from "vue";
+// Import for the color mode
 import { useColorMode } from "@vueuse/core";
 
 // Dialog visibility variable

@@ -3,6 +3,7 @@
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem } from "@/components/ui/menubar";
 import { datasource } from "@/lib/appState";
 import { exportElement, exportScene, exportableElements } from "@/lib/export";
+// Makes usage of the change-case library
 import { sentenceCase, snakeCase } from "change-case";
 </script>
 

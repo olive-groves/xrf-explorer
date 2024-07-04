@@ -1,3 +1,4 @@
+# Main file to run the XRF-Explorer server
 import argparse
 import logging
 
@@ -7,6 +8,7 @@ from sys import stdout
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+# set up commandline argument parser
 parser: argparse.ArgumentParser = argparse.ArgumentParser(
     prog="python run.py", description="XRF-Explorer")
 parser.add_argument("-c", "--config", dest="config", default="config/backend.yml", metavar="PATH",
