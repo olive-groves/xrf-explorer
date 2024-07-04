@@ -11,7 +11,8 @@ from PIL.Image import Image
 from xrf_explorer.server.file_system.helper import set_config
 from xrf_explorer.server.file_system.workspace.contextual_images import (
     get_contextual_image_path, get_contextual_image_size,
-    get_contextual_image, get_contextual_image_recipe_path
+    get_contextual_image, get_contextual_image_recipe_path,
+    get_path_to_base_image
 )
 
 
@@ -148,3 +149,13 @@ class TestContextualImages:
 
         # Verify
         assert result is None
+
+    def test_get_path_to_base_image(self):
+        # Setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # Execute
+        result: str | None = get_path_to_base_image("painting")
+
+        # Verify
+        assert abspath(result) == abspath(self.TEST_IMAGE_PATH)
