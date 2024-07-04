@@ -40,14 +40,14 @@
     "spectralCubes": [
         {
             "name": "Raw cube",
-            "rawLocation": "",
+            "rawLocation": "spectral.raw",
             "recipeLocation": "recipe_cubes.csv",
             "rplLocation": "spectral.rpl"
         }
     ],
     "spectralParams": {
         "low": 0,
-        "high": 4096,
+        "high": 16,
         "binSize": 1,
         "binned": true
     }
