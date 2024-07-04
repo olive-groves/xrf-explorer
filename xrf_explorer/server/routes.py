@@ -742,7 +742,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int)
     if exists(full_path_json):
         with open(full_path_json, 'r') as json_file:
             color_data: np.ndarray = json.load(json_file)
-        return jsonify(color_data)
+        return json.dumps(color_data)
 
     # Path to save bitmasks
     bitmask_full_path: str

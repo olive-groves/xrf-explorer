@@ -417,3 +417,54 @@ class TestRoutes:
 
         # cleanup
         rmtree(self.GENERATED_FOLDER)
+    
+    def test_get_color_clusters_already_present(self, client: FlaskClient):
+        # setup
+        url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0"
+
+        # execute
+        response1: TestResponse = client.get(url)
+        response2: TestResponse = client.get(url)
+
+        # verify
+        assert response1.status_code == 200
+        assert response2.status_code == 200
+        assert response1.text == response2.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
+    
+    def test_get_color_cluster_bitmask_whole_cube(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100")
+
+        # verify
+        assert response.status_code == 200
+        assert response.data
+
+        # cleanup
+        response.close()
+        rmtree(self.GENERATED_FOLDER)
+    
+    def test_get_color_cluster_bitmask_single_element(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0")
+
+        # verify
+        assert response.status_code == 200
+        assert response.data
+
+        # cleanup
+        response.close()
+        rmtree(self.GENERATED_FOLDER)
+    
+    def test_get_color_cluster_bitmask_no_config(self, client: FlaskClient):
+        # setup
+        set_config("this is not a config file.yml")
+
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0")
+
+        # verify
+        assert response.status_code == 500
+        assert response.text == 'Error occurred while getting backend config'
