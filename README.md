@@ -133,7 +133,7 @@ To enforce consistency in the client code, `prettier` and `eslint` have been con
 ### Workspace structure
 
 All data used by XRF-Explorer is located in the `uploads-folder` as defined by the configuration
-file (`backend/config.yml` by default). In this directory every subdirectory is a separate workspace (a set of data
+file (`config/backend.yml` by default). In this directory every subdirectory is a separate workspace (a set of data
 files for a single painting).
 
 - `uploads-folder\<painting>\` - The directory containing data for the painting `<painting>`.
