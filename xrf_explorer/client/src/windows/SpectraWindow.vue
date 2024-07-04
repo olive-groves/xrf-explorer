@@ -285,7 +285,6 @@ async function getAverageSpectrum() {
  */
 async function getSelectionSpectrum(selection: SelectionAreaSelection) {
   if (ready && selectionChecked.value) {
-
     // Abort any previous requests
     abortController.abort();
     abortController = new AbortController();
@@ -293,7 +292,6 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
 
     // clear selection
     if (selection.type == undefined) selectionData = [];
-
     // update new selection
     else {
       // Request body for selection
