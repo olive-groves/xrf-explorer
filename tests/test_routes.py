@@ -84,6 +84,15 @@ class TestRoutes:
 
         # verify
         assert file.status_code == 404
+    
+    def test_ost_workspace_invalid_data_source(self, client: FlaskClient):
+        # execute
+        file: TestResponse = client.post(f"/api/this is not a data source/workspace", json={
+            "something": "invalid"
+        })
+
+        # verify
+        assert file.status_code == 400
 
     def test_datasource_files(self, client: FlaskClient):
         # execute
