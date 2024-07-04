@@ -605,3 +605,39 @@ class TestRoutes:
         # verify
         assert response.status_code == 500
         assert response.text == 'Error occurred while getting backend config'
+
+    def test_get_dr_embedding_invalid_data_source(self, client: FlaskClient, caplog):
+        # setup
+        error_msg: str = "Failed to create DR embedding image" 
+
+        # execute
+        response: TestResponse = client.get("/api/not a data source/dr/embedding/0/0")
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == error_msg
+        assert error_msg in caplog.text
+    
+    def test_get_dr_overlay_invalid_data_source(self, client: FlaskClient, caplog):
+        # setup
+        error_msg: str = "Failed to create DR embedding image"
+
+        # execute
+        response: TestResponse = client.get("/api/not a data source/dr/overlay/0")
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == error_msg
+        assert error_msg in caplog.text
+    
+    def test_get_dr_embedding_mapping_invalid_data_source(self, client: FlaskClient, caplog):
+        # setup
+        error_msg: str = "Failed to create DR indices to embedding image"
+
+        # execute
+        response: TestResponse = client.get("/api/not a data source/dr/embedding/mapping")
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == error_msg
+        assert error_msg in caplog.text
