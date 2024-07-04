@@ -17,7 +17,7 @@ const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
 
 /**
- * Updates the layers and layergroups when changes are made to the workspaceconfig.
+ * Updates the layers and layer groups when changes are made to the workspace config.
  * @param workspace - The new workspace configuration.
  */
 function loadWorkspace(workspace: WorkspaceConfig) {

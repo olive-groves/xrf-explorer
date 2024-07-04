@@ -2,9 +2,9 @@ from pathlib import Path
 
 from flask import Flask, send_from_directory
 
-app = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
+app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 
-from xrf_explorer.server import routes
+from xrf_explorer.server.routes import *
 
 
 # All routes not matched in the server are forwarded to the client

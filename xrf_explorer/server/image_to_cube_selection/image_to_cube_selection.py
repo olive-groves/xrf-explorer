@@ -122,7 +122,8 @@ def get_scaled_cube_coordinates(
         cube_height: int,
 ) -> list[tuple[int, int]]:
     """
-    Calculates and returns the coordinates of a list of points within the data cube, scaled from the coordinates of a base image.
+    Calculates and returns the coordinates of a list of points within the data cube, scaled from the coordinates of a
+    base image.
 
     :param coords:  List of points/coordinates within the data cube.
     :param base_img_width: The width of the base image in pixels.
@@ -169,7 +170,7 @@ def compute_selection_mask(
     # so find the convex hull of the selection
     if selection_type == SelectionType.Rectangle:
         # Calculate the smallest convex set that contains all the points
-        # The purpose of this is to order the points so they construct a polygon instead
+        # The purpose of this is to order the points, so they construct a polygon instead
         # of an hourglass figure
         x1, y1 = np_selection[0]
         x2, y2 = np_selection[1]
@@ -196,11 +197,11 @@ def get_selection(
         cube_type: CubeType
 ) -> np.ndarray | None:
     """
-    Extracts and returns a 2D representation of a data cube region, based on the selection coordinates
-    on the base image. If the specified data source contains a recipe for the data cube, the selection made on the
-    base image is "deregistered" so that the returned data from the function correctly represents the selected
-    pixels on the image. If the data cube does not have a recipe, the selection made on the base image is simply
-    scaled to match the data cube's dimensions.
+    Extracts and returns a 2D representation of a data cube region, based on the selection coordinates on the base
+    image. If the specified data source contains a recipe for the data cube, the selection made on the base image is
+    "deregistered" so that the returned data from the function correctly represents the selected pixels on the image. If
+    the data cube does not have a recipe, the selection made on the base image is simply scaled to match the data cube's
+    dimensions.
 
     :param data_source_folder: The data source folder name.
     :param selection_coords: The coordinates tuples (x, y), in order, of the selection. In case of a rectangle 
@@ -255,7 +256,7 @@ def get_selection(
             # Get the spectral cube dimensions
             cube_w, cube_h = int(info["width"]), int(info["height"])
 
-            # Load the recipe path for the sepctral cube
+            # Load the recipe path for the spectral cube
             cube_recipe_path: str | None = get_spectral_cube_recipe_path(data_source_folder)
         case _:
             LOG.error(f"Incorrect cube type: {cube_type}")
@@ -275,7 +276,7 @@ def get_selection(
         #       Also, the performance decrease should be less than tenth of a second in most cases.
         return mask
     else:
-        # If the data cube has a recipe, deregister the selection coordinates so they correctly represent
+        # If the data cube has a recipe, deregister the selection coordinates, so they correctly represent
         # the selected area on the data cube
         args = (cube_recipe_path, img_h, img_w, cube_h, cube_w)
         selection_coords_deregistered: list[tuple[int, int]] = []

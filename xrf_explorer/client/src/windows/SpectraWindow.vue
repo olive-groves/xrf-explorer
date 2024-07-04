@@ -71,7 +71,7 @@ let elementPeaks: number[] = [];
 let offset: number = 0;
 
 /**
- * Setup the svg and axis of the graph.
+ * Set up the svg and axis of the graph.
  */
 async function setup() {
   trimmedList.value.unshift({ name: "No element", channel: -1, enabled: false });

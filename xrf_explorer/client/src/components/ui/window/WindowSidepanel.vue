@@ -311,7 +311,7 @@ function growAnyTab(px: number, from: number = -1): number {
 /**
  * Attempts to shrink windows until the desired shrinkage has been achieved.
  * @param px The amount of pixels to shrink windows by.
- * @param from The index from which windows may be shrinked (from top to bottom).
+ * @param from The index from which windows may be shrunk (from top to bottom).
  * @returns The realized shrinkage in pixels.
  */
 function shrinkAnyTab(px: number, from: number = -1): number {

@@ -16,7 +16,8 @@ LOG: logging.Logger = logging.getLogger(__name__)
 
 def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
                          threshold: int = 7) -> tuple[np.ndarray, np.ndarray]:
-    """Go over every pair of clusters and merge the pair if they are similar according to the threshold.
+    """
+    Go over every pair of clusters and merge the pair if they are similar according to the threshold.
     Currently unused function, left in code in case it becomes useful in the future.
 
     :param clusters: the currently available clusters
@@ -72,12 +73,14 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
                                k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
-    """Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
+    """
+    Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
     :param k: number of clusters required at end. Defaults to 30
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
+        Defaults to 10
     :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
     """
     # set seed so results are consistent
@@ -123,14 +126,16 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
                                          elem_threshold: float = 0.1, k: int = 30,
                                          nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
-    """Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
+    """
+    Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
     :param elemental_channel: channel of the element to compute the color clusters of
     :param elem_threshold: minimum concentration needed for an element to be present in the pixel
     :param k: number of clusters required at end. Defaults to 30
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings. Defaults to 10
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
+        Defaults to 10
 
     :return: a dictionary with an array of clusters and one with an array of bitmasks for each element
     """
@@ -204,7 +209,8 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
-    """Merges array of bitmasks into single bitmask, by setting the Green value of each pixel to store the index of
+    """
+    Merges array of bitmasks into single bitmask, by setting the Green value of each pixel to store the index of
     the corresponding bitmask.
 
     :param bitmasks: the bitmasks corresponding to each cluster
@@ -232,7 +238,8 @@ def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
 
 
 def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
-    """Saves the given bitmask as a png with the given name in the given path.
+    """
+    Saves the given bitmask as a png with the given name in the given path.
 
     :param bitmask: the bitmask to be saved as png
     :param full_path: the path (including image name) to save the file to
@@ -260,7 +267,8 @@ def save_bitmask_as_png(bitmask: np.ndarray, full_path: str) -> bool:
 
 
 def calculate_color_difference(lab1: np.ndarray, lab2: np.ndarray) -> int:
-    """Returns the Euclidean distance between two LAB colors.
+    """
+    Returns the Euclidean distance between two LAB colors.
 
     :param lab1: color 1
     :param lab2: color 2
@@ -271,7 +279,8 @@ def calculate_color_difference(lab1: np.ndarray, lab2: np.ndarray) -> int:
 
 
 def image_to_lab(image: np.ndarray) -> np.ndarray:
-    """Turns an image of RGB triples into an image of LAB triples.
+    """
+    Turns an image of RGB triples into an image of LAB triples.
 
     :param image: The image in RGB format (range: [0, 255])
     :return: The image in LAB format
@@ -281,7 +290,8 @@ def image_to_lab(image: np.ndarray) -> np.ndarray:
 
 
 def image_to_rgb(image: np.ndarray) -> np.ndarray:
-    """Turns an image of LAB triples into an image of RGB triples.
+    """
+    Turns an image of LAB triples into an image of RGB triples.
 
     :param image: The image in LAB format (range: L = [0,100], AB = [-127,127])
     :return: The image in RGB format
@@ -294,7 +304,8 @@ def image_to_rgb(image: np.ndarray) -> np.ndarray:
 
 
 def rgb_to_lab(rgb_triple: np.ndarray) -> np.ndarray:
-    """Returns the LAB equivalent of an RGB color.
+    """
+    Returns the LAB equivalent of an RGB color.
 
     :param rgb_triple: The RGB color triple
     :return: the LAB format
@@ -304,7 +315,8 @@ def rgb_to_lab(rgb_triple: np.ndarray) -> np.ndarray:
 
 
 def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
-    """Returns the RGB equivalent of an LAB color.
+    """
+    Returns the RGB equivalent of an LAB color.
 
     :param lab_color: The LAB color triple
     :return: The RGB color
@@ -317,7 +329,8 @@ def lab_to_rgb(lab_color: np.ndarray) -> np.ndarray:
 
 
 def reshape_image(small_image: np.ndarray) -> np.ndarray:
-    """Reshape image into 2D array where each row represents a pixel and each pixel is represented as a 3-element array
+    """
+    Reshape image into 2D array where each row represents a pixel and each pixel is represented as a 3-element array
     containing the RGB values.
 
     :param small_image: the resized image to reshape
@@ -327,7 +340,8 @@ def reshape_image(small_image: np.ndarray) -> np.ndarray:
 
 
 def rgb_to_hex(r: int, g: int, b: int) -> str:
-    """Turns a rgb triple into hex format.
+    """
+    Turns a rgb triple into hex format.
 
     :param r: the red value
     :param g: the green value
@@ -339,7 +353,8 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
 
 
 def convert_to_hex(clusters: np.ndarray) -> np.ndarray:
-    """ Converts clusters to hex format.
+    """
+    Converts clusters to hex format.
 
     :param clusters: the list of clusters in rgb format
     :return: clusters in hex format

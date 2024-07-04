@@ -319,21 +319,21 @@ describe("validateWorkspace Test", () => {
   deepCloneEmpty6.spectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
   deepCloneEmpty6.spectralCubes[0].name = "cube1";
   test("empty workspace with base image, image location, contextual image, image location and spectral cube", () => {
-    const expected = [false, "Spectral cube must have an associatiated raw file"];
+    const expected = [false, "Spectral cube must have an associated raw file"];
     expect(validateWorkspace(deepCloneEmpty6)).toEqual(expected);
   });
 
   const deepCloneEmpty7 = deepClone(deepCloneEmpty6);
   deepCloneEmpty7.spectralCubes[0].rawLocation = "cube1";
   test("all previous and raw location", () => {
-    const expected = [false, "Spectral cube must have an associatiated rpl file"];
+    const expected = [false, "Spectral cube must have an associated rpl file"];
     expect(validateWorkspace(deepCloneEmpty7)).toEqual(expected);
   });
 
   const deepCloneEmpty8 = deepClone(deepCloneEmpty7);
   deepCloneEmpty8.spectralCubes[0].rplLocation = "cube1";
   test("all previous and rpl location", () => {
-    const expected = [false, "Spectral cube must have an associatiated recipe file"];
+    const expected = [false, "Spectral cube must have an associated recipe file"];
     expect(validateWorkspace(deepCloneEmpty8)).toEqual(expected);
   });
 
@@ -348,14 +348,14 @@ describe("validateWorkspace Test", () => {
   deepCloneEmpty10.elementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
   deepCloneEmpty10.elementalCubes[0].name = "element1";
   test("all previous and recipe location and elemental cube", () => {
-    const expected = [false, "Elemental cube must have an associatiated data file"];
+    const expected = [false, "Elemental cube must have an associated data file"];
     expect(validateWorkspace(deepCloneEmpty10)).toEqual(expected);
   });
 
   const deepCloneEmpty11 = deepClone(deepCloneEmpty10);
   deepCloneEmpty11.elementalCubes[0].dataLocation = "element1";
   test("all previous and data location for elemental cube", () => {
-    const expected = [false, "Elemental cube must have an associatiated recipe file"];
+    const expected = [false, "Elemental cube must have an associated recipe file"];
     expect(validateWorkspace(deepCloneEmpty11)).toEqual(expected);
   });
 

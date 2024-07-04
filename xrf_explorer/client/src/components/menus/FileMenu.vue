@@ -12,7 +12,7 @@ import { CreateWorkspaceDialog } from "@/components/workspace";
 const config = inject<FrontendConfig>("config")!;
 
 // Fetch files
-const request = useFetch(`${config.api.endpoint}/datasources`);
+const request = useFetch(`${config.api.endpoint}/data_sources`);
 const sources = computed(() => {
   return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });

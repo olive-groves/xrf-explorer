@@ -135,7 +135,7 @@ export function disposeLayer(layer: Layer) {
  * @param data - The data array.
  * @param width - The width of the data texture.
  * @param height - The height of the data texture.
- * @returns The datatexture.
+ * @returns The data texture.
  */
 export function createDataTexture(data: ArrayBufferView, width: number, height: number): THREE.DataTexture {
   console.debug(`Creating new ${width}x${height} data texture`);
@@ -159,7 +159,7 @@ export function createDataTexture(data: ArrayBufferView, width: number, height: 
 }
 
 /**
- * Update the data texture for every layer in the layergroup.
+ * Update the data texture for every layer in the layer group.
  * @param group - The group to update.
  */
 export function updateDataTexture(group: LayerGroup) {

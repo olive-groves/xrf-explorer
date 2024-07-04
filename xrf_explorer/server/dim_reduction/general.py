@@ -17,7 +17,8 @@ MAPPING_IMAGE_NAME: str = 'image_index_to_embedding.png'
 
 
 def valid_element(element: int, data_cube: np.ndarray) -> bool:
-    """Verifies whether the given element is valid for the given data cube.
+    """
+    Verifies whether the given element is valid for the given data cube.
     
     :param element: The element to verify
     :param data_cube: The data cube to verify the element for
@@ -35,7 +36,8 @@ def valid_element(element: int, data_cube: np.ndarray) -> bool:
 
 
 def get_path_to_dr_folder(data_source: str) -> str:
-    """Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is
+    """
+    Get the path to the dimensionality reduction folder for a given datasource. If it does not exist the folder is
     created.
     
     :param data_source: The name of the datasource
@@ -66,16 +68,17 @@ def get_path_to_dr_folder(data_source: str) -> str:
 
 
 def create_image_of_indices_to_embedding(data_source: str) -> bool:
-    """Creates the image for polygon selection that decodes to which points in the embedding the pixels of the elemental
+    """
+    Creates the image for polygon selection that decodes to which points in the embedding the pixels of the elemental
     data cube are mapped. Uses the current embedding and indices to create the image.
 
     :param data_source: Name of the data source
     :return: True if the image was created successfully, otherwise False
     """
 
-    dr_folder: str = get_path_to_dr_folder(data_source) # Get the path to the dimensionality reduction folder
-    elemental_cube: np.ndarray | None = get_elemental_data_cube(data_source) # Load the elemental data cube
-    
+    dr_folder: str = get_path_to_dr_folder(data_source)  # Get the path to the dimensionality reduction folder
+    elemental_cube: np.ndarray | None = get_elemental_data_cube(data_source)  # Load the elemental data cube
+
     # Check if the folder and the elemental data cube are loaded
     if not dr_folder or elemental_cube is None:
         return False
@@ -105,16 +108,16 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
 
     # Initialize new image
     LOG.info("Creating the mapping image")
-    newimage = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
+    new_image = np.zeros((elemental_cube.shape[1], elemental_cube.shape[2], 3), dtype=np.uint8)
 
     # Fill pixels (in BGR format)
-    newimage[all_indices[:, 0], all_indices[:, 1], 0] = 255
-    newimage[all_indices[:, 0], all_indices[:, 1], 1] = interpolated[:, 1]
-    newimage[all_indices[:, 0], all_indices[:, 1], 2] = interpolated[:, 0]
+    new_image[all_indices[:, 0], all_indices[:, 1], 0] = 255
+    new_image[all_indices[:, 0], all_indices[:, 1], 1] = interpolated[:, 1]
+    new_image[all_indices[:, 0], all_indices[:, 1], 2] = interpolated[:, 0]
 
     # Create and save the image
     path_image: str = join(dr_folder, MAPPING_IMAGE_NAME)
-    imwrite(path_image, newimage)
+    imwrite(path_image, new_image)
 
     LOG.info("Created DR image index to embedding.")
 
@@ -122,7 +125,8 @@ def create_image_of_indices_to_embedding(data_source: str) -> bool:
 
 
 def get_image_of_indices_to_embedding(data_source: str) -> str:
-    """Returns the path to the image that maps the indices of the elemental data cube to the embedding.
+    """
+    Returns the path to the image that maps the indices of the elemental data cube to the embedding.
 
     :param data_source: Name of the data source
     :return: Path to the image. If the image is not found, an empty string is returned
