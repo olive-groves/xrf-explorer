@@ -34,7 +34,7 @@ export type WindowState = {
    */
   location: WindowLocation;
   /**
-   * Indicates whether or not the portal target for the window currently exists.
+   * Indicates whether the portal target for the window currently exists.
    */
   portalMounted: boolean;
 };
@@ -56,7 +56,7 @@ export type SidepanelWindowState = {
    */
   index: number;
   /**
-   * Whether or not the window is minimized or maximized.
+   * Whether the window is minimized or maximized.
    */
   minimized: boolean;
   /**

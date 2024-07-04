@@ -12,7 +12,8 @@ def get_path_to_workspace(datasource: str) -> str:
     """Get the path to the workspace.json file for a given datasource.
 
     :param datasource: The name of the datasource
-    :return: The path to the workspace.json file for the given datasource. If the workspace does not exist, return an empty string
+    :return: The path to the workspace.json file for the given datasource. If the workspace does not exist, return an
+        empty string
     """
 
     # load backend config

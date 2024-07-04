@@ -90,7 +90,7 @@ export type SpectralParams = {
    */
   binSize: number;
   /**
-   * Indicating wether the data has already been binned.
+   * Indicating whether the data has already been binned.
    */
   binned: boolean;
 };

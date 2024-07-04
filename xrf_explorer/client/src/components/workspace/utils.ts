@@ -21,17 +21,17 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   if (workspace.spectralCubes.length > 1) return [false, "Having multiple spectral cubes is currently not supported"];
   for (const cube of workspace.spectralCubes) {
     if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
-    if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associatiated raw file"];
-    if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associatiated rpl file"];
-    if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associatiated recipe file"];
+    if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associated raw file"];
+    if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associated rpl file"];
+    if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
   }
 
   // Check if the elemental cubes have names and associated files, and are valid
   if (workspace.elementalCubes.length > 1) return [false, "Having multiple elemental cubes is currently not supported"];
   for (const cube of workspace.elementalCubes) {
     if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];
-    if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associatiated data file"];
-    if (cube.recipeLocation.trim() == "") return [false, "Elemental cube must have an associatiated recipe file"];
+    if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associated data file"];
+    if (cube.recipeLocation.trim() == "") return [false, "Elemental cube must have an associated recipe file"];
   }
 
   // Check if the elemental channels have names and are unique
@@ -48,7 +48,7 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
 /**
  * Initializes the elements in the workspace based on the elemental cubes.
  * @param workspace - The workspace to initialize.
- * @returns Whether the initialization was successfull.
+ * @returns Whether the initialization was successful.
  */
 export async function initializeChannels(workspace: WorkspaceConfig): Promise<boolean> {
   const response = await fetch(`${config.api.endpoint}/${workspace.name}/data/elements/names`);
