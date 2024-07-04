@@ -50,6 +50,18 @@ class TestContextualImages:
         # Verify
         assert result is None
         assert "Config file is empty" in caplog.text
+    
+    def test_get_contextual_image_path_invalid_painting(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # Setup
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # Execute
+        result: str | None = get_contextual_image_path("fake_painting", "fake_image")
+
+        # Verify
+        assert result is None
 
     def test_get_contextual_image_path_contextual(self, caplog):
         caplog.set_level(logging.INFO)
