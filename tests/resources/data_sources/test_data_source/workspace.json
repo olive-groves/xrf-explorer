@@ -1,10 +1,16 @@
 {
     "baseImage": {
-        "imageLocation": "rgb.png",
+        "imageLocation": "base.png",
         "name": "BASE",
         "recipeLocation": ""
     },
-    "contextualImages": [],
+    "contextualImages": [
+        {
+            "imageLocation": "contextual.png",
+            "name": "CONTEXTUAL",
+            "recipeLocation": "recipe_contextual.csv"
+        }
+    ],
     "elementalChannels": [
         {
             "channel": 0,

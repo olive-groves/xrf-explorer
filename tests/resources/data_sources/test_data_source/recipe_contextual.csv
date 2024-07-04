@@ -5,7 +5,7 @@ Assumes moving image(s) resized and padded to match target image dimensions
 target
 base.png
 moving
-cube
+contextual.png
 x|y|x|y
 0.0|0.0|0.0|0.0
 0.0|1.0|0.0|1.0

@@ -26,6 +26,7 @@ class TestRoutes:
     GENERATED_FOLDER: str = join(DATA_SOURCES_FOLDER, DATA_SOURCE, "generated")
 
     BASE_IMAGE: str = "BASE"
+    CONTEXTUAL_IMAGE: str = "CONTEXTUAL"
     ELEMENT_NAMES: list[str] = ["yAl K", "Si K", "not an element"]
     ELEMENTAL_CUBE: np.ndarray = np.array(
         [[
@@ -42,6 +43,10 @@ class TestRoutes:
             [700, 800, 900]
         ]]
     )
+    RECIPE: dict = {
+        "moving":[[0.0,0.0],[0.0,1.0],[1.0,0.0],[1.0,1.0]],
+        "target":[[0.0,0.0],[0.0,1.0],[1.0,0.0],[1.0,1.0]]
+    }
 
     @pytest.fixture()
     def client(self):
@@ -339,6 +344,25 @@ class TestRoutes:
         assert response.status_code == 404
         assert response.text == f"Image {name} not found in source {self.DATA_SOURCE}"
     
+    def test_contextual_image_recipe(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{self.CONTEXTUAL_IMAGE}/recipe")
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == self.RECIPE
+    
+    def test_contextual_image_recipe_invalid_name(self, client: FlaskClient):
+        # setup
+        name: str = "not an image"
+
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/image/{name}/recipe")
+
+        # verify
+        assert response.status_code == 404
+        assert response.text == f"Could not find recipe for image {name} in source {self.DATA_SOURCE}"
+
     def test_data_cube_size(self, client: FlaskClient):
         # execute
         response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/data/size")
