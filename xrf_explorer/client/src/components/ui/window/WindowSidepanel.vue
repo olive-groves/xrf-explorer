@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { SidepanelWindowState, windowState } from "./state";
 import { computed, ref, watch } from "vue";
 import { WindowPortalTarget } from ".";
@@ -34,6 +35,7 @@ const windows = computed(() => {
 
     return props.windows;
   } else {
+    // Return an empty array if the component is not mounted yet
     return [];
   }
 });
@@ -41,6 +43,7 @@ const windows = computed(() => {
 watch(
   windows,
   (newWindows, oldWindows) => {
+    // Update the index of each window
     newWindows.forEach((id, index) => {
       if (state.value[id].height == 0) {
         // Perform setup
@@ -57,6 +60,7 @@ watch(
       // Update the index
       state.value[id].index = index;
     });
+    // Clean up windows that are no longer present
     oldWindows.forEach((id) => {
       if (!newWindows.includes(id)) {
         // Clean up window properly
@@ -73,14 +77,17 @@ watch(
     });
   },
   {
+    // Deep watch the windows prop
     deep: true,
   },
 );
 
+// The state of the side panel windows
 const state = ref<{
   [key: string]: SidepanelWindowState;
 }>({});
 
+// The total height of all windows
 let totalHeight = 1;
 let availableHeight = 1;
 const growthTargets: string[] = [];
@@ -88,6 +95,7 @@ const shrinkTargets: string[] = [];
 
 const headerSize = remToPx(2) + 1;
 
+// The container element
 const container = ref<HTMLElement | null>(null);
 const containerSize = useElementSize(container);
 watch(containerSize.height, onResize);
@@ -95,6 +103,7 @@ watch(containerSize.height, onResize);
 let lastDisabled = Date.now();
 const disableAnimation = ref(true);
 
+// The state of the mouse
 const mouseState: {
   handle: string;
   dragging: boolean;
@@ -172,11 +181,13 @@ function maximize(id: string) {
   console.debug("Maximizing window", id);
   const tab = state.value[id];
 
+  // Calculate the windows that are not minimized
   const openWindows = windows.value.filter((id) => !state.value[id].minimized);
 
   const allowedHeightShare = Math.round(totalHeight / (openWindows.length + 1));
   const desiredGrowth = Math.min(tab.maxContentHeight, allowedHeightShare);
 
+  // Calculate the windows that are larger than the allowed height share
   const largeWindows: [string, number][] = openWindows.map((id) => [
     id,
     Math.max(state.value[id].height - allowedHeightShare, 0),
@@ -185,6 +196,7 @@ function maximize(id: string) {
 
   const reduction = Math.min(available, Math.max(0, desiredGrowth - availableHeight));
 
+  // Shrink the windows that are larger than the allowed height share
   if (available > 0) {
     for (const i in largeWindows) {
       const [tabId, exceededHeight] = largeWindows[i];
@@ -195,6 +207,7 @@ function maximize(id: string) {
 
   tab.minimized = false;
 
+  // Grow the window to the desired height
   growTab(id, Math.max(desiredGrowth, availableHeight));
 }
 
@@ -208,6 +221,7 @@ function minimize(id: string) {
   tab.minimized = true;
 
   const oldHeight = tab.height;
+  // Shrink the window to the header size
   if (oldHeight > headerSize) {
     shrinkTab(id, oldHeight - headerSize);
     removeTarget(id);
@@ -225,14 +239,17 @@ function minimize(id: string) {
 function growTab(id: string, px: number): number {
   console.debug(`Growing ${id} by ${px}px`);
 
+  // Get the target window
   const tab = state.value[id];
   const canGrow = Math.min(availableHeight, headerSize + tab.maxContentHeight - tab.height);
   const actualGrowth = Math.min(px, canGrow);
 
+  // Grow the window
   tab.height += actualGrowth;
   availableHeight -= actualGrowth;
   console.debug("Available height shrunk by ", actualGrowth);
 
+  // Remove the target from the growth and shrink targets
   removeTarget(id);
   console.debug(`Adding ${id} as target after growth`);
   growthTargets.unshift(id);
@@ -258,10 +275,12 @@ function shrinkTab(id: string, px: number): number {
   console.debug("Available height increased by ", actualShrink);
 
   removeTarget(id);
+  // If the window is smaller than the header size, minimize it
   if (tab.height <= headerSize && !tab.minimized) {
     stopDragging();
     minimize(id);
   } else {
+    // Else, add the target to the growth and shrink targets
     console.debug(`Adding ${id} as target after shrink`);
     growthTargets.push(id);
     shrinkTargets.unshift(id);
@@ -280,6 +299,7 @@ function growAnyTab(px: number, from: number = -1): number {
   const targets = [...growthTargets].filter((id) => state.value[id].index > from && !state.value[id].minimized);
 
   let remaining = px;
+  // Grow the windows
   for (let i = 0; i < targets.length; i++) {
     remaining -= growTab(targets[i], remaining);
     if (remaining <= 0) return px;
@@ -291,7 +311,7 @@ function growAnyTab(px: number, from: number = -1): number {
 /**
  * Attempts to shrink windows until the desired shrinkage has been achieved.
  * @param px The amount of pixels to shrink windows by.
- * @param from The index from which windows may be shrinked (from top to bottom).
+ * @param from The index from which windows may be shrunk (from top to bottom).
  * @returns The realized shrinkage in pixels.
  */
 function shrinkAnyTab(px: number, from: number = -1): number {

@@ -62,7 +62,7 @@ watch(
 );
 
 /**
- * Updates the visibility of the layer group outside of the lens.
+ * Updates the visibility of the layer group outside the lens.
  * @param group - The group to toggle and update.
  */
 function checkedOutsideLens(group: LayerGroup) {
@@ -106,10 +106,10 @@ function checkedOutsideLens(group: LayerGroup) {
                 v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
                 :key="property.name"
                 :label="property.name"
-                v-model="group[property.nameRef]"
                 :min="property.min"
                 :max="property.max"
                 :default="[property.default]"
+                v-model="group[property.nameRef]"
                 @update="() => setLayerGroupProperty(group, property.propertyName)"
               />
             </PopoverContent>

@@ -148,7 +148,6 @@ class TestSpectral:
         params: dict = get_spectra_params(self.NO_OFFSET_NAME)
         assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
 
-    
     def test_bin_data_identity(self):
         # setup
         data: np.ndarray = np.array([[[3, 1, 3, 4, 0, 4], [1, 2, 4, 4, 0, 4], [1, 2, 4, 4, 0, 4]],

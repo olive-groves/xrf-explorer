@@ -182,7 +182,7 @@ export enum LayerVisibility {
 }
 
 /**
- * Indicates the type of a layer.
+ * Indicates the type of layer.
  */
 export enum LayerType {
   Image = 0,

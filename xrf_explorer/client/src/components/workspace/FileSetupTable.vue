@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSetupTableRow, FileUploadDialog } from ".";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { useFetch } from "@vueuse/core";
 import { computed, inject, ref } from "vue";
+// Lucide icons
 import { Image, ImagePlus, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 
+// Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
+// Define the workspace model
 const model = defineModel<WorkspaceConfig>({ required: true });
 
+// Variable for the type of element to add
 const addElementType = ref("contextual_image");
 
+// Variables for fetching and filtering files
 const fileUrl = computed(() => `${config.api.endpoint}/${model.value.name}/files`);
 const fileFetch = useFetch<string>(fileUrl);
 const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"));
@@ -49,6 +52,7 @@ function addElementToWorkspace() {
   const elementType = addElementType.value;
 
   switch (elementType) {
+    // Add a new contextual image
     case "contextual_image": {
       model.value.contextualImages.push({
         imageLocation: "",
@@ -57,6 +61,7 @@ function addElementToWorkspace() {
       });
       break;
     }
+    // Add a new spectral datacube
     case "spectral_cube": {
       model.value.spectralCubes.push({
         name: "",
@@ -66,6 +71,7 @@ function addElementToWorkspace() {
       });
       break;
     }
+    // Add a new elemental datacube
     case "elemental_cube": {
       model.value.elementalCubes.push({
         name: "",
@@ -84,14 +90,17 @@ function addElementToWorkspace() {
  */
 function removeElement(type: string, name: string) {
   switch (type) {
+    // Remove a contextual image
     case "contextual_image": {
       model.value.contextualImages = model.value.contextualImages.filter((value) => value.name != name);
       break;
     }
+    // Remove a spectral datacube
     case "spectral_cube": {
       model.value.spectralCubes = model.value.spectralCubes.filter((value) => value.name != name);
       break;
     }
+    // Remove an elemental datacube
     case "elemental_cube": {
       model.value.elementalCubes = model.value.elementalCubes.filter((value) => value.name != name);
       break;

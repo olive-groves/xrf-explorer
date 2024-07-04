@@ -17,12 +17,7 @@ const constraints = "Parameters must respect 0 <= low < high <= 40, 0 < bin size
  * @param open - The new state the dialog is requested to have.
  */
 function dialogUpdate(open: boolean) {
-  if (open) {
-    // Dialog can always be opened
-    dialogOpen.value = true;
-  } else {
-    dialogOpen.value = false;
-  }
+  dialogOpen.value = open;
 }
 
 //temporary variables to store parameters before save
@@ -91,9 +86,9 @@ function save() {
           <Input
             ref="inputComponent"
             type="number"
+            step="1"
             min="0"
             max="40"
-            step="1"
             v-model="high"
             id="high-input"
             @change="updateCorrectParams"

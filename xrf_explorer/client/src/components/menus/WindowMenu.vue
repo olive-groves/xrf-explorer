@@ -11,6 +11,8 @@ import { appState } from "@/lib/appState";
 import { computed, useSlots } from "vue";
 import { toast } from "vue-sonner";
 
+// Define the slots
+// Allow passing content from a parent component to a child component
 const slots = useSlots();
 const hasSlot = computed(() => {
   return "default" in slots;
@@ -20,6 +22,7 @@ const hasSlot = computed(() => {
  * Function to enable/disable the second viewer.
  */
 function toggleSecondViewer() {
+  // Update the app state boolean to toggle the second viewer
   appState.secondViewer = !appState.secondViewer;
   toast.info("Viewer layout updated");
 }

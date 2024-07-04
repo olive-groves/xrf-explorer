@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Import the necessary functions and components
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { windowState } from "./state";
 import { SidepanelContextMenu, WindowSidepanel } from ".";
@@ -6,21 +7,25 @@ import { computed, ref } from "vue";
 import { BaseContextMenu } from "@/components/menus";
 import { remToPx } from "@/lib/utils";
 
+// Define the left window panels
 const leftWindows = computed(() =>
   Object.keys(windowState).filter(
     (key) => !windowState[key].disabled && windowState[key].opened && windowState[key].location == "left",
   ),
 );
 
+// Define the right window panels
 const rightWindows = computed(() =>
   Object.keys(windowState).filter(
     (key) => !windowState[key].disabled && windowState[key].opened && windowState[key].location == "right",
   ),
 );
 
+// Define the resizable panels
 const leftPanel = ref<InstanceType<typeof ResizablePanel>>();
 const rightPanel = ref<InstanceType<typeof ResizablePanel>>();
 
+// Define the hit area margins
 const hitArea = {
   coarse: remToPx(1.5),
   fine: remToPx(0.5),

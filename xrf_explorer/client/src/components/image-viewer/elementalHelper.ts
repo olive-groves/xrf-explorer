@@ -2,7 +2,7 @@ import { appState, datasource } from "@/lib/appState";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { computed, watch } from "vue";
 import { createLayer, layerGroups, updateLayerGroupLayers } from "./state";
-import { LayerType } from "./types";
+import { Layer, LayerType } from "./types";
 import { loadLayerFromTexture, scene } from "./scene";
 import { ElementSelection } from "@/lib/selection";
 import { layerGroupDefaults } from "./workspace";
@@ -12,6 +12,7 @@ import { config } from "@/main";
 import * as THREE from "three";
 import { hexToRgb } from "@/lib/utils";
 
+// Elemental maps
 import elementalFragment from "./elementalFragment.glsl?raw";
 import elementalVertex from "./elementalVertex.glsl?raw";
 
@@ -108,14 +109,14 @@ function loadMap(element: ElementSelection) {
       };
 
       // Create a square
-      const shape = new THREE.Shape();
-      shape.moveTo(0, 0);
-      shape.lineTo(1, 0);
-      shape.lineTo(1, 1);
-      shape.lineTo(0, 1);
+      const square = new THREE.Shape();
+      square.moveTo(0, 0);
+      square.lineTo(1, 0);
+      square.lineTo(1, 1);
+      square.lineTo(0, 1);
 
       // Create the geometry
-      const geometry = new THREE.ShapeGeometry(shape);
+      const geometry = new THREE.ShapeGeometry(square);
 
       // Create the shader material that will render the map
       const material = new THREE.RawShaderMaterial({
@@ -242,17 +243,18 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   const size = await getDataSize();
   elementalTarget.setSize(size.width, size.height);
   elementalAlphaTarget.setSize(size.width, size.height);
-  const layer = createLayer("elemental_maps", "", false);
+  const layer: Layer = createLayer("elemental_maps", "", false);
   layer.uniform.iLayerType.value = LayerType.Elemental;
   layer.uniform.tAuxiliary = { value: elementalAlphaTarget.texture, type: "t" };
   loadLayerFromTexture(layer, elementalTarget.texture);
   registerLayer(layer, recipe);
+  const layers: Layer[] = [layer];
 
   // Create layer group
   layerGroups.value.elemental = {
     name: "Elemental maps",
     description: "Generated layer",
-    layers: [layer],
+    layers: layers,
     index: -2,
     visible: true,
     ...layerGroupDefaults,

@@ -28,8 +28,10 @@ LOG: Logger = getLogger(__name__)
 
 
 def normalize_ndarray_to_grayscale(array: np.ndarray, upper_bound: int = 255) -> np.ndarray:
-    """Map all values in the given array to the interval [0, upper_bound].
+    """
+    Map all values in the given array to the interval [0, upper_bound].
 
+    :param upper_bound: upper bound of the normalization interval.
     :param array: n-dimensional numpy array.
     :return: a copy of the array with values mapped to the interval [0, upper_bound].
     """
@@ -43,10 +45,13 @@ def normalize_ndarray_to_grayscale(array: np.ndarray, upper_bound: int = 255) ->
 
 
 def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
-    """Normalize the raw elemental data cube.
+    """
+    Normalize the raw elemental data cube.
 
-    :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last two for x, y coordinates.
-    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last two for x, y coordinates.
+    :param raw_cube: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and
+        last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last
+        two for x, y coordinates.
     """
 
     # Initialize the normalized cube
@@ -63,10 +68,12 @@ def normalize_elemental_cube_per_layer(raw_cube: np.ndarray) -> np.ndarray:
 
 
 def get_elemental_data_cube(data_source: str) -> np.ndarray:
-    """Get the elemental data cube at the given path.
+    """
+    Get the elemental data cube at the given path.
 
     :param data_source: the path to the .raw file
-    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for x, y coordinates.
+    :return: 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+        x, y coordinates.
     """
     path_to_elemental_cube: str | None = get_elemental_cube_path(data_source)
     if path_to_elemental_cube is None:
@@ -96,7 +103,8 @@ def get_elemental_data_cube(data_source: str) -> np.ndarray:
 
 
 def get_elemental_map(element: int, path: str) -> np.ndarray:
-    """Get the elemental map of element index at the given path.
+    """
+    Get the elemental map of element index at the given path.
 
     :param element: Index of the element in the elemental data cube.
     :param path: Path to data cube.
@@ -126,7 +134,8 @@ def get_elemental_map(element: int, path: str) -> np.ndarray:
 
 
 def get_element_names(data_source: str) -> list[str]:
-    """Get the names of the elements stored in the elemental data cube.
+    """
+    Get the names of the elements stored in the elemental data cube.
 
     :param data_source: Data source folder name.
     :return: List of the names of the elements. Empty list if error occurred.
@@ -159,7 +168,8 @@ def get_element_names(data_source: str) -> list[str]:
 
 
 def get_short_element_names(data_source: str) -> list[str]:
-    """Get the short names of the elements stored in the elemental data cube.
+    """
+    Get the short names of the elements stored in the elemental data cube.
 
     :param data_source: Data source folder name.
     :return: List of the names of the elements. Empty list if error occurred.
@@ -187,7 +197,8 @@ def get_short_element_names(data_source: str) -> list[str]:
 
 
 def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
-    """Get the names and averages of the elements present in the painting.
+    """
+    Get the names and averages of the elements present in the painting.
 
     :param data_source: Name of the data source.
     :return: List of the names and average composition of the elements.
@@ -218,7 +229,8 @@ def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
 
 
 def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[dict[str, str | float]]:
-    """Get the names and averages of the elements present in (a subarea of) the painting.
+    """
+    Get the names and averages of the elements present in (a subarea of) the painting.
 
     :param data_source: The data source to get the selection averages from.
     :param mask: A 2D mask of the selected pixels
@@ -248,7 +260,8 @@ def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[d
 
 
 def convert_elemental_cube_to_dms(data_source: str, cube_name: str) -> bool:
-    """Converts an elemental data cube to .dms format. Updates the workspace accordingly and removes the old elemental
+    """
+    Converts an elemental data cube to .dms format. Updates the workspace accordingly and removes the old elemental
     data cube.
 
     :param data_source: Name of the data source.

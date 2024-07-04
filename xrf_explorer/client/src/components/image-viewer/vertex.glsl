@@ -4,6 +4,7 @@ precision highp int;
 uniform float iIndex;
 uniform vec4 iViewport; // x, y, w, h
 
+// Attributes
 in vec3 position;
 in vec2 uv;
 

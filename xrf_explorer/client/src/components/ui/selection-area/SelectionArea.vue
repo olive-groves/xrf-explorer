@@ -106,8 +106,8 @@ function onClick(event: MouseEvent) {
         } else {
           model.value.type = undefined;
         }
-        candidateType.value = undefined;
         candidatePoints.value = [];
+        candidateType.value = undefined;
       } else {
         candidatePoints.value.push(point);
       }

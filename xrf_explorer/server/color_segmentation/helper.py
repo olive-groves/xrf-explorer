@@ -17,9 +17,9 @@ def get_path_to_cs_folder(data_source: str) -> str:
     """
 
     # load backend config
-    backend_config: dict = get_config()
+    backend_config: dict | None = get_config()
     if not backend_config:  # config is empty
-        LOG.error("Config is empty")
+        LOG.error("Could not find path to color segmentation folder: config is empty")
         return ""
 
     # Get path to generated folder of the data source

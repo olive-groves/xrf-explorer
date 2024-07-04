@@ -182,8 +182,7 @@ class TestImageToCubeSelection:
         )
 
         if selection_data is None:
-            pytest.fail(
-                "An error occured while extracting data cube selected region.")
+            pytest.fail("An error occurred while extracting data cube selected region.")
 
         # verify
         actual_size: int = np.count_nonzero(selection_data)

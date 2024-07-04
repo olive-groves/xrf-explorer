@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Teleport, ref, toRef, watch } from "vue";
+// Import the necessary functions and components
+import { ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 import { appState } from "@/lib/appState";
@@ -11,15 +11,15 @@ const props = defineProps<{
    */
   title: string;
   /**
-   * Whether or not the window is disabled.
+   * Whether the window is disabled.
    */
   disabled?: boolean;
   /**
-   * Whether or not to open the window by default.
+   * Whether to open the window by default.
    */
   opened?: boolean;
   /**
-   * Whether or not to allow scrolling inside the window.
+   * Whether to allow scrolling inside the window.
    *
    * Enabling noScroll could be useful for fixed size content such as charts.
    */
@@ -34,6 +34,7 @@ const emit = defineEmits(["windowMounted", "windowUnmounted"]);
 
 const id = snakeCase(props.title);
 
+// Initialize the window state if it doesn't exist
 if (!(id in windowState)) {
   windowState[id] = {
     id: id,
@@ -46,9 +47,11 @@ if (!(id in windowState)) {
   };
 }
 
+// Set the opened state
 const disabled = toRef(props, "disabled");
 watch(disabled, (value) => (windowState[id].disabled = value));
 
+// Define the window state
 const state = toRef(windowState, id);
 const content = ref<HTMLElement | null>(null);
 

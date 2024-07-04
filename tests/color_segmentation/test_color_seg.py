@@ -342,4 +342,4 @@ class TestColorSegmentation:
         assert not path
 
         # Verify log message
-        assert "Config is empty" in caplog.text
+        assert "Could not find path to color segmentation folder: config is empty" in caplog.text

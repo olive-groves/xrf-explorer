@@ -1,3 +1,4 @@
+// Import necessary modules
 import { ContextualImage, WorkspaceConfig } from "@/lib/workspace";
 import { createLayer, layerGroups, layers, updateLayerGroupLayers } from "./state";
 import { computed, watch } from "vue";
@@ -16,7 +17,7 @@ const useWorkspace = computed(() => appState.workspace);
 watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
 
 /**
- * Updates the layers and layergroups when changes are made to the workspaceconfig.
+ * Updates the layers and layer groups when changes are made to the workspace config.
  * @param workspace - The new workspace configuration.
  */
 function loadWorkspace(workspace: WorkspaceConfig) {

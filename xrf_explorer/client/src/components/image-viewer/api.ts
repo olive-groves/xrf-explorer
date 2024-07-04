@@ -29,19 +29,28 @@ export async function getTargetSize(): Promise<Size> {
 }
 
 /**
+ * Gets the size of a 2D object from a URL.
+ * @param url - The url to the 2D object.
+ * @returns The size of the 2D object in pixels.
+ */
+async function extract2DSize(url: string): Promise<Size> {
+  if (!(url in sizeCache)) {
+    sizeCache[url] = (await (await fetch(url)).json()) as Size;
+  }
+  const size: Size = sizeCache[url];
+  size.width = parseInt(size.width as unknown as string);
+  size.height = parseInt(size.height as unknown as string);
+  return size;
+}
+
+/**
  * Gets the size of a specific image, mainly used for registering.
  * @param name - The name of the contextual image to get the size of.
  * @returns The size of the specified image in pixels.
  */
 export async function getImageSize(name: string): Promise<Size> {
-  const url = `${config.api.endpoint}/${datasource.value}/image/${name}/size`;
-  if (!(url in sizeCache)) {
-    sizeCache[url] = (await (await fetch(url)).json()) as Size;
-  }
-  const size = sizeCache[url];
-  size.width = parseInt(size.width as unknown as string);
-  size.height = parseInt(size.height as unknown as string);
-  return size;
+  const url: string = `${config.api.endpoint}/${datasource.value}/image/${name}/size`;
+  return await extract2DSize(url);
 }
 
 /**
@@ -49,14 +58,8 @@ export async function getImageSize(name: string): Promise<Size> {
  * @returns The size of the data cubes.
  */
 export async function getDataSize(): Promise<Size> {
-  const url = `${config.api.endpoint}/${datasource.value}/data/size`;
-  if (!(url in sizeCache)) {
-    sizeCache[url] = (await (await fetch(url)).json()) as Size;
-  }
-  const size = sizeCache[url];
-  size.width = parseInt(size.width as unknown as string);
-  size.height = parseInt(size.height as unknown as string);
-  return size;
+  const url: string = `${config.api.endpoint}/${datasource.value}/data/size`;
+  return await extract2DSize(url);
 }
 
 /**

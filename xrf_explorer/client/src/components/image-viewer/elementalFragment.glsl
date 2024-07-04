@@ -1,3 +1,4 @@
+// This fragment shader is used to apply intensity thresholds to the alpha channel of an image.
 precision highp float;
 precision highp int;
 

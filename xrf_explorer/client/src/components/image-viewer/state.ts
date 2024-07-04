@@ -5,13 +5,13 @@ import { loadLayer } from "./scene";
 
 /**
  * Contains data for all layers.
- * May not be mutated directly from outside of the ImageViewer.
+ * May not be mutated directly from outside the ImageViewer.
  */
 export const layers = ref<Layer[]>([]);
 
 /**
  * Describes the different layer groups.
- * May not be mutated directly from outside of the ImageViewer.
+ * May not be mutated directly from outside the ImageViewer.
  */
 export const layerGroups = ref<{
   [key: string]: LayerGroup;
