@@ -10,7 +10,7 @@ from numpy import ndarray, array_equal, array, float32, full
 
 from xrf_explorer.server.file_system.cubes.convert_dms import to_dms
 from xrf_explorer.server.file_system.cubes.elemental import (
-    get_elemental_data_cube, get_elemental_map, get_element_names, 
+    get_elemental_data_cube, get_elemental_map, get_element_names, get_short_element_names,
     get_element_averages, convert_elemental_cube_to_dms, get_element_averages_selection
 )
 from xrf_explorer.server.file_system.helper import set_config, get_config
@@ -54,6 +54,26 @@ class TestElementalData:
         assert len(result) == 2
         assert result == self.ELEMENTS
         assert expected_output in caplog.text
+    
+    def test_get_element_names_invalid_data_source(self, caplog):
+        # setup
+        data_source: str = "this is not a data source"
+        expected_output: str = f"Could not get path to elemental datacube of data source {data_source}"
+
+        # execute
+        result: list[str] = get_element_names(data_source)
+
+        # verify
+        assert not result
+        assert expected_output in caplog.text
+    
+    def test_get_short_element_names_invalid_data_source(self, caplog):
+        # execute
+        result: list[str] = get_short_element_names("this is not a data source")
+
+        # verify
+        assert not result
+        assert "Could not get element names" in caplog.text
 
     def do_test_get_elemental_cube(self, source, caplog):
         caplog.set_level(INFO)
@@ -107,6 +127,19 @@ class TestElementalData:
         # execute & verify
         self.do_test_get_elemental_map(dms_path, caplog)
         self.do_test_get_elemental_map(csv_path, caplog)
+    
+    def test_get_elemental_map_invalid_type(self, caplog):
+        caplog.set_level(INFO)
+
+        # setup
+        expected_output: str = "Elemental map loaded. Shape: (0,)"
+
+        # execute
+        result: ndarray = get_elemental_map(0, "invalid.invalid")
+
+        # verify
+        assert len(result) == 0
+        assert expected_output in caplog.text
 
     def test_get_element_averages(self, caplog):
         caplog.set_level(INFO)
@@ -124,6 +157,14 @@ class TestElementalData:
         assert result_dms[1]['name'] == self.ELEMENTS[1]
         assert result_dms == result_csv
         assert expected_output in caplog.text
+    
+    def test_get_element_averages_invalid_data_source(self, caplog):
+        # execute
+        result: list[dict[str, str | float]] = get_element_averages("this is not a data source")
+
+        # verify
+        assert not result
+        assert "Couldn't parse elemental image cube or list of names" in caplog.text
 
     def test_csv_to_dms(self, caplog):
         caplog.set_level(INFO)
