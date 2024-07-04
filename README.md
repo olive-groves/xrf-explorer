@@ -10,8 +10,8 @@ _Test locations in the next section_
 - Note that directly under `/xrf_explorer/client` there are various configuration files which should also not be tested. These are the following files: `postcss.config.js`, `tailwindcss.config.js`, `vite.config.ts` as well stylecheck files and various JSON files. 
 
 ## Test file locations
-- Backend: `/xrf_explorer/client/src/components/__tests__`
-- Frontend: `tests`
+- Frontend: `/xrf_explorer/client/src/components/__tests__`
+- Backend: `tests`
 
 ## Development information
 
