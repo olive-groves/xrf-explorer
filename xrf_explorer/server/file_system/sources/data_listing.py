@@ -17,7 +17,8 @@ def get_data_sources_names() -> list[str]:
 
     # load backend config
     backend_config: dict = get_config()
-    if not backend_config:  # config is empty
+    # Checks if the config is valid
+    if not backend_config: 
         LOG.error("Config is empty")
         return []
 
@@ -43,6 +44,7 @@ def get_data_source_files(data_source: str) -> list[str]:
 
     # load config
     config: dict | None = get_config()
+    # Checks if the config is valid
     if not config:
         LOG.error("Config is empty")
         return []
