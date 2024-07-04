@@ -278,8 +278,8 @@ class TestRoutes:
         })
 
         # verify
-        assert response.status_code == 500
-        assert response.text == "Error occurred while getting backend config"
+        assert response.status_code == 400
+        assert response.text == "Error occurred while getting selection type or points from request body"
     
     def test_element_averages_selection_invalid_type(self, client: FlaskClient):
         # setup
@@ -307,7 +307,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.text == "Error parsing points; expected a list of points"
+        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
     
     def test_element_averages_selection(self, client: FlaskClient):
         # execute
@@ -463,8 +463,10 @@ class TestRoutes:
         assert "error while loading workspace to retrieve spectra params" in response.text
 
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
+        # setup selection type
+        selection_type: str = "invalid_type"
         selection: dict = {
-            "type": "invalid_type",
+            "type": selection_type,
             "points": [
                 {"x": 0, "y": 0},
                 {"x": 1, "y": 1}
@@ -476,7 +478,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.text == "Error parsing selection type"
+        assert response.text == f"Error parsing selection of type {selection_type}"
     
     def test_get_selection_spectra_no_selection_type(self, client: FlaskClient):
         selection: dict = {
@@ -504,7 +506,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.text == "Error parsing points; expected a list of points"
+        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
     
     def test_get_selection_spectra(self, client: FlaskClient):
         selection: dict = {

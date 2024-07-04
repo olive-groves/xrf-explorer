@@ -169,10 +169,10 @@ def list_element_averages_selection(data_source: str):
             average: element abundance
         }
     """
-    mask: np.ndarray | None = encode_selection(request.get_json(), data_source, CubeType.Elemental)
+    mask: np.ndarray | tuple[str, int] = encode_selection(request.get_json(), data_source, CubeType.Elemental)
 
-    if mask is None:
-        return "Error occurred while getting selection from datacube", 500
+    if isinstance(mask, tuple):
+        return mask[0], mask[1]
 
     # get averages
     composition: list[dict[str, str | float]] = get_element_averages_selection(data_source, mask)

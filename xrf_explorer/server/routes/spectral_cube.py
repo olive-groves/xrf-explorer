@@ -127,9 +127,9 @@ def get_selection_spectra(data_source: str):
     :param data_source: the name of the data source
     :return: JSON array where the index is the channel number and the value is the average intensity of that channel
     """
-    mask: np.ndarray | None = encode_selection(request.get_json(), data_source, CubeType.Raw)
-    if mask is None:
-        return "Error occurred while getting selection from datacube", 500
+    mask: np.ndarray | tuple[str, int] = encode_selection(request.get_json(), data_source, CubeType.Raw)
+    if isinstance(mask, tuple):
+        return mask[0], mask[1]
 
     # get average
     result: list[float] = get_average_selection(data_source, mask)

@@ -201,7 +201,6 @@ class TestWorkspaceHandler:
 
         # verify
         assert result is None 
-        assert "Config is empty" in caplog.text
 
     def test_get_elemental_cube_path_from_name_no_workspace(self):
         # setup

@@ -39,7 +39,7 @@ def parse_selection(selection_data: dict[str: str]) -> tuple[SelectionType, list
     try:
         selection_type_parsed: SelectionType = SelectionType(selection_type)
     except ValueError:
-        return "Error parsing selection type", 400
+        return f"Error parsing selection of type {selection_type}", 400
 
     # validate and parse points
     if not isinstance(points, list):
@@ -52,7 +52,7 @@ def parse_selection(selection_data: dict[str: str]) -> tuple[SelectionType, list
     return selection_type_parsed, points_parsed
 
 
-def encode_selection(selection_data: any, data_source: str, cube_type: CubeType) -> np.ndarray | None:
+def encode_selection(selection_data: any, data_source: str, cube_type: CubeType) -> np.ndarray | tuple[str, int]:
     """
     Creates a bitmask of the given cube from a selection in JSON format.
 
@@ -62,9 +62,12 @@ def encode_selection(selection_data: any, data_source: str, cube_type: CubeType)
     :return: bitmask of the cube encoding the selection or None if an error occurred
     """
     # parse JSON payload
-    selection: SelectionType
-    points: list[tuple[int, int]]
+    selection: SelectionType | str
+    points: list[tuple[int, int]] | int
     selection, points = parse_selection(selection_data)
+
+    if isinstance(points, int):
+        return selection, points
 
     # get selection
     return get_selection(data_source, points, selection, cube_type)
