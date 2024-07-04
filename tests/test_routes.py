@@ -174,7 +174,7 @@ class TestRoutes:
             f.write("{}")
 
         # execute
-        response = client.delete(f"/api/completely_new_data_source/delete")
+        response = client.delete(f"/api/{completely_new_data_source}/delete")
 
         # verify
         assert response.status_code == 200
@@ -444,6 +444,23 @@ class TestRoutes:
         # verify
         assert response.status_code == 404
         assert response.text == "Error occurred while getting raw data"
+    
+    def test_get_element_spectra(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/get_element_spectrum/Si K/20")
+
+        # verify
+        assert response.status_code == 200
+        assert len(json.loads(response.text)[0]) == 16
+        assert len(json.loads(response.text)[1]) == 4
+    
+    def test_get_element_spectra_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/this is not a data source/get_element_spectrum/Si K/20")
+
+        # verify
+        assert response.status_code == 404
+        assert "error while loading workspace to retrieve spectra params" in response.text
 
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
         selection: dict = {
@@ -459,7 +476,51 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.get_data(as_text=True) == "Error parsing selection type"
+        assert response.text == "Error parsing selection type"
+    
+    def test_get_selection_spectra_no_selection_type(self, client: FlaskClient):
+        selection: dict = {
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == "Error occurred while getting selection type or points from request body"
+    
+    def test_get_selection_spectra_points_not_list(self, client: FlaskClient):
+        selection: dict = {
+            "type": "rectangle",
+            "points": "not a list"
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == "Error parsing points; expected a list of points"
+    
+    def test_get_selection_spectra(self, client: FlaskClient):
+        selection: dict = {
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
+
+        # verify
+        assert response.status_code == 200
+        assert len(json.loads(response.text)) == 16
 
     def test_get_color_clusters_whole_cube(self, client: FlaskClient):
         # execute

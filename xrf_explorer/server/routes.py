@@ -667,9 +667,7 @@ def get_selection_spectra(data_source: str):
     :return: JSON array where the index is the channel number and the value is the average intensity of that channel
     """
 
-    selection: dict[str, any] | None = request.get_json()
-    if selection is None:
-        return "Error parsing request body", 400
+    selection: dict[str, any] = request.get_json()
 
     # get selection type and points
     selection_type: str | None = selection.get('type')
