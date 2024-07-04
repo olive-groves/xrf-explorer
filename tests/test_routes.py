@@ -23,6 +23,7 @@ class TestRoutes:
     DATA_SOURCES_FOLDER: str = join(RESOURCES_PATH, "data_sources")
 
     DATA_SOURCE: str = "test_data_source"
+    UNBINNED_DATA_SOURCE: str = "unbinned_data_source"
     GENERATED_FOLDER: str = join(DATA_SOURCES_FOLDER, DATA_SOURCE, "generated")
 
     BASE_IMAGE: str = "BASE"
@@ -70,7 +71,7 @@ class TestRoutes:
         result_list: list[str] = json.loads(result_str)
 
         # verify
-        assert len(result_list) == 1
+        assert len(result_list) == 2
     
     def test_get_workspace(self, client: FlaskClient):
         # execute
@@ -234,6 +235,14 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 500
+    
+    def test_bin_raw_data(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.post(f"/api/{self.UNBINNED_DATA_SOURCE}/bin_raw/")
+
+        # verify
+        assert response.status_code == 200
+        assert response.text == "Binned data"
     
     def test_bin_raw_data_already_binned(self, client: FlaskClient):
         # execute
