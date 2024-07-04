@@ -201,7 +201,7 @@ def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
     Get the names and averages of the elements present in the painting.
 
     :param data_source: Name of the data source.
-    :return: List of the names and average composition of the elements.
+    :return: List of the names, channels and average composition of the elements.
     """
 
     # Get the elemental data cube and the names of the elements
@@ -221,7 +221,7 @@ def get_element_averages(data_source: str) -> list[dict[str, str | float]]:
 
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str, str | float]] = \
-        [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+        [{"name": names[i], "channel": i, "average": float(averages[i])} for i in range(averages.size)]
 
     LOG.info("Calculated the average composition of the elements.")
 
@@ -234,7 +234,7 @@ def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[d
 
     :param data_source: The data source to get the selection averages from.
     :param mask: A 2D mask of the selected pixels
-    :return: List of the names and average composition of the elements.
+    :return: List of the names, channels and average composition of the elements.
     """
     # Get the elemental data cube and the names of the elements
     raw_cube: np.ndarray = get_elemental_data_cube(data_source)
@@ -252,7 +252,7 @@ def get_element_averages_selection(data_source: str, mask: np.ndarray) -> list[d
 
     # Create a list of dictionaries with the name and average composition of the elements
     composition: list[dict[str, str | float]] = \
-        [{"name": names[i], "average": float(averages[i])} for i in range(averages.size)]
+        [{"name": names[i], "channel": i, "average": float(averages[i])} for i in range(averages.size)]
 
     LOG.info("Calculated the average composition of the elements within selection.")
 

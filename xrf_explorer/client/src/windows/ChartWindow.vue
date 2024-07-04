@@ -20,6 +20,7 @@ watch(chart, (value) => (exportableElements["Elements"] = value), { immediate: t
 
 type Element = {
   name: string;
+  channel: number;
   average: number;
 };
 
@@ -175,7 +176,9 @@ async function fetchSelectionAverages() {
 function filterToWorkspaceElements(data: Element[]) {
   const elementalChannels: ElementalChannel[] = elements.value;
 
-  return data.filter((_, i) => elementalChannels.some((channel) => i == channel.channel && channel.enabled));
+  return data.filter((element) =>
+    elementalChannels.some((channel) => element.channel == channel.channel && channel.enabled),
+  );
 }
 
 /**
@@ -187,7 +190,7 @@ function filterToWorkspaceElements(data: Element[]) {
 function maskData(data: Element[], selection: ElementSelection[]) {
   maskedElementSelection = selection.filter((element) => element.selected);
 
-  return data.filter((_, index) => maskedElementSelection.some((elementVis) => elementVis.channel == index));
+  return data.filter((element) => maskedElementSelection.some((elementVis) => elementVis.channel == element.channel));
 }
 
 /**

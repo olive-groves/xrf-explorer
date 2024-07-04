@@ -151,6 +151,7 @@ def list_element_averages(data_source: str):
     :return: JSON list of objects indicating average abundance for every element. Each object is of the form
         {
             name: element name,
+            channel: element channel,
             average: element abundance
         }
     """
