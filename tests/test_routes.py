@@ -161,6 +161,31 @@ class TestRoutes:
         assert response.status_code == 500
         assert response.text == error_msg 
         assert error_msg in caplog.text
+
+    def test_delete_data_source(self, client: FlaskClient):
+        # setup
+        completely_new_data_source: str = "completely_new_data_source"
+        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
+
+        # setup - create data source with workspace and generated folder
+        makedirs(folder_path)
+        makedirs(join(folder_path, "generated"))
+        with open(join(folder_path, "workspace.json"), "w") as f:
+            f.write("{}")
+
+        # execute
+        response = client.delete(f"/api/completely_new_data_source/delete")
+
+        # verify
+        assert response.status_code == 200
+        assert response.get_json() == {"dataSourceDir": completely_new_data_source}
+    
+    def test_delete_data_source_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.delete("/api/this is not a data source/delete")
+
+        # verify
+        assert response.status_code == 400
     
     def test_upload_chunk(self, client: FlaskClient):
         # setup

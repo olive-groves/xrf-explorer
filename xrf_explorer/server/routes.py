@@ -214,12 +214,7 @@ def delete_data_source(data_source: str):
     # Get config
     config: dict = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
-
-    if data_source == "":
-        error_msg: str = "Data source name provided, but empty."
-        LOG.error(error_msg)
-        return error_msg, 400
-
+    
     data_source_dir: str = join(config['uploads-folder'], data_source)
 
     if not isdir(data_source_dir):
