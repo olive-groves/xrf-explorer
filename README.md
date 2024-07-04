@@ -4,8 +4,13 @@ Repository for the XRF Explorer team.
 
 ## Files to be excluded from testing
 
-- All files under `xrf_explorer/client/src/components/ui` except the files under `/selection-area` and `/window`.
-- Any and all `index.ts` files under `xrf_explorer/client` as these are for exporting the components. 
+- All files under `/xrf_explorer/client/src/components/ui` except the files under `/selection-area` and `/window`.
+- Any and all `index.ts` files under `/xrf_explorer/client` as these are for exporting the components.
+- Note that directly under `/xrf_explorer/client` there are various configuration files which should also not be tested. These are the following files: `postcss.config.js`, `tailwindcss.config.js`, `vite.config.ts` as well stylecheck files and various JSON files. 
+
+## Test file locations
+- Backend: `/xrf_explorer/client/src/components/__tests__`
+- Frontend: `tests`
 
 ## Development information
 
