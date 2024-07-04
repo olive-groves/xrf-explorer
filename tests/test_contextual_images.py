@@ -37,6 +37,19 @@ class TestContextualImages:
         # Verify
         assert result == abspath(self.TEST_IMAGE_PATH)
         assert "TEST in data source painting" in caplog.text
+    
+    def test_get_contextual_image_path_invalid_config(self, caplog):
+        caplog.set_level(logging.INFO)
+
+        # Setup
+        set_config("invalid_config")
+
+        # Execute
+        result: str | None = get_contextual_image_path("painting", "TEST")
+
+        # Verify
+        assert result is None
+        assert "Config file is empty" in caplog.text
 
     def test_get_contextual_image_path_contextual(self, caplog):
         caplog.set_level(logging.INFO)
