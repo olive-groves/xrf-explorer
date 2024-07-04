@@ -627,6 +627,8 @@ def get_average_data(data_source: str):
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
     datacube: np.ndarray = get_raw_data(data_source)
+    if len(datacube) == 0:
+        return "Error occurred while getting raw data", 404
 
     average_values: list = get_average_global(datacube)
 

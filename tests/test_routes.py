@@ -404,6 +404,22 @@ class TestRoutes:
         assert response.status_code == 404
         assert response.text == f"Could not find elemental data cube in source {data_source}"
 
+    def test_get_average_data(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/get_average_data")
+
+        # verify
+        assert response.status_code == 200
+        assert len(json.loads(response.text)) == 16
+    
+    def test_get_average_data_invalid_data_source(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/not a data source/get_average_data")
+
+        # verify
+        assert response.status_code == 404
+        assert response.text == "Error occurred while getting raw data"
+
     def test_get_selection_spectra_invalid_selection_type(self, client: FlaskClient):
         selection: dict = {
             "type": "invalid_type",
