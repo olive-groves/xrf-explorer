@@ -284,29 +284,36 @@ async function getAverageSpectrum() {
  * @param selection Json object representing the selection.
  */
 async function getSelectionSpectrum(selection: SelectionAreaSelection) {
-  if (ready && selection.type != undefined && selectionChecked.value) {
-    // Request body for selection
-    const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
+  if (ready && selectionChecked.value) {
+    // Abort any previous requests
+    abortController.abort();
+    abortController = new AbortController();
+    loadingSelection.value = true;
 
-    try {
-      // Abort any previous requests
-      abortController.abort();
-      abortController = new AbortController();
-      loadingSelection.value = true;
+    // clear selection
+    if (selection.type == undefined) selectionData = [];
+    // update new selection
+    else {
+      // Request body for selection
+      const request_body = flipSelectionAreaSelection(selection, (await getTargetSize()).height);
 
-      //make api call
-      const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request_body),
-        signal: abortController.signal,
-      });
-      selectionData = await response.json();
-      makeChart();
-      loadingSelection.value = false;
-    } catch (e) {
-      console.error("Error getting selection average spectrum", e);
+      try {
+        //make api call
+        const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(request_body),
+          signal: abortController.signal,
+        });
+        selectionData = await response.json();
+      } catch (e) {
+        console.error("Error getting selection average spectrum", e);
+      }
     }
+
+    // update plot
+    makeChart();
+    loadingSelection.value = false;
   }
 }
 
