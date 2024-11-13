@@ -4,7 +4,7 @@ Repository for XRF Explorer.
 
 Code documentation is at [olive-groves.github.io/xrf-explorer](https://olive-groves.github.io/xrf-explorer).
 
-Technical documentation including user requirements and user testing is at [github.com/olive-groves/xrf-explorer-documentation](https://github.com/olive-groves/xrf-explorer-documentation).
+Technical documents for functional aspects, user requirements, and user testing are at [github.com/olive-groves/xrf-explorer-documentation](https://github.com/olive-groves/xrf-explorer-documentation).
 
 ## Files to be excluded from testing
 _Test locations in the next section_
