@@ -1,0 +1,18 @@
+xrf\_explorer package
+=====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   xrf_explorer.server
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer
+   :members:
+   :undoc-members:
+   :show-inheritance:

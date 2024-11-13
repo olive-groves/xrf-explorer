@@ -1,0 +1,24 @@
+xrf\_explorer.server package
+============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   xrf_explorer.server.color_segmentation
+   xrf_explorer.server.dim_reduction
+   xrf_explorer.server.file_system
+   xrf_explorer.server.image_register
+   xrf_explorer.server.image_to_cube_selection
+   xrf_explorer.server.routes
+   xrf_explorer.server.spectra
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server
+   :members:
+   :undoc-members:
+   :show-inheritance:

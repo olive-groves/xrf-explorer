@@ -1,0 +1,45 @@
+tests.file\_system package
+==========================
+
+Submodules
+----------
+
+tests.file\_system.test\_element\_data module
+---------------------------------------------
+
+.. automodule:: tests.file_system.test_element_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.file\_system.test\_file\_upload module
+--------------------------------------------
+
+.. automodule:: tests.file_system.test_file_upload
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.file\_system.test\_spectral module
+----------------------------------------
+
+.. automodule:: tests.file_system.test_spectral
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.file\_system.test\_workspace\_handler module
+--------------------------------------------------
+
+.. automodule:: tests.file_system.test_workspace_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: tests.file_system
+   :members:
+   :undoc-members:
+   :show-inheritance:

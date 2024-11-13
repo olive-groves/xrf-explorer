@@ -1,0 +1,29 @@
+tests.color\_segmentation package
+=================================
+
+Submodules
+----------
+
+tests.color\_segmentation.manual\_testing\_color\_seg module
+------------------------------------------------------------
+
+.. automodule:: tests.color_segmentation.manual_testing_color_seg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.color\_segmentation.test\_color\_seg module
+-------------------------------------------------
+
+.. automodule:: tests.color_segmentation.test_color_seg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: tests.color_segmentation
+   :members:
+   :undoc-members:
+   :show-inheritance:

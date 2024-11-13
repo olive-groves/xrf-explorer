@@ -1,0 +1,21 @@
+xrf\_explorer.server.spectra package
+====================================
+
+Submodules
+----------
+
+xrf\_explorer.server.spectra.spectra module
+-------------------------------------------
+
+.. automodule:: xrf_explorer.server.spectra.spectra
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.spectra
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,21 @@
+xrf\_explorer.server.image\_to\_cube\_selection package
+=======================================================
+
+Submodules
+----------
+
+xrf\_explorer.server.image\_to\_cube\_selection.image\_to\_cube\_selection module
+---------------------------------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.image_to_cube_selection.image_to_cube_selection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.image_to_cube_selection
+   :members:
+   :undoc-members:
+   :show-inheritance:

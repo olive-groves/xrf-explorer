@@ -1,0 +1,821 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="xrf_explorer.server.file_system.sources package" href="xrf_explorer.server.file_system.sources.html" /><link rel="prev" title="xrf_explorer.server.file_system package" href="xrf_explorer.server.file_system.html" />
+
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.08.06 -->
+        <title>xrf_explorer.server.file_system.cubes package - XRF-Explorer 2.0 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">XRF-Explorer 2.0 0.2.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">XRF-Explorer 2.0 0.2.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Python Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="modules.html">xrf-explorer</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of xrf-explorer</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="run.html">run module</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="tests.html">tests package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of tests package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="tests.color_segmentation.html">tests.color_segmentation package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tests.file_system.html">tests.file_system package</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="xrf_explorer.html">xrf_explorer package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of xrf_explorer package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current has-children"><a class="reference internal" href="xrf_explorer.server.html">xrf_explorer.server package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of xrf_explorer.server package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.color_segmentation.html">xrf_explorer.server.color_segmentation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.dim_reduction.html">xrf_explorer.server.dim_reduction package</a></li>
+<li class="toctree-l4 current has-children"><a class="reference internal" href="xrf_explorer.server.file_system.html">xrf_explorer.server.file_system package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of xrf_explorer.server.file_system package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l5 current current-page"><a class="current reference internal" href="#">xrf_explorer.server.file_system.cubes package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="xrf_explorer.server.file_system.sources.html">xrf_explorer.server.file_system.sources package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="xrf_explorer.server.file_system.workspace.html">xrf_explorer.server.file_system.workspace package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.image_register.html">xrf_explorer.server.image_register package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.image_to_cube_selection.html">xrf_explorer.server.image_to_cube_selection package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.routes.html">xrf_explorer.server.routes package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.spectra.html">xrf_explorer.server.spectra package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Vue Components:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="components.html">components</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of components</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows.html">windows</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of windows</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="spectra_chart.html">Spectra Chart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="bar_chart.html">Bar Chart</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dim_reduction.html">Dimensionality Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="menu.html">menu</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of menu</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="viewer.html">viewer</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of viewer</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/xrf_explorer.server.file_system.cubes.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="xrf-explorer-server-file-system-cubes-package">
+<h1>xrf_explorer.server.file_system.cubes package<a class="headerlink" href="#xrf-explorer-server-file-system-cubes-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-xrf_explorer.server.file_system.cubes.convert_csv">
+<span id="xrf-explorer-server-file-system-cubes-convert-csv-module"></span><h2>xrf_explorer.server.file_system.cubes.convert_csv module<a class="headerlink" href="#module-xrf_explorer.server.file_system.cubes.convert_csv" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_data_cube_from_csv">
+<span class="sig-name descname"><span class="pre">get_elemental_data_cube_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_csv.html#get_elemental_data_cube_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_data_cube_from_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental data cube from the csv file at the given path.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to the csv file containing the elemental data cube.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_map_from_csv">
+<span class="sig-name descname"><span class="pre">get_elemental_map_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_csv.html#get_elemental_map_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_map_from_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental map of the given element from the csv file.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> – Index of the element in the elemental data cube.</p></li>
+<li><p><strong>path</strong> – Path to the dms file containing the elemental data cube.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_csv.get_elements_from_csv">
+<span class="sig-name descname"><span class="pre">get_elements_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_csv.html#get_elements_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elements_from_csv" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names of the elements stored in the elemental data cube.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to the csv file containing the elemental data cube.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names of the elements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xrf_explorer.server.file_system.cubes.convert_dms">
+<span id="xrf-explorer-server-file-system-cubes-convert-dms-module"></span><h2>xrf_explorer.server.file_system.cubes.convert_dms module<a class="headerlink" href="#module-xrf_explorer.server.file_system.cubes.convert_dms" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_data_cube_from_dms">
+<span class="sig-name descname"><span class="pre">get_elemental_data_cube_from_dms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_dms.html#get_elemental_data_cube_from_dms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_data_cube_from_dms" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental data cube from the dms file.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to the dms file containing the elemental data cube.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+x, y coordinates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_datacube_dimensions">
+<span class="sig-name descname"><span class="pre">get_elemental_datacube_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_dms.html#get_elemental_datacube_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_datacube_dimensions" title="Link to this definition">¶</a></dt>
+<dd><p>Get the dimensions of the elemental datacube.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Name of the data source containing the raw data file in the server</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>4-tuple of the dimensions of the raw elemental data and the header size (in bytes). Tuple is as follows
+(width, height, channels, header size)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_map_from_dms">
+<span class="sig-name descname"><span class="pre">get_elemental_map_from_dms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_dms.html#get_elemental_map_from_dms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_map_from_dms" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental map of the given element from the dms file.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> – Index of the element in the elemental data cube.</p></li>
+<li><p><strong>path</strong> – Path to the dms file containing the elemental data cube.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_dms.get_elements_from_dms">
+<span class="sig-name descname"><span class="pre">get_elements_from_dms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_dms.html#get_elements_from_dms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elements_from_dms" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names of the elements stored in the elemental data cube.
+Can raise error if file could not be read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to the dms file containing the elemental data cube.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names of the elements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.convert_dms.to_dms">
+<span class="sig-name descname"><span class="pre">to_dms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name_cube</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cube</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/convert_dms.html#to_dms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.convert_dms.to_dms" title="Link to this definition">¶</a></dt>
+<dd><p>Saves a numpy array and list of elements to a DMS file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_path</strong> – Path to the folder where the DMS file will be saved.</p></li>
+<li><p><strong>name_cube</strong> – Name of the elemental data cube. Without file extension, e.g. ‘cube’.</p></li>
+<li><p><strong>cube</strong> – 3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two
+for x, y coordinates.</p></li>
+<li><p><strong>elements</strong> – List of the names of the elements.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the cube was saved successfully, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xrf_explorer.server.file_system.cubes.elemental">
+<span id="xrf-explorer-server-file-system-cubes-elemental-module"></span><h2>xrf_explorer.server.file_system.cubes.elemental module<a class="headerlink" href="#module-xrf_explorer.server.file_system.cubes.elemental" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.convert_elemental_cube_to_dms">
+<span class="sig-name descname"><span class="pre">convert_elemental_cube_to_dms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cube_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#convert_elemental_cube_to_dms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.convert_elemental_cube_to_dms" title="Link to this definition">¶</a></dt>
+<dd><p>Converts an elemental data cube to .dms format. Updates the workspace accordingly and removes the old elemental
+data cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – Name of the data source.</p></li>
+<li><p><strong>cube_name</strong> – Name of the elemental data cube. Should be present in the workspace.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the cube was converted successfully, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_element_averages">
+<span class="sig-name descname"><span class="pre">get_element_averages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_element_averages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_averages" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names and averages of the elements present in the painting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Name of the data source.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names, channels and average composition of the elements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_element_averages_selection">
+<span class="sig-name descname"><span class="pre">get_element_averages_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_element_averages_selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_averages_selection" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names and averages of the elements present in (a subarea of) the painting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – The data source to get the selection averages from.</p></li>
+<li><p><strong>mask</strong> – A 2D mask of the selected pixels</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names, channels and average composition of the elements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_element_names">
+<span class="sig-name descname"><span class="pre">get_element_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_element_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get the names of the elements stored in the elemental data cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Data source folder name.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names of the elements. Empty list if error occurred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_elemental_data_cube">
+<span class="sig-name descname"><span class="pre">get_elemental_data_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_elemental_data_cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_elemental_data_cube" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental data cube at the given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – the path to the .raw file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3-dimensional numpy array containing the elemental data cube. First dimension is channel, and last two for
+x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_elemental_map">
+<span class="sig-name descname"><span class="pre">get_elemental_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_elemental_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_elemental_map" title="Link to this definition">¶</a></dt>
+<dd><p>Get the elemental map of element index at the given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> – Index of the element in the elemental data cube.</p></li>
+<li><p><strong>path</strong> – Path to data cube.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>2-dimensional numpy array containing the elemental data cube. Dimensions are the x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.get_short_element_names">
+<span class="sig-name descname"><span class="pre">get_short_element_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#get_short_element_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.get_short_element_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get the short names of the elements stored in the elemental data cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Data source folder name.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the names of the elements. Empty list if error occurred.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.normalize_elemental_cube_per_layer">
+<span class="sig-name descname"><span class="pre">normalize_elemental_cube_per_layer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_cube</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#normalize_elemental_cube_per_layer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.normalize_elemental_cube_per_layer" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize the raw elemental data cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>raw_cube</strong> – 3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and
+last two for x, y coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3-dimensional numpy array containing the normalized elemental data. First dimension is channel, and last
+two for x, y coordinates.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.elemental.normalize_ndarray_to_grayscale">
+<span class="sig-name descname"><span class="pre">normalize_ndarray_to_grayscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_bound</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">255</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/elemental.html#normalize_ndarray_to_grayscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.elemental.normalize_ndarray_to_grayscale" title="Link to this definition">¶</a></dt>
+<dd><p>Map all values in the given array to the interval [0, upper_bound].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>upper_bound</strong> – upper bound of the normalization interval.</p></li>
+<li><p><strong>array</strong> – n-dimensional numpy array.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a copy of the array with values mapped to the interval [0, upper_bound].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xrf_explorer.server.file_system.cubes.spectral">
+<span id="xrf-explorer-server-file-system-cubes-spectral-module"></span><h2>xrf_explorer.server.file_system.cubes.spectral module<a class="headerlink" href="#module-xrf_explorer.server.file_system.cubes.spectral" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.bin_data">
+<span class="sig-name descname"><span class="pre">bin_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#bin_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.bin_data" title="Link to this definition">¶</a></dt>
+<dd><p>Reduces the raw data of a data source to channels in range [low:high] and averages channels per bin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – the name of the data source containing the raw data</p></li>
+<li><p><strong>low</strong> – the lower channel boundary</p></li>
+<li><p><strong>high</strong> – the higher channel boundary</p></li>
+<li><p><strong>bin_size</strong> – the number of channels per bin</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.get_raw_data">
+<span class="sig-name descname"><span class="pre">get_raw_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">memmap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#get_raw_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.get_raw_data" title="Link to this definition">¶</a></dt>
+<dd><p>Parse the raw data cube of a data source as a 3-dimensional numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – the path to the .raw file</p></li>
+<li><p><strong>level</strong> – the mipmap level of the data to get</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>memory map of the 3-dimensional array containing the raw data in format {x, y, channel}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.get_spectra_params">
+<span class="sig-name descname"><span class="pre">get_spectra_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#get_spectra_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.get_spectra_params" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the spectrum parameters (low/high boundaries and bin size) of a data source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Name of the data source.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>FileNotFoundError</strong> – There is no workspace in the data source</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dictionary with the low, high, bin size and binned values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.mipmap_exists">
+<span class="sig-name descname"><span class="pre">mipmap_exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#mipmap_exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.mipmap_exists" title="Link to this definition">¶</a></dt>
+<dd><p>Checks if a specific mipmap level exists for a data source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – The datasource to check</p></li>
+<li><p><strong>level</strong> – The mipmap level to check</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the specified mipmap level exists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.mipmap_raw_cube">
+<span class="sig-name descname"><span class="pre">mipmap_raw_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#mipmap_raw_cube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.mipmap_raw_cube" title="Link to this definition">¶</a></dt>
+<dd><p>Generates the mipmaps of the raw data in the data source up to the selected level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_source</strong> – The data source to mipmap the data for</p></li>
+<li><p><strong>level</strong> – The level to mipmap the data to, 0 is original resolution</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.parse_rpl">
+<span class="sig-name descname"><span class="pre">parse_rpl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#parse_rpl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.parse_rpl" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Parse the rpl file of a data source as a dictionary, containing the following info:</dt><dd><ul class="simple">
+<li><p>width</p></li>
+<li><p>height</p></li>
+<li><p>depth</p></li>
+<li><p>offset</p></li>
+<li><p>data length</p></li>
+<li><p>data type</p></li>
+<li><p>byte order</p></li>
+<li><p>record by</p></li>
+<li><p>depth bin size</p></li>
+<li><p>depth1</p></li>
+<li><p>depth2</p></li>
+<li><p>depth scale origin</p></li>
+<li><p>depth scale increment</p></li>
+<li><p>depth scale units</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – path to the rpl file</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the attributes’ name and value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="xrf_explorer.server.file_system.cubes.spectral.update_bin_params">
+<span class="sig-name descname"><span class="pre">update_bin_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/xrf_explorer/server/file_system/cubes/spectral.html#update_bin_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xrf_explorer.server.file_system.cubes.spectral.update_bin_params" title="Link to this definition">¶</a></dt>
+<dd><p>Converts the low, high and binsize parameters in the workspace from energy to channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_source</strong> – Name of the data source containing the workspace to modify.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-xrf_explorer.server.file_system.cubes">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-xrf_explorer.server.file_system.cubes" title="Link to this heading">¶</a></h2>
+<p>Module that handles everything related to the raw and elemental data cubes.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="xrf_explorer.server.file_system.sources.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">xrf_explorer.server.file_system.sources package</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="xrf_explorer.server.file_system.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">xrf_explorer.server.file_system package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Pablo Benayas Penas, Jan Bulthuis, Dirk Burgers, Ivan Ivanov, Lotte Lakeman, Massimo Leal Martel, Sonia Maxim, Diego Rivera Garrido, Ruben Savelkouls, Iliyan Teofilov, Adrien Verriéle
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">xrf_explorer.server.file_system.cubes package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-xrf_explorer.server.file_system.cubes.convert_csv">xrf_explorer.server.file_system.cubes.convert_csv module</a><ul>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_data_cube_from_csv"><code class="docutils literal notranslate"><span class="pre">get_elemental_data_cube_from_csv()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elemental_map_from_csv"><code class="docutils literal notranslate"><span class="pre">get_elemental_map_from_csv()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_csv.get_elements_from_csv"><code class="docutils literal notranslate"><span class="pre">get_elements_from_csv()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-xrf_explorer.server.file_system.cubes.convert_dms">xrf_explorer.server.file_system.cubes.convert_dms module</a><ul>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_data_cube_from_dms"><code class="docutils literal notranslate"><span class="pre">get_elemental_data_cube_from_dms()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_datacube_dimensions"><code class="docutils literal notranslate"><span class="pre">get_elemental_datacube_dimensions()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elemental_map_from_dms"><code class="docutils literal notranslate"><span class="pre">get_elemental_map_from_dms()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_dms.get_elements_from_dms"><code class="docutils literal notranslate"><span class="pre">get_elements_from_dms()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.convert_dms.to_dms"><code class="docutils literal notranslate"><span class="pre">to_dms()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-xrf_explorer.server.file_system.cubes.elemental">xrf_explorer.server.file_system.cubes.elemental module</a><ul>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.convert_elemental_cube_to_dms"><code class="docutils literal notranslate"><span class="pre">convert_elemental_cube_to_dms()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_averages"><code class="docutils literal notranslate"><span class="pre">get_element_averages()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_averages_selection"><code class="docutils literal notranslate"><span class="pre">get_element_averages_selection()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_element_names"><code class="docutils literal notranslate"><span class="pre">get_element_names()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_elemental_data_cube"><code class="docutils literal notranslate"><span class="pre">get_elemental_data_cube()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_elemental_map"><code class="docutils literal notranslate"><span class="pre">get_elemental_map()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.get_short_element_names"><code class="docutils literal notranslate"><span class="pre">get_short_element_names()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.normalize_elemental_cube_per_layer"><code class="docutils literal notranslate"><span class="pre">normalize_elemental_cube_per_layer()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.elemental.normalize_ndarray_to_grayscale"><code class="docutils literal notranslate"><span class="pre">normalize_ndarray_to_grayscale()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-xrf_explorer.server.file_system.cubes.spectral">xrf_explorer.server.file_system.cubes.spectral module</a><ul>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.bin_data"><code class="docutils literal notranslate"><span class="pre">bin_data()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.get_raw_data"><code class="docutils literal notranslate"><span class="pre">get_raw_data()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.get_spectra_params"><code class="docutils literal notranslate"><span class="pre">get_spectra_params()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.mipmap_exists"><code class="docutils literal notranslate"><span class="pre">mipmap_exists()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.mipmap_raw_cube"><code class="docutils literal notranslate"><span class="pre">mipmap_raw_cube()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.parse_rpl"><code class="docutils literal notranslate"><span class="pre">parse_rpl()</span></code></a></li>
+<li><a class="reference internal" href="#xrf_explorer.server.file_system.cubes.spectral.update_bin_params"><code class="docutils literal notranslate"><span class="pre">update_bin_params()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-xrf_explorer.server.file_system.cubes">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
+    </body>
+</html>
