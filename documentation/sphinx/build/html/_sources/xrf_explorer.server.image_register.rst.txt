@@ -1,0 +1,21 @@
+xrf\_explorer.server.image\_register package
+============================================
+
+Submodules
+----------
+
+xrf\_explorer.server.image\_register.register\_image module
+-----------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.image_register.register_image
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.image_register
+   :members:
+   :undoc-members:
+   :show-inheritance:

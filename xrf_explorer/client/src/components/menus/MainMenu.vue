@@ -29,8 +29,11 @@ const colorMode = useColorMode({ emitAuto: true });
         <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
           <MenubarItem inset> Github </MenubarItem>
         </a>
-        <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
-          <MenubarItem inset> Documentation </MenubarItem>
+        <a href="https://olive-groves.github.io/xrf-explorer" target="_blank" rel="noopener noreferrer">
+          <MenubarItem inset> Code documentation </MenubarItem>
+        </a>
+        <a href="https://github.com/olive-groves/xrf-explorer-documentation" target="_blank" rel="noopener noreferrer">
+          <MenubarItem inset> Technical documents </MenubarItem>
         </a>
         <MenubarSeparator />
         <MenubarRadioGroup v-model:model-value="colorMode">

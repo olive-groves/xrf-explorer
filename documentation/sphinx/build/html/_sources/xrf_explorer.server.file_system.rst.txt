@@ -1,0 +1,31 @@
+xrf\_explorer.server.file\_system package
+=========================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   xrf_explorer.server.file_system.cubes
+   xrf_explorer.server.file_system.sources
+   xrf_explorer.server.file_system.workspace
+
+Submodules
+----------
+
+xrf\_explorer.server.file\_system.helper module
+-----------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.helper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.file_system
+   :members:
+   :undoc-members:
+   :show-inheritance:

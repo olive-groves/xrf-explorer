@@ -1,0 +1,29 @@
+xrf\_explorer.server.color\_segmentation package
+================================================
+
+Submodules
+----------
+
+xrf\_explorer.server.color\_segmentation.color\_seg module
+----------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.color_segmentation.color_seg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.color\_segmentation.helper module
+------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.color_segmentation.helper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.color_segmentation
+   :members:
+   :undoc-members:
+   :show-inheritance:

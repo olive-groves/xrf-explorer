@@ -1,0 +1,45 @@
+xrf\_explorer.server.file\_system.cubes package
+===============================================
+
+Submodules
+----------
+
+xrf\_explorer.server.file\_system.cubes.convert\_csv module
+-----------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.cubes.convert_csv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.file\_system.cubes.convert\_dms module
+-----------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.cubes.convert_dms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.file\_system.cubes.elemental module
+--------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.cubes.elemental
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.file\_system.cubes.spectral module
+-------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.cubes.spectral
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.file_system.cubes
+   :members:
+   :undoc-members:
+   :show-inheritance:

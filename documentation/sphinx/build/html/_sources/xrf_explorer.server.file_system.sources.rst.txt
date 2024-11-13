@@ -1,0 +1,21 @@
+xrf\_explorer.server.file\_system.sources package
+=================================================
+
+Submodules
+----------
+
+xrf\_explorer.server.file\_system.sources.data\_listing module
+--------------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.sources.data_listing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.file_system.sources
+   :members:
+   :undoc-members:
+   :show-inheritance:

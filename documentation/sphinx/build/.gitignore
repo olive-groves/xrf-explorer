@@ -2,3 +2,13 @@
 *
 # Except this file
 !.gitignore
+!/html
+!/html/*
+!/html/*/
+!/html/*/*
+!/html/*/*/
+!/html/*/*/*
+!/html/*/*/*/
+!/html/*/*/*/*
+!/html/*/*/*/*/
+!/html/*/*/*/*/*

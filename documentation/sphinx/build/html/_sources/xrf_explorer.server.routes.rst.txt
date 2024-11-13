@@ -1,0 +1,77 @@
+xrf\_explorer.server.routes package
+===================================
+
+Submodules
+----------
+
+xrf\_explorer.server.routes.color\_segmentation module
+------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.color_segmentation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.dim\_reduction module
+-------------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.dim_reduction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.elemental\_cube module
+--------------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.elemental_cube
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.general module
+------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.general
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.helper module
+-----------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.helper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.images module
+-----------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.images
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.project module
+------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.project
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.routes.spectral\_cube module
+-------------------------------------------------
+
+.. automodule:: xrf_explorer.server.routes.spectral_cube
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.routes
+   :members:
+   :undoc-members:
+   :show-inheritance:

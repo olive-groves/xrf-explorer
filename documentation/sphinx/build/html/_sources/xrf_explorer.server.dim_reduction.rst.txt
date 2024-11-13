@@ -1,0 +1,37 @@
+xrf\_explorer.server.dim\_reduction package
+===========================================
+
+Submodules
+----------
+
+xrf\_explorer.server.dim\_reduction.embedding module
+----------------------------------------------------
+
+.. automodule:: xrf_explorer.server.dim_reduction.embedding
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.dim\_reduction.general module
+--------------------------------------------------
+
+.. automodule:: xrf_explorer.server.dim_reduction.general
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.dim\_reduction.overlay module
+--------------------------------------------------
+
+.. automodule:: xrf_explorer.server.dim_reduction.overlay
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.dim_reduction
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,70 @@
+tests package
+=============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   tests.color_segmentation
+   tests.file_system
+
+Submodules
+----------
+
+tests.test\_contextual\_images module
+-------------------------------------
+
+.. automodule:: tests.test_contextual_images
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_dim\_reduction module
+---------------------------------
+
+.. automodule:: tests.test_dim_reduction
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_image\_registration module
+--------------------------------------
+
+.. automodule:: tests.test_image_registration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_image\_to\_cube\_selection module
+---------------------------------------------
+
+.. automodule:: tests.test_image_to_cube_selection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_routes module
+-------------------------
+
+.. automodule:: tests.test_routes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_spectra module
+--------------------------
+
+.. automodule:: tests.test_spectra
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: tests
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,37 @@
+xrf\_explorer.server.file\_system.workspace package
+===================================================
+
+Submodules
+----------
+
+xrf\_explorer.server.file\_system.workspace.contextual\_images module
+---------------------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.workspace.contextual_images
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.file\_system.workspace.file\_access module
+---------------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.workspace.file_access
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.file\_system.workspace.workspace\_handler module
+---------------------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.file_system.workspace.workspace_handler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.file_system.workspace
+   :members:
+   :undoc-members:
+   :show-inheritance:
