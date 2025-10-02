@@ -130,6 +130,12 @@ function getElementIndex(elementName: string | undefined) {
 <template>
   <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
+      <!-- USE SELECTION AREA CHECKBOX -->
+      <div class="flex items-center space-x-2">
+        <Checkbox id="use_selection_area" v-model="useSelectionArea" />
+        <Label for="use_selection_area">Use only selection area</Label>
+      </div>
+
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
         <!-- ELEMENT SELECTION -->
