@@ -2,7 +2,7 @@
 import { provide } from "vue";
 import { Header, BaseContextMenu } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
-import { ImageViewerContainer, StitchViewer } from "@/components/image-viewer";
+import { ImageViewer, StitchViewer } from "@/components/image-viewer";
 import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
 
@@ -28,7 +28,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
     <Header />
     <WindowContainer>
       <StitchViewer v-if="appState.stitching"/>
-      <ImageViewerContainer />
+      <ImageViewer />
 
       <BaseContextMenu>
         <!-- Place all windows below here -->
