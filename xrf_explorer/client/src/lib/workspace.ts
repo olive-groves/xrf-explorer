@@ -30,6 +30,12 @@ export type WorkspaceConfig = {
    * The parameters to read the spectral data.
    */
   spectralParams: SpectralParams;
+  /**
+   * The parameters that defines wheter we are working with full or partial data
+   * True = partial data
+   * False = full data
+   */
+  PartialData: Boolean;
 };
 
 /**

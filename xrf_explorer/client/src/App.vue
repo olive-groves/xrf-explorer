@@ -11,7 +11,6 @@ import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
 import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
 import { appState } from "./lib/appState"
-
 // Provide configuration to app
 const props = defineProps<{
   /**
@@ -38,6 +37,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <ElementalChannelWindow />
         <CSWindow />
         <DRWindow />
+        <StitchWindow />
         <LayerWindow />
         <WorkspaceWindow />
       </BaseContextMenu>

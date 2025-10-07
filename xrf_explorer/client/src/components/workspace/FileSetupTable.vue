@@ -40,6 +40,7 @@ onMounted(() => {
 });
 
 
+
 /**
  * Filters a list of filenames to only include files with the specified extensions.
  * @param filenames - The filenames to filter.
@@ -69,7 +70,9 @@ function filterByExtension(filenames: string[], extensions: string[], empty: boo
 watch(UploadingPartialData, (val) => {
   if (val === "partial") {
     addDatacube();
+    model.value.PartialData = true;
   } else {
+    model.value.PartialData = false;
     if (model.value.spectralCubes.length > 1) {
       model.value.spectralCubes = [model.value.spectralCubes[0]];
     }
