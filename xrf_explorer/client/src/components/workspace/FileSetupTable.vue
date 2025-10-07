@@ -9,6 +9,7 @@ import { Image, /*ImagePlus,*/ AudioWaveform, Atom, Trash2 } from "lucide-vue-ne
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { appState } from "@/lib/appState";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
@@ -70,9 +71,9 @@ function filterByExtension(filenames: string[], extensions: string[], empty: boo
 watch(UploadingPartialData, (val) => {
   if (val === "partial") {
     addDatacube();
-    model.value.PartialData = true;
+    appState.stitching = true;
   } else {
-    model.value.PartialData = false;
+    appState.stitching = false;
     if (model.value.spectralCubes.length > 1) {
       model.value.spectralCubes = [model.value.spectralCubes[0]];
     }
