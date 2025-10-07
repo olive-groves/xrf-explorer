@@ -28,7 +28,6 @@ export const appState = reactive<AppState>({
       },
     },
   },
-  secondViewer: false,
   stitching: false,
 });
 
@@ -56,10 +55,6 @@ export type AppState = {
    * The active selection.
    */
   selection: Selection;
-  /**
-   * Whether the second viewer is enabled.
-   */
-  secondViewer: boolean;
   /**
    * Whether the stitching viewer is enabled
    */
