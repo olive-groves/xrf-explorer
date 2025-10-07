@@ -63,6 +63,9 @@ function loadWorkspace(source: string) {
         <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
           {{ source }}
         </MenubarItem>
+        <MenubarItem @click="() => appState.stitching = !appState.stitching">
+          {{ "Stitch" }}
+        </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <CreateWorkspaceDialog @close="dialogOpen = false" />

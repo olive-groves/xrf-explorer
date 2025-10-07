@@ -112,6 +112,28 @@ export type ToolState = {
 };
 
 /**
+ * Type describing the current state of the stitch toolbar.
+ */
+export type StitchState = {
+  /**
+   * The currently active tool.
+   */
+  tool: StitchTool;
+  /**
+   * The amount by which the panning speed is multiplied in the image viewer.
+   */
+  movementSpeed: number[];
+  /**
+   * The amount by which the zooming speed is multiplied in the image viewer.
+   */
+  scrollSpeed: number[];
+  /**
+   * The amount used to determine the lens size.
+   */
+  lensSize: number[];
+}
+
+/**
  * The different tools in the image viewer.
  */
 export enum Tool {
@@ -119,6 +141,13 @@ export enum Tool {
   Lens = "lens",
   Rectangle = SelectionAreaType.Rectangle,
   Polygon = SelectionAreaType.Polygon,
+}
+
+/**
+ * The different tools in the stitch viewer.
+ */
+export enum StitchTool {
+  Grab = "grab",
 }
 
 /**

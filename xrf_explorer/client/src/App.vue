@@ -2,7 +2,7 @@
 import { provide } from "vue";
 import { Header, BaseContextMenu } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
-import { ImageViewerContainer } from "@/components/image-viewer";
+import { ImageViewerContainer, StitchViewer } from "@/components/image-viewer";
 import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
 
@@ -10,6 +10,7 @@ import { FrontendConfig } from "./lib/config";
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
 import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
+import { appState } from "./lib/appState"
 
 // Provide configuration to app
 const props = defineProps<{
@@ -27,6 +28,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
   <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
+      <StitchViewer v-if="appState.stitching"/>
       <ImageViewerContainer />
 
       <BaseContextMenu>
