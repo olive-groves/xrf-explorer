@@ -37,7 +37,6 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <ElementalChannelWindow />
         <CSWindow />
         <DRWindow />
-        <StitchWindow />
         <LayerWindow />
         <WorkspaceWindow />
       </BaseContextMenu>
