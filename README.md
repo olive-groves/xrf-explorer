@@ -23,7 +23,7 @@ _Test locations in the next section_
 
 The XRF-Explorer backend is a Flask app served by waitress. The `xrf_explorer/__init__.py` file contains the setup for
 the backend app and the `run.py` file is the main file from which the backend is run. Further backend code is located in
-the `xrf_explorer/server` directory.
+the `xrf_explorer/server` directory.das
 
 #### Dependencies
 
