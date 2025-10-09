@@ -128,7 +128,7 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window title="Color segmentation" help="Analyze the color clusters for the entire painting or for individual elements" location="right" :disabled="!elementalDataPresent">
+  <Window title="Color segmentation" help="Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">

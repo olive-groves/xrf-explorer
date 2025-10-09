@@ -381,7 +381,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" help="Analyze how much each element appears in the painting" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
+  <Window title="Elemental charts" help="Show the average abundance of all the selected elements in the entire painting or in the selection. Show this of all the elements in the painting, or select the elements to be shown in the elemental channels view." @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>

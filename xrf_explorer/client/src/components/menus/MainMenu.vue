@@ -34,7 +34,7 @@ function toggleHelpDialogs() {
       <MenubarTrigger class="whitespace-nowrap font-bold"> XRF-Explorer </MenubarTrigger>
       <HelpDialog
         title="XRF Explorer Help Menu"
-        text="The XRF Explorer menu provides access to external resources, theme settings, and the option to reset the client."
+        text="The XRF Explorer menu provides access to external resources, theme/help menu settings, and the option to reset the client."
         :enabled="true"
       />
       <MenubarContent>

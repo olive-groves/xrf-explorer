@@ -66,7 +66,7 @@ function updateWorkspace() {
 </script>
 
 <template>
-  <Window title="Workspace" help="Import data into the workspace and set it up" location="left">
+  <Window title="Workspace" help="Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting" location="left">
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
         <div class="text-muted-foreground">Workspace name:</div>
