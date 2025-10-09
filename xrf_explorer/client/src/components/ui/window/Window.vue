@@ -11,6 +11,10 @@ const props = defineProps<{
    */
   title: string;
   /**
+   * string describing the help text for the window.
+   */
+  help: string;
+  /**
    * Whether the window is disabled.
    */
   disabled?: boolean;
@@ -39,6 +43,7 @@ if (!(id in windowState)) {
   windowState[id] = {
     id: id,
     title: props.title,
+    help: props.help ?? "Missing help text.",
     scrollable: !props.noScroll,
     disabled: props.disabled,
     opened: props.opened ?? false,

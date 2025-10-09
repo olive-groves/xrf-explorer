@@ -181,7 +181,7 @@ async function updateEmbedding() {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" location="left" :disabled="!elementalDataPresent">
+  <Window title="Dimensionality reduction" help = "Analyze the dimensionality reduction of the painting or to individual elements" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
       <p class="-mb-2 font-bold">Embedding</p>

@@ -381,7 +381,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
+  <Window title="Elemental charts" help="Analyze how much each element appears in the painting" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>

@@ -5,6 +5,7 @@ import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarSeparator, MenubarI
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FrontendConfig } from "@/lib/config";
 import { appState } from "@/lib/appState";
+import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { toast } from "vue-sonner";
 import { CreateWorkspaceDialog } from "@/components/workspace";
 
@@ -56,6 +57,11 @@ function loadWorkspace(source: string) {
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
       <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
+      <HelpDialog
+        title="File Help Menu"
+        text="The File menu allows you to create a new project or load an existing one."
+        :enabled="true"
+      />
       <MenubarContent>
         <DialogTrigger class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
         <MenubarSeparator />

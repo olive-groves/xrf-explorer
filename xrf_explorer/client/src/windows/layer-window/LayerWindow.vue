@@ -4,7 +4,7 @@ import { LayerSystem } from "@/components/image-viewer";
 </script>
 
 <template>
-  <Window title="Layers" location="left">
+  <Window title="Layers" help="Select what layers of the painting to show" location="left">
     <div class="p-2">
       <LayerSystem />
     </div>

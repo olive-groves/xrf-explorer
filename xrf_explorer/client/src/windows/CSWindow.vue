@@ -128,7 +128,7 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
+  <Window title="Color segmentation" help="Analyze the color clusters for the entire painting or for individual elements" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">

@@ -34,7 +34,7 @@ watch(isEnabled, (enabled) => {
     <Dialog v-if="isEnabled" v-model:open="open">
       <DialogContent class="max-w-md">
         <DialogTitle>{{ props.title || 'Help' }}</DialogTitle>
-        <p class="text-sm text-gray-600 mt-2">
+        <p class="text-sm mt-2 px-3 py-2 text-accent-foreground">
           {{ props.text || 'No help text provided.' }}
         </p>
       </DialogContent>

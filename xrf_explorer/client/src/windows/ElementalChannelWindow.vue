@@ -42,7 +42,7 @@ const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
-  <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
+  <Window title="Elemental channels" help="Analyze where each element appears in the painting" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"

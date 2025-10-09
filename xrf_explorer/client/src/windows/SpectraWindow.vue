@@ -419,7 +419,7 @@ function updateElementSpectrum() {
 </script>
 
 <template>
-  <Window title="Spectrum" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
+  <Window title="Spectrum" help="Analyze the spectrum of the entire painting or of individual elements" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
