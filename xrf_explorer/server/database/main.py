@@ -19,6 +19,16 @@ with app.app_context():
     else:
         print("Admin user already exists.")
         
+    # Test viewer user
+    if not User.query.filter_by(role=1).first():
+        viewer_user = User(username='viewer', role=1)
+        viewer_user.set_password('viewerpassword')
+        db.session.add(viewer_user)
+        db.session.commit()
+        print("Database initialized with default viewer user.")
+    else:
+        print("Viewer user already exists.")
+        
 if __name__ == '__main__':
     with app.app_context():
         print("Current users in the database:")

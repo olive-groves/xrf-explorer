@@ -9,7 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.Integer, nullable=False) # 0 = admin, 1 = user, 2 = editor
+    role = db.Column(db.Integer, nullable=False) # 0 = admin, 1 = viewer, 2 = editor
     
     def set_password(self, password: str):
         """Generate and store the password hash."""
@@ -20,4 +20,4 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
     
     def __repr__(self):
-        return f'<Username {self.username}, Role {self.role}>'
+        return f'<ID: {self.id}, Username {self.username}, Role {self.role}>'
