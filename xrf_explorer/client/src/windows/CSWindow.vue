@@ -25,6 +25,8 @@ const threshold = ref(20);
 const number_clusters = ref(10);
 const currentError = ref("Unknown error");
 
+const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
+
 // Status color segmentation
 enum Status {
   WAITING,
@@ -126,6 +128,20 @@ function getElementIndex(elementName: string | undefined) {
     return elements.value[index].channel + 1;
   }
 }
+
+const addElementSelection = () => {
+  const newElement = {
+    id: elementsSelected.value.length + 1,
+    name: selectedElement.value,
+    threshold: threshold.value
+  }
+  elementsSelected.value.push(newElement);
+}
+
+const removePerson = (index: number) => {
+  elementsSelected.value.splice(index, 1);
+}
+
 </script>
 
 <template>
@@ -133,7 +149,7 @@ function getElementIndex(elementName: string | undefined) {
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
-        <!-- ELEMENT SELECTION -->
+        <!-- CLUSTER NUMBER SELECTION -->
         <div class="w-auto space-y-1">
           <Label for="number_clusters">Number of clusters (1-50)</Label>
           <NumberField
@@ -159,13 +175,14 @@ function getElementIndex(elementName: string | undefined) {
           <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
         </div>
       </div>
-      <!-- PARAMETER SELECTION -->
-      <div class="flex items-center space-x-4">
-        <div class="grow space-y-1">
+      <!-- ELEMENTS SELECTION -->
+      
+      <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key = elementSel.id>
+        <div class="grow space-y-1 max-w-36">
           <Label for="element">Element</Label>
-          <Select v-model="selectedElement" class="w-full">
+          <Select v-model="elementSel.name" class="w-full">
             <SelectTrigger>
-              <SelectValue placeholder="Select an element" />
+              <SelectValue placeholder="Select element" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="complete"> Complete painting </SelectItem>
@@ -178,7 +195,7 @@ function getElementIndex(elementName: string | undefined) {
         <div class="flex-1 space-y-1">
           <Label for="elemental_threshold">Threshold (%)</Label>
           <NumberField
-            v-model="threshold"
+            v-model="elementSel.threshold"
             :min="0"
             :max="100"
             :step="1"
@@ -196,6 +213,7 @@ function getElementIndex(elementName: string | undefined) {
           </NumberField>
         </div>
       </div>
+      <Button variant="outline" @click="addElementSelection">Add element</Button>
       <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
