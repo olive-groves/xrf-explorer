@@ -13,6 +13,7 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { Checkbox } from "@/components/ui/checkbox";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
@@ -133,6 +134,33 @@ function getElementIndex(elementName: string | undefined) {
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
         <!-- ELEMENT SELECTION -->
+        <div class="w-auto space-y-1">
+          <Label for="number_clusters">Number of clusters (1-50)</Label>
+          <NumberField
+            v-model="number_clusters"
+            :min="1"
+            :max="50"
+            :step="1"
+            id="number_clusters"
+            :format-options="{
+              minimumIntegerDigits: 1,
+              maximumFractionDigits: 0,
+            }"
+          >
+            <NumberFieldContent>
+              <NumberFieldDecrement />
+              <NumberFieldInput />
+              <NumberFieldIncrement />
+            </NumberFieldContent>
+          </NumberField>
+        </div>
+        <div class="flex align-bottom">
+          <Checkbox id="recommendedClusterNumberCheck" title="Recommended number of clusters"/>
+          <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
+        </div>
+      </div>
+      <!-- PARAMETER SELECTION -->
+      <div class="flex items-center space-x-4">
         <div class="grow space-y-1">
           <Label for="element">Element</Label>
           <Select v-model="selectedElement" class="w-full">
@@ -147,9 +175,6 @@ function getElementIndex(elementName: string | undefined) {
             </SelectContent>
           </Select>
         </div>
-      </div>
-      <!-- PARAMETER SELECTION -->
-      <div class="flex items-center space-x-4">
         <div class="flex-1 space-y-1">
           <Label for="elemental_threshold">Threshold (%)</Label>
           <NumberField
@@ -158,26 +183,6 @@ function getElementIndex(elementName: string | undefined) {
             :max="100"
             :step="1"
             id="elemental_threshold"
-            :format-options="{
-              minimumIntegerDigits: 1,
-              maximumFractionDigits: 0,
-            }"
-          >
-            <NumberFieldContent>
-              <NumberFieldDecrement />
-              <NumberFieldInput />
-              <NumberFieldIncrement />
-            </NumberFieldContent>
-          </NumberField>
-        </div>
-        <div class="flex-1 space-y-1">
-          <Label for="number_clusters">Number of clusters (1-50)</Label>
-          <NumberField
-            v-model="number_clusters"
-            :min="1"
-            :max="50"
-            :step="1"
-            id="number_clusters"
             :format-options="{
               minimumIntegerDigits: 1,
               maximumFractionDigits: 0,
