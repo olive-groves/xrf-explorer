@@ -87,10 +87,10 @@ watch(UploadingPartialData, (val) => {
  * Adds both a spectral and elemental datacube element
  */
 function addDatacube() {
-  if (includeSpectral) {
+  if (includeSpectral.value) {
     addElementToWorkspace("spectral_cube")
   }
-  if (includeElemental) {
+  if (includeElemental.value) {
     addElementToWorkspace("elemental_cube")
   }
 }
@@ -263,6 +263,12 @@ const maxCubes = computed(() => {
               :options="elementalFiles"
               v-model="model.elementalCubes[index - 1].dataLocation"
             />
+            <FileSetupTableRow
+              v-if="model.spectralCubes.length === 0"
+              type="a recipe"
+              :options="recipeFiles"
+              v-model="model.elementalCubes[index - 1].recipeLocation"
+            />
             <Button
               v-if="(index - 1 > 0 && UploadingPartialData === 'full' && !includeSpectral) || (index - 1 > 1 && UploadingPartialData === 'partial' && !includeSpectral)"
               variant="destructive"
@@ -274,11 +280,6 @@ const maxCubes = computed(() => {
             >
               <Trash2 />
             </Button>
-            <FileSetupTableRow
-              type="a recipe"
-              :options="recipeFiles"
-              v-model="model.elementalCubes[index - 1].recipeLocation"
-            />
           </div>
           <Separator class="col-span-full mt-2" />
         </template>
