@@ -23,6 +23,15 @@ with app.app_context():
         print("Database initialized with default admin user.")
     else:
         print("Admin user already exists.")
+    
+    if not User.query.filter_by(role=UserRole.VIEWER).first():
+        viewer_user = User(username='viewer', role=UserRole.VIEWER)
+        viewer_user.set_password('viewerpassword')
+        db.session.add(viewer_user)
+        db.session.commit()
+        print("Database initialized with default viewer user.")
+    else:
+        print("Viewer user already exists.")
 
 from xrf_explorer.server.routes import *
 
