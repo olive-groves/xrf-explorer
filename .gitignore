@@ -4,6 +4,7 @@ env/
 .idea/
 **/poetry.lock
 **/pyproject.toml
+venv
 
 # Ignore dependencies
 **/__pycache__/
