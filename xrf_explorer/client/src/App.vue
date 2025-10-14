@@ -2,7 +2,7 @@
 import { provide } from "vue";
 import { Header, BaseContextMenu } from "@/components/menus";
 import { WindowContainer } from "@/components/ui/window";
-import { ImageViewerContainer } from "@/components/image-viewer";
+import { ImageViewer } from "@/components/image-viewer";
 import { Toaster } from "@/components/ui/sonner";
 import { FrontendConfig } from "./lib/config";
 
@@ -27,7 +27,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
   <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
-      <ImageViewerContainer />
+      <ImageViewer />
 
       <BaseContextMenu>
         <!-- Place all windows below here -->
