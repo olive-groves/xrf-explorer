@@ -74,10 +74,13 @@ watch(
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <div ref="content" >
+    <div ref="content" v-if="appState.workspace != undefined">
       <slot />
     </div>
-    <div></div> 
+    <div v-else-if="appState.stitching">
+      <slot />
+    </div>
+    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div> 
   </Teleport>
 </template>
 
