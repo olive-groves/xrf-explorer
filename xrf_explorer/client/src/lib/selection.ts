@@ -73,6 +73,19 @@ export type ColorSegmentationSelection = {
    * Arbitrary number if computing clusters over the whole image.
    */
   threshold: number[];
+  /**
+   * Whether the clusters are computed over only the active Areaselection, or not.
+   */
+  useAreaSelection: boolean;
+  /**
+   * Last complete area selection the segmentation will work with.
+   */
+  areaSelection: SelectionAreaSelection;
+  /**
+   * Unix timestamp representing the time when the last valid area selection was added to current color segmentation
+   * selection. Used to make browser caching work properly
+   */
+  lastCompleteSelectionTimestamp: number;
 };
 
 /**

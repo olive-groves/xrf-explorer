@@ -154,3 +154,48 @@ export function flipSelectionAreaSelection(selection: SelectionAreaSelection, he
     }
   }
 }
+
+/**
+ *
+ * @param selection
+ */
+export function hasActiveSelection(selection: SelectionAreaSelection) {
+  return selection.points.length > 1 && selection.type != undefined;
+}
+
+/**
+ * Compares two Point2D objects for value equality.
+ * @param p1
+ * @param p2
+ */
+export function arePoint2DEqual(p1: Point2D, p2: Point2D): boolean {
+  return p1.x === p2.x && p1.y === p2.y;
+}
+
+/**
+ * Compares two SelectionAreaSelection objects for value equality.
+ * It performs a deep comparison of their properties, including the points array.
+ * @param s1
+ * @param s2
+ */
+export function areSelectionAreaSelectionsEqual(s1: SelectionAreaSelection, s2: SelectionAreaSelection): boolean {
+  // Check type
+  if (s1.type !== s2.type) {
+    return false;
+  }
+
+  // Check amount of points
+  if (s1.points.length !== s2.points.length) {
+    return false;
+  }
+
+  // Check if points are the same
+  for (let i = 0; i < s1.points.length; i++) {
+    if (!arePoint2DEqual(s1.points[i], s2.points[i])) {
+      return false;
+    }
+  }
+
+  // If all is the same we return true
+  return true;
+}
