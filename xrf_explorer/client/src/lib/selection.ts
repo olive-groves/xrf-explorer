@@ -83,7 +83,7 @@ export type ColorSegmentationSelection = {
   areaSelection: SelectionAreaSelection;
   /**
    * Unix timestamp representing the time when the last valid area selection was added to current color segmentation
-   * selection. Used to make browser caching work properly
+   * selection. Used to make browser caching work properly.
    */
   lastCompleteSelectionTimestamp: number;
 };

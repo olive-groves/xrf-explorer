@@ -47,6 +47,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     if config is None:
         return 'Error occurred while getting backend config', 500
 
+    # Converting uses_selection to boolean as booleans are not supported as type by the api route.
     uses_selection = True if uses_selection == "true" else False
 
     # Path to cache data
@@ -153,5 +154,7 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
         get_color_clusters(data_source, elem, k, elem_threshold)
+
+    LOG.info(f"full path: {bitmask_full_path}")
 
     return send_file(abspath(bitmask_full_path), mimetype='image/png')
