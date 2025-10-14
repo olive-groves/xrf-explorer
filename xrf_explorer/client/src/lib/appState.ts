@@ -28,7 +28,7 @@ export const appState = reactive<AppState>({
       },
     },
   },
-  secondViewer: false,
+  userRole: "",
 });
 
 /**
@@ -56,7 +56,7 @@ export type AppState = {
    */
   selection: Selection;
   /**
-   * Whether the second viewer is enabled.
+   * The role of the current logged in user
    */
-  secondViewer: boolean;
+  userRole: string;
 };

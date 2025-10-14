@@ -7,3 +7,6 @@ export { default as FileSetupTable } from "./FileSetupTable.vue";
 export { default as FileSetupTableRow } from "./FileSetupTableRow.vue";
 export { default as FileUploadDialog } from "./FileUploadDialog.vue";
 export { default as AdditionalSettingsDialog } from "./AdditionalSettingsDialog.vue";
+export { default as LoginDialog } from "./LoginDialog.vue";
+export { default as LogoutDialog } from "./LogoutDialog.vue";
+export { default as CreateAccountDialog } from "./CreateAccountDialog.vue";
