@@ -26,6 +26,7 @@ const number_clusters = ref(10);
 const currentError = ref("Unknown error");
 
 const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
+const selectableElementsList = elements.value;
 
 // Status color segmentation
 enum Status {
@@ -91,11 +92,11 @@ function updateSelection() {
 
   if (selection.value != undefined) {
     // Update selection
-    selection.value.element = elementIndex;
+    selection.value.element[0] = elementIndex;
     selection.value.enabled = Array(colors.value.length).fill(false);
     selection.value.colors = colors.value;
     selection.value.k = number_clusters.value;
-    selection.value.threshold = threshold.value;
+    selection.value.threshold[0] = threshold.value;
   }
 }
 
@@ -129,6 +130,10 @@ function getElementIndex(elementName: string | undefined) {
   }
 }
 
+/**
+ * Adds a new element item with default values into the list of elements. Is used when the 
+ * user presses the button "Add element"
+ */
 const addElementSelection = () => {
   const newElement = {
     id: elementsSelected.value.length + 1,
@@ -136,10 +141,6 @@ const addElementSelection = () => {
     threshold: threshold.value
   }
   elementsSelected.value.push(newElement);
-}
-
-const removePerson = (index: number) => {
-  elementsSelected.value.splice(index, 1);
 }
 
 </script>
@@ -186,7 +187,7 @@ const removePerson = (index: number) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="complete"> Complete painting </SelectItem>
-              <SelectItem v-for="element in elements" :key="element.name" :value="element.name">
+              <SelectItem v-for="element in selectableElementsList" :key="element.name" :value="element.name">
                 {{ element.name }}
               </SelectItem>
             </SelectContent>
