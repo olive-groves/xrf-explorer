@@ -5,29 +5,42 @@ import { Input } from "@/components/ui/input";
 import { ref} from "vue";
 import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
+import axios from "axios";
 
 const emit = defineEmits(["close"]);
 
 const username = ref("");
 const password = ref("");
 
-const storedAccounts = ref([
-  { username: "admin", password: "admin", role: "admin" },
-  { username: "editor", password: "pass", role: "editor" },
-  { username: "viewer", password: "password", role: "viewer" }
-]);
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  role: string;
+}
 
-function attemptLogin() {
-    const account = storedAccounts.value.find(acc => acc.username === username.value && acc.password === password.value);
-    if (account) {
-        toast.info("Login successful");
-        appState.userRole = account.role;
-        username.value = "";
-        password.value = "";
-        emit("close");
+async function attemptLogin() {
+  if (!username.value || !password.value) {
+    toast.error("Invalid username or password");
+    return;
+  }
+
+  try {
+    const response = await axios.post<LoginResponse>('/api/login', {
+      username: username.value,
+      password: password.value
+    });
+
+    if (response.data.success) {
+      toast.info("Login successful");
+      appState.userRole = response.data.role; // Set the user role from the response
+      resetFields();
+      emit("close");
     } else {
       toast.error("Invalid username or password");
     }
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Login failed" );
+  }
 }
 
 function resetFields() {
@@ -42,7 +55,7 @@ defineExpose({ resetFields });
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Log in </DialogTitle>
     <Input placeholder="Username" v-model:model-value="username" />
-    <Input placeholder="Password" v-model:model-value="password" />
+    <Input placeholder="Password" type="password" v-model:model-value="password" />
     <div class="flex items-center justify-between">
       <Button @click="attemptLogin" :disabled="(username == '') || (password == '')" >
         Log in
