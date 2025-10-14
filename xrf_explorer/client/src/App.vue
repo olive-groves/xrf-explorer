@@ -9,7 +9,7 @@ import { FrontendConfig } from "./lib/config";
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
-import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
+import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow, StitchWindow } from "@/windows";
 import { appState } from "./lib/appState"
 // Provide configuration to app
 const props = defineProps<{
@@ -39,6 +39,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
+        <StitchWindow v-if="appState.stitching"/>
       </BaseContextMenu>
     </WindowContainer>
   </div>
