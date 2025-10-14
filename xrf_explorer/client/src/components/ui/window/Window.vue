@@ -70,14 +70,44 @@ watch(
   },
   { immediate: true },
 );
+
+// Open Stitching window when stitching starts
+watch(
+  () => appState.stitching,
+  (isStitching) => {
+    if (isStitching && state.value.id == "stitching") {
+      windowState[state.value.id].disabled = false;
+      windowState[state.value.id].opened = true;
+    }
+    else if (isStitching && state.value.id !== "stitching") {
+      windowState[state.value.id].opened = false;
+      windowState[state.value.id].disabled = true;
+    }
+  },
+  { immediate: true },
+);
+
+// Enable all other windows when stitching is finished
+watch(
+  () => appState.stitching,
+  (isStitching) => {
+    if (!isStitching && state.value.id != "stitching") {
+      windowState[state.value.id].disabled = false; }
+  },
+  { immediate: false },
+);
 </script>
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <div ref="content" v-if="appState.workspace != undefined">
-      <slot />
+    <div ref="content" v-if="appState.stitching">
+      <div v-if="state.id == 'stitching'">
+        <slot />
+      </div>
+      <div v-else class="p-8 text-center text-muted-foreground">Stitching is in-process
+      </div>
     </div>
-    <div v-else-if="appState.stitching">
+    <div v-else-if="appState.workspace != undefined">
       <slot />
     </div>
     <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div> 

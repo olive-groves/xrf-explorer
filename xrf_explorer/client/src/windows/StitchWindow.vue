@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
 import { ref } from "vue";
+import { windowState } from "@/components/ui/window/state";
 
 const baseImageOpacity = ref([1.0]);
 const partialOpacities = ref<number[][]>([[1.0]]);
@@ -23,7 +24,9 @@ function confirmDialog() {
 
 // Close the stitching page and load the base-RGB viewer with the base image and datacubes
 function confirmStitchingDialog() {
-       appState.stitching = false;
+      appState.stitching = false;
+      windowState["stitching"].opened = false;
+      windowState["stitching"].disabled = true; 
        // Load base image etc.
 }
 
