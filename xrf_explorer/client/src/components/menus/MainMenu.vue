@@ -15,6 +15,7 @@ import { ResetClientDialog } from "@/components/workspace";
 import { ref } from "vue";
 import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { helpState } from "@/lib/helpState";
+import { faqWindowOpen } from "@/lib/windowState";
 // Import for the color mode
 import { useColorMode } from "@vueuse/core";
 
@@ -71,6 +72,10 @@ function toggleHelpDialogs() {
             :enabled="true"
           />
         </div>
+        <MenubarSeparator />
+        <MenubarItem inset @click="faqWindowOpen = true">
+          FAQ
+        </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <ResetClientDialog @close="dialogOpen = false" />

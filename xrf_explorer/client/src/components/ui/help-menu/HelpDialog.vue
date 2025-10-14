@@ -2,6 +2,7 @@
 import { ref, watch, computed } from "vue"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { helpState } from "@/lib/helpState"
+import { faqWindowOpen } from "@/lib/windowState";
 
 interface Props {
   title?: string
@@ -34,9 +35,19 @@ watch(isEnabled, (enabled) => {
     <Dialog v-if="isEnabled" v-model:open="open">
       <DialogContent class="max-w-md">
         <DialogTitle>{{ props.title || 'Help' }}</DialogTitle>
-        <p class="text-sm mt-2 px-3 py-2 text-accent-foreground">
+        <p class="text-sm text-gray-600 mt-2">
           {{ props.text || 'No help text provided.' }}
         </p>
+        <Button
+          variant="link"
+          class="mt-3"
+          @click="
+            faqWindowOpen = true;
+            open = false;
+          "
+        >
+          Open FAQ
+        </Button>
       </DialogContent>
     </Dialog>
   </div>
