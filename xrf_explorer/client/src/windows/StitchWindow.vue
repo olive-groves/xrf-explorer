@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
 import { ref } from "vue";
@@ -110,7 +109,6 @@ function updateSliderBase(val: number[]) {
 }
 .dialog-content {
   text-align: center;
-  flex-direction: column;
   background: #fff; padding: 2em; border-radius: 8px;
   display: flex;       
   gap: 20px;              
