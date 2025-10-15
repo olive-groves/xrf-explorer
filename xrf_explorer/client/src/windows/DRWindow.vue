@@ -65,6 +65,7 @@ enum Status {
 
 const status = ref(Status.WELCOME);
 const currentError = ref("Unknown error");
+const selectionChecked = ref(false);
 
 // Dimensionality reduction parameters
 const threshold = ref(30);
@@ -219,6 +220,10 @@ async function updateEmbedding() {
             </NumberFieldContent>
           </NumberField>
         </div>
+      </div>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="selectionCheck" v-model:checked="selectionChecked"/>
+        <label class="ml-1" for="selectionCheck">Selection area only</label>
       </div>
       <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
 
