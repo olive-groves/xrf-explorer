@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem } from "@/components/ui/menubar";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { LoginDialog, LogoutDialog, CreateAccountDialog } from "@/components/workspace";
+import { LoginDialog, LogoutDialog, CreateAccountDialog, ManageAccountsDialog } from "@/components/workspace";
 import { ref } from "vue";
 import { appState } from "@/lib/appState";
 
@@ -34,11 +34,12 @@ function reset() {
       <MenubarContent>
         <DialogTrigger v-if="appState.userRole == ''" class="w-full" @click="window = 'login'"><MenubarItem>Log in</MenubarItem></DialogTrigger>
         <DialogTrigger v-if="appState.userRole != ''" class="w-full" @click="window = 'logout'"><MenubarItem>Log out</MenubarItem></DialogTrigger>
-        <DialogTrigger v-if="appState.userRole == 'admin'" class="w-full" @click="window = 'create-account'"><MenubarItem>Create Account</MenubarItem></DialogTrigger>
+        <DialogTrigger v-if="appState.userRole == 'admin'" class="w-full" @click="window = 'manage-accounts'"><MenubarItem>Manage Accounts</MenubarItem></DialogTrigger>
       </MenubarContent>
     </MenubarMenu>
     <LoginDialog ref="LoginRef" v-if="window == 'login'" @close="dialogOpen = false" />
     <LogoutDialog v-if="window == 'logout'" @close="dialogOpen = false" />
+    <ManageAccountsDialog v-if="window == 'manage-accounts'" @close="dialogOpen = false" @create-account="window = 'create-account'" />
     <CreateAccountDialog ref="CreateAccountRef" v-if="window == 'create-account'" @close="dialogOpen = false" />
   </Dialog>
 </template>

@@ -7,7 +7,7 @@ import { toast } from "vue-sonner";
 const emit = defineEmits(["close"]);
 
 function logout() {
-    toast.info(`${appState.userRole}: Logged out successfully`);
+    toast.info(`Logged out successfully`);
     appState.userRole = "";
     emit("close");
 }
