@@ -2,7 +2,7 @@
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { appState, datasource, elementalDataPresent, elements } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
-import { LoaderPinwheel } from "lucide-vue-next";
+import { LoaderPinwheel, Trash2} from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "vue-sonner";
@@ -237,6 +237,14 @@ async function getFullImageSelection() {
   };
   return newAreaSelection;
 }
+
+function removeElement(index: number) {
+  // Only remove if there's more than 1 element in the list
+  if (elementsSelected.value.length > 1) {
+    elementsSelected.value.splice(index, 1);
+  }
+}
+
 </script>
 
 <template>
@@ -273,6 +281,7 @@ async function getFullImageSelection() {
         </div>
         <div class="flex align-bottom">
           <Checkbox id="recommendedClusterNumberCheck" title="Recommended number of clusters"/>
+          <label for="recommendedClusterNumberCheck" class="text-sm ml-2">Recommended Number Clusters</label>
           <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
         </div>
       </div>
@@ -293,7 +302,7 @@ async function getFullImageSelection() {
             </SelectContent>
           </Select>
         </div>
-        <div class="flex-1 space-y-1">
+        <div class="flex-2 space-y-1">
           <Label for="elemental_threshold">Threshold (%)</Label>
           <NumberField
             v-model="elementSel.threshold"
@@ -312,6 +321,17 @@ async function getFullImageSelection() {
               <NumberFieldIncrement />
             </NumberFieldContent>
           </NumberField>
+        </div>
+        <div>
+          <Button
+            variant="destructive"
+            class="mt-6 p-2"
+            @click="removeElement(index)"
+            :disabled="elementsSelected.length === 1"
+            title="Remove element"
+          >
+            <Trash2 class="size-4" />
+          </Button>
         </div>
       </div>
       <Button variant="outline" @click="addElementSelection">Add element</Button>
