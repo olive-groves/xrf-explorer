@@ -96,7 +96,10 @@ async function fetchColors() {
 
   let selectedElements: [number, number][];
   selectedElements = [];
-  selectedElements.push([getElementIndex(selectedElement.value), threshold.value]);
+
+  for(let i = 0; i < elementsSelected.value.length; i++) {
+    selectedElements.push([getElementIndex(elementsSelected.value[i].name), elementsSelected.value[i].threshold]);
+  }
 
   let request_body: ColorSegmentationRequestBody = {
     selection,
@@ -163,13 +166,6 @@ function updateSelection() {
     selection.value.useAreaSelection = useSelectionChecked.value;
     selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
     selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
-  }
-
-  const elementsSelectedRaw = elementsSelected.value;
-  for (let i = 0; i < elementsSelectedRaw.length; i++) {
-    if (elementsSelectedRaw[i] != undefined) {
-      
-    }
   }
 }
 
