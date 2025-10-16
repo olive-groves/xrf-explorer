@@ -55,6 +55,8 @@ const dummyImages = ref<ImageBox[]>([
   { x: 100, y: 300, width: 120, height: 120, rotation: 0 },
   { x: 400, y: 220, width: 120, height: 120, rotation: 0 },
 ]);
+const selectedIdx = ref(0);
+// const selectedImage = computed(() => dummyImages.value[selectedIdx.value]);
 
 const draggingIndex = ref<number | null>(null);
 const dragOffset = ref({ x: 0, y: 0 });
@@ -135,6 +137,7 @@ function onMouseDown(event: MouseEvent, index: number) {
     rotateBox(index);
     event.preventDefault();
   }
+  selectedIdx.value = index
 }
 
 /**
@@ -200,6 +203,7 @@ return dragging.value ? "grabbing" : "grab";
 </script>
 
 <template>
+  <div>Selected Image: {{ selectedIdx + 1 }}</div>
   <div
     ref="glcontainer"
     class="relative size-full"
@@ -229,6 +233,9 @@ return dragging.value ? "grabbing" : "grab";
         height: img.height + 'px',
         transform: `rotate(${img.rotation}deg)`,
       }"
+      :class="['border', index === selectedIdx ? 'border border-yellow-500' : 'border-transparent']"
+
+      
       @mousedown.stop="startDrag(index, $event)"
       @mousedown="onMouseDown($event, index)"
     >
