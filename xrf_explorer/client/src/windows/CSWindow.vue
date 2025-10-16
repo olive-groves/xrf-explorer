@@ -49,7 +49,7 @@ const useSelectionChecked = ref<boolean>(false);
 const status = ref(Status.WAITING);
 
 const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
-const selectableElementsList = elements.value;
+const selectableElementsList = computed(() => elements.value);
 
 // Computed properties
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -203,12 +203,11 @@ function getElementIndex(elementName: string | undefined) {
 const addElementSelection = () => {
   const newElement = {
     id: elementsSelected.value.length + 1,
-    name: selectedElement.value,
+    name: undefined,
     threshold: threshold.value
   }
   elementsSelected.value.push(newElement);
 }
-
 /*
  * TODO: Write description.
  */
@@ -281,8 +280,18 @@ function removeElement(index: number) {
               <SelectValue placeholder="Select element" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="complete"> Complete painting </SelectItem>
-              <SelectItem v-for="element in selectableElementsList" :key="element.name" :value="element.name">
+              <SelectItem
+                value="complete"
+                :disabled="elementsSelected.some(sel => sel.name === 'complete') || elementsSelected.some(sel => sel.name !== undefined && sel.name !== 'complete')"
+              >
+                Complete painting
+              </SelectItem>
+              <SelectItem
+                v-for="element in selectableElementsList"
+                :key="element.name"
+                :value="element.name"
+                :disabled="elementsSelected.some(sel => sel.name === element.name) || elementsSelected.some(sel => sel.name === 'complete')"
+              >
                 {{ element.name }}
               </SelectItem>
             </SelectContent>
@@ -320,7 +329,13 @@ function removeElement(index: number) {
           </Button>
         </div>
       </div>
-      <Button variant="outline" @click="addElementSelection">Add element</Button>
+      <Button
+        variant="outline"
+        @click="addElementSelection"
+        :disabled="elementsSelected.length >= selectableElementsList.length + 1"
+      >
+        Add element
+      </Button>
       <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
