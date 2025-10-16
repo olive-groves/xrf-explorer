@@ -81,7 +81,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
         # Compute colors and bitmasks
         colors: np.ndarray
         bitmasks: list[np.ndarray]
-        selection_mask = encode_selection(request.get_json()["selection"], data_source, CubeType.Elemental)
+        selection_mask = encode_selection(selection, data_source, CubeType.Elemental)
         
 
         if isinstance(selection_mask, tuple):

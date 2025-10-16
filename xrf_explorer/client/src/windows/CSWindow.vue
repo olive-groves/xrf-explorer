@@ -54,7 +54,7 @@ const useSelectionChecked = ref<boolean>(false);
 const status = ref(Status.WAITING);
 
 const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
-const selectableElementsList = elements.value;
+const selectableElementsList = computed(() => elements.value);
 
 // Computed properties
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -86,21 +86,22 @@ async function fetchColors() {
     return;
   }
 
+  //Read the selection for the payload
   let selection: SelectionAreaSelection;
-
   if (useSelectionChecked.value) {
     selection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
   } else {
     selection = await getFullImageSelection();
   }
 
+  //Read the elements for the payload
   let selectedElements: [number, number][];
   selectedElements = [];
-
   for(let i = 0; i < elementsSelected.value.length; i++) {
     selectedElements.push([getElementIndex(elementsSelected.value[i].name), elementsSelected.value[i].threshold]);
   }
 
+  //Create payload json
   let request_body: ColorSegmentationRequestBody = {
     selection,
     elements: selectedElements
