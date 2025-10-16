@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Stitchbar } from "@/components/image-viewer";
-import { computed, inject, ref } from "vue";
+import { computed, inject, onBeforeUnmount, ref, onMounted } from "vue";
 import { StitchTool, StitchState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { getTargetSize } from "./api";
 import { toast } from "vue-sonner";
 import { SelectionAreaType } from "@/lib/selection";
-import arrowImg from "./arrow.png"
+import arrowImg from "./img1.jpg";
+import { on } from "events";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -50,17 +51,24 @@ interface ImageBox {
 }
 
 const dummyImages = ref<ImageBox[]>([
-  { x: 80, y: 80, width: 120, height: 120, rotation: 0 },
-  { x: 250, y: 100, width: 120, height: 120, rotation: 0 },
-  { x: 100, y: 300, width: 120, height: 120, rotation: 0 },
-  { x: 400, y: 220, width: 120, height: 120, rotation: 0 },
+  { x: 80, y: 80, width: 300, height: 225, rotation: 0 },
+  { x: 250, y: 100, width: 300, height: 225, rotation: 0 },
+  { x: 100, y: 300, width: 300, height: 225, rotation: 0 },
+  { x: 400, y: 220, width: 300, height: 225, rotation: 0 },
 ]);
 const selectedIdx = ref(0);
-// const selectedImage = computed(() => dummyImages.value[selectedIdx.value]);
+const selectedImage = computed(() => dummyImages.value[selectedIdx.value]);
 
 const draggingIndex = ref<number | null>(null);
 const dragOffset = ref({ x: 0, y: 0 });
 
+onMounted(() => {
+  window.addEventListener("keydown", onKeyDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKeyDown);
+});
 
 function startDrag(index: number, e: MouseEvent) {
   // Only allow dragging when using Grab tool
@@ -191,6 +199,19 @@ function onWheel(event: WheelEvent) {
     }
   } else {
     zoomLimitReached = false;
+  }
+}
+
+// Move the images using arrow keys
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key == "ArrowLeft") {
+    dummyImages.value[selectedIdx.value].x--;
+    event.preventDefault();
+    event.stopPropagation();
+  } else if (event.key == "ArrowRight") {
+    dummyImages.value[selectedIdx.value].x++;
+    event.preventDefault();
+    event.stopPropagation();
   }
 }
 
