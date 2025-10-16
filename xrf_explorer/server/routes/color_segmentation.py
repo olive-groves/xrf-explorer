@@ -73,13 +73,16 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     bitmasks: list[np.ndarray]
     selection_mask: np.ndarray | tuple[str, int]
 
+    LOG.info(f"Selection info received: {request.get_json()['selection']}")
+
     # elem == 0 indicates clusters for the whole painting
     if elem == 0:
         LOG.info('Computing color clusters for whole image')
         # Compute colors and bitmasks
         colors: np.ndarray
         bitmasks: list[np.ndarray]
-        selection_mask = encode_selection(request.get_json(), data_source, CubeType.Elemental)
+        selection_mask = encode_selection(request.get_json()["selection"], data_source, CubeType.Elemental)
+        
 
         if isinstance(selection_mask, tuple):
             return selection_mask[0], selection_mask[1]

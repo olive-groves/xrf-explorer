@@ -37,6 +37,11 @@ type ColorSegmentationAreaSelection = {
   lastChangedTimestamp: number;
 };
 
+type ColorSegmentationRequestBody = {
+  selection: SelectionAreaSelection;
+  elements: [number, number][];
+}
+
 // Constants and injected values
 const config = inject<FrontendConfig>("config")!;
 const selection = computed(() => appState.selection.colorSegmentation);
@@ -81,13 +86,22 @@ async function fetchColors() {
     return;
   }
 
-  let request_body: SelectionAreaSelection;
+  let selection: SelectionAreaSelection;
 
   if (useSelectionChecked.value) {
-    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+    selection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
   } else {
-    request_body = await getFullImageSelection();
+    selection = await getFullImageSelection();
   }
+
+  let selectedElements: [number, number][];
+  selectedElements = [];
+  selectedElements.push([getElementIndex(selectedElement.value), threshold.value]);
+
+  let request_body: ColorSegmentationRequestBody = {
+    selection,
+    elements: selectedElements
+  };
 
   const elementIndex = getElementIndex(selectedElement.value);
   const response = await fetch(
