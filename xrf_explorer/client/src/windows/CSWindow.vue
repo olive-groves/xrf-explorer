@@ -164,6 +164,13 @@ function updateSelection() {
     selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
     selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
   }
+
+  const elementsSelectedRaw = elementsSelected.value;
+  for (let i = 0; i < elementsSelectedRaw.length; i++) {
+    if (elementsSelectedRaw[i] != undefined) {
+      
+    }
+  }
 }
 
 /**
