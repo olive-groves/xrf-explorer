@@ -212,6 +212,14 @@ function onKeyDown(event: KeyboardEvent) {
     dummyImages.value[selectedIdx.value].x++;
     event.preventDefault();
     event.stopPropagation();
+  } else if (event.key == "ArrowUp") {
+    dummyImages.value[selectedIdx.value].y--;
+    event.preventDefault();
+    event.stopPropagation();
+  } else if (event.key == "ArrowDown") {
+    dummyImages.value[selectedIdx.value].y++;
+    event.preventDefault();
+    event.stopPropagation();
   }
 }
 
