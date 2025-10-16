@@ -34,7 +34,7 @@ function reset() {
       <MenubarContent>
         <DialogTrigger v-if="appState.userRole == ''" class="w-full" @click="window = 'login'"><MenubarItem>Log in</MenubarItem></DialogTrigger>
         <DialogTrigger v-if="appState.userRole != ''" class="w-full" @click="window = 'logout'"><MenubarItem>Log out</MenubarItem></DialogTrigger>
-        <DialogTrigger v-if="appState.userRole == 'admin'" class="w-full" @click="window = 'manage-accounts'"><MenubarItem>Manage Accounts</MenubarItem></DialogTrigger>
+        <DialogTrigger v-if="appState.userRole == 'ADMIN'" class="w-full" @click="window = 'manage-accounts'"><MenubarItem>Manage Accounts</MenubarItem></DialogTrigger>
       </MenubarContent>
     </MenubarMenu>
     <LoginDialog ref="LoginRef" v-if="window == 'login'" @close="dialogOpen = false" />

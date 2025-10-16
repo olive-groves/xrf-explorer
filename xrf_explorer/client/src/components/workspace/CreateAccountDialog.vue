@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ref} from "vue";
 import { toast } from "vue-sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import axios from "axios";
 
 const emit = defineEmits(["close"]);
 
@@ -12,23 +13,34 @@ const username = ref("");
 const password = ref("");
 const role = ref("");
 
-const storedAccounts = ref([
-  { username: "admin", password: "", role: "admin" },
-  { username: "editor", password: "", role: "editor" },
-  { username: "viewer", password: "", role: "viewer" },
-]);
+interface CreateAccountResponse {
+  success: boolean;
+  message?: string;
+}
 
-function createAccount() {
-  // Check for duplicate accountname
-  const exists = storedAccounts.value.some(acc => acc.username === username.value);
-  if (exists) {
-    toast.error(`Account for '${username.value}' already exists.`);
+async function createAccount() {
+  if (!username.value || !password.value || !role.value) {
+    toast.error("All fields are required");
     return;
   }
-  storedAccounts.value.push({ username: username.value, password: password.value, role: role.value });
-  console.log("Stored Accounts:", storedAccounts.value);
-  toast.info(`Account for '${storedAccounts.value[storedAccounts.value.length - 1].username}' created successfully`);
-  emit("close");
+
+  try {
+    const response = await axios.post<CreateAccountResponse>('/api/create_account', {
+      username: username.value,
+      password: password.value,
+      role: role.value.toUpperCase()  // Ensure role is uppercase to match backend enum
+    });
+
+    if (response.data.success) {
+      toast.info("Account created successfully");
+      resetFields();
+      emit("close");
+    } else {
+      toast.error(response.data.message || "Account creation failed");
+    }
+  } catch (error: any) {
+    toast.error("Account creation failed");
+  }
 }
 
 function resetFields() {
