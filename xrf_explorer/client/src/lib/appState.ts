@@ -29,6 +29,7 @@ export const appState = reactive<AppState>({
     },
   },
   userRole: "",
+  // token: "",
 });
 
 /**
@@ -59,4 +60,8 @@ export type AppState = {
    * The role of the current logged in user
    */
   userRole: string;
+  /**
+   * The authentication token of the current logged in user
+   */
+  // token: string;
 };

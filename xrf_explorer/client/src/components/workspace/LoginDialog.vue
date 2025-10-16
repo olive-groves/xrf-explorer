@@ -11,11 +11,13 @@ const emit = defineEmits(["close"]);
 
 const username = ref("");
 const password = ref("");
+// const token = ref("");
 
 interface LoginResponse {
   success: boolean;
   message: string;
   role: string;
+  // token: string;
 }
 
 async function attemptLogin() {
@@ -28,11 +30,13 @@ async function attemptLogin() {
     const response = await axios.post<LoginResponse>('/api/login', {
       username: username.value,
       password: password.value
+      // token: token.value
     });
 
     if (response.data.success) {
       toast.info("Login successful");
       appState.userRole = response.data.role; // Set the user role from the response
+      // appState.token = response.data.token; // Set the auth token from the response
       resetFields();
       emit("close");
     } else {

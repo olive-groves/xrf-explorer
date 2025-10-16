@@ -3,6 +3,8 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+from flask_httpauth import HTTPTokenAuth
+from xrf_explorer.server.database.auth import provide_auth
 from xrf_explorer.server.database.database import init_app
 from xrf_explorer.server.database.models import User  # Ensure models are imported
 from xrf_explorer.server.database.models import UserRole
@@ -10,6 +12,8 @@ from xrf_explorer.server.database.models import UserRole
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 CORS(app)
 db = init_app(app)
+
+auth: HTTPTokenAuth = provide_auth()
 
 with app.app_context():
     db.create_all()  # Create database tables for our data models
@@ -53,10 +57,14 @@ def login():
     
     # Verify the password
     if user and user.check_password(password):
+        # token = user.generate_auth_token()
+
+        # return jsonify({"success": True, "message": "Login successful", "role": user.role.name, "token": token}), 200
         return jsonify({"success": True, "message": "Login successful", "role": user.role.name}), 200
     return jsonify({"success": False, "message": "Invalid username or password"}), 401
 
 # Account creation route
+@auth.login_required(role=UserRole.ADMIN)
 @app.route('/api/create_account', methods=['POST'])
 def create_account():
     data = request.json
@@ -87,12 +95,14 @@ def create_account():
     return jsonify({"success": True, "message": "Account created successfully"}), 201
 
 # Account retrieval route
+@auth.login_required(role=UserRole.ADMIN)
 @app.route('/api/accounts', methods=['GET'])
 def get_accounts():
     accounts = User.query.all()
     return jsonify([{"username": acc.username, "role": acc.role.name.capitalize()} for acc in accounts]), 200
 
 # Account update route
+@auth.login_required(role=UserRole.ADMIN)
 @app.route('/api/update_account', methods=['POST'])
 def update_account():
     data = request.json
