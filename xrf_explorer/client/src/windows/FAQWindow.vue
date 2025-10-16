@@ -18,14 +18,22 @@ const faqItems = ref<FAQItem[]>([
     question: "How do I reset the client?",
     answer: "Hover over 'XRF-Explorer' and click 'Reset client'. This will clear all local data.",
   },
-    {
-        question: "",
-        answer: "",
-    },
-    {
-        question: "How do I switch between light and dark mode?",
-        answer: "Hover over 'XRF-Explorer' and select which mode you want to use.",
-    },
+  {
+      question: "How do I switch between light and dark mode?",
+      answer: "Hover over 'XRF-Explorer' and select which mode you want to use.",
+  },
+  {
+      question: "Add in FAQs here",
+      answer: "Answers here",
+  },
+  {
+      question: "Add in FAQs here",
+      answer: "Answers here",
+  },
+  {
+      question: "Add in FAQs here",
+      answer: "Answers here",
+  },
 ]);
 
 const closeFAQ = () => {
