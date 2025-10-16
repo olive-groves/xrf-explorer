@@ -86,6 +86,45 @@ def create_account():
 
     return jsonify({"success": True, "message": "Account created successfully"}), 201
 
+# Account retrieval route
+@app.route('/api/accounts', methods=['GET'])
+def get_accounts():
+    accounts = User.query.all()
+    return jsonify([{"username": acc.username, "role": acc.role.name.capitalize()} for acc in accounts]), 200
+
+# Account update route
+@app.route('/api/update_account', methods=['POST'])
+def update_account():
+    data = request.json
+    originalUsername = data.get('originalUsername')
+    username = data.get('username')
+    password = data.get('password')
+    role_str = data.get('role')
+
+    # Check if the username and role are provided
+    if not username or not role_str:
+        return jsonify({"success": False, "message": "Missing username or role"}), 400
+
+    # Validate the role
+    try:
+        role = UserRole[role_str]
+    except KeyError:
+        return jsonify({"success": False, "message": "Invalid role"}), 400
+
+    # Check if the user is already in the database
+    if User.query.filter_by(username=username).first() and (username != originalUsername):
+        return jsonify({"success": False, "message": "Username already exists"}), 409
+
+    # Update the user's username, password and role
+    user = User.query.filter_by(username=originalUsername).first()
+    user.username = username
+    user.role = role
+    if (password): 
+        user.set_password(password)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Account updated successfully"}), 200
+
 # All routes not matched in the server are forwarded to the client
 @app.route('/', defaults={'path': 'index.html'})
 @app.route('/<path:path>')

@@ -11,3 +11,4 @@ export { default as LoginDialog } from "./LoginDialog.vue";
 export { default as LogoutDialog } from "./LogoutDialog.vue";
 export { default as CreateAccountDialog } from "./CreateAccountDialog.vue";
 export { default as ManageAccountsDialog } from "./ManageAccountsDialog.vue";
+export { default as ManageUserDialog } from "./ManageUserDialog.vue";
