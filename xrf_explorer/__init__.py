@@ -28,6 +28,7 @@ with app.app_context():
     else:
         print("Admin user already exists.")
     
+    # Create a default viewer user if none exist
     if not User.query.filter_by(role=UserRole.VIEWER).first():
         viewer_user = User(username='viewer', role=UserRole.VIEWER)
         viewer_user.set_password('viewerpassword')
