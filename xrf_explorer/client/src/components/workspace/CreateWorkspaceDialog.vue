@@ -30,7 +30,9 @@ function createEmptyWorkspace(): WorkspaceConfig {
     },
     contextualImages: [],
     spectralCubes: [],
+    partialSpectralCubes: [],
     elementalCubes: [],
+    partialElementalCubes: [],
     elementalChannels: [],
     spectralParams: {
       low: 0,

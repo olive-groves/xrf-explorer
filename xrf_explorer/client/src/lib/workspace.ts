@@ -19,9 +19,17 @@ export type WorkspaceConfig = {
    */
   spectralCubes: SpectralCube[];
   /**
+   * All partial spectral cubes in the workspace.
+   */
+  partialSpectralCubes: SpectralCube[];
+  /**
    * All elemental cubes in the workspace.
    */
   elementalCubes: ElementalCube[];
+  /**
+   * All partial elemental cubes in the workspace.
+   */
+  partialElementalCubes: ElementalCube[];
   /**
    * All elemental channels present in the elemental cubes.
    */

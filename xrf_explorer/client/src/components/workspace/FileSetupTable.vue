@@ -35,8 +35,65 @@ const elementalFiles = computed(() => filterByExtension(files.value, ["csv", "dm
 
 
 // On Element loading add one datacube element
+// keep track of last initialized mode to avoid double-init
+const _lastMode = ref<string | null>(null);
+
+function initMode(mode: string) {
+  // Ensure arrays exist (older workspace.json may not have partial arrays)
+  if (!Array.isArray(model.value.spectralCubes)) model.value.spectralCubes = [];
+  if (!Array.isArray(model.value.partialSpectralCubes)) model.value.partialSpectralCubes = [];
+  if (!Array.isArray(model.value.elementalCubes)) model.value.elementalCubes = [];
+  if (!Array.isArray(model.value.partialElementalCubes)) model.value.partialElementalCubes = [];
+
+  if (mode === 'partial') {
+    // normalize partial arrays to exactly 2 elements when included
+    if (includeSpectral.value) {
+      model.value.partialSpectralCubes = model.value.partialSpectralCubes.slice(0, 2);
+      while (model.value.partialSpectralCubes.length < 2) {
+        model.value.partialSpectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
+      }
+    } else {
+      model.value.partialSpectralCubes = [];
+    }
+    if (includeElemental.value) {
+      model.value.partialElementalCubes = model.value.partialElementalCubes.slice(0, 2);
+      while (model.value.partialElementalCubes.length < 2) {
+        model.value.partialElementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
+      }
+    } else {
+      model.value.partialElementalCubes = [];
+    }
+    // clear full arrays
+    model.value.spectralCubes = [];
+    model.value.elementalCubes = [];
+    model.value.stitchingMode = "partial";
+  } else {
+    // normalize full arrays to exactly 1 element when included
+    if (includeSpectral.value) {
+      model.value.spectralCubes = model.value.spectralCubes.slice(0, 1);
+      if (model.value.spectralCubes.length === 0) model.value.spectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
+    } else {
+      model.value.spectralCubes = [];
+    }
+    if (includeElemental.value) {
+      model.value.elementalCubes = model.value.elementalCubes.slice(0, 1);
+      if (model.value.elementalCubes.length === 0) model.value.elementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
+    } else {
+      model.value.elementalCubes = [];
+    }
+    // clear partial arrays
+    model.value.partialSpectralCubes = [];
+    model.value.partialElementalCubes = [];
+    model.value.stitchingMode = "full";
+  }
+
+  _lastMode.value = mode;
+}
+
 onMounted(() => {
-  addDatacube();
+  const startMode = model.value.stitchingMode ?? UploadingPartialData.value ?? 'full';
+  UploadingPartialData.value = startMode;
+  initMode(startMode);
 });
 
 
@@ -68,19 +125,9 @@ function filterByExtension(filenames: string[], extensions: string[], empty: boo
  * Full = Full data scan
  */
 watch(UploadingPartialData, (val) => {
-  if (val === "partial") {
-    addDatacube();
-    // persist stitching mode in the workspace model
-    model.value.stitchingMode = "partial";
-  } else {
-    model.value.stitchingMode = "full";
-    if (model.value.spectralCubes.length > 1) {
-      model.value.spectralCubes = [model.value.spectralCubes[0]];
-    }
-    if (model.value.elementalCubes.length > 1) {
-      model.value.elementalCubes = [model.value.elementalCubes[0]];
-    }
-  }
+  // Avoid re-initializing if the mode is unchanged
+  if (val === _lastMode.value) return;
+  initMode(val);
 });
 
 /**
@@ -104,25 +151,31 @@ function addDatacube() {
  */
 function handleIncludeChange(type: "spectral" | "elemental", value: boolean) {
   if (!value) {
-    // Remove all cubes of that type
-    if (type === "spectral") model.value.spectralCubes = [];
-    else model.value.elementalCubes = [];
-  } else {
-    const otherArrayLength = type === "spectral" 
-      ? model.value.elementalCubes.length 
-      : model.value.spectralCubes.length;
-
-    // Minimum cubes based on UploadingPartialData
-    const minCubes = UploadingPartialData.value === 'partial' ? 2 : 1;
-
-    // Target length = max of other array length or minimum
-    const targetLength = Math.max(otherArrayLength, minCubes);
-
-    const arrayToFill = type === "spectral" ? model.value.spectralCubes : model.value.elementalCubes;
-
-    while (arrayToFill.length < targetLength) {
-      addElementToWorkspace(type === "spectral" ? "spectral_cube" : "elemental_cube");
+    // Remove all cubes of that type from the active arrays
+    if (type === "spectral") {
+      if (UploadingPartialData.value === 'partial') model.value.partialSpectralCubes = [];
+      else model.value.spectralCubes = [];
+    } else {
+      if (UploadingPartialData.value === 'partial') model.value.partialElementalCubes = [];
+      else model.value.elementalCubes = [];
     }
+    return;
+  }
+
+  // Compute other array length for target sizing (keep parity between arrays in the active mode)
+  const otherArrayLength = type === "spectral"
+    ? (UploadingPartialData.value === 'partial' ? model.value.partialElementalCubes.length : model.value.elementalCubes.length)
+    : (UploadingPartialData.value === 'partial' ? model.value.partialSpectralCubes.length : model.value.spectralCubes.length);
+
+  const minCubes = UploadingPartialData.value === 'partial' ? 2 : 1;
+  const targetLength = Math.max(otherArrayLength, minCubes);
+
+  const arrayToFill = type === "spectral"
+    ? (UploadingPartialData.value === 'partial' ? model.value.partialSpectralCubes : model.value.spectralCubes)
+    : (UploadingPartialData.value === 'partial' ? model.value.partialElementalCubes : model.value.elementalCubes);
+
+  while (arrayToFill.length < targetLength) {
+    addElementToWorkspace(type === "spectral" ? "spectral_cube" : "elemental_cube");
   }
 }
 
@@ -141,25 +194,25 @@ watch(includeElemental, (newVal) => {
  */
 function addElementToWorkspace(type: string) {
   const elementType = type;
+  const partial = UploadingPartialData.value === 'partial';
 
   switch (elementType) {
     // Add a new spectral datacube
     case "spectral_cube": {
-      model.value.spectralCubes.push({
-        name: "",
-        rawLocation: "",
-        rplLocation: "",
-        recipeLocation: "",
-      });
+      if (partial) {
+        model.value.partialSpectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
+      } else {
+        model.value.spectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
+      }
       break;
     }
     // Add a new elemental datacube
     case "elemental_cube": {
-      model.value.elementalCubes.push({
-        name: "",
-        dataLocation: "",
-        recipeLocation: "",
-      });
+      if (partial) {
+        model.value.partialElementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
+      } else {
+        model.value.elementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
+      }
       break;
     }
   }
@@ -176,18 +229,23 @@ function removeElement(type: string, index: number) {
       model.value.contextualImages.splice(index, 1);
       break;
     case "spectral_cube":
-      model.value.spectralCubes.splice(index, 1);
+      if (UploadingPartialData.value === 'partial') model.value.partialSpectralCubes.splice(index, 1);
+      else model.value.spectralCubes.splice(index, 1);
       break;
     case "elemental_cube":
-      model.value.elementalCubes.splice(index, 1);
+      if (UploadingPartialData.value === 'partial') model.value.partialElementalCubes.splice(index, 1);
+      else model.value.elementalCubes.splice(index, 1);
       break;
   }
 }
 
-// Computes the largest number of datacubes currently in the model
+// Active arrays depending on mode
+const spectralArr = computed(() => (UploadingPartialData.value === 'partial' ? model.value.partialSpectralCubes : model.value.spectralCubes));
+const elementalArr = computed(() => (UploadingPartialData.value === 'partial' ? model.value.partialElementalCubes : model.value.elementalCubes));
+
 const maxCubes = computed(() => {
-  const spectralCount = model.value.spectralCubes.length;
-  const elementalCount = model.value.elementalCubes.length;
+  const spectralCount = spectralArr.value.length;
+  const elementalCount = elementalArr.value.length;
   return Math.max(spectralCount, elementalCount);
 });
 
@@ -225,7 +283,7 @@ defineExpose({
         <template v-for="index in maxCubes" :key="index" v-if="includeElemental || includeSpectral">
           <!-- Section header -->
           <div class="col-span-full font-semibold text-lg mt-4 mb-2 justify-self-start">
-            Datacube <span v-if="(model.spectralCubes.length > 1 || model.elementalCubes.length > 1) && (includeElemental || includeSpectral)"> {{ index}}</span>
+            Datacube <span v-if="(spectralArr.length > 1 || elementalArr.length > 1) && (includeElemental || includeSpectral)"> {{ index}}</span>
           </div>
           <!-- Spectral datacube -->
           <div v-if="includeSpectral" class="col-span-full grid grid-cols-subgrid gap-2">
@@ -233,8 +291,8 @@ defineExpose({
               Spectral Datacube
             </div>
             <AudioWaveform class="ml-2 size-6" title="Spectral datacube" />
-            <Input placeholder="Name" v-model:model-value="model.spectralCubes[index - 1].name" />
-            <FileSetupTableRow type="a raw" :options="rawFiles" v-model="model.spectralCubes[index - 1].rawLocation" />
+            <Input placeholder="Name" v-model:model-value="spectralArr[index - 1].name" />
+            <FileSetupTableRow type="a raw" :options="rawFiles" v-model="spectralArr[index - 1].rawLocation" />
             <Button
               v-if="(index - 1 > 0 && UploadingPartialData === 'full') || (index - 1 > 1 && UploadingPartialData === 'partial')"
               variant="destructive"
@@ -250,8 +308,8 @@ defineExpose({
             >
               <Trash2 />
             </Button>
-            <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="model.spectralCubes[index - 1].rplLocation" />
-            <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="model.spectralCubes[index - 1].recipeLocation" />
+            <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="spectralArr[index - 1].rplLocation" />
+            <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="spectralArr[index - 1].recipeLocation" />
           </div>
 
           <!-- Elemental datacube -->
@@ -262,18 +320,18 @@ defineExpose({
             <Atom class="ml-2 size-6" title="Elemental datacube" />
             <Input
               placeholder="Name"
-              v-model:model-value="model.elementalCubes[index - 1].name"
+              v-model:model-value="elementalArr[index - 1].name"
             />
             <FileSetupTableRow
               type="a data"
               :options="elementalFiles"
-              v-model="model.elementalCubes[index - 1].dataLocation"
+              v-model="elementalArr[index - 1].dataLocation"
             />
             <FileSetupTableRow
-              v-if="model.spectralCubes.length === 0"
+              v-if="spectralArr.length === 0"
               type="a recipe"
               :options="recipeFiles"
-              v-model="model.elementalCubes[index - 1].recipeLocation"
+              v-model="elementalArr[index - 1].recipeLocation"
             />
             <Button
               v-if="(index - 1 > 0 && UploadingPartialData === 'full' && !includeSpectral) || (index - 1 > 1 && UploadingPartialData === 'partial' && !includeSpectral)"
