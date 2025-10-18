@@ -30,6 +30,11 @@ export type WorkspaceConfig = {
    * The parameters to read the spectral data.
    */
   spectralParams: SpectralParams;
+  /**
+   * Optional stitching mode for this workspace.
+   * When set to 'partial' the stitching UI is active.
+   */
+  stitchingMode?: "partial" | "full";
 };
 
 /**

@@ -24,7 +24,7 @@ function confirmDialog() {
 
 // Close the stitching page and load the base-RGB viewer with the base image and datacubes
 function confirmStitchingDialog() {
-      appState.stitching = false;
+  if (appState.workspace) appState.workspace.stitchingMode = 'full';
       windowState["stitching"].opened = false;
       windowState["stitching"].disabled = true; 
        // Load base image etc.

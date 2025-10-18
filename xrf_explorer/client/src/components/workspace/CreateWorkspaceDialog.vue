@@ -247,6 +247,12 @@ async function updateWorkspace() {
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
       });
+      // Publish the created workspace to the global app state so UI reacts immediately
+      try {
+        appState.workspace = deepClone(workspace.value);
+      } catch (e) {
+        console.warn("Failed to set appState.workspace after create", e);
+      }
       resetProgress();
     }
   }

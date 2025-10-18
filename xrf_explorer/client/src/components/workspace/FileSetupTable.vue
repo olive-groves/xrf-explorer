@@ -9,7 +9,6 @@ import { Image, /*ImagePlus,*/ AudioWaveform, Atom, Trash2 } from "lucide-vue-ne
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { appState } from "@/lib/appState";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
@@ -71,9 +70,10 @@ function filterByExtension(filenames: string[], extensions: string[], empty: boo
 watch(UploadingPartialData, (val) => {
   if (val === "partial") {
     addDatacube();
-    appState.stitching = true;
+    // persist stitching mode in the workspace model
+    model.value.stitchingMode = "partial";
   } else {
-    appState.stitching = false;
+    model.value.stitchingMode = "full";
     if (model.value.spectralCubes.length > 1) {
       model.value.spectralCubes = [model.value.spectralCubes[0]];
     }
@@ -189,6 +189,12 @@ const maxCubes = computed(() => {
   const spectralCount = model.value.spectralCubes.length;
   const elementalCount = model.value.elementalCubes.length;
   return Math.max(spectralCount, elementalCount);
+});
+
+// Small accessor so parent dialogs can read the current UploadingPartialData
+// and save stitchingMode when the Save button is pressed.
+defineExpose({
+  getUploadingPartialData: () => UploadingPartialData.value,
 });
 
 </script>

@@ -72,35 +72,33 @@ watch(
 );
 
 // Open Stitching window when stitching starts
+// Watch the workspace stitching mode and enable/disable windows accordingly
 watch(
-  () => appState.stitching,
-  (isStitching) => {
-    if (isStitching && state.value.id == "stitching") {
-      windowState[state.value.id].disabled = false;
-      windowState[state.value.id].opened = true;
-    }
-    else if (isStitching && state.value.id !== "stitching") {
-      windowState[state.value.id].opened = false;
-      windowState[state.value.id].disabled = true;
+  () => appState.workspace?.stitchingMode,
+  (mode) => {
+    const isStitching = mode === "partial";
+    if (isStitching) {
+      if (state.value.id == "stitching") {
+        windowState[state.value.id].disabled = false;
+        windowState[state.value.id].opened = true;
+      } else {
+        windowState[state.value.id].opened = false;
+        windowState[state.value.id].disabled = true;
+      }
+    } else {
+      // Not stitching: enable other windows (keep stitching window closed/disabled)
+      if (state.value.id != "stitching") {
+        windowState[state.value.id].disabled = false;
+      }
     }
   },
   { immediate: true },
-);
-
-// Enable all other windows when stitching is finished
-watch(
-  () => appState.stitching,
-  (isStitching) => {
-    if (!isStitching && state.value.id != "stitching") {
-      windowState[state.value.id].disabled = false; }
-  },
-  { immediate: false },
 );
 </script>
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <div ref="content" v-if="appState.stitching">
+  <div ref="content" v-if="appState.workspace?.stitchingMode === 'partial'">
       <div v-if="state.id == 'stitching'">
         <slot />
       </div>

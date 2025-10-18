@@ -27,7 +27,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
   <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
-      <StitchViewer v-if="appState.stitching"/>
+  <StitchViewer v-if="appState.workspace?.stitchingMode === 'partial'"/>
       <ImageViewer />
 
       <BaseContextMenu>
@@ -39,7 +39,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
-        <StitchWindow v-if="appState.stitching"/>
+  <StitchWindow v-if="appState.workspace?.stitchingMode === 'partial'"/>
       </BaseContextMenu>
     </WindowContainer>
   </div>

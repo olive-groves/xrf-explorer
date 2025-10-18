@@ -28,7 +28,20 @@ export const appState = reactive<AppState>({
       },
     },
   },
-  stitching: false,
+});
+
+/**
+ * Deprecated compatibility helpers — prefer `workspace.stitchingMode`.
+ */
+Object.defineProperty(appState, "stitching", {
+  get() {
+    return (appState.workspace?.stitchingMode ?? "full") === "partial";
+  },
+  set(v: boolean) {
+    if (!appState.workspace) return;
+    appState.workspace.stitchingMode = v ? "partial" : "full";
+  },
+  configurable: true,
 });
 
 /**
@@ -58,5 +71,6 @@ export type AppState = {
   /**
    * Whether the stitching viewer is enabled
    */
-  stitching: boolean,
+  // deprecated: keep the property documented for older code paths. Prefer workspace.stitchingMode.
+  stitching?: boolean;
 };
