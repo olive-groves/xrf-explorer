@@ -47,6 +47,14 @@ class TestRoutes:
         "target": [[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]]
     }
 
+    FULL_SELECTION: dict = {
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 2, "y": 2}
+            ]
+        }
+
     @pytest.fixture()
     def client(self):
         return app.test_client()
@@ -523,7 +531,7 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
-    
+
     def test_get_selection_spectra(self, client: FlaskClient):
         selection: dict = {
             "type": "rectangle",
@@ -542,7 +550,8 @@ class TestRoutes:
 
     def test_get_color_clusters_whole_cube(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/false")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/false",
+                                             json=self.FULL_SELECTION)
 
         # verify
         assert response.status_code == 200
@@ -552,8 +561,16 @@ class TestRoutes:
         rmtree(self.GENERATED_FOLDER)
     
     def test_get_color_clusters_single_element(self, client: FlaskClient):
+        selection: dict = {
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 2, "y": 2}
+            ]
+        }
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false",
+                                             json=self.FULL_SELECTION)
 
         # verify
         assert response.status_code == 200
@@ -561,14 +578,14 @@ class TestRoutes:
 
         # cleanup
         rmtree(self.GENERATED_FOLDER)
-    
+
     def test_get_color_clusters_already_present(self, client: FlaskClient):
         # setup
         url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false"
 
         # execute
-        response1: TestResponse = client.get(url)
-        response2: TestResponse = client.get(url)
+        response1: TestResponse = client.post(url, json=self.FULL_SELECTION)
+        response2: TestResponse = client.post(url, json=self.FULL_SELECTION)
 
         # verify
         assert response1.status_code == 200
@@ -577,10 +594,10 @@ class TestRoutes:
 
         # cleanup
         rmtree(self.GENERATED_FOLDER)
-    
+
     def test_get_color_cluster_bitmask_whole_cube(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100/false")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100/false")
 
         # verify
         assert response.status_code == 200
@@ -592,7 +609,7 @@ class TestRoutes:
     
     def test_get_color_cluster_bitmask_single_element(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
 
         # verify
         assert response.status_code == 200
@@ -601,7 +618,7 @@ class TestRoutes:
         # cleanup
         response.close()
         rmtree(self.GENERATED_FOLDER)
-    
+
     def test_get_color_cluster_bitmask_no_config(self, client: FlaskClient):
         # setup
         set_config("this is not a config file.yml")
@@ -648,3 +665,63 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.text == error_msg
         assert error_msg in caplog.text
+
+    def test_get_color_clusters_invalid_selection_type(self, client: FlaskClient):
+        selection: dict = {
+            "type": "invalid_type",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == f"Error parsing selection of type {selection['type']}"
+
+    def test_get_color_clusters_no_selection_type(self, client: FlaskClient):
+        # missing type/points
+        selection: dict = {"something": "invalid"}
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == "Error occurred while getting selection type or points from request body"
+
+    def test_get_color_clusters_points_not_list(self, client: FlaskClient):
+        selection: dict = {
+            "type": "rectangle",
+            "points": "not a list"
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
+
+    def test_get_color_clusters_selection(self, client: FlaskClient):
+        # valid selection for whole painting
+        selection: dict = {
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+
+        # verify
+        assert response.status_code == 200
+        assert response.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
