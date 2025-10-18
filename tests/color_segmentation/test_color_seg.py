@@ -40,7 +40,7 @@ class TestColorSegmentation:
     DATA_CUBE_PATH: str = join(PATH_DATA_SOURCE, 'test_cube.dms')
     REG_TEST_IMAGE_PATH: str = join(PATH_DATA_SOURCE, 'registered_test_image.png')
 
-    FULL_SELECTION_MASK = np.ones((3, 3, 3))
+    FULL_SELECTION_MASK =  np.ones((3, 3), dtype=bool)
 
     elem_threshold: float = 0.1
     num_attempts: int = 10
@@ -170,15 +170,15 @@ class TestColorSegmentation:
             clusters: np.ndarray
             if missing_param == "datasource":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    "", self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
+                    "", self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             elif missing_param == "image":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, "", i, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, "", i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             else:
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
@@ -245,7 +245,7 @@ class TestColorSegmentation:
         bitmask: list[np.ndarray]
         clusters: np.ndarray
         clusters, bitmask = get_elemental_clusters_using_k_means(
-            self.DATA_SOURCE, self.IMAGE_NAME, 0, high_elem_threshold, self.k, self.num_attempts
+            self.DATA_SOURCE, self.IMAGE_NAME, 0, self.FULL_SELECTION_MASK, high_elem_threshold, self.k, self.num_attempts
         )
 
         # Verify

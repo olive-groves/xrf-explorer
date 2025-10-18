@@ -542,7 +542,7 @@ class TestRoutes:
 
     def test_get_color_clusters_whole_cube(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/false")
 
         # verify
         assert response.status_code == 200
@@ -553,7 +553,7 @@ class TestRoutes:
     
     def test_get_color_clusters_single_element(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false")
 
         # verify
         assert response.status_code == 200
@@ -564,7 +564,7 @@ class TestRoutes:
     
     def test_get_color_clusters_already_present(self, client: FlaskClient):
         # setup
-        url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0"
+        url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false"
 
         # execute
         response1: TestResponse = client.get(url)
@@ -580,7 +580,7 @@ class TestRoutes:
     
     def test_get_color_cluster_bitmask_whole_cube(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100/false")
 
         # verify
         assert response.status_code == 200
@@ -592,7 +592,7 @@ class TestRoutes:
     
     def test_get_color_cluster_bitmask_single_element(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
 
         # verify
         assert response.status_code == 200
@@ -607,7 +607,7 @@ class TestRoutes:
         set_config("this is not a config file.yml")
 
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
 
         # verify
         assert response.status_code == 500
