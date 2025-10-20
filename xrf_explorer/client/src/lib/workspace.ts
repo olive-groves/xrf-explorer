@@ -35,7 +35,7 @@ export type WorkspaceConfig = {
    */
   elementalChannels: ElementalChannel[];
   /**
-   * All elemental channels present in the elemental cubes.
+   * All grayscale images generated from the cubes.
    */
   grayscale: Grayscale[];
   /**

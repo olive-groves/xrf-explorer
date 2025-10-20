@@ -125,3 +125,14 @@ export const layerGroupDefaults = {
   gamma: [1.0],
   brightness: [0.0],
 };
+
+/**
+ * Builds the URL to an image that lives in the workspace uploads folder.
+ * @param imageLocation - Name or relative path of the image in the workspace
+ * @param workspaceName - Optional workspace name. If omitted, uses current datasource.
+ */
+export function getWorkspaceImageUrl(imageLocation: string, workspaceName?: string): string {
+  const ds = workspaceName ?? datasource.value;
+  const segments = imageLocation.split("/").map((s) => encodeURIComponent(s));
+  return `${config.api.endpoint}/${ds}/image/${segments.join("/")}`;
+}

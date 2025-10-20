@@ -225,7 +225,7 @@ def create_grayscale_from_elemental_cube(data_source: str):
     cube_path = get_elemental_cube_path_from_name(data_source, cube_name)
     cube = None
     is_elemental = False
-    # Try to find elemental cube by name in full elementalCubes
+    # Try to find elemental cube by name
     load_path: str | None = None
     try:
         if cube_path is not None:
@@ -248,7 +248,7 @@ def create_grayscale_from_elemental_cube(data_source: str):
         return "Failed to resolve elemental cube path", 500
 
     if load_path is not None:
-        # Load elemental cube from path (CSV or DMS)
+        # Load elemental cube from path
         try:
             if load_path.endswith('.csv'):
                 cube = get_elemental_data_cube_from_csv(load_path)
@@ -264,7 +264,7 @@ def create_grayscale_from_elemental_cube(data_source: str):
             LOG.error(f"Error reading elemental cube from path {load_path}: {e}")
             return "Failed to read elemental cube", 500
     else:
-        # Try spectral cube with given name (search both partial and full spectral lists)
+        # Try spectral cube with given name
         workspace = get_workspace_dict(data_source)
         if workspace is None:
             return "Workspace not found", 404
@@ -302,18 +302,15 @@ def create_grayscale_from_elemental_cube(data_source: str):
             dat = np.fromfile(raw_path, dtype=np.uint16)
             # reshape may fail if counts mismatch
             dat = np.reshape(dat, (height, width, depth))
-            # Normalize layout to match elemental loader which uses (channels, y, x) — convert to (channels, y, x)
-            # Our dat is (y, x, channels) so transpose
             cube = np.transpose(dat, (2, 0, 1))
             is_elemental = False
         except Exception as e:
             LOG.error(f"Error reading spectral cube data: {e}")
             return "Failed to read spectral cube data", 500
 
-    # Select layer if requested, otherwise compute summary (sum across channels)
+    # Select layer if requested, otherwise compute summary
     try:
         if layer is not None:
-            # cube shape: if elemental loader -> (channels, y, x); for spectral we converted to same layout
             arr = cube[layer]
         else:
             arr = cube.sum(axis=0)

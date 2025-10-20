@@ -47,7 +47,7 @@ def get_contextual_image_data(data_source: str, name: str) -> dict | None:
     for image in workspace["contextualImages"]:
         if image["name"] == name:
             return image
-    # also allow grayscale images (generated thumbnails / contextualizations)
+    # also allow grayscale images
     for g in workspace.get("grayscale", []):
         if g.get("name") == name:
             return g

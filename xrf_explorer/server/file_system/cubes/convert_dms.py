@@ -31,14 +31,13 @@ def get_elemental_datacube_dimensions(data_source: str) -> tuple[int, int, int, 
 def get_elemental_datacube_dimensions_from_path(path: str) -> tuple[int, int, int, int] | None:
     """
     Read the elemental datacube dimensions (width, height, channels, header_size) directly from a DMS file path.
-    This does not rely on workspace configuration and is safe to use for partial elemental cubes that are
-    referenced by their dataLocation.
+    This does not rely on workspace configuration.
     :param path: Path to the .dms file
     :return: Tuple (width, height, channels, header_size) or None on error
     """
     try:
         with open(path, 'rb') as file:
-            # Read the first line and ignore it (doesn't include important data)
+            # Read the first line and ignore it
             file.readline()
 
             # Read the second line

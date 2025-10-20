@@ -1,11 +1,10 @@
 <script setup lang="ts">
-//import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSetupTableRow, FileUploadDialog } from ".";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { useFetch } from "@vueuse/core";
 import { computed, inject, ref, onMounted, watch} from "vue";
-// Lucide icons
-import { Image, /*ImagePlus,*/ AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
+
+import { Image, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -39,12 +38,6 @@ const elementalFiles = computed(() => filterByExtension(files.value, ["csv", "dm
 const _lastMode = ref<string | null>(null);
 
 function initMode(mode: string) {
-  // Ensure arrays exist (older workspace.json may not have partial arrays)
-  if (!Array.isArray(model.value.spectralCubes)) model.value.spectralCubes = [];
-  if (!Array.isArray(model.value.partialSpectralCubes)) model.value.partialSpectralCubes = [];
-  if (!Array.isArray(model.value.elementalCubes)) model.value.elementalCubes = [];
-  if (!Array.isArray(model.value.partialElementalCubes)) model.value.partialElementalCubes = [];
-
   if (mode === 'partial') {
     // normalize partial arrays to exactly 2 elements when included
     if (includeSpectral.value) {
@@ -162,7 +155,7 @@ function handleIncludeChange(type: "spectral" | "elemental", value: boolean) {
     return;
   }
 
-  // Compute other array length for target sizing (keep parity between arrays in the active mode)
+  // Compute other array length for target sizing
   const otherArrayLength = type === "spectral"
     ? (UploadingPartialData.value === 'partial' ? model.value.partialElementalCubes.length : model.value.elementalCubes.length)
     : (UploadingPartialData.value === 'partial' ? model.value.partialSpectralCubes.length : model.value.spectralCubes.length);
@@ -283,7 +276,7 @@ defineExpose({
         <template v-for="index in maxCubes" :key="index" v-if="includeElemental || includeSpectral">
           <!-- Section header -->
           <div class="col-span-full font-semibold text-lg mt-4 mb-2 justify-self-start">
-            Datacube <span v-if="(spectralArr.length > 1 || elementalArr.length > 1) && (includeElemental || includeSpectral)"> {{ index}}</span>
+            Fragment <span v-if="(spectralArr.length > 1 || elementalArr.length > 1) && (includeElemental || includeSpectral)"> {{ index}}</span>
           </div>
           <!-- Spectral datacube -->
           <div v-if="includeSpectral" class="col-span-full grid grid-cols-subgrid gap-2">
