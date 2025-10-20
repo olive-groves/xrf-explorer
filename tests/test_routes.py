@@ -21,6 +21,8 @@ class TestRoutes:
     DATA_SOURCES_FOLDER: str = join(RESOURCES_PATH, "data_sources")
 
     DATA_SOURCE: str = "test_data_source"
+    # Separate data source that contains existing color segmentation bitmasks.
+    BITMASKS_DATA_SOURCE: str = "test_data_source_col_seg_bitmasks"
     UNBINNED_DATA_SOURCE: str = "unbinned_data_source"
     GENERATED_FOLDER: str = join(DATA_SOURCES_FOLDER, DATA_SOURCE, "generated")
 
@@ -77,7 +79,7 @@ class TestRoutes:
         result_list: list[str] = json.loads(result_str)
 
         # verify
-        assert len(result_list) == 2
+        assert len(result_list) == 3
     
     def test_get_workspace(self, client: FlaskClient):
         # execute
@@ -561,16 +563,47 @@ class TestRoutes:
         rmtree(self.GENERATED_FOLDER)
     
     def test_get_color_clusters_single_element(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false",
+                                             json=self.FULL_SELECTION)
+
+        # verify
+        assert response.status_code == 200
+        assert response.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
+
+    def test_get_color_clusters_whole_cube_selection(self, client: FlaskClient):
         selection: dict = {
             "type": "rectangle",
             "points": [
                 {"x": 0, "y": 0},
-                {"x": 2, "y": 2}
+                {"x": 1, "y": 1}
             ]
         }
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false",
-                                             json=self.FULL_SELECTION)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true",
+                                             json=selection)
+
+        # verify
+        assert response.status_code == 200
+        assert response.text
+
+        # cleanup
+        rmtree(self.GENERATED_FOLDER)
+
+    def test_get_color_clusters_single_element_selection(self, client: FlaskClient):
+        selection: dict = {
+            "type": "rectangle",
+            "points": [
+                {"x": 0, "y": 0},
+                {"x": 1, "y": 1}
+            ]
+        }
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/true",
+                                             json=selection)
 
         # verify
         assert response.status_code == 200
@@ -595,9 +628,9 @@ class TestRoutes:
         # cleanup
         rmtree(self.GENERATED_FOLDER)
 
-    def test_get_color_cluster_bitmask_whole_cube(self, client: FlaskClient):
+    def test_get_color_cluster_bitmask_whole_cube_exists(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/bitmask/0/1/100/false")
+        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/0/1/100/false")
 
         # verify
         assert response.status_code == 200
@@ -605,11 +638,10 @@ class TestRoutes:
 
         # cleanup
         response.close()
-        rmtree(self.GENERATED_FOLDER)
     
-    def test_get_color_cluster_bitmask_single_element(self, client: FlaskClient):
+    def test_get_color_cluster_bitmask_single_element_exists(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
+        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/1/1/0/false")
 
         # verify
         assert response.status_code == 200
@@ -617,7 +649,28 @@ class TestRoutes:
 
         # cleanup
         response.close()
-        rmtree(self.GENERATED_FOLDER)
+
+    def test_get_color_cluster_bitmask_whole_cube_not_exists(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/0/2/100/false")
+
+        # verify
+        assert response.status_code == 404
+        assert response.data
+
+        # cleanup
+        response.close()
+
+    def test_get_color_cluster_bitmask_single_element_not_exists(self, client: FlaskClient):
+        # execute
+        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/1/2/0/false")
+
+        # verify
+        assert response.status_code == 404
+        assert response.data
+
+        # cleanup
+        response.close()
 
     def test_get_color_cluster_bitmask_no_config(self, client: FlaskClient):
         # setup
@@ -705,23 +758,3 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
-
-    def test_get_color_clusters_selection(self, client: FlaskClient):
-        # valid selection for whole painting
-        selection: dict = {
-            "type": "rectangle",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
-        }
-
-        # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
-
-        # verify
-        assert response.status_code == 200
-        assert response.text
-
-        # cleanup
-        rmtree(self.GENERATED_FOLDER)

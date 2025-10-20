@@ -153,7 +153,7 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
 
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
-        get_color_clusters(data_source, elem, k, elem_threshold)
+        return 'Error bitmask does not exist or is not generated yet', 404
 
     LOG.info(f"full path: {bitmask_full_path}")
 
