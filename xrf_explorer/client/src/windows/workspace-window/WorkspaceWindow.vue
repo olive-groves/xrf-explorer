@@ -66,10 +66,13 @@ function updateWorkspace() {
 
 // Check if the user is an admin
 const isAdmin = computed(() => appState.userRole === "ADMIN");
+
+// Check if the user is an editor
+const isEditor = computed(() => appState.userRole === "EDITOR");
 </script>
 
 <template>
-  <Window title="Workspace" location="left">
+  <Window title="Workspace" location="left" v-if="isAdmin || isEditor">
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
         <div class="text-muted-foreground">Workspace name:</div>
