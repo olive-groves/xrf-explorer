@@ -140,9 +140,9 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     return colors, bitmasks
 
 
-def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
+def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
-                                         elem_threshold: float = 0.1, k: int = 30,
+                                         elem_threshold: np.ndarray[float] = [0.1], k: int = 30,
                                          nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
@@ -160,7 +160,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     """
     LOG.info(
         f'Computing element-wise color clusters with parameters:'
-        f'k={k}, data_source={data_source}, elemental_channel={elemental_channel}'
+        f'k={k}, data_source={data_source}, elemental_channel={elemental_channel[0]}'
     )
 
     # Get the elemental data cube
@@ -192,7 +192,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
     # Get bitmask of pixels with high element concentration and get respective pixels in the image
-    bitmask: np.ndarray = np.array(data_cube[elemental_channel] >= elem_threshold)
+    bitmask: np.ndarray = np.array(data_cube[elemental_channel[0]] >= elem_threshold[0])
     combined_mask = bitmask & selection_mask
     masked_image: np.ndarray = image[combined_mask]
     masked_image = reshape_image(masked_image)

@@ -47,6 +47,11 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     if config is None:
         return 'Error occurred while getting backend config', 500
 
+    #read payload
+    payload = request.get_json()
+    selection = payload["selection"]
+    elements = payload["elements"]
+
     uses_selection = True if uses_selection == "true" else False
 
     # Path to cache data
@@ -72,17 +77,17 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     colors: np.ndarray
     bitmasks: list[np.ndarray]
     selection_mask: np.ndarray | tuple[str, int]
-
-    LOG.info(f"Selection info received: {request.get_json()['selection']}")
+    selection_mask = encode_selection(selection, data_source, CubeType.Elemental)
 
     # elem == 0 indicates clusters for the whole painting
-    if elem == 0:
+    # if len(elements) == 1, the whole painting is the only channel to be clustered
+    # if len(elements) != 1, the whole painting channel can be ignored, since the
+    # intersection of the whole painting and an element is the element
+    if elem == 0 and len(elements) == 1:
         LOG.info('Computing color clusters for whole image')
         # Compute colors and bitmasks
         colors: np.ndarray
         bitmasks: list[np.ndarray]
-        selection_mask = encode_selection(selection, data_source, CubeType.Elemental)
-        
 
         if isinstance(selection_mask, tuple):
             return selection_mask[0], selection_mask[1]
@@ -94,15 +99,22 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
         scaled_elem_threshold: int = int(255 * elem_threshold / 100)
         # Compute colors and bitmasks per element
 
-        selection_mask = encode_selection(request.get_json(), data_source, CubeType.Elemental)
-
         if isinstance(selection_mask, tuple):
             return selection_mask[0], selection_mask[1]
 
+        elementList = []
+        thresholdList = []
+        for i in range (len(elements)):
+            if elements[i][0] != 0: #ignore whole painting channel
+                elementList.append(elements[i][0] - 1)
+                thresholdList.append(int(255 * elements[i][1] / 100))
+
         colors, bitmasks = get_elemental_clusters_using_k_means(
-            data_source, rgb_image_name, elem - 1, selection_mask, scaled_elem_threshold, k
+            data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), k
         )
         bitmask_full_path: str = join(path_to_save, f'bitmask_{elem - 1}_{k}_{elem_threshold}_{uses_selection}.png')
+
+        LOG.info("Color segmentation bitmask: " + full_path_json)
 
     # Combine bitmasks into one
     combined_bitmask: np.ndarray = combine_bitmasks(bitmasks)
