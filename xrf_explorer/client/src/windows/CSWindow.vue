@@ -203,7 +203,7 @@ function getElementIndex(elementName: string | undefined) {
 const addElementSelection = () => {
   const newElement = {
     id: elementsSelected.value.length + 1,
-    name: undefined,
+    name: "",
     threshold: threshold.value
   }
   elementsSelected.value.push(newElement);
@@ -280,9 +280,12 @@ function removeElement(index: number) {
               <SelectValue placeholder="Select element" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value=undefined>
+                Select element
+              </SelectItem>
               <SelectItem
                 value="complete"
-                :disabled="elementsSelected.some(sel => sel.name === 'complete') || elementsSelected.some(sel => sel.name !== undefined && sel.name !== 'complete')"
+                :disabled="elementsSelected.length >= selectableElementsList.length + 1 || elementsSelected.some(sel => sel.name === 'complete')"
               >
                 Complete painting
               </SelectItem>
@@ -290,7 +293,9 @@ function removeElement(index: number) {
                 v-for="element in selectableElementsList"
                 :key="element.name"
                 :value="element.name"
-                :disabled="elementsSelected.some(sel => sel.name === element.name) || elementsSelected.some(sel => sel.name === 'complete')"
+                :disabled="
+                  elementsSelected.some(sel => sel.name === element.name && sel.id !== elementSel.id)
+                "
               >
                 {{ element.name }}
               </SelectItem>
@@ -332,7 +337,7 @@ function removeElement(index: number) {
       <Button
         variant="outline"
         @click="addElementSelection"
-        :disabled="elementsSelected.length >= selectableElementsList.length + 1"
+        :disabled="elementsSelected.length >= selectableElementsList.length + 1 || elementsSelected.some(sel => sel.name === 'complete')"
       >
         Add element
       </Button>
