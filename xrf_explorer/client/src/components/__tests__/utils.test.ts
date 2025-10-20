@@ -258,7 +258,10 @@ describe("validateWorkspace Test", () => {
       { name: "context2", imageLocation: "context2", recipeLocation: "context2" },
     ],
     spectralCubes: [{ name: "cube1", rawLocation: "cube1", rplLocation: "cube1", recipeLocation: "cube1" }],
+    partialSpectralCubes: [],
     elementalCubes: [{ name: "element1", dataLocation: "element1", recipeLocation: "element1" }],
+    partialElementalCubes: [],
+    grayscale: [],
     elementalChannels: [],
     spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
   };
@@ -268,7 +271,10 @@ describe("validateWorkspace Test", () => {
     baseImage: { name: "", imageLocation: "", recipeLocation: "" },
     contextualImages: [],
     spectralCubes: [],
+    partialSpectralCubes: [],
     elementalCubes: [],
+    partialElementalCubes: [],
+    grayscale: [],
     elementalChannels: [],
     spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
   };
@@ -375,7 +381,10 @@ describe("validateWorkspace Test", () => {
         { name: "image1", imageLocation: "image3", recipeLocation: "recipe3" },
       ],
       spectralCubes: [{ name: "cube1", rawLocation: "raw1", rplLocation: "rpl1", recipeLocation: "recipe1" }],
+      partialSpectralCubes: [],
       elementalCubes: [{ name: "cube2", dataLocation: "data1", recipeLocation: "recipe2" }],
+      partialElementalCubes: [],
+      grayscale: [],
       elementalChannels: [],
       spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
     };

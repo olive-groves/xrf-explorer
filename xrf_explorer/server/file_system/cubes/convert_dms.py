@@ -25,20 +25,35 @@ def get_elemental_datacube_dimensions(data_source: str) -> tuple[int, int, int, 
         LOG.error(f"Could not retrieve the dimensions of the data cube at {data_source}")
         return None
 
-    with open(cube_path, 'rb') as file:
-        # Read the first line and ignore it (doesn't include important data)
-        file.readline()
+    return get_elemental_datacube_dimensions_from_path(cube_path)
 
-        # Read the second line
-        dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
 
-        # Parse the second line into the dimensions
-        dimensions: list[int] = [int(dim) for dim in dimensions_list]
+def get_elemental_datacube_dimensions_from_path(path: str) -> tuple[int, int, int, int] | None:
+    """
+    Read the elemental datacube dimensions (width, height, channels, header_size) directly from a DMS file path.
+    This does not rely on workspace configuration and is safe to use for partial elemental cubes that are
+    referenced by their dataLocation.
+    :param path: Path to the .dms file
+    :return: Tuple (width, height, channels, header_size) or None on error
+    """
+    try:
+        with open(path, 'rb') as file:
+            # Read the first line and ignore it (doesn't include important data)
+            file.readline()
 
-        # Save the size of the header
-        header_size: int = file.tell()
+            # Read the second line
+            dimensions_list: list[str] = file.readline().decode('ascii').strip().split()
 
-        return (*dimensions, header_size)
+            # Parse the second line into the dimensions
+            dimensions: list[int] = [int(dim) for dim in dimensions_list]
+
+            # Save the size of the header
+            header_size: int = file.tell()
+
+            return (*dimensions, header_size)
+    except Exception as e:
+        LOG.error(f"Error reading dms header from {path}: {e}")
+        return None
 
 
 def get_elements_from_dms(path: str | Path) -> list[str]:
@@ -50,9 +65,13 @@ def get_elements_from_dms(path: str | Path) -> list[str]:
     :return: List of the names of the elements.
     """
 
-    # data dimensions
-    data_source: str = data_source_name_from_cube_path(path)
-    (width, height, channels, header_size) = get_elemental_datacube_dimensions(data_source)
+    # read dimensions directly from file
+    dims = get_elemental_datacube_dimensions_from_path(path)
+    if dims is None:
+        LOG.error("Could not get elemental datacube dimensions from file")
+        return []
+
+    (width, height, channels, header_size) = dims
 
     with open(path, 'rb') as f:
         # Calculate total offset 
@@ -79,11 +98,10 @@ def get_elemental_data_cube_from_dms(path: str | Path) -> np.ndarray:
         x, y coordinates
     """
 
-    # get data dimensions
-    data_source: str = data_source_name_from_cube_path(path)
-    dimensions: tuple[int, int, int, int] | None = get_elemental_datacube_dimensions(data_source)
+    # get data dimensions directly from the file path
+    dimensions: tuple[int, int, int, int] | None = get_elemental_datacube_dimensions_from_path(path)
     if dimensions is None:
-        LOG.error("Could not get elemental datacube dimensions")
+        LOG.error("Could not get elemental datacube dimensions from path")
         return np.empty(0)
     (w, h, c, header_size) = dimensions
 
@@ -104,9 +122,12 @@ def get_elemental_map_from_dms(element: int, path: str | Path) -> np.ndarray:
     :return: 2-dimensional numpy array containing the elemental map. Dimensions are the x, y coordinates.
     """
 
-    # get data dimensions
-    data_source: str = data_source_name_from_cube_path(path)
-    (w, h, _, header_size) = get_elemental_datacube_dimensions(data_source)
+    # get data dimensions directly from the file path
+    dims = get_elemental_datacube_dimensions_from_path(path)
+    if dims is None:
+        LOG.error("Could not get elemental datacube dimensions from path")
+        return np.empty(0)
+    (w, h, _, header_size) = dims
 
     # size of the elemental map in bytes
     bytes_elemental_map: int = w * h * 4
