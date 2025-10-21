@@ -13,12 +13,14 @@ const emit = defineEmits(["close"]);
 // Define User data
 const username = ref("");
 const password = ref("");
+// const token = ref("");
 
 // Interface for API response
 interface LoginResponse {
   success: boolean;
   message: string;
   role: string;
+  // token: string;
 }
 
 // Function to attempt login
@@ -33,12 +35,14 @@ async function attemptLogin() {
     const response = await axios.post<LoginResponse>('/api/login', {
       username: username.value,
       password: password.value
+      // token: token.value
     });
 
     // On success, notify user, set user role, reset fields, and emit close; else give error message
     if (response.data.success) {
       toast.info("Login successful");
       appState.userRole = response.data.role; // Set the user role from the response
+      // appState.token = response.data.token; // Set the auth token from the response
       resetFields();
       emit("close");
     } else {

@@ -20,11 +20,14 @@ const hasSlot = computed(() => {
 // Check if the user is an admin
 const isAdmin = computed(() => appState.userRole === "ADMIN");
 
+// Check if the user is an editor
+const isEditor = computed(() => appState.userRole === "EDITOR");
+
 // Filtered windowState to exclude certain windows for non-admins
 const filteredWindows = computed(() => {
   return Object.values(windowState).filter(window => {
-    // Only show the workspace window for admins
-    if (window.id === "workspace" && !isAdmin.value) return false;
+    // Only show the workspace window for admins and editors
+    if (window.id === "workspace" && (!isAdmin.value && !isEditor.value)) return false;
     return true;
   });
 });

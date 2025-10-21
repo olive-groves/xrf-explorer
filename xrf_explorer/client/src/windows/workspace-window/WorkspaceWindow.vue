@@ -63,10 +63,16 @@ function updateWorkspace() {
     },
   );
 }
+
+// Check if the user is an admin
+const isAdmin = computed(() => appState.userRole === "ADMIN");
+
+// Check if the user is an editor
+const isEditor = computed(() => appState.userRole === "EDITOR");
 </script>
 
 <template>
-  <Window title="Workspace" location="left">
+  <Window title="Workspace" location="left" v-if="isAdmin || isEditor">
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
         <div class="text-muted-foreground">Workspace name:</div>
@@ -115,14 +121,14 @@ function updateWorkspace() {
           </WorkspaceCard>
         </div>
       </div>
-      <Button variant="destructive" @click="deletionDialog = true"> Delete project </Button>
+      <Button variant="destructive" @click="deletionDialog = true" v-if="isAdmin"> Delete project </Button>
       <Dialog v-model:open="deletionDialog">
         <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
       </Dialog>
-      <Dialog v-model:open="fileDialog">
+      <Dialog v-model:open="fileDialog" v-if="localWorkspace">
         <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
-      <Dialog v-model:open="channelsDialog">
+      <Dialog v-model:open="channelsDialog" v-if="localWorkspace">
         <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
     </div>
