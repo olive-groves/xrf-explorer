@@ -3,6 +3,7 @@
 from .accounts import get_accounts
 from .color_segmentation import get_color_clusters, get_color_cluster_bitmask
 from .create_account import create_account
+from .delete_account import delete_account
 from .dim_reduction import get_dr_embedding, get_dr_overlay, get_dr_embedding_mapping
 from .elemental_cube import (
     data_cube_size,
