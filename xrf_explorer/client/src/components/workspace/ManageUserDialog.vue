@@ -7,27 +7,36 @@ import { toast } from "vue-sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from "axios";
 
-const emit = defineEmits(["close"]);
+// Define emits
+const emit = defineEmits<{
+    (e: 'close'): void, // Close the dialog
+    (e: 'deleteAccount', deleteUser: {original_username: string}): void // Delete specific user and pass (original) username
+}>();
+
 const props = defineProps<{
-    user: {original_username: string; username: string; role: string}
+    user: {original_username: string; username: string; role: string} // User data passed from parent
 }>();
 
 const originalUsername = ref(props.user.original_username);  // Store original username to identify the account to update
-const username = ref(props.user.username);
-const password = ref("");
-const role = ref(props.user.role.toLowerCase());
+const username = ref(props.user.username); // Selected username
+const password = ref(""); // New password (optional)
+const role = ref(props.user.role.toLowerCase()); // Selected role
 
+// Interface for API response
 interface UpdateAccountResponse {
   success: boolean;
   message?: string;
 }
 
+// Function to update account
 async function updateAccount() {
+  // Check if at least username and role are filled
   if (!username.value || !role.value) {
     toast.error("Username and Role are required");
     return;
   }
 
+  // Make API call to update account
   try {
     const response = await axios.post<UpdateAccountResponse>('/api/update_account', {
       originalUsername: originalUsername.value,
@@ -36,6 +45,7 @@ async function updateAccount() {
       role: role.value.toUpperCase()  // Ensure role is uppercase to match backend enum
     });
 
+    // On success, notify user and emit close; else give error message
     if (response.data.success) {
       toast.info("Account updated successfully");
       emit("close");
@@ -47,15 +57,21 @@ async function updateAccount() {
   }
 }
 
+function deleteAccount() {
+    emit("deleteAccount", {original_username: originalUsername.value});
+}
+
 
 </script>
 
 <template>
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Update Account </DialogTitle>
+    <!-- Input fields -->
     <Input placeholder="Username" v-model:model-value="username" />
     <Input placeholder="New Password" v-model:model-value="password" />
     <Select v-model="role" class="w-full mb-4">
+        <!-- Dropdown for role select -->
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -75,7 +91,7 @@ async function updateAccount() {
       <Button @click="updateAccount" :disabled="(username == '') || (role == '')" >
         Update Account
       </Button>
-      <Button>
+      <Button @click="deleteAccount">
         Delete Account
       </Button>
     </div>

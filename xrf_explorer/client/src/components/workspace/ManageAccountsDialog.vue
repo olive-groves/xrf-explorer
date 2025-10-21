@@ -7,25 +7,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import axios from "axios";
 // import { toast } from "vue-sonner";
 
+// Define emits
 const emit = defineEmits<{
-    (e: 'close'): void, 
-    (e: 'createAccount'): void, 
-    (e: 'manageUser', account: {original_username: string, username: string; role: string}): void
+    (e: 'close'): void, // Close the dialog
+    (e: 'createAccount'): void, // Open Create Account dialog
+    (e: 'manageUser', account: {original_username: string, username: string; role: string}): void // Manage specific user and pass data
 }>();
 
+// Search query for filtering accounts
 const searchQuery = ref("");
 
-const username = ref("");
-const password = ref("");
-const role = ref("");
-
+// Stored accounts from backend
 interface Account {
   username: string;
   role: string;
 }
 
+// All accounts fetched from backend
 const storedAccounts = ref<Account[]>([]);
 
+// Fetch accounts on component mount
 onMounted(async () => {
   try {
     const response = await axios.get<Account[]>('/api/accounts');
@@ -46,13 +47,7 @@ const filteredAccounts = computed(() => {
   );
 });
 
-function resetFields() {
-    username.value = "";
-    password.value = "";
-    role.value = "";
-}
-defineExpose({ resetFields });
-
+// Emit manage user event with relevant data
 function manageUser(original_username: string, username: string, role: string) {
     emit("manageUser", {original_username, username, role});
 }
@@ -68,7 +63,7 @@ function manageUser(original_username: string, username: string, role: string) {
                 Create Account
             </Button>
         </div>
-         <!-- 🔍 Search bar -->
+         <!-- Search bar -->
         <div>
             <Input
                 v-model="searchQuery"
@@ -76,7 +71,9 @@ function manageUser(original_username: string, username: string, role: string) {
             />
         </div>
         <div>
+          <!-- Scrollbar -->
             <ScrollArea class="border h-[70vh]">
+              <!-- Table of user data from the database -->
             <table class="w-full text-center border-collapse">
                 <thead>
                     <tr>

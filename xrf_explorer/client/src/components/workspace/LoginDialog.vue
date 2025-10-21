@@ -7,29 +7,35 @@ import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
 import axios from "axios";
 
+// Define emits
 const emit = defineEmits(["close"]);
 
+// Define User data
 const username = ref("");
 const password = ref("");
 
+// Interface for API response
 interface LoginResponse {
   success: boolean;
   message: string;
   role: string;
 }
 
+// Function to attempt login
 async function attemptLogin() {
   if (!username.value || !password.value) {
     toast.error("Invalid username or password");
     return;
   }
 
+  // Make API call to login
   try {
     const response = await axios.post<LoginResponse>('/api/login', {
       username: username.value,
       password: password.value
     });
 
+    // On success, notify user, set user role, reset fields, and emit close; else give error message
     if (response.data.success) {
       toast.info("Login successful");
       appState.userRole = response.data.role; // Set the user role from the response
@@ -43,6 +49,7 @@ async function attemptLogin() {
   }
 }
 
+// Function to reset input fields
 function resetFields() {
   username.value = "";
   password.value = "";

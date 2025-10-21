@@ -7,23 +7,29 @@ import { toast } from "vue-sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from "axios";
 
+// Define emits
 const emit = defineEmits(["close"]);
 
+// Define User Input Fields
 const username = ref("");
 const password = ref("");
 const role = ref("");
 
+// Interface for API response
 interface CreateAccountResponse {
   success: boolean;
   message?: string;
 }
 
+// Function to create account
 async function createAccount() {
+  // Check if all fields are filled
   if (!username.value || !password.value || !role.value) {
     toast.error("All fields are required");
     return;
   }
 
+  // Make API call to create account
   try {
     const response = await axios.post<CreateAccountResponse>('/api/create_account', {
       username: username.value,
@@ -31,6 +37,7 @@ async function createAccount() {
       role: role.value.toUpperCase()  // Ensure role is uppercase to match backend enum
     });
 
+    // On success, notify user and reset fields, else give error message
     if (response.data.success) {
       toast.info("Account created successfully");
       resetFields();
@@ -43,6 +50,7 @@ async function createAccount() {
   }
 }
 
+// Function to reset input fields
 function resetFields() {
     username.value = "";
     password.value = "";
@@ -56,9 +64,11 @@ defineExpose({ resetFields });
 <template>
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Create Account </DialogTitle>
+    <!-- Input fields for Username and Password -->
     <Input placeholder="Username" v-model:model-value="username" />
     <Input placeholder="Password" v-model:model-value="password" />
     <Select v-model="role" class="w-full mb-4">
+        <!-- Dropdown menu to select role from Admin, Editor, and Viewer-->
           <SelectTrigger>
             <SelectValue placeholder="Select a user role" />
           </SelectTrigger>
