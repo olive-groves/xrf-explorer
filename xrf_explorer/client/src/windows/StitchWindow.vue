@@ -5,37 +5,61 @@ import { appState } from '@/lib/appState';
 import { ref } from "vue";
 import { windowState } from "@/components/ui/window/state";
 
+interface PartialScanState {
+    opacity: number[];
+    xOffset: number[];
+    yOffset: number[];
+    rotation: number[];
+}
+
 const baseImageOpacity = ref([1.0]);
-const partialOpacities = ref<number[][]>([[1.0]]);
+
+const partialScans = ref<PartialScanState[]>([
+    {
+        opacity: [1.0],
+        xOffset: [0],
+        yOffset: [0],
+        rotation: [0],
+    }
+]);
 const showDialog = ref(false);
 const showConfirmation = ref(false);
 
-// Close a dialog
 function closeDialog() {
   showDialog.value = false;
   showConfirmation.value = false;
 }
 
-// Function to confirm add parts dialog
 function confirmDialog() {
-    partialOpacities.value.push([1.0])
+    partialScans.value.push({
+        opacity: [1.0],
+        xOffset: [0],
+        yOffset: [0],
+        rotation: [0],
+    });
     closeDialog();
 }
 
-// Close the stitching page and load the base-RGB viewer with the base image and datacubes
 function confirmStitchingDialog() {
   if (appState.workspace) appState.workspace.stitchingMode = 'full';
       windowState["stitching"].opened = false;
-      windowState["stitching"].disabled = true; 
-       // Load base image etc.
+      windowState["stitching"].disabled = true;
 }
 
-// Slider used for the partial scans
-function updateSlider(idx: number, val: number[]) {
-  partialOpacities.value[idx] = val;
+function updatePartialScan(idx: number, prop: keyof PartialScanState, val: number[]) {
+    partialScans.value[idx][prop] = val;
 }
 
-// Slider for the base image
+// Function to adjust the X-offset by a pixel delta (+1 or -1)
+function nudgeX(idx: number, delta: number) {
+    partialScans.value[idx].xOffset[0] += delta;
+}
+
+// Function to adjust the Y-offset by a pixel delta (+1 or -1)
+function nudgeY(idx: number, delta: number) {
+    partialScans.value[idx].yOffset[0] += delta;
+}
+
 function updateSliderBase(val: number[]) {
   baseImageOpacity.value = val;
 }
@@ -45,41 +69,67 @@ function updateSliderBase(val: number[]) {
 <template>
   <Window title="Stitching" location="right">
     <div class="space-y-2 p-2">
-      <!-- BUTTON TO ADD PARTS -->
       <Button
         variant="outline"
         class="row-span-3 size-full p-2"
-        @click="showDialog = true"      
+        @click="showDialog = true"
       >
       <p>Add parts</p>
       </Button>
 
-      <!-- BASE IMAGE OPACITY SLIDER  -->
       <LabeledSlider
         label="Base Image Opacity"
         :modelValue="baseImageOpacity"
         :min="0"
         :max="1"
         :step="0.01"
-        @update:modelValue="updateSliderBase"></LabeledSlider> 
-        
-      <!-- SLIDER FOR CURRENT SELECTED PARTIAL SCAN  -->
-      <div v-for="(opacity, idx) in partialOpacities" :key="idx">
+        @update:modelValue="updateSliderBase"
+      />
+
+      <div v-for="(scan, idx) in partialScans" :key="idx" class="border p-2 rounded-md space-y-2">
+        <h4 class="font-semibold">{{ `Partial Scan ${idx + 1}` }}</h4>
+
         <LabeledSlider
-        :label="`Partial Scan ${idx + 1}`"
-        :modelValue="opacity"
-        :min="0"
-        :max="1"
-        :step="0.01"
-        @update:modelValue="val => updateSlider(idx, val)"
+          label="Opacity"
+          :modelValue="scan.opacity"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          @update:modelValue="val => updatePartialScan(idx, 'opacity', val)"
         />
-    </div>
+
+        <div class="space-y-1">
+            <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">X-Offset (pixels)</label>
+            <div class="flex items-center space-x-2">
+                <Button size="sm" @click="nudgeX(idx, -1)">Left</Button>
+                <div class="w-12 text-center font-mono"></div>
+                <Button size="sm" @click="nudgeX(idx, 1)">Right</Button>
+            </div>
+        </div>
+
+        <div class="space-y-1">
+            <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Y-Offset (pixels)</label>
+            <div class="flex items-center space-x-2">
+                <Button size="sm" @click="nudgeY(idx, -1)">Up</Button>
+                <div class="w-12 text-center font-mono"></div>
+                <Button size="sm" @click="nudgeY(idx, 1)">Down</Button>
+            </div>
+        </div>
+        
+        <LabeledSlider
+          label="Rotation (degrees)"
+          :modelValue="scan.rotation"
+          :min="-180" 
+          :max="180" 
+          :step="0.1"
+          @update:modelValue="val => updatePartialScan(idx, 'rotation', val)"
+        />
+      </div>
       
-      <!-- BUTTON TO CONFIRM STITCHING -->
       <Button
         variant="outline"
         class="row-span-3 size-full p-2"
-        @click="showConfirmation = true"      
+        @click="showConfirmation = true"
       >
       Confirm Stitching
       </Button>
@@ -91,14 +141,14 @@ function updateSliderBase(val: number[]) {
         <Button @click="confirmDialog">Confirm</Button>
         <Button @click="closeDialog">Cancel</Button>
         </div>
-       </div>
-       <div v-if="showConfirmation" class="dialog-overlay">
-        <div class="dialog-content">
-        <h3 class="dialog-title">Confirm Stitching</h3>
-        <Button @click="confirmStitchingDialog">Confirm</Button>
-        <Button @click="closeDialog">Cancel</Button>
         </div>
-       </div>
+        <div v-if="showConfirmation" class="dialog-overlay">
+         <div class="dialog-content">
+         <h3 class="dialog-title">Confirm Stitching</h3>
+         <Button @click="confirmStitchingDialog">Confirm</Button>
+         <Button @click="closeDialog">Cancel</Button>
+         </div>
+         </div>
     </div>
   </Window>
 </template>
