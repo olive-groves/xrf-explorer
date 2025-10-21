@@ -25,17 +25,18 @@ from xrf_explorer.server.routes.helper import validate_config, encode_selection
 LOG: Logger = getLogger(__name__)
 
 
-@app.route('/api/<data_source>/cs/clusters/<int:elem>/<int:k>/<int:elem_threshold>/<uses_selection>', methods=['POST'])
-def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int, uses_selection: str = "false"):
+@app.route('/api/<data_source>/cs/clusters/<int:k>/<uses_selection>', methods=['POST'])
+def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
     """
     Gets the colors corresponding to the image-wide/element-wise color clusters, and caches them as well as the
     corresponding bitmasks.
 
     :param data_source: data source to get the clusters from
-    :param elem: index of selected element (0 if whole painting, channel+1 if element)
     :param k: number of color clusters to compute
-    :param elem_threshold: elemental threshold
     :param uses_selection: whether the clustering will be calculated over the provided selection or not
+    :param JSON payload: contains a dictionary with:
+        "elements": pairs of element and threshold
+        "selection": SelectionAreaSelection object for the selection
     :return JSON containing the ordered list of colors
     """
     # Get rgb image name and path
@@ -61,10 +62,10 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     full_path_json: str
     if uses_selection:
         full_path_json = join(path_to_save, f'colors_selection.json')
-    elif elem == 0:
+    elif len(elements) == 1 and elements[0][0] == 0:
         full_path_json = join(path_to_save, f'colors_painting_{k}.json')
     else:
-        full_path_json = join(path_to_save, f'colors_{elem - 1}_{k}_{elem_threshold}.json')
+        full_path_json = join(path_to_save, f'colors_{elements[0][0] - 1}_{k}_{elements[0][1]}.json')
 
     # If json already exists, return that directly
     if exists(full_path_json) and not uses_selection:
@@ -83,7 +84,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     # if len(elements) == 1, the whole painting is the only channel to be clustered
     # if len(elements) != 1, the whole painting channel can be ignored, since the
     # intersection of the whole painting and an element is the element
-    if elem == 0 and len(elements) == 1:
+    if len(elements) == 1 and elements[0][0] == 0:
         LOG.info('Computing color clusters for whole image')
         # Compute colors and bitmasks
         colors: np.ndarray
@@ -95,10 +96,9 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
         colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, selection_mask, k)
         bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}_{uses_selection}.png')
     else:
-        LOG.info(f'Computing color clusters for single element: {elem - 1}')
-        scaled_elem_threshold: int = int(255 * elem_threshold / 100)
-        # Compute colors and bitmasks per element
+        LOG.info(f'Computing color clusters for elements: {elements}')
 
+        # Compute colors and bitmasks per element
         if isinstance(selection_mask, tuple):
             return selection_mask[0], selection_mask[1]
 
@@ -113,7 +113,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
         colors, bitmasks = get_elemental_clusters_using_k_means(
             data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), k
         )
-        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem - 1}_{k}_{elem_threshold}_{uses_selection}.png')
+        bitmask_full_path: str = join(path_to_save, f'bitmask_{elements[0][0] - 1}_{k}_{elements[0][1]}_{uses_selection}.png')
 
         LOG.info("Color segmentation bitmask: " + full_path_json)
 
@@ -124,7 +124,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
     # Cache bitmask data
     image_saved: bool = save_bitmask_as_png(combined_bitmask, bitmask_full_path)
     if not image_saved:
-        return f'Error occurred while saving bitmask for element {elem} as png', 500
+        return f'Error occurred while saving bitmask for elements {elements} as png', 500
 
     # Cache color data
     with open(full_path_json, 'w') as json_file:
@@ -168,6 +168,7 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
 
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
-        get_color_clusters(data_source, elem, k, elem_threshold)
+        LOG.info(f'Could not find bitmasks for k={k}, elem={elem}, elem_threshold={elem_threshold}')
+        get_color_clusters(data_source, k)
 
     return send_file(abspath(bitmask_full_path), mimetype='image/png')
