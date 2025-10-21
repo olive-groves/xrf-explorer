@@ -1,6 +1,6 @@
 """This module routes all incoming front-end requests to the appropriate backend functions"""
 
-from .accounts import get_accounts
+# from .accounts import get_accounts
 from .color_segmentation import get_color_clusters, get_color_cluster_bitmask
 from .create_account import create_account
 from .delete_account import delete_account

@@ -1,8 +1,9 @@
 from flask import request, jsonify
-from xrf_explorer import app, auth, db
+from xrf_explorer import app, db
+# from xrf_explorer import auth
 from xrf_explorer.server.database.models import User, UserRole
 
-@auth.login_required(role=UserRole.ADMIN)
+# @auth.login_required(role=UserRole.ADMIN)
 @app.route('/api/create_account', methods=['POST'])
 def create_account():
     """

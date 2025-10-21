@@ -2,8 +2,8 @@
 from pathlib import Path
 from flask import Flask, send_from_directory
 from flask_cors import CORS
-from flask_httpauth import HTTPTokenAuth
-from xrf_explorer.server.database.auth import provide_auth
+# from flask_httpauth import HTTPTokenAuth
+# from xrf_explorer.server.database.auth import provide_auth
 from xrf_explorer.server.database.database import init_app
 from xrf_explorer.server.database.models import User  # Ensure models are imported
 from xrf_explorer.server.database.models import UserRole
@@ -18,7 +18,7 @@ CORS(app)
 db = init_app(app)
 
 # Set up authentication
-auth: HTTPTokenAuth = provide_auth()
+# auth: HTTPTokenAuth = provide_auth()
 
 # Create the database tables and a default admin user if none exist
 with app.app_context():
