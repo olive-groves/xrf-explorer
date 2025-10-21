@@ -160,7 +160,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     """
     LOG.info(
         f'Computing element-wise color clusters with parameters:'
-        f'k={k}, data_source={data_source}, elemental_channel={elemental_channel[0]}'
+        f'k={k}, data_source={data_source}, elemental_channels={elemental_channel} with thresholds={elem_threshold}'
     )
 
     # Get the elemental data cube
@@ -191,16 +191,14 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
-    # Get bitmask of pixels with high element concentration and get respective pixels in the image
-    bitmask: np.ndarray = np.array(data_cube[elemental_channel[0]] >= elem_threshold[0])
-    combined_mask = bitmask & selection_mask
+    # Get bitmasks of pixels with high element concentration and get respective pixels in the image
+    combined_mask = selection_mask
+    for i in range(len(elemental_channel)):
+        curElementMask = (np.array(data_cube[elemental_channel[i]]) >= elem_threshold[i])
+        combined_mask = combined_mask & curElementMask
+
     masked_image: np.ndarray = image[combined_mask]
     masked_image = reshape_image(masked_image)
-
-    if masked_image.size < k:
-        LOG.error(f"Two few elements for clustering. "
-                  f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
-        return np.empty(0), []
 
     # If empty image, continue (elem. not present)
     if masked_image.size < k:
@@ -209,7 +207,6 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         return np.empty(0), []
 
     # k cannot be bigger than number of pixels w/element present
-    k = min(k, masked_image.size)
     labels: np.ndarray
     center: np.ndarray
     _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
@@ -217,7 +214,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     labels = labels.flatten()
     subset_indices: tuple[np.ndarray, ...] = np.nonzero(combined_mask)
 
-    bitmasks: list[np.ndarray] = []
+    cluster_masks: list[np.ndarray] = []
     # Bitmasks for each cluster
     for i in range(k):
         # Indices for cluster "i"
@@ -228,11 +225,11 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
         # Convert mask to boolean
         cluster_mask = cluster_mask.astype(bool)
-        bitmasks.append(cluster_mask)
+        cluster_masks.append(cluster_mask)
 
     # Transform back to rgb
     center = np.array([lab_to_rgb(c) for c in center])
-    return center, bitmasks
+    return center, cluster_masks
 
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:

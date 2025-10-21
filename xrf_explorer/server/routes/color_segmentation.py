@@ -102,6 +102,7 @@ def get_color_clusters(data_source: str, elem: int, k: int, elem_threshold: int,
         if isinstance(selection_mask, tuple):
             return selection_mask[0], selection_mask[1]
 
+        # Create the correct lists to send to the color segmentation function
         elementList = []
         thresholdList = []
         for i in range (len(elements)):
