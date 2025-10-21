@@ -57,7 +57,7 @@ function manageUser(account: {original_username: string; username: string; role:
     <LoginDialog ref="LoginRef" v-if="window == 'login'" @close="dialogOpen = false" />
     <LogoutDialog v-if="window == 'logout'" @close="dialogOpen = false" />
     <ManageAccountsDialog v-if="window == 'manage-accounts'" @close="dialogOpen = false" @create-account="window = 'create-account'" @manage-user="manageUser" />
-    <CreateAccountDialog ref="CreateAccountRef" v-if="window == 'create-account'" @close="dialogOpen = false" />
+    <CreateAccountDialog ref="CreateAccountRef" v-if="window == 'create-account'" @close="window='manage-accounts'" />
     <ManageUserDialog v-if="window == 'manage-user'" :user="{original_username: originalName, username: userName, role: userRole}" @close="window='manage-accounts', originalName = '', userName = '', userRole = ''" @delete-account="window='delete-account'" />
     <DeleteUserDialog v-if="window == 'delete-account'" :user="originalName" @close="window='manage-accounts', originalName = '', userName = '', userRole = ''" />
   </Dialog>

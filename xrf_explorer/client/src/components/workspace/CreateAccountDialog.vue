@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Eye, EyeOff } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
 import { ref} from "vue";
 import { toast } from "vue-sonner";
@@ -15,6 +16,12 @@ const username = ref("");
 const password = ref("");
 const role = ref("");
 
+const passwordType = ref("password");
+
+function toggleText() {
+  passwordType.value = passwordType.value === "password" ? "text" : "password";
+}
+
 // Interface for API response
 interface CreateAccountResponse {
   success: boolean;
@@ -26,6 +33,11 @@ async function createAccount() {
   // Check if all fields are filled
   if (!username.value || !password.value || !role.value) {
     toast.error("All fields are required");
+    return;
+  }
+
+  if (!validPassword(password.value)) {
+    toast.error("Password does not meet requirements");
     return;
   }
 
@@ -58,6 +70,19 @@ function resetFields() {
 }
 defineExpose({ resetFields });
 
+function validPassword(password: string): boolean {
+    // Password must be between 12 and 32 characters
+    const lengthValid = password.length >= 12 && password.length <= 32;
+
+    // Passwords include at least one numeric character [0, 9]
+    const numberValid = /[0-9]/.test(password);
+
+    // Password must include at least one special character [!@#$%^&*]
+    const specialCharValid = /[!@#$%^&*]/.test(password);
+
+    return lengthValid && numberValid && specialCharValid;
+}
+
 
 </script>
 
@@ -65,8 +90,24 @@ defineExpose({ resetFields });
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Create Account </DialogTitle>
     <!-- Input fields for Username and Password -->
+    <div class="text">Username</div>
     <Input placeholder="Username" v-model:model-value="username" />
-    <Input placeholder="Password" v-model:model-value="password" />
+    <div class="text">Password</div>
+    <div class="flex items-center">
+    <Input @keydown.space.prevent placeholder="Password" :type="passwordType" v-model:model-value="password" />
+      <Button
+        @click="toggleText"
+        variant="ghost"
+        class="size-8 p-2"
+        title="Toggle visibility"
+      >
+        <Eye v-if="passwordType === 'password'" />
+        <EyeOff v-else />
+      </Button>
+    </div>
+    <div v-if="!(password.length >= 12 && password.length <= 32)"class="text-muted-foreground">*Password must be between 12 and 32 characters</div>
+    <div v-if="!/[0-9]/.test(password)" class="text-muted-foreground">*Password must include at least one number (0-9)</div>
+    <div v-if="!/[!@#$%^&*]/.test(password)" class="text-muted-foreground">*Password must include at least one special character (!@#$%^&*)</div>
     <Select v-model="role" class="w-full mb-4">
         <!-- Dropdown menu to select role from Admin, Editor, and Viewer-->
           <SelectTrigger>
@@ -82,7 +123,7 @@ defineExpose({ resetFields });
           </SelectContent>
         </Select>
     <div class="flex items-center justify-between">
-      <Button @click="createAccount" :disabled="(username == '') || (password == '') || (role == '')" >
+      <Button @click="createAccount" :disabled="(username == '') || !validPassword(password) || role == ''">
         Create Account
       </Button>
     </div>
