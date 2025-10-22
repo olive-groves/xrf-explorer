@@ -1,10 +1,13 @@
 from flask import request, jsonify
+from flask_login import login_required
 from xrf_explorer import app, db
 # from xrf_explorer import auth
+from xrf_explorer.server.database.authnew import admin_required
 from xrf_explorer.server.database.models import User, UserRole
 
-# @auth.login_required(role=UserRole.ADMIN)
 @app.route('/api/update_account', methods=['POST'])
+@login_required
+@admin_required
 def update_account():
     """
     Update an existing user account.

@@ -1,6 +1,8 @@
 # Import the necessary modules and create the Flask app
 from pathlib import Path
 from flask import Flask, send_from_directory
+import flask_login
+from xrf_explorer.server.database.authnew import login_manager
 from flask_cors import CORS
 # from flask_httpauth import HTTPTokenAuth
 # from xrf_explorer.server.database.auth import provide_auth
@@ -10,6 +12,13 @@ from xrf_explorer.server.database.models import UserRole
 
 # Create the Flask app
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
+
+
+with open("xrf_explorer\\secret_key.txt", 'r') as file:
+    app.secret_key = file.read()
+
+# login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
 
 # Enable CORS for the app
 CORS(app)

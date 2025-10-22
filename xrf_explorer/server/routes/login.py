@@ -1,4 +1,5 @@
 from flask import request, jsonify
+import flask_login
 from xrf_explorer import app
 from xrf_explorer.server.database.models import User
 
@@ -23,7 +24,9 @@ def login():
     
     # Verify the password
     if user and user.check_password(password):
-        # token = user.generate_auth_token()
+
+        #create and send cookie to client
+        flask_login.login_user(user)
 
         # return jsonify({"success": True, "message": "Login successful", "role": user.role.name, "token": token}), 200
         return jsonify({"success": True, "message": "Login successful", "role": user.role.name}), 200

@@ -6,9 +6,11 @@ from os.path import abspath, join, isdir, isfile
 from shutil import rmtree
 
 from flask import request, abort, send_file, jsonify
+from flask_login import login_required
 from markupsafe import escape
 
 from xrf_explorer import app
+from xrf_explorer.server.database.authnew import admin_required, editor_required
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import update_workspace, get_path_to_workspace
@@ -74,6 +76,8 @@ def get_workspace(data_source: str):
 
 
 @app.route("/api/<data_source>/create", methods=["POST"])
+@login_required
+@editor_required
 def create_data_source_dir(data_source: str):
     """
     Create a directory for a new data source.
@@ -104,6 +108,8 @@ def create_data_source_dir(data_source: str):
 
 
 @app.route("/api/<data_source>/remove", methods=["POST"])
+@login_required
+@editor_required
 def remove_data_source(data_source: str):
     """
     Removes `workspace.json` from a data source,
@@ -140,6 +146,8 @@ def remove_data_source(data_source: str):
 
 
 @app.route("/api/<data_source>/delete", methods=["DELETE"])
+@login_required
+@editor_required
 def delete_data_source(data_source: str):
     """
     Completely deletes and removes all files from data source.
@@ -166,6 +174,8 @@ def delete_data_source(data_source: str):
 
 
 @app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
+@login_required
+@editor_required
 def upload_chunk(data_source: str, file_name: str, start: int):
     """
     Upload a chunk of bytes to a file in specified data source.

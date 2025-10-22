@@ -1,3 +1,4 @@
+import flask_login
 from werkzeug.security import generate_password_hash, check_password_hash
 from xrf_explorer.server.database.database import db
 from enum import Enum
@@ -8,7 +9,9 @@ class UserRole(Enum):
     VIEWER = 1
     EDITOR = 2
 
-class User(db.Model):
+
+
+class User(db.Model, flask_login.UserMixin):
     """User model for authentication and role management."""
 
     # Define the columns of the database table
@@ -16,7 +19,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.VIEWER) # 0 = admin, 1 = viewer, 2 = editor
-    
+
     def set_password(self, password: str):
         """Generate and store the password hash."""
         self.password_hash = generate_password_hash(password)
@@ -27,3 +30,10 @@ class User(db.Model):
     
     def __repr__(self):
         return f'<ID: {self.id}, Username {self.username}, Role {self.role}>'
+    
+    def isAdmin(self):
+        return self.role == UserRole.ADMIN
+    
+    def isEditor(self):
+        return self.role == UserRole.EDITOR or self.role == UserRole.ADMIN
+
