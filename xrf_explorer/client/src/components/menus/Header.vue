@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Import the necessary components
 import { Menubar } from "@/components/ui/menubar";
-import { ExportMenu, FileMenu, MainMenu, WindowMenu, UserMenu } from ".";
+import { ExportMenu, FileMenu, MainMenu, WindowMenu, UserMenu, WorkSpaceMenu } from ".";
 </script>
 
 <template>
@@ -10,6 +10,7 @@ import { ExportMenu, FileMenu, MainMenu, WindowMenu, UserMenu } from ".";
       <MainMenu />
       <FileMenu />
       <WindowMenu />
+      <WorkSpaceMenu />
     </div>
     <div class="flex">
       <UserMenu />

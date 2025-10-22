@@ -46,8 +46,8 @@ async function deleteUser() {
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Log out </DialogTitle>
     <div class="flex items-center justify-between">
-        <div class="text-muted-foreground">Are you sure you want to delete the following account: {{ user }} ?</div>
-        <Button @click="deleteUser" >
+        <div class="text-muted-foreground">Are you sure you want to delete the following account: <b>{{ user }}</b> ?</div>
+        <Button @click="deleteUser" variant="destructive" >
             Delete
         </Button>
     </div>

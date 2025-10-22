@@ -45,19 +45,19 @@ function manageUser(account: {original_username: string; username: string; role:
 <template>
   <Dialog v-model:open="dialogOpen" @update:open="reset">
     <MenubarMenu>
-      <MenubarTrigger> Users </MenubarTrigger>
+      <MenubarTrigger> {{ appState.user.role != '' ? appState.user.username : 'Log in' }} </MenubarTrigger>
       <MenubarContent>
         <!-- Display login/logout depending on login status and Manage Accounts if the current user is an Admin -->
-        <DialogTrigger v-if="appState.userRole == ''" class="w-full" @click="window = 'login'"><MenubarItem>Log in</MenubarItem></DialogTrigger>
-        <DialogTrigger v-if="appState.userRole != ''" class="w-full" @click="window = 'logout'"><MenubarItem>Log out</MenubarItem></DialogTrigger>
-        <DialogTrigger v-if="appState.userRole == 'ADMIN'" class="w-full" @click="window = 'manage-accounts'"><MenubarItem>Manage Accounts</MenubarItem></DialogTrigger>
+        <DialogTrigger v-if="appState.user.role == ''" class="w-full" @click="window = 'login'"><MenubarItem>Log in</MenubarItem></DialogTrigger>
+        <DialogTrigger v-if="appState.user.role != ''" class="w-full" @click="window = 'logout'"><MenubarItem>Log out</MenubarItem></DialogTrigger>
+        <DialogTrigger v-if="appState.user.role == 'ADMIN'" class="w-full" @click="window = 'manage-accounts'"><MenubarItem>Manage Accounts</MenubarItem></DialogTrigger>
       </MenubarContent>
     </MenubarMenu>
     <!-- Show the relevant window based on "window" and pass data on emits -->
     <LoginDialog ref="LoginRef" v-if="window == 'login'" @close="dialogOpen = false" />
     <LogoutDialog v-if="window == 'logout'" @close="dialogOpen = false" />
     <ManageAccountsDialog v-if="window == 'manage-accounts'" @close="dialogOpen = false" @create-account="window = 'create-account'" @manage-user="manageUser" />
-    <CreateAccountDialog ref="CreateAccountRef" v-if="window == 'create-account'" @close="dialogOpen = false" />
+    <CreateAccountDialog ref="CreateAccountRef" v-if="window == 'create-account'" @close="window='manage-accounts'" />
     <ManageUserDialog v-if="window == 'manage-user'" :user="{original_username: originalName, username: userName, role: userRole}" @close="window='manage-accounts', originalName = '', userName = '', userRole = ''" @delete-account="window='delete-account'" />
     <DeleteUserDialog v-if="window == 'delete-account'" :user="originalName" @close="window='manage-accounts', originalName = '', userName = '', userRole = ''" />
   </Dialog>

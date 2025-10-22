@@ -58,8 +58,8 @@ function loadWorkspace(source: string) {
       <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
       <MenubarContent>
         <!-- Only show new project button for admins -->
-        <DialogTrigger v-if="appState.userRole === 'ADMIN' || appState.userRole === 'EDITOR'" class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
-        <MenubarSeparator v-if="appState.userRole === 'ADMIN' || appState.userRole === 'EDITOR'"/>
+        <DialogTrigger v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
+        <MenubarSeparator v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"/>
         <MenubarItem disabled v-if="sources.length <= 0">No projects available</MenubarItem>
         <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
           {{ source }}

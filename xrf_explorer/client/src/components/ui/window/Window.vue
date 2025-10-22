@@ -1,9 +1,11 @@
 <script setup lang="ts">
 // Import the necessary functions and components
-import { ref, toRef, watch } from "vue";
+import { computed, ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 import { appState } from "@/lib/appState";
+
+const role = computed(() => appState.user.role);
 
 const props = defineProps<{
   /**
@@ -45,6 +47,20 @@ if (!(id in windowState)) {
     location: props.location ?? "left",
     portalMounted: false,
   };
+}
+
+watch(role, disableWindows);
+
+function disableWindows() {
+  for (const window of Object.values(windowState)) {
+    if (role.value != '') {
+      // Admins and Editors can access all windows
+      window.disabled = false;
+    } else {
+        window.disabled = true;
+        window.opened = false;
+    }
+  }
 }
 
 // Set the opened state

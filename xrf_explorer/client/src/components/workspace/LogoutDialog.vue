@@ -10,8 +10,11 @@ const emit = defineEmits(["close"]);
 // On logout, notify the user, reset stored user role and emit close event
 function logout() {
     toast.info(`Logged out successfully`);
-    appState.userRole = "";
+    appState.user.username = '';
+    appState.user.role = '';
+    // appState.token = '';
     emit("close");
+
 }
 
 </script>

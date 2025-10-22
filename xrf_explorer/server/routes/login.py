@@ -29,5 +29,5 @@ def login():
         flask_login.login_user(user)
 
         # return jsonify({"success": True, "message": "Login successful", "role": user.role.name, "token": token}), 200
-        return jsonify({"success": True, "message": "Login successful", "role": user.role.name}), 200
+        return jsonify({"success": True, "message": "Login successful", "username": user.username, "role": user.role.name}), 200
     return jsonify({"success": False, "message": "Invalid username or password"}), 401
