@@ -1,10 +1,10 @@
 from functools import wraps
 from flask import current_app, jsonify
-from flask_login import current_user
+from flask_login import current_user, LoginManager
 from xrf_explorer.server.database.models import User
 
 
-login_manager = flask_login.LoginManager()
+login_manager = LoginManager()
 
 
 @login_manager.user_loader
