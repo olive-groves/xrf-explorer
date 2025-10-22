@@ -26,6 +26,7 @@ function toggleText() {
 interface LoginResponse {
   success: boolean;
   message: string;
+  username: string;
   role: string;
   // token: string;
 }
@@ -48,7 +49,8 @@ async function attemptLogin() {
     // On success, notify user, set user role, reset fields, and emit close; else give error message
     if (response.data.success) {
       toast.info("Login successful");
-      appState.userRole = response.data.role; // Set the user role from the response
+      appState.user.username = response.data.username; // Set the username in appState
+      appState.user.role = response.data.role; // Set the user role from the response
       // appState.token = response.data.token; // Set the auth token from the response
       resetFields();
       emit("close");

@@ -21,7 +21,7 @@ function reset() {
 <template>
     <Dialog v-model:open="dialogOpen" @update:open="reset">
         <MenubarMenu>
-            <MenubarTrigger v-if ="(appState.userRole === 'ADMIN' || appState.userRole === 'EDITOR') && appState.workspace != undefined" @click="window = 'workSpace'; dialogOpen = true;"> 
+            <MenubarTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" @click="window = 'workSpace'; dialogOpen = true;"> 
                 WorkSpace 
             </MenubarTrigger>
         </MenubarMenu>

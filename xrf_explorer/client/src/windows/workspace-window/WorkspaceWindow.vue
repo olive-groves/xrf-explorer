@@ -65,10 +65,10 @@ function updateWorkspace() {
 }
 
 // Check if the user is an admin
-const isAdmin = computed(() => appState.userRole === "ADMIN");
+const isAdmin = computed(() => appState.user.role === "ADMIN");
 
 // Check if the user is an editor
-const isEditor = computed(() => appState.userRole === "EDITOR");
+const isEditor = computed(() => appState.user.role === "EDITOR");
 </script>
 
 <template>

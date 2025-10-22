@@ -5,7 +5,7 @@ import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 import { appState } from "@/lib/appState";
 
-const role = computed(() => appState.userRole);
+const role = computed(() => appState.user.role);
 
 const props = defineProps<{
   /**

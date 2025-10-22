@@ -28,8 +28,11 @@ export const appState = reactive<AppState>({
       },
     },
   },
-  userRole: "",
-  // token: "",
+  user: {
+    username: "",
+    role: "",
+    // token: "",
+  },
 });
 
 /**
@@ -42,6 +45,17 @@ export const elements = computed(
 );
 export const elementalDataPresent = computed(() => (appState.workspace?.elementalCubes.length ?? 0) > 0);
 export const spectralDataPresent = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
+
+type User = {
+  /**
+   * The username of the current logged in user
+   */
+  username: string;
+  /**
+   * The role of the current logged in user
+   */
+  role: string;
+}
 
 /**
  * Type describing the state of the client.
@@ -59,7 +73,7 @@ export type AppState = {
   /**
    * The role of the current logged in user
    */
-  userRole: string;
+  user: User;
   /**
    * The authentication token of the current logged in user
    */
