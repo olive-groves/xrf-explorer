@@ -84,11 +84,12 @@ def mipmap_exists(data_source: str, level: int) -> bool:
     return isfile(mipmap_path)
 
 
-def mipmap_raw_cube(data_source: str, level: int):
+def mipmap_raw_cube(data_source: str, level: int) -> None:
     """Generates the mipmaps of the raw data in the data source up to the selected level.
 
     :param data_source: The data source to mipmap the data for
     :param level: The level to mipmap the data to, 0 is original resolution
+    :raises RuntimeError: If mipmap generation fails
     """
     if level <= 0:
         return
@@ -103,17 +104,17 @@ def mipmap_raw_cube(data_source: str, level: int):
     # Get the path to the generated folder
     path_to_generated_folder: str = get_path_to_generated_folder(data_source)
     if not path_to_generated_folder:
-        return
+        raise RuntimeError(f"Could not get generated folder path for data source: {data_source}")
 
     mipmap_dir: str = join(path_to_generated_folder, "mipmaps", str(level))
     mipmap_path: str = join(mipmap_dir, raw_name)
 
+    # Get raw data from previous mipmap
+    data: np.ndarray = get_raw_data(data_source, level - 1)
+
     # Create directory for mipmap
     if not isdir(mipmap_dir):
         makedirs(mipmap_dir)
-
-    # Get raw data from previous mipmap
-    data: np.ndarray = get_raw_data(data_source, level - 1)
 
     mipmapped: np.memmap = np.memmap(
         mipmap_path,
@@ -138,6 +139,9 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     :param data_source: the path to the .raw file
     :param level: the mipmap level of the data to get
     :return: memory map of the 3-dimensional array containing the raw data in format {x, y, channel}
+    :raises ValueError: If RPL file cannot be parsed
+    :raises FileNotFoundError: If required files are not found
+    :raises RuntimeError: If mipmap generation or file loading fails
     """
     # get paths to files
     path_to_raw, path_to_rpl = get_raw_rpl_paths(data_source)
@@ -145,7 +149,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
     if not info:
-        return np.empty(0)
+        raise ValueError(f"Could not parse RPL file: {path_to_rpl}")
     width: int = ceil(int(info['width']) / (2 ** level))
     height: int = ceil(int(info['height']) / (2 ** level))
 
@@ -158,7 +162,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
         # Get the path to the generated folder
         path_to_generated_folder: str = get_path_to_generated_folder(data_source)
         if not path_to_generated_folder:
-            return np.array([])
+            raise RuntimeError(f"Could not get generated folder path for data source: {data_source}")
 
         # Get path to raw file
         path_to_raw: str = join(path_to_generated_folder, "mipmaps", str(level), raw_name)
@@ -166,9 +170,8 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
     try:
         params: dict = get_spectra_params(data_source)
     except FileNotFoundError as err:
-        LOG.error(
-            "error while loading workspace to retrieve spectra params: {%s}", err)
-        return np.array([])
+        LOG.error("error while loading workspace to retrieve spectra params: {%s}", err)
+        raise
 
     low: int = params["low"]
     high: int = params["high"]
@@ -179,8 +182,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
         # load raw file and parse it as 3d array with correct dimensions
         datacube: np.memmap = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
     except OSError as err:
-        LOG.error("error while loading raw file: {%s}", err)
-        return np.empty(0)
+        raise RuntimeError(f"Failed to load raw file: {path_to_raw}.", err) from err
     return datacube
 
 

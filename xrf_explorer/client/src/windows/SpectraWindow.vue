@@ -17,6 +17,7 @@ import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { clearChart } from "./charts";
+import {toast} from "vue-sonner";
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
@@ -251,8 +252,8 @@ function createLine() {
  */
 async function getAverageSpectrum() {
   if (ready) {
+    loadingGlobal.value = true;
     try {
-      loadingGlobal.value = true;
       const size = await getTargetSize();
       const request_body: SelectionAreaSelection = {
         type: SelectionAreaType.Rectangle,
@@ -271,10 +272,11 @@ async function getAverageSpectrum() {
       });
       globalData = await response.json();
       makeChart();
-      loadingGlobal.value = false;
     } catch (e) {
+      toast.warning("Something went wrong while fetching spectrum data.", e);
       console.error("Error getting global average spectrum", e);
     }
+    loadingGlobal.value = false;
   }
 }
 

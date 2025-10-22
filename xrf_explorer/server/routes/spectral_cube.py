@@ -82,8 +82,10 @@ def get_average_data(data_source: str):
 
     :return: json list of tuples containing the bin number and the average intensity for this bin
     """
-    datacube: np.ndarray = get_raw_data(data_source)
-    if len(datacube) == 0:
+    try:
+        datacube: np.ndarray = get_raw_data(data_source)
+    except (ValueError, FileNotFoundError, RuntimeError) as e:
+        print(f"Failed to get raw data: {e}")
         return "Error occurred while getting raw data", 404
 
     average_values: list = get_average_global(datacube)
@@ -132,8 +134,8 @@ def get_selection_spectra(data_source: str):
         return mask[0], mask[1]
 
     # get average
-    result: list[float] = get_average_selection(data_source, mask)
     try:
+        result: list[float] = get_average_selection(data_source, mask)
         return json.dumps(result)
     except Exception as e:
         LOG.error(f"Failed to serialize element averages: {str(e)}")
