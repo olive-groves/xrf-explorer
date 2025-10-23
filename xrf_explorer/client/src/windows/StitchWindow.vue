@@ -2,10 +2,11 @@
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
-import { ref } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { windowState } from "@/components/ui/window/state";
 // no lifecycle imports needed
 
+const workspace = computed(() => appState.workspace);
 interface PartialScanState {
     opacity: number[];
     xOffset: number[];
@@ -15,7 +16,7 @@ interface PartialScanState {
 
 const baseImageOpacity = ref([1.0]);
 
-const partialScans = ref<PartialScanState[]>([
+const partialScans = ref<PartialScanState[]>([    
     {
         opacity: [1.0],
         xOffset: [0],
@@ -23,6 +24,20 @@ const partialScans = ref<PartialScanState[]>([
         rotation: [0],
     }
 ]);
+// Keep partialScans in sync with workspace grayscale count so each slider has a model
+watch(
+  () => workspace.value?.grayscale,
+  (g: any) => {
+    const n = (g && g.length) || 0;
+    // add missing entries
+    while (partialScans.value.length < n) {
+      partialScans.value.push({ opacity: [1.0], xOffset: [0], yOffset: [0], rotation: [0] });
+    }
+    // trim extra entries
+    if (partialScans.value.length > n) partialScans.value.splice(n);
+  },
+  { immediate: true }
+);
 const showDialog = ref(false);
 const showConfirmation = ref(false);
 
@@ -49,25 +64,28 @@ function confirmStitchingDialog() {
 
 function updatePartialScan(idx: number, prop: keyof PartialScanState, val: number[]) {
     partialScans.value[idx][prop] = val;
-    // If the first partial scan opacity changed, forward it to the selected grayscale
-    if (idx === 0 && prop === 'opacity') {
-      try {
-        const v = Array.isArray(val) ? val[0] : val;
-        window.dispatchEvent(new CustomEvent('stitch:selected-grayscale-opacity-changed', { detail: v }));
-      } catch (e) {
-        console.warn('Could not dispatch selected grayscale opacity from partial scan', e);
-      }
+    // no special-case forwarding here; use per-index events so each slider maps to its greyscale
+    // Dispatch a generic per-index property change so the StitchViewer can react
+    try {
+      const numeric = Array.isArray(val) ? Number(val[0]) : Number(val);
+      window.dispatchEvent(new CustomEvent('stitch:grayscale-prop-changed', { detail: { index: idx, prop, value: numeric } }));
+    } catch (e) {
+      console.warn('Could not dispatch grayscale prop change', e);
     }
 }
 
 // Function to adjust the X-offset by a pixel delta (+1 or -1)
 function nudgeX(idx: number, delta: number) {
-    partialScans.value[idx].xOffset[0] += delta;
+  const cur = partialScans.value[idx].xOffset ?? [0];
+  const next = [ (cur[0] ?? 0) + delta ];
+  updatePartialScan(idx, 'xOffset', next);
 }
 
 // Function to adjust the Y-offset by a pixel delta (+1 or -1)
 function nudgeY(idx: number, delta: number) {
-    partialScans.value[idx].yOffset[0] += delta;
+  const cur = partialScans.value[idx].yOffset ?? [0];
+  const next = [ (cur[0] ?? 0) + delta ];
+  updatePartialScan(idx, 'yOffset', next);
 }
 
 function updateSliderBase(val: number[]) {
@@ -81,6 +99,29 @@ function updateSliderBase(val: number[]) {
   }
 }
 
+function onGrayscalePosChanged(e: Event | CustomEvent) {
+  try {
+    const d = (e as CustomEvent).detail;
+    if (!d) return;
+    const { index, x, y } = d as { index: number; x: number; y: number };
+    // update local display state but do not re-dispatch (viewer is authoritative while dragging)
+    if (partialScans.value[index]) {
+      partialScans.value[index].xOffset = [Number(x)];
+      partialScans.value[index].yOffset = [Number(y)];
+    }
+  } catch (err) {
+    console.warn('Error handling grayscale pos changed', err);
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
+});
+
 // no selected-grayscale slider here; Partial Scan 1 slider forwards to the viewer directly
 
 </script>
@@ -90,27 +131,26 @@ function updateSliderBase(val: number[]) {
     <div class="space-y-2 p-2">
       <Button
         variant="outline"
-        class="row-span-3 size-full p-2"
+        class="w-full p-2"
         @click="showDialog = true"
-      >
-      <p>Add parts</p>
+        >
+        Add Parts
       </Button>
-
       <LabeledSlider
         label="Base Image Opacity"
         :modelValue="baseImageOpacity"
-        :min="0"
+        :min="0.25"
         :max="1"
         :step="0.01"
         @update:modelValue="updateSliderBase"
       />
 
-      <div v-for="(scan, idx) in partialScans" :key="idx" class="border p-2 rounded-md space-y-2">
-        <h4 class="font-semibold">{{ `Partial Scan ${idx + 1}` }}</h4>
+      <div v-for="(greyscale, idx) in workspace?.grayscale" :key="idx" class="border p-2 rounded-md space-y-2">
+        <h4 class="font-semibold">{{ `Partial Scan ${greyscale.name}` }}</h4>
 
         <LabeledSlider
           label="Opacity"
-          :modelValue="scan.opacity"
+          :modelValue="partialScans[idx]?.opacity ?? [1]"
           :min="0"
           :max="1"
           :step="0.01"
@@ -121,23 +161,27 @@ function updateSliderBase(val: number[]) {
             <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">X-Offset (pixels)</label>
             <div class="flex items-center space-x-2">
                 <Button size="sm" @click="nudgeX(idx, -1)">Left</Button>
-                <div class="w-12 text-center font-mono"></div>
+                <div class="w-12 text-center font-mono">{{ partialScans[idx]?.xOffset?.[0] ?? 0 }}</div>
                 <Button size="sm" @click="nudgeX(idx, 1)">Right</Button>
             </div>
         </div>
+
+        <!-- X offset displayed and adjustable via nudge buttons (viewer dragging will update this) -->
 
         <div class="space-y-1">
             <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Y-Offset (pixels)</label>
             <div class="flex items-center space-x-2">
                 <Button size="sm" @click="nudgeY(idx, -1)">Up</Button>
-                <div class="w-12 text-center font-mono"></div>
+                <div class="w-12 text-center font-mono">{{ partialScans[idx]?.yOffset?.[0] ?? 0 }}</div>
                 <Button size="sm" @click="nudgeY(idx, 1)">Down</Button>
             </div>
         </div>
+
+        <!-- Y offset displayed and adjustable via nudge buttons (viewer dragging will update this) -->
         
         <LabeledSlider
           label="Rotation (degrees)"
-          :modelValue="scan.rotation"
+          :modelValue="partialScans[idx]?.rotation ?? [0]"
           :min="-180" 
           :max="180" 
           :step="0.1"

@@ -78,6 +78,8 @@ onMounted(() => {
   window.addEventListener('stitch:base-opacity-changed', onBaseOpacityChanged as EventListener);
   // listen for grayscale opacity changes targeted at the selected grayscale
   window.addEventListener('stitch:selected-grayscale-opacity-changed', onSelectedGrayscaleOpacityChanged as EventListener);
+  // listen for per-index grayscale prop changes (opacity/rotation/xOffset/yOffset)
+  window.addEventListener('stitch:grayscale-prop-changed', onGrayscalePropChanged as EventListener);
   // Ensure we have latest workspace so grayscale entries are visible
   ensureWorkspaceHasGrayscale().then(async () => {
     toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 2000 });
@@ -90,6 +92,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener('stitch:base-opacity-changed', onBaseOpacityChanged as EventListener);
   window.removeEventListener('stitch:selected-grayscale-opacity-changed', onSelectedGrayscaleOpacityChanged as EventListener);
+  window.removeEventListener('stitch:grayscale-prop-changed', onGrayscalePropChanged as EventListener);
   // dispose any GL layers we created for this viewer
   try {
     const g = appState.workspace?.grayscale ?? [];
@@ -184,6 +187,54 @@ function onSelectedGrayscaleOpacityChanged(e: Event | CustomEvent) {
     }
   } catch (err) {
     console.warn('Error handling selected grayscale opacity change', err);
+  }
+}
+
+function applyGrayscaleProp(index: number, prop: string, value: number) {
+  const idx = Number(index);
+  if (isNaN(idx) || idx < 0 || idx >= greyscaleImages.value.length) return;
+  const img = greyscaleImages.value[idx];
+  if (!img) return;
+
+  if (prop === 'opacity') {
+    img.opacity = Number(value);
+    const id = `stitch_gray_${img.name}`;
+    const layer = layers.value.find((l) => l.id === id);
+    if (layer && layer.uniform && (layer.uniform as any).uOpacity) {
+      (layer.uniform as any).uOpacity.value = Number(value);
+    }
+  } else if (prop === 'rotation') {
+    img.rotation = Number(value);
+    const id = `stitch_gray_${img.name}`;
+    const layer = layers.value.find((l) => l.id === id);
+    if (layer && layer.mesh) {
+      layer.mesh.rotation.set(0, 0, (Number(value) * Math.PI) / 180);
+    }
+  } else if (prop === 'xOffset') {
+    img.x = Number(value);
+    const id = `stitch_gray_${img.name}`;
+    const layer = layers.value.find((l) => l.id === id);
+    if (layer && layer.mesh) {
+      layer.mesh.position.set(img.x + img.width / 2, img.y + img.height / 2, 0);
+    }
+  } else if (prop === 'yOffset') {
+    img.y = Number(value);
+    const id = `stitch_gray_${img.name}`;
+    const layer = layers.value.find((l) => l.id === id);
+    if (layer && layer.mesh) {
+      layer.mesh.position.set(img.x + img.width / 2, img.y + img.height / 2, 0);
+    }
+  }
+}
+
+function onGrayscalePropChanged(e: Event | CustomEvent) {
+  try {
+    const detail = (e as CustomEvent).detail;
+    if (!detail) return;
+    const { index, prop, value } = detail as { index: number; prop: string; value: number };
+    applyGrayscaleProp(index, prop, value);
+  } catch (err) {
+    console.warn('Error handling grayscale prop change', err);
   }
 }
 
@@ -559,6 +610,12 @@ function onImageMouseMove(e: MouseEvent) {
     const img = greyscaleImages.value[draggingIndex.value];
     img.x = e.clientX - rect.left - dragOffset.value.x;
     img.y = e.clientY - rect.top - dragOffset.value.y;
+    // notify other components (e.g. StitchWindow) about the updated position
+    try {
+      window.dispatchEvent(new CustomEvent('stitch:grayscale-pos-changed', { detail: { index: draggingIndex.value, x: img.x, y: img.y } }));
+    } catch (err) {
+      // ignore dispatch errors
+    }
   }
 }
 
@@ -665,18 +722,22 @@ function onKeyDown(event: KeyboardEvent) {
     greyscaleImages.value[selectedIdx.value].x--;
     event.preventDefault();
     event.stopPropagation();
+    try { window.dispatchEvent(new CustomEvent('stitch:grayscale-pos-changed', { detail: { index: selectedIdx.value, x: greyscaleImages.value[selectedIdx.value].x, y: greyscaleImages.value[selectedIdx.value].y } })); } catch(e) {}
   } else if (event.key == "ArrowRight") {
     greyscaleImages.value[selectedIdx.value].x++;
     event.preventDefault();
     event.stopPropagation();
+    try { window.dispatchEvent(new CustomEvent('stitch:grayscale-pos-changed', { detail: { index: selectedIdx.value, x: greyscaleImages.value[selectedIdx.value].x, y: greyscaleImages.value[selectedIdx.value].y } })); } catch(e) {}
   } else if (event.key == "ArrowUp") {
     greyscaleImages.value[selectedIdx.value].y--;
     event.preventDefault();
     event.stopPropagation();
+    try { window.dispatchEvent(new CustomEvent('stitch:grayscale-pos-changed', { detail: { index: selectedIdx.value, x: greyscaleImages.value[selectedIdx.value].x, y: greyscaleImages.value[selectedIdx.value].y } })); } catch(e) {}
   } else if (event.key == "ArrowDown") {
     greyscaleImages.value[selectedIdx.value].y++;
     event.preventDefault();
     event.stopPropagation();
+    try { window.dispatchEvent(new CustomEvent('stitch:grayscale-pos-changed', { detail: { index: selectedIdx.value, x: greyscaleImages.value[selectedIdx.value].x, y: greyscaleImages.value[selectedIdx.value].y } })); } catch(e) {}
   }
 }
 
