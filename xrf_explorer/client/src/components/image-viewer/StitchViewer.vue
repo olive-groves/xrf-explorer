@@ -55,12 +55,16 @@ interface ImageBox {
   width: number;
   height: number;
   rotation: number;
+  opacity?: number;
 }
 
 const greyscaleImages = ref<ImageBox[]>([]);
 const selectedIdx = ref(0);
 const showDomBase = ref(true);
 const baseReady = ref(false);
+
+// opacity for the base image (controlled by StitchWindow slider)
+const baseOpacity = ref(1.0);
 
 // Vertical padding (px) to leave above and below the base DOM fallback image.
 const basePadding = 20;
@@ -70,6 +74,10 @@ const dragOffset = ref({ x: 0, y: 0 });
 
 onMounted(() => {
   window.addEventListener("keydown", onKeyDown);
+  // listen for base opacity changes from the StitchWindow slider
+  window.addEventListener('stitch:base-opacity-changed', onBaseOpacityChanged as EventListener);
+  // listen for grayscale opacity changes targeted at the selected grayscale
+  window.addEventListener('stitch:selected-grayscale-opacity-changed', onSelectedGrayscaleOpacityChanged as EventListener);
   // Ensure we have latest workspace so grayscale entries are visible
   ensureWorkspaceHasGrayscale().then(async () => {
     toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 2000 });
@@ -80,6 +88,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener('stitch:base-opacity-changed', onBaseOpacityChanged as EventListener);
+  window.removeEventListener('stitch:selected-grayscale-opacity-changed', onSelectedGrayscaleOpacityChanged as EventListener);
   // dispose any GL layers we created for this viewer
   try {
     const g = appState.workspace?.grayscale ?? [];
@@ -120,6 +130,74 @@ function startDrag(index: number, e: MouseEvent) {
     y: mouseY - img.y
   };
 }
+
+/** Handle base opacity changes dispatched by StitchWindow */
+function onBaseOpacityChanged(e: Event | CustomEvent) {
+  try {
+    const detail = (e as CustomEvent).detail;
+    const v = Number(Array.isArray(detail) ? detail[0] : detail ?? detail);
+    if (isNaN(v)) return;
+    const clamped = Math.max(0, Math.min(1, v));
+    baseOpacity.value = clamped;
+
+    // Update GL base layer/group if present
+    try {
+      if (layerGroups.value.base) {
+        layerGroups.value.base.opacity[0] = clamped;
+        updateLayerGroupLayers(layerGroups.value.base as any);
+      }
+      // Also update direct layer uniform if present
+      const ws = appState.workspace;
+      if (ws && ws.baseImage) {
+        const baseId = `base_${snakeCase(ws.baseImage.name || "base")}`;
+        const baseLayer = layers.value.find((l) => l.id === baseId);
+        if (baseLayer && baseLayer.uniform && baseLayer.uniform.uOpacity) {
+          baseLayer.uniform.uOpacity.value = clamped;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not update GL base opacity', err);
+    }
+  } catch (err) {
+    console.warn('Error handling base opacity event', err);
+  }
+}
+
+/** Handle opacity changes for the currently selected grayscale (from StitchWindow) */
+function onSelectedGrayscaleOpacityChanged(e: Event | CustomEvent) {
+  try {
+    const detail = (e as CustomEvent).detail;
+    const v = Number(Array.isArray(detail) ? detail[0] : detail ?? detail);
+    if (isNaN(v)) return;
+    const clamped = Math.max(0, Math.min(1, v));
+    // update the selected image box if exists
+    const idx = selectedIdx.value;
+    if (idx != null && greyscaleImages.value[idx]) {
+      greyscaleImages.value[idx].opacity = clamped;
+      // also update GL layer uniform if present
+      const img = greyscaleImages.value[idx];
+      const id = `stitch_gray_${img.name}`;
+      const layer = layers.value.find((l) => l.id === id);
+      if (layer && layer.uniform && layer.uniform.uOpacity) {
+        layer.uniform.uOpacity.value = clamped;
+      }
+    }
+  } catch (err) {
+    console.warn('Error handling selected grayscale opacity change', err);
+  }
+}
+
+// announce selection changes to other components so they can update a slider
+watch(selectedIdx, (idx) => {
+  try {
+    const img = greyscaleImages.value[idx];
+    const name = img ? img.name : null;
+    const opacity = img ? (img.opacity ?? 1) : 1;
+    window.dispatchEvent(new CustomEvent('stitch:selected-grayscale-changed', { detail: { name, opacity } }));
+  } catch (e) {
+    console.warn('Could not dispatch selected grayscale changed', e);
+  }
+});
 
 // Helpers to load grayscale images from workspace
 import { appState } from "@/lib/appState";
@@ -181,9 +259,10 @@ async function loadGrayscaleImages() {
       src,
       x,
       y,
-      width: w,
-      height: h,
-      rotation: 0,
+        width: w,
+        height: h,
+        rotation: 0,
+        opacity: 1,
     });
   }
 
@@ -632,12 +711,12 @@ return dragging.value ? "grabbing" : "grab";
     <div
       v-if="baseSrc && showDomBase"
       class="absolute inset-0 pointer-events-none flex items-center justify-center"
-      :style="{ zIndex: 0, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', backgroundColor: 'white' }"
+      :style="{ zIndex: 0, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', backgroundColor: 'white', opacity: baseOpacity }"
     >
       <img
         :src="baseSrc"
         class="w-full object-contain"
-        :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)` }"
+        :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)`, opacity: baseOpacity }"
         alt="base image"
         @error="(e) => console.warn('Base image failed to load', e)"
       />
@@ -658,6 +737,7 @@ return dragging.value ? "grabbing" : "grab";
         width: img.width + 'px',
         height: img.height + 'px',
         zIndex: 10,
+        opacity: img.opacity ?? baseOpacity,
         transform: `rotate(${img.rotation}deg)`,
       }"
       :class="['border', index === selectedIdx ? 'border border-yellow-500' : 'border-transparent']"

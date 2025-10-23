@@ -4,6 +4,7 @@ import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
 import { ref } from "vue";
 import { windowState } from "@/components/ui/window/state";
+// no lifecycle imports needed
 
 interface PartialScanState {
     opacity: number[];
@@ -48,6 +49,15 @@ function confirmStitchingDialog() {
 
 function updatePartialScan(idx: number, prop: keyof PartialScanState, val: number[]) {
     partialScans.value[idx][prop] = val;
+    // If the first partial scan opacity changed, forward it to the selected grayscale
+    if (idx === 0 && prop === 'opacity') {
+      try {
+        const v = Array.isArray(val) ? val[0] : val;
+        window.dispatchEvent(new CustomEvent('stitch:selected-grayscale-opacity-changed', { detail: v }));
+      } catch (e) {
+        console.warn('Could not dispatch selected grayscale opacity from partial scan', e);
+      }
+    }
 }
 
 // Function to adjust the X-offset by a pixel delta (+1 or -1)
@@ -62,7 +72,16 @@ function nudgeY(idx: number, delta: number) {
 
 function updateSliderBase(val: number[]) {
   baseImageOpacity.value = val;
+  // Notify other components (e.g. StitchViewer) about the base opacity change
+  try {
+    const v = Array.isArray(val) ? val[0] : val;
+    window.dispatchEvent(new CustomEvent('stitch:base-opacity-changed', { detail: v }));
+  } catch (e) {
+    console.warn('Could not dispatch stitch base-opacity event', e);
+  }
 }
+
+// no selected-grayscale slider here; Partial Scan 1 slider forwards to the viewer directly
 
 </script>
 
