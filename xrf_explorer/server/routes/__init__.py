@@ -17,6 +17,7 @@ from .elemental_cube import (
 from .general import api
 from .images import contextual_image, contextual_image_size, contextual_image_recipe
 from .login import login
+from .logout import logout
 from .project import (
     list_accessible_data_sources,
     datasource_files,
