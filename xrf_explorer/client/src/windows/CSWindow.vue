@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, inject, computed } from "vue";
-import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
+import { computed, ComputedRef, inject, ref, watch } from "vue";
+import { appState, datasource, elementalDataPresent, elements } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
@@ -13,25 +13,59 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { getTargetSize } from "@/components/image-viewer/api.ts";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection.ts";
+import {
+  areSelectionAreaSelectionsEqual,
+  deepClone,
+  flipSelectionAreaSelection,
+  hasActiveSelection,
+} from "@/lib/utils.ts";
 
-//Constants
+// Custom type for keeping track of what selection to use.
+type ColorSegmentationAreaSelection = {
+  areaSelection: SelectionAreaSelection;
+  lastChangedTimestamp: number;
+};
+
+// Constants and injected values
 const config = inject<FrontendConfig>("config")!;
-const colors = ref<string[]>([""]);
-const selectedElement = ref<string>();
 
-const selection = computed(() => appState.selection.colorSegmentation);
-const threshold = ref(20);
-const number_clusters = ref(10);
-const currentError = ref("Unknown error");
-
-// Status color segmentation
+// Enum declarations
 enum Status {
   WAITING,
   LOADING,
   ERROR,
   SUCCESS,
 }
+
+// Reactive variables
+const colors = ref<string[]>([""]);
+const selectedElement = ref<string>();
+const useSelectionChecked = ref<boolean>(false);
+const threshold = ref(20);
+const number_clusters = ref(10);
+const currentError = ref("Unknown error");
 const status = ref(Status.WAITING);
+
+// Computed properties
+const selection = computed(() => appState.selection.colorSegmentation);
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+
+// Non-reactive variables
+const currentAreaSelection: ColorSegmentationAreaSelection = {
+  areaSelection: {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: 10000, y: 10000 },
+    ],
+  },
+  lastChangedTimestamp: Date.now(),
+};
+
+// Watchers
+watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
 
 /**
  * Fetch the hexadecimal colors' data.
@@ -44,10 +78,26 @@ async function fetchColors() {
     status.value = Status.ERROR;
     return;
   }
+
+  let request_body: SelectionAreaSelection;
+
+  if (useSelectionChecked.value) {
+    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+  } else {
+    request_body = await getFullImageSelection();
+  }
+
   const elementIndex = getElementIndex(selectedElement.value);
   const response = await fetch(
     `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
-      `${elementIndex}/${number_clusters.value}/${threshold.value}`,
+      `/${elementIndex}/${number_clusters.value}/${threshold.value}/${useSelectionChecked.value}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request_body),
+    },
   );
 
   if (!response.ok) {
@@ -93,6 +143,23 @@ function updateSelection() {
     selection.value.colors = colors.value;
     selection.value.k = number_clusters.value;
     selection.value.threshold = threshold.value;
+    selection.value.useAreaSelection = useSelectionChecked.value;
+    selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
+    selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
+  }
+}
+
+/**
+ * Updates the currentAreaSelection if the new Selection made by the user is a new one, and valid.
+ * @param newSelection The new selection made by the user.
+ */
+function updateAreaSelection(newSelection: SelectionAreaSelection) {
+  if (
+    hasActiveSelection(newSelection) &&
+    !areSelectionAreaSelectionsEqual(newSelection, currentAreaSelection.areaSelection)
+  ) {
+    currentAreaSelection.areaSelection = deepClone(newSelection);
+    currentAreaSelection.lastChangedTimestamp = Date.now();
   }
 }
 
@@ -125,11 +192,32 @@ function getElementIndex(elementName: string | undefined) {
     return elements.value[index].channel + 1;
   }
 }
+
+/**
+ * Returns a selection object that exactly covers the entire painting.
+ * @returns A `SelectionAreaSelection` object exactly covering the entire painting.
+ */
+async function getFullImageSelection(): Promise<SelectionAreaSelection> {
+  const size = await getTargetSize();
+  return {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: size.width, y: size.height },
+    ],
+  };
+}
 </script>
 
 <template>
   <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
+      <!-- USE SELECTION AREA CHECKBOX -->
+      <div class="flex items-center space-x-2">
+        <Checkbox id="use_selection_area" v-model:checked="useSelectionChecked" />
+        <Label for="use_selection_area">Use only selection area</Label>
+      </div>
+
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
         <!-- ELEMENT SELECTION -->

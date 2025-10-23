@@ -17,7 +17,6 @@ from xrf_explorer.server.color_segmentation.helper import get_path_to_cs_folder
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
-
 def empty_array(array: list[np.ndarray] | list[list[np.ndarray]]):
     empty: np.ndarray = np.empty(0)
     for i in range(0, len(array)):
@@ -41,6 +40,8 @@ class TestColorSegmentation:
     DATA_CUBE_PATH: str = join(PATH_DATA_SOURCE, 'test_cube.dms')
     REG_TEST_IMAGE_PATH: str = join(PATH_DATA_SOURCE, 'registered_test_image.png')
 
+    FULL_SELECTION_MASK =  np.ones((3, 3), dtype=bool)
+
     elem_threshold: float = 0.1
     num_attempts: int = 10
     k: int = 2
@@ -53,7 +54,7 @@ class TestColorSegmentation:
         result: np.ndarray
 
         # Execute
-        result, _ = get_clusters_using_k_means(self.DATA_SOURCE, self.IMAGE_NAME, self.k, self.num_attempts)
+        result, _ = get_clusters_using_k_means(data_source=self.DATA_SOURCE, image_name=self.IMAGE_NAME, selection_mask=self.FULL_SELECTION_MASK , k=self.k, nr_of_attempts=self.num_attempts)
         # Verify
         # The image has 2 colors
         assert len(result) == 2
@@ -72,7 +73,7 @@ class TestColorSegmentation:
         empty: np.ndarray = np.empty(0)
 
         # Execute
-        result, _ = get_clusters_using_k_means("", self.IMAGE_NAME, self.k, self.num_attempts)
+        result, _ = get_clusters_using_k_means("", self.IMAGE_NAME, self.FULL_SELECTION_MASK, self.k, self.num_attempts)
 
         # Verify
         assert np.array_equal(empty, result)
@@ -169,15 +170,15 @@ class TestColorSegmentation:
             clusters: np.ndarray
             if missing_param == "datasource":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    "", self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
+                    "", self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             elif missing_param == "image":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, "", i, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, "", i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             else:
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, self.IMAGE_NAME, i, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
@@ -244,7 +245,7 @@ class TestColorSegmentation:
         bitmask: list[np.ndarray]
         clusters: np.ndarray
         clusters, bitmask = get_elemental_clusters_using_k_means(
-            self.DATA_SOURCE, self.IMAGE_NAME, 0, high_elem_threshold, self.k, self.num_attempts
+            self.DATA_SOURCE, self.IMAGE_NAME, 0, self.FULL_SELECTION_MASK, high_elem_threshold, self.k, self.num_attempts
         )
 
         # Verify
