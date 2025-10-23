@@ -1,6 +1,6 @@
 from flask import jsonify
 from flask_login import login_required
-from xrf_explorer import app, auth
+from xrf_explorer import app
 from xrf_explorer.server.database.authnew import admin_required
 from xrf_explorer.server.database.models import User, UserRole
 
@@ -14,5 +14,5 @@ def get_accounts():
     :return: JSON list of user accounts with usernames and roles
     """
     
-    accounts = User.query.all()
+    accounts = User.query.all()    
     return jsonify([{"username": acc.username, "role": acc.role.name.capitalize()} for acc in accounts]), 200

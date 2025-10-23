@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
-import { Dialog } from "@/components/ui/dialog";
+import { MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ref } from "vue";
 import { appState } from "@/lib/appState";
-import { FileSetupDialog } from "@/components/workspace";
+import { FileSetupDialog, ChannelSetupDialog } from "@/components/workspace";
 
 // Dialog visibility variable
 const dialogOpen = ref(false);
@@ -21,16 +21,48 @@ function reset() {
 <template>
     <Dialog v-model:open="dialogOpen" @update:open="reset">
         <MenubarMenu>
-            <MenubarTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" @click="window = 'workSpace'; dialogOpen = true;"> 
-                WorkSpace 
+            <MenubarTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR')"> 
+                Workspace 
             </MenubarTrigger>
+            <MenubarTrigger v-else class="w-full opacity-50 cursor-not-allowed pointer-events-none">
+                Workspace
+            </MenubarTrigger>
+            <MenubarContent>
+                <!-- Display setup workspace dialog and setup elemental channels dialog -->
+                 <DialogTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'workspace'; dialogOpen = true;">
+                     <MenubarItem>
+                        Setup Workspace
+                     </MenubarItem>
+                </DialogTrigger>
+                <DialogTrigger v-else class="w-full opacity-50 cursor-not-allowed pointer-events-none">
+                    <MenubarItem>
+                        Setup Workspace
+                    </MenubarItem>
+                </DialogTrigger>
+                 <DialogTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'elementalChannels'; dialogOpen = true;">
+                    <MenubarItem>
+                        Setup Elemental Channels
+                    </MenubarItem>
+                </DialogTrigger>
+                <DialogTrigger v-else class="w-full opacity-50 cursor-not-allowed pointer-events-none">
+                    <MenubarItem>
+                        Setup Elemental Channels
+                    </MenubarItem>
+                </DialogTrigger>
+            </MenubarContent>
         </MenubarMenu>
 
         <!-- Show the relevant window based on "window" -->
         <FileSetupDialog 
-            v-if="window == 'workSpace' && appState.workspace != undefined" 
+            v-if="window == 'workspace' && appState.workspace != undefined" 
             v-model="appState.workspace"
             @save="dialogOpen = false" 
         />
+        <ChannelSetupDialog 
+            v-if="window == 'elementalChannels' && appState.workspace != undefined" 
+            v-model="appState.workspace"
+            @save="dialogOpen = false"
+        />
+
     </Dialog>
 </template>
