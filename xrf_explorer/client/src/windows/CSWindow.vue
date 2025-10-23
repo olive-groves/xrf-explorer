@@ -87,11 +87,11 @@ async function fetchColors() {
   }
 
   //Read the selection for the payload
-  let selection: SelectionAreaSelection;
+  let activeSelection: SelectionAreaSelection;
   if (useSelectionChecked.value) {
-    selection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+    activeSelection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
   } else {
-    selection = await getFullImageSelection();
+    activeSelection = await getFullImageSelection();
   }
 
   //Read the elements for the payload
@@ -103,7 +103,7 @@ async function fetchColors() {
 
   //Create payload json
   let request_body: ColorSegmentationRequestBody = {
-    selection,
+    selection: activeSelection,
     elements: selectedElements
   };
 

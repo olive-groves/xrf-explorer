@@ -55,23 +55,21 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
 
     uses_selection = True if uses_selection == "true" else False
 
-    # Path to cache data
+    # Path to save bitmask to
     path_to_save: str = get_path_to_cs_folder(data_source)
+    if not path_to_save:
+        return 'Error occurred while getting path to save bitmask to', 500
 
-    # path to json for caching color
-    full_path_json: str
-    if uses_selection:
-        full_path_json = join(path_to_save, f'colors_selection.json')
-    elif len(elements) == 1 and elements[0][0] == 0:
-        full_path_json = join(path_to_save, f'colors_painting_{k}.json')
-    else:
-        full_path_json = join(path_to_save, f'colors_{elements[0][0] - 1}_{k}_{elements[0][1]}.json')
+    bitmask_full_path: str = join(path_to_save, f'bitmask.png')
+
+    # path to json for color clusters
+    full_path_json: str = join(path_to_save, f'colors_selection.json')
 
     # If json already exists, return that directly
-    if exists(full_path_json) and not uses_selection:
-        with open(full_path_json, 'r') as json_file:
-            color_data: np.ndarray = json.load(json_file)
-        return json.dumps(color_data)
+    #if exists(full_path_json) and not uses_selection:
+    #    with open(full_path_json, 'r') as json_file:
+    #        color_data: np.ndarray = json.load(json_file)
+    #    return json.dumps(color_data)
 
     # Path to save bitmasks
     bitmask_full_path: str
@@ -94,7 +92,7 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
             return selection_mask[0], selection_mask[1]
 
         colors, bitmasks = get_clusters_using_k_means(data_source, rgb_image_name, selection_mask, k)
-        bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}_{uses_selection}.png')
+        #bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}_{uses_selection}.png')
     else:
         LOG.info(f'Computing color clusters for elements: {elements}')
 
@@ -113,7 +111,7 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
         colors, bitmasks = get_elemental_clusters_using_k_means(
             data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), k
         )
-        bitmask_full_path: str = join(path_to_save, f'bitmask_{elements[0][0] - 1}_{k}_{elements[0][1]}_{uses_selection}.png')
+        #bitmask_full_path: str = join(path_to_save, f'bitmask_{elements[0][0] - 1}_{k}_{elements[0][1]}_{uses_selection}.png')
 
         LOG.info("Color segmentation bitmask: " + full_path_json)
 
@@ -124,7 +122,7 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
     # Cache bitmask data
     image_saved: bool = save_bitmask_as_png(combined_bitmask, bitmask_full_path)
     if not image_saved:
-        return f'Error occurred while saving bitmask for elements {elements} as png', 500
+        return f'Error occurred while saving bitmask for color segmentation as png', 500
 
     # Cache color data
     with open(full_path_json, 'w') as json_file:
@@ -133,23 +131,16 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
     return json.dumps(colors)
 
 
-@app.route('/api/<data_source>/cs/bitmask/<int:elem>/<int:k>/<int:elem_threshold>/<uses_selection>', methods=['GET'])
-def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshold: int, uses_selection: str = "false"):
+@app.route('/api/<data_source>/cs/bitmask', methods=['GET'])
+def get_color_cluster_bitmask(data_source: str):
     """
-    Returns the png bitmask for the color clusters over the painting/selected element.
-    Limits the bitmask to the selection area when `uses_selection` is `true`
+    Returns the last generated bitmask for color segmentation
 
     :param data_source: data_source to get the bitmask from
-    :param elem: index of selected element (0 if whole painting, channel+1 if element)
-    :param k: number of color clusters to compute
-    :param elem_threshold: elemental threshold
-    :param uses_selection: whether the clustering was calculated over a selection or not
-    :return bitmask PNG file for the whole image
+    :return most recently generated bitmask
     """
-    LOG.info(f'Bitmasks for k={k}, elem={elem}, elem_threshold={elem_threshold}')
+    LOG.info(f'Grabbing most recent bitmask')
     config: dict | None = get_config()
-
-    uses_selection = True if uses_selection == "true" else False
 
     error_response_config: tuple[str, int] | None = validate_config(config)
     if error_response_config:
@@ -160,15 +151,10 @@ def get_color_cluster_bitmask(data_source: str, elem: int, k: int, elem_threshol
     if not path_to_save:
         return 'Error occurred while getting path to save bitmask to', 500
 
-    bitmask_full_path: str
-    if elem == 0:
-        bitmask_full_path: str = join(path_to_save, f'bitmask_painting_{k}_{uses_selection}.png')
-    else:
-        bitmask_full_path: str = join(path_to_save, f'bitmask_{elem - 1}_{k}_{elem_threshold}_{uses_selection}.png')
+    bitmask_full_path: str = join(path_to_save, f'bitmask.png')
 
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
-        LOG.info(f'Could not find bitmasks for k={k}, elem={elem}, elem_threshold={elem_threshold}')
-        get_color_clusters(data_source, k)
+        LOG.info(f'Could not find bitmask for color segmentation')
 
     return send_file(abspath(bitmask_full_path), mimetype='image/png')
