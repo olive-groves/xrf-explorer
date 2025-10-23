@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Stitchbar } from "@/components/image-viewer";
-import { computed, inject, onBeforeUnmount, ref, onMounted, watch, nextTick } from "vue";
+import { computed, inject, onBeforeUnmount, ref, onMounted, watch } from "vue";
 import { StitchTool, StitchState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -57,8 +57,13 @@ interface ImageBox {
   rotation: number;
 }
 
-const dummyImages = ref<ImageBox[]>([]);
+const greyscaleImages = ref<ImageBox[]>([]);
 const selectedIdx = ref(0);
+const showDomBase = ref(true);
+const baseReady = ref(false);
+
+// Vertical padding (px) to leave above and below the base DOM fallback image.
+const basePadding = 20;
 
 const draggingIndex = ref<number | null>(null);
 const dragOffset = ref({ x: 0, y: 0 });
@@ -67,6 +72,7 @@ onMounted(() => {
   window.addEventListener("keydown", onKeyDown);
   // Ensure we have latest workspace so grayscale entries are visible
   ensureWorkspaceHasGrayscale().then(async () => {
+    toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 2000 });
     await setupGL();
     await loadGrayscaleImages();
   });
@@ -102,7 +108,7 @@ function startDrag(index: number, e: MouseEvent) {
   // Only allow dragging when using Grab tool
   if (stitchState.value.tool !== StitchTool.Grab) return;
   draggingIndex.value = index;
-  const img = dummyImages.value[index];
+  const img = greyscaleImages.value[index];
   const rect = glcontainer.value?.getBoundingClientRect();
   if (!rect) return;
 
@@ -138,7 +144,7 @@ async function ensureWorkspaceHasGrayscale() {
 }
 
 async function loadGrayscaleImages() {
-  dummyImages.value = [];
+  greyscaleImages.value = [];
   const ws = appState.workspace;
   if (!ws || !ws.grayscale || ws.grayscale.length === 0) return;
 
@@ -170,7 +176,7 @@ async function loadGrayscaleImages() {
     const x = padding + col * (200 + padding);
     const y = padding + row * (200 + padding);
 
-    dummyImages.value.push({
+    greyscaleImages.value.push({
       name: g.name || `grayscale_${i}`,
       src,
       x,
@@ -184,50 +190,83 @@ async function loadGrayscaleImages() {
   // Also create GL layers for the grayscales
   try {
     // create base layer if not present
+    // ensure base layer exists and wait until it's loaded into GL
     createOrUpdateBaseLayer();
-
-    for (let i = 0; i < ws.grayscale.length; i++) {
-      const g = ws.grayscale[i];
-      const id = `stitch_gray_${snakeCase(g.name)}`;
-      const url = getWorkspaceImageUrl(g.imageLocation, ws.name);
-      // create layer
-      const existing = layers.value.find((l) => l.id === id);
-      if (!existing) {
-        const l = createLayer(id, url);
-        // attach to a stitch group
-        if (!layerGroups.value.stitch) {
-          layerGroups.value.stitch = {
-            name: "Stitch",
-            description: "Stitch viewer generated images",
-            layers: [l],
-            index: -2,
-            visible: true,
-            visibility: 1,
-            opacity: [1],
-            contrast: [1],
-            saturation: [1],
-            gamma: [1],
-            brightness: [0],
-          } as any;
-        } else {
-          layerGroups.value.stitch.layers.push(l);
-        }
-      }
+    // wait for base GL mesh to be available before creating grayscale GL layers
+    const baseId = appState.workspace && appState.workspace.baseImage ? `base_${snakeCase(appState.workspace.baseImage.name)}` : null;
+    if (baseId) {
+      const ok = await waitForLayerMesh(baseId, 30000);
+      baseReady.value = ok;
+      if (!ok) console.warn("Base GL layer did not become ready within timeout");
     }
 
-    if (layerGroups.value.stitch) updateLayerGroupLayers(layerGroups.value.stitch as any);
+    // create grayscale GL layers only after base is ready
+    if (baseReady.value) {
+      for (let i = 0; i < ws.grayscale.length; i++) {
+        const g = ws.grayscale[i];
+        const id = `stitch_gray_${snakeCase(g.name)}`;
+        const url = getWorkspaceImageUrl(g.imageLocation, ws.name);
+        // create layer
+        const existing = layers.value.find((l) => l.id === id);
+        if (!existing) {
+          const l = createLayer(id, url);
+          // attach to a stitch group
+          if (!layerGroups.value.stitch) {
+            layerGroups.value.stitch = {
+              name: "Stitch",
+              description: "Stitch viewer generated images",
+              layers: [l],
+              index: -2,
+              visible: true,
+              visibility: 1,
+              opacity: [1],
+              contrast: [1],
+              saturation: [1],
+              gamma: [1],
+              brightness: [0],
+            } as any;
+          } else {
+            layerGroups.value.stitch.layers.push(l);
+          }
+        }
+      }
+
+      if (layerGroups.value.stitch) updateLayerGroupLayers(layerGroups.value.stitch as any);
+    }
   } catch (e) {
     console.warn("Could not create GL grayscale layers", e);
   }
+}
+
+/** Poll until layer.mesh exists (texture/mesh loaded into GL) or timeout */
+function waitForLayerMesh(layerId: string, timeoutMs: number = 30000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const iv = setInterval(() => {
+      const layer = layers.value.find((l) => l.id === layerId);
+      if (layer && layer.mesh) {
+        clearInterval(iv);
+        resolve(true);
+        return;
+      }
+      if (Date.now() - start > timeoutMs) {
+        clearInterval(iv);
+        resolve(false);
+      }
+    }, 200);
+  });
 }
 
 /** Ensure the GL base layer exists and is attached to a layer group */
 function createOrUpdateBaseLayer() {
   const ws = appState.workspace;
   if (!ws || !ws.baseImage) return;
-  const baseLoc = (ws.baseImage as any).imageLocation ?? ws.baseImage.name;
+  // If the configured imageLocation is a path-like location (contains '/'), use it directly
+  // otherwise use the base image NAME so the server will resolve the actual file via workspace.json
+  const rawLoc = (ws.baseImage as any).imageLocation ?? "";
+  const baseLoc = rawLoc && rawLoc.includes("/") ? rawLoc : ws.baseImage.name;
   const baseUrl = getWorkspaceImageUrl(baseLoc, ws.name);
-  const baseId = `base_${(ws.baseImage.name || "base").replace(/\s+/g, "_")}`;
+  const baseId = `base_${snakeCase(ws.baseImage.name || "base")}`;
   let existing = layers.value.find((l) => l.id === baseId);
   if (!existing) {
     const layer = createLayer(baseId, baseUrl);
@@ -250,6 +289,22 @@ function createOrUpdateBaseLayer() {
   }
 }
 
+async function checkDomBaseAvailable() {
+  const src = baseSrc.value;
+  if (!src) {
+    showDomBase.value = false;
+    return;
+  }
+  try {
+    const resp = await fetch(src, { method: "HEAD" });
+    showDomBase.value = resp.ok;
+    if (!resp.ok) console.warn("Base DOM image HEAD returned", resp.status, resp.statusText, src);
+  } catch (e) {
+    console.warn("Base DOM image fetch failed", e, src);
+    showDomBase.value = false;
+  }
+}
+
 /** Simple GL setup for stitch viewer */
 async function setupGL() {
   // create camera and renderer using the canvas in this component
@@ -260,6 +315,12 @@ async function setupGL() {
     scene.renderer.setSize(width.value, height.value);
     // initialize base layer if workspace present
     createOrUpdateBaseLayer();
+    // initialize viewport to show the target image
+    try {
+      await resetViewport();
+    } catch (e) {
+      console.warn("resetViewport failed in StitchViewer", e);
+    }
     // start render loop for this view
     startRenderLoop();
   } catch (e) {
@@ -283,10 +344,20 @@ function startRenderLoop() {
         layer.uniform.iViewport.value.set(x, y, w, h);
       }
       // lens radius and mouse handled similarly if available
-      if (layer.uniform && layer.uniform.uRadius) {
-        // keep lens off by default
-        layer.uniform.uRadius.value = Number.MAX_VALUE;
-      }
+        if (layer.uniform && layer.uniform.uRadius) {
+          // Use the stitch toolbar lens size when an appropriate tool is active.
+          // If the current tool isn't a selection/lens tool, set the radius to a very large
+          // value to effectively disable the lens in the shader.
+          try {
+            const lensSize = stitchState.value.lensSize?.[0] ?? 0;
+            // Determine if a selection/lens tool is active — reuse existing computed
+            const selectionActive = Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string);
+            layer.uniform.uRadius.value = selectionActive ? Math.max(0, lensSize) : Number.MAX_VALUE;
+          } catch (e) {
+            // Fallback: disable lens
+            layer.uniform.uRadius.value = Number.MAX_VALUE;
+          }
+        }
     });
 
     // ensure renderer size matches container
@@ -294,13 +365,17 @@ function startRenderLoop() {
 
     // Sync DOM tile positions to GL meshes
     try {
-      for (let i = 0; i < dummyImages.value.length; i++) {
-        const img = dummyImages.value[i];
+      for (let i = 0; i < greyscaleImages.value.length; i++) {
+        const img = greyscaleImages.value[i];
         const id = `stitch_gray_${img.name}`;
         const layer = layers.value.find((l) => l.id === id);
         if (layer && layer.mesh) {
-          // Position mesh at top-left of the image (mesh geometry is in pixel coords)
-          layer.mesh.position.set(img.x, img.y, 0);
+          // Position mesh so its center aligns with DOM top-left coordinate system.
+          // Mesh geometry is created with origin at (0,0) lower-left in ImageViewer, so we shift to center.
+          const centerX = img.x + img.width / 2;
+          const centerY = img.y + img.height / 2;
+          // Convert to GL coordinate system where (0,0) is bottom-left: we keep consistent with viewport
+          layer.mesh.position.set(centerX, centerY, 0);
           layer.mesh.rotation.set(0, 0, (img.rotation * Math.PI) / 180.0);
           // If width/height differ from original, scale mesh
           // ensure bounding box is calculated
@@ -321,7 +396,7 @@ function startRenderLoop() {
       // also sync base image if present
       const ws = appState.workspace;
       if (ws && ws.baseImage) {
-        const baseId = `base_${(ws.baseImage.name || "base").replace(/\s+/g, "_")}`;
+        const baseId = `base_${snakeCase(ws.baseImage.name || "base")}`;
         const baseLayer = layers.value.find((l) => l.id === baseId);
         if (baseLayer && baseLayer.mesh) {
           // base should be at (0,0)
@@ -333,8 +408,16 @@ function startRenderLoop() {
       // ignore per-frame sync errors
     }
 
-    // Render the shared scene with our camera
+    // Update camera to match canvas and render
     if (camera) {
+      // Orthographic camera parameters: left, right, top, bottom
+      const halfW = width.value / 2;
+      const halfH = height.value / 2;
+      camera.left = -halfW;
+      camera.right = halfW;
+      camera.top = halfH;
+      camera.bottom = -halfH;
+      camera.updateProjectionMatrix();
       scene.renderer!.render(scene.scene, camera);
     }
 
@@ -349,16 +432,41 @@ function startRenderLoop() {
 const baseSrc = vueComputed(() => {
   const ws = appState.workspace;
   if (!ws || !ws.baseImage) return null;
-  // prefer imageLocation if available, fallback to name
-  const loc = (ws.baseImage as any).imageLocation ?? ws.baseImage.name;
+  // If the configured imageLocation is a path-like location, use it directly
+  // otherwise use the base image NAME so the server will resolve the actual file via workspace.json
+  const rawLoc = (ws.baseImage as any).imageLocation ?? "";
+  const loc = rawLoc && rawLoc.includes("/") ? rawLoc : ws.baseImage.name;
   return getWorkspaceImageUrl(loc, ws.name);
 });
+
+watch(baseSrc, (v) => {
+  console.debug("StitchViewer baseSrc changed ->", v);
+  checkDomBaseAvailable();
+});
+
+// When toolbar state changes (lens size / tool), update existing layer uniforms immediately
+watch(
+  () => [stitchState.value.lensSize?.[0], stitchState.value.tool],
+  () => {
+    const selectionActive = Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string);
+    const lensSize = stitchState.value.lensSize?.[0] ?? 0;
+    layers.value.forEach((layer) => {
+      if (layer.uniform && layer.uniform.uRadius) {
+        layer.uniform.uRadius.value = selectionActive ? Math.max(0, lensSize) : Number.MAX_VALUE;
+      }
+    });
+  },
+  { immediate: true },
+);
+
+// initial availability check once baseSrc is defined
+checkDomBaseAvailable();
 
 // Reload if workspace changes
 watch(() => appState.workspace, () => loadGrayscaleImages(), { deep: true });
 
 function rotateBox(index: number) {
-  const img = dummyImages.value[index];
+  const img = greyscaleImages.value[index];
   img.rotation = (img.rotation + 90) % 360;
 }
 
@@ -369,7 +477,7 @@ function onImageMouseMove(e: MouseEvent) {
 
   // Dragging
   if (draggingIndex.value !== null) {
-    const img = dummyImages.value[draggingIndex.value];
+    const img = greyscaleImages.value[draggingIndex.value];
     img.x = e.clientX - rect.left - dragOffset.value.x;
     img.y = e.clientY - rect.top - dragOffset.value.y;
   }
@@ -475,19 +583,19 @@ function onWheel(event: WheelEvent) {
 // Move the images using arrow keys
 function onKeyDown(event: KeyboardEvent) {
   if (event.key == "ArrowLeft") {
-    dummyImages.value[selectedIdx.value].x--;
+    greyscaleImages.value[selectedIdx.value].x--;
     event.preventDefault();
     event.stopPropagation();
   } else if (event.key == "ArrowRight") {
-    dummyImages.value[selectedIdx.value].x++;
+    greyscaleImages.value[selectedIdx.value].x++;
     event.preventDefault();
     event.stopPropagation();
   } else if (event.key == "ArrowUp") {
-    dummyImages.value[selectedIdx.value].y--;
+    greyscaleImages.value[selectedIdx.value].y--;
     event.preventDefault();
     event.stopPropagation();
   } else if (event.key == "ArrowDown") {
-    dummyImages.value[selectedIdx.value].y++;
+    greyscaleImages.value[selectedIdx.value].y++;
     event.preventDefault();
     event.stopPropagation();
   }
@@ -502,7 +610,6 @@ return dragging.value ? "grabbing" : "grab";
 </script>
 
 <template>
-  <div>Selected Image: {{ selectedIdx + 1 }}</div>
   <div
     ref="glcontainer"
     class="relative size-full"
@@ -519,15 +626,30 @@ return dragging.value ? "grabbing" : "grab";
     @mousemove.stop="onImageMouseMove"
     @mouseup.stop="stopInteractions"
   >
-    <canvas ref="glcanvas" />
+  <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
 
-    <!-- Base image -->
-    <div v-if="baseSrc" class="absolute inset-0 pointer-events-none" style="z-index:0">
-      <img :src="baseSrc" class="w-full h-full object-contain" alt="base image" />
+    <!-- Base image (DOM fallback) -->
+    <div
+      v-if="baseSrc && showDomBase"
+      class="absolute inset-0 pointer-events-none flex items-center justify-center"
+      :style="{ zIndex: 0, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', backgroundColor: 'white' }"
+    >
+      <img
+        :src="baseSrc"
+        class="w-full object-contain"
+        :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)` }"
+        alt="base image"
+        @error="(e) => console.warn('Base image failed to load', e)"
+      />
+    </div>
+
+    <!-- Loading overlay while base GL image is being prepared -->
+    <div v-if="baseSrc && !baseReady" class="absolute inset-0 flex items-center justify-center bg-black/40 text-white" style="z-index:30">
+      <div class="p-4 bg-black/60 rounded">Loading base image...</div>
     </div>
 
     <div
-      v-for="(img, index) in dummyImages"
+      v-for="(img, index) in greyscaleImages"
       :key="index"
       class="absolute transition-transform duration-75"
       :style="{

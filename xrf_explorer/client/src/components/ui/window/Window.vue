@@ -81,6 +81,9 @@ watch(
       if (state.value.id == "stitching") {
         windowState[state.value.id].disabled = false;
         windowState[state.value.id].opened = true;
+      } else if (state.value.id == "workspace") {
+        windowState[state.value.id].disabled = false;
+        windowState[state.value.id].opened = false;
       } else {
         windowState[state.value.id].opened = false;
         windowState[state.value.id].disabled = true;
