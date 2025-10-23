@@ -6,6 +6,7 @@ import { LoaderPinwheel, Trash2} from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "vue-sonner";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   NumberField,
   NumberFieldContent,
@@ -55,6 +56,35 @@ const status = ref(Status.WAITING);
 
 const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
 const selectableElementsList = computed(() => elements.value);
+const disabledElements = computed(() => {
+  // Collect all currently selected names (except empty and 'complete')
+  return elementsSelected.value
+    .map(e => e.name)
+    .filter(name => name && name !== 'complete');
+});
+
+// Dialog visibility ref for confirmation
+const showConfirmDialog = ref(false);
+let pendingElementsSelected: typeof elementsSelected.value | null = null;
+
+function handleConfirm(choice: boolean) {
+  if (choice) {
+    elementsSelected.value = [{ id: 1, name: 'complete', threshold: threshold.value }];
+  } else {
+    if (pendingElementsSelected) {
+      const firstNonComplete = pendingElementsSelected.find(sel => sel.name && sel.name !== 'complete');
+      if (firstNonComplete) {
+        elementsSelected.value = [firstNonComplete];
+      } else {
+        elementsSelected.value = pendingElementsSelected.map(e =>
+          e.name === 'complete' ? { ...e, name: '' } : e
+        );
+      }
+    }
+  }
+  pendingElementsSelected = null;
+  showConfirmDialog.value = false;
+}
 
 // Computed properties
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -73,6 +103,22 @@ const currentAreaSelection: ColorSegmentationAreaSelection = {
 
 // Watchers
 watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
+
+// Watch for selection of "complete" with other elements, and confirm with user
+watch(
+  elementsSelected,
+  (newVal) => {
+    const hasComplete = newVal.some(sel => sel.name === 'complete');
+    const hasOtherElements = newVal.some(sel => sel.name && sel.name !== '' && sel.name !== 'complete');
+
+    if (hasComplete && hasOtherElements) {
+      // Open dialog instead of window.confirm
+      pendingElementsSelected = [...newVal];
+      showConfirmDialog.value = true;
+    }
+  },
+  { deep: true }
+);
 
 /**
  * Fetch the hexadecimal colors' data.
@@ -221,7 +267,7 @@ function getElementIndex(elementName: string | undefined) {
 const addElementSelection = () => {
   const newElement = {
     id: elementsSelected.value.length + 1,
-    name: undefined,
+    name: "",
     threshold: threshold.value
   }
   elementsSelected.value.push(newElement);
@@ -300,7 +346,7 @@ function removeElement(index: number) {
             <SelectContent>
               <SelectItem
                 value="complete"
-                :disabled="elementsSelected.some(sel => sel.name === 'complete') || elementsSelected.some(sel => sel.name !== undefined && sel.name !== 'complete')"
+                :disabled="elementsSelected.some(sel => sel.name === 'complete')"
               >
                 Complete painting
               </SelectItem>
@@ -308,7 +354,7 @@ function removeElement(index: number) {
                 v-for="element in selectableElementsList"
                 :key="element.name"
                 :value="element.name"
-                :disabled="elementsSelected.some(sel => sel.name === element.name) || elementsSelected.some(sel => sel.name === 'complete')"
+                :disabled="disabledElements.includes(element.name) && elementSel.name !== element.name"
               >
                 {{ element.name }}
               </SelectItem>
@@ -350,7 +396,7 @@ function removeElement(index: number) {
       <Button
         variant="outline"
         @click="addElementSelection"
-        :disabled="elementsSelected.length >= selectableElementsList.length + 1"
+        :disabled="elementsSelected.length >= selectableElementsList.length || elementsSelected.some(sel => sel.name === 'complete')"
       >
         Add element
       </Button>
@@ -382,5 +428,21 @@ function removeElement(index: number) {
         />
       </div>
     </div>
+    <Dialog v-model:open="showConfirmDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Selection</DialogTitle>
+          <DialogDescription>
+            <div class="mt-3">
+            Selecting 'Complete painting' will remove all other selected elements. Continue?
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        <div class="mt-1 flex justify-end space-x-2">
+          <Button variant="outline" @click="handleConfirm(false)">Cancel</Button>
+          <Button @click="handleConfirm(true)">Confirm</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </Window>
 </template>
