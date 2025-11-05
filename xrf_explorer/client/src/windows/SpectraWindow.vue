@@ -30,6 +30,9 @@ let svg = d3.select(spectraChart.value!);
 let x = d3.scaleLinear();
 let y = d3.scaleLinear();
 
+// Zoom State
+let currentZoomTransform: d3.ZoomTransform | null = null;
+
 // Area selection
 const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
 watch(areaSelection, getSelectionSpectrum, { deep: true, immediate: true });
@@ -110,12 +113,24 @@ async function getOffset() {
 function makeChart() {
   clearChart(svg);
 
+  // Block viewing graphs below x-axis and left of y-axis
+  svg
+    .append("defs")
+    .append("clipPath")
+    .attr("id", "chart-area-clip")
+    .append("rect")
+    .attr("x", margin.left)
+    .attr("y", margin.top)
+    .attr("width", width - margin.left - margin.right)
+    .attr("height", height - margin.top - margin.bottom);
+
   const max = getMax();
+
   // Add X and Y axis
   x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([low.value * ((40 - offset) / 4096) + offset, high.value * ((40 - offset) / 4096) + offset]);
+    .domain([low.value * ((40 - offset) / high.value) + offset, high.value * ((40 - offset) / high.value) + offset]);
   y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
@@ -132,6 +147,7 @@ function makeChart() {
   // add axis
   svg
     .append("g")
+    .attr("class", "x-axis")
     .attr("transform", `translate(0, ${height - margin.bottom})`)
     .call(d3.axisBottom(x))
     .call((g) =>
@@ -146,6 +162,7 @@ function makeChart() {
 
   svg
     .append("g")
+    .attr("class", "y-axis")
     .attr("transform", `translate(${margin.left}, 0)`)
     .call(d3.axisLeft(y))
     .call((g) =>
@@ -155,14 +172,17 @@ function makeChart() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("Average intensity (%)"),
+        .text("Average Count/s (%)"),
     );
+
+  // Create a group for the plot area and apply the clip-path
+  const plotArea = svg.append("g").attr("clip-path", "url(#chart-area-clip)");
 
   // create line
   const globalLine = createLine();
 
   // Add the line to chart
-  svg
+  plotArea
     .append("path")
     .datum(globalData)
     .attr("fill", "none")
@@ -182,7 +202,7 @@ function makeChart() {
   const selectionLine = createLine();
 
   // Add the line to chart
-  svg
+  plotArea
     .append("path")
     .datum(selectionData)
     .attr("fill", "none")
@@ -197,13 +217,13 @@ function makeChart() {
 
   // remove previous element lines
   svg.select("#elementLine").remove();
-  svg.selectAll("line").remove();
+  svg.selectAll(".peak-line").remove();
 
   // create line
   const elementLine = createLine();
 
   // Add the line to chart
-  svg
+  plotArea
     .append("path")
     .datum(elementData)
     .attr("fill", "none")
@@ -215,8 +235,9 @@ function makeChart() {
 
   //Add peaks
   elementPeaks.forEach((index) => {
-    svg
+    plotArea
       .append("line")
+      .attr("class", "peak-line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
       .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
@@ -227,6 +248,43 @@ function makeChart() {
 
   // modify visibility based on checkbox status
   updateElement();
+
+  const zoom = d3
+    .zoom()
+    .scaleExtent([1, 8])
+    .on("zoom", (event) => {
+      currentZoomTransform = event.transform; // Store the current transform
+      const newX = event.transform.rescaleX(x);
+      const newY = event.transform.rescaleY(y);
+
+      // Update axes
+      svg.select(".x-axis").call(d3.axisBottom(newX) as any);
+      svg.select(".y-axis").call(d3.axisLeft(newY) as any);
+
+      // Create new line generator with transformed scales
+      const zoomedLine = d3
+        .line<number>()
+        .x((_, i) => newX((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+        .y((d) => newY(d * (100 / 255)));
+
+      // Update all lines with zoomed scales
+      svg.select("#globalLine").attr("d", zoomedLine(globalData));
+      svg.select("#selectionLine").attr("d", zoomedLine(selectionData));
+      svg.select("#elementLine").attr("d", zoomedLine(elementData));
+
+      // Update peaks
+      svg
+        .selectAll(".peak-line")
+        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / 4096) + offset));
+    });
+
+  svg.call(zoom as any);
+
+  // Restore the previous zoom transform if it exists
+  if (currentZoomTransform) {
+    svg.call(zoom.transform as any, currentZoomTransform);
+  }
 }
 
 const globalChecked = ref(false);
@@ -339,7 +397,7 @@ async function getElementSpectrum(element: string, excitation: number) {
   } else {
     // remove previous element line
     svg.select("#elementLine").remove();
-    svg.selectAll("line").remove();
+    svg.selectAll(".peak-line").remove();
   }
 
   // modify visibility based on checkbox status
@@ -393,9 +451,9 @@ function updateElement() {
     svg.select("#elementLine").style("opacity", 0);
   }
   if (selectedElement.value == "No element") {
-    svg.selectAll("line").style("opacity", 0);
+    svg.selectAll(".peak-line").style("opacity", 0);
   } else {
-    svg.selectAll("line").style("opacity", 1);
+    svg.selectAll(".peak-line").style("opacity", 1);
   }
 }
 

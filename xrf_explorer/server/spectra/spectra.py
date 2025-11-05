@@ -26,12 +26,12 @@ def get_average_global(data: np.ndarray) -> list[float]:
 
 def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     """
-    Computes the average of the raw data for each bin on the selected pixels.
+    Computes the normalized average of the raw data for each bin on the selected pixels.
 
     :param data_source: name of the data source to get the selection average from
     :param mask: The mask describing the selected pixels
-    :return: list where the index is the channel number and the value is the average intensity of that channel within
-        the selection
+    :return: list where the index is the channel number and the value is the normalized average intensity of that channel
+        within the selection (in range 0-100)
     """
 
     config: dict | None = get_config()
@@ -63,9 +63,12 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
         scaled_mask[floor(index[0] / 2 ** level), floor(index[1] / 2 ** level)] = True
 
     if indices.size > 0:
-        np.vectorize(set_mask, signature="(2)->()")(indices)
+        for index in indices:
+            set_mask(index)
 
     indices: np.ndarray = np.argwhere(scaled_mask)
+
+    LOG.info(f"shape of indices: {indices.shape} ")
 
     # Function to vectorize to calculate the average data
     def add_row(index: np.ndarray):
@@ -77,6 +80,18 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     if indices.size > 0:
         np.vectorize(add_row, signature="(2)->()")(indices)
         average: np.ndarray = total / indices.shape[0]
+        LOG.info(f"Average of averages is: {np.mean(average)} ")
+
+        # Normalize the average to be in the range [0, 100]
+        min_val: np.ndarray = np.min(average)
+        max_val: np.ndarray = np.max(average)
+
+        # Avoid division by zero if all values are the same
+        if max_val - min_val > 0:
+            average = (average - min_val) / (max_val - min_val) * 100
+        else:
+            average = np.zeros_like(average)
+
 
     LOG.info("Calculated the average spectrum for the selection.")
     return average.tolist()
@@ -92,8 +107,8 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
     :param low: lower channel boundary
     :param high: higher channel boundary
     :param bin_size: size of each bin
-    :return: list with first element being a list of dictionaries representing the spectra points, second being a
-        list of dictionaries representing the peaks
+    :return: list with first element being a list of dictionaries representing the spectra points (normalized to 0-100),
+        second being a list of dictionaries representing the peaks
     """
     # remove last character to get periodic table symbol
     element = element[:len(element) - 1].strip()
@@ -109,8 +124,8 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
         LOG.info(f"Could not get theoretical spectral for excitation energy {excitation_energy_kev}")
         return []
 
-    # get_element_spectrum returns normalized data, rescale to [0, 255]
-    y_spectrum: np.ndarray = data[1] * 255
+    # get_element_spectrum returns normalized data, keep in [0, 1] range
+    y_spectrum: np.ndarray = data[1]
 
     response: list = []
 
@@ -128,22 +143,27 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
         mean = np.mean(y_spectrum[start_index:start_index + new_bin_size])
         spectrum.append(mean)
 
+    # Normalize spectrum to [0, 100]
+    spectrum_max = max(spectrum) if spectrum else 1.0
+    if spectrum_max > 0:
+        spectrum = [val / spectrum_max * 100 for val in spectrum]
+
     response.append(spectrum)
 
     # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
     x_peaks = data[2] * 4096 / abs(data[0].max() - data[0].min())
 
-    # get_element_spectrum returns normalized data, rescale to [0, 255]
-    _ = data[3] * 255
-
+    # Normalize peaks to [0, 100] based on bin count
     peaks = []
+    max_bin = (high - low) / bin_size
     for i in range(len(x_peaks)):
         # take only the peaks within the domain [low, high]
         if low <= x_peaks[i] < high:
-            peaks.append((x_peaks[i] - low) / bin_size)
+            peak_position = (x_peaks[i] - low) / bin_size
+            peaks.append(peak_position / max_bin * 100)
+
     response.append(peaks)
     return response
-
 
 # functions to compute theoretical elemental spectrum
 # From xrf4u: https://github.com/fligt/maxrf4u/blob/main/maxrf4u/xphysics.py
