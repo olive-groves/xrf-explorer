@@ -17,7 +17,7 @@ import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { clearChart } from "./charts";
-import {toast} from "vue-sonner";
+import { toast } from "vue-sonner";
 
 const spectraChart = ref<HTMLElement>();
 let ready: boolean = false;
@@ -241,9 +241,9 @@ function makeChart() {
       .attr("class", "peak-line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+      .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
       .attr("y1", 30)
-      .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+      .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
       .attr("y2", 430);
   });
 
@@ -259,13 +259,13 @@ function makeChart() {
       const newY = event.transform.rescaleY(y);
 
       // Update axes
-      svg.select(".x-axis").call(d3.axisBottom(newX) as any);
-      svg.select(".y-axis").call(d3.axisLeft(newY) as any);
+      svg.select(".x-axis").call(d3.axisBottom(newX) as never);
+      svg.select(".y-axis").call(d3.axisLeft(newY) as never);
 
       // Create new line generator with transformed scales
       const zoomedLine = d3
         .line<number>()
-        .x((_, i) => newX((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+        .x((_, i) => newX((i * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
         .y((d) => newY(d * (100 / 255)));
 
       // Update all lines with zoomed scales
@@ -276,15 +276,19 @@ function makeChart() {
       // Update peaks
       svg
         .selectAll(".peak-line")
-        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
-        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / 4096) + offset));
+        .attr("x1", (_, i) =>
+          newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / high.value) + offset),
+        )
+        .attr("x2", (_, i) =>
+          newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / high.value) + offset),
+        );
     });
 
-  svg.call(zoom as any);
+  svg.call(zoom as never);
 
   // Restore the previous zoom transform if it exists
   if (currentZoomTransform) {
-    svg.call(zoom.transform as any, currentZoomTransform);
+    svg.call(zoom.transform as never, currentZoomTransform);
   }
 }
 
@@ -301,7 +305,7 @@ const excitation = ref(0);
 function createLine() {
   return d3
     .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / 4096) + offset))
+    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
     .y((d, _) => y(d * (100 / 255)));
 }
 
@@ -331,7 +335,7 @@ async function getAverageSpectrum() {
       globalData = await response.json();
       makeChart();
     } catch (e) {
-      toast.warning("Something went wrong while fetching spectrum data.", e);
+      toast.warning("Something went wrong while fetching spectrum data.");
       console.error("Error getting global average spectrum", e);
     }
     loadingGlobal.value = false;

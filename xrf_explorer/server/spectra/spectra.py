@@ -158,14 +158,14 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
     # get_element_spectrum returns data in domain [0, 40], rescale to [0, 4096]
     x_peaks = data[2] * 4096 / abs(data[0].max() - data[0].min())
 
-    # Normalize peaks to [0, 100] based on bin count
+    # Return peak positions as bin indices
     peaks = []
-    max_bin = (high - low) / bin_size
+
     for i in range(len(x_peaks)):
         # take only the peaks within the domain [low, high]
         if low <= x_peaks[i] < high:
             peak_position = (x_peaks[i] - low) / bin_size
-            peaks.append(peak_position / max_bin * 100)
+            peaks.append(peak_position)
 
     response.append(peaks)
     return response
