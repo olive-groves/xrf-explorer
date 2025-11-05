@@ -48,7 +48,12 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
 
     LOG.info("Getting selection at mip level %i", level)
 
-    data: np.ndarray = get_raw_data(data_source, level=level)
+    try:
+        data: np.ndarray = get_raw_data(data_source, level=level)
+    except (ValueError, FileNotFoundError, RuntimeError) as e:
+        print(f"Failed to get raw data: {e}")
+        raise
+
     length: int = data.shape[2]
     total: np.ndarray = np.zeros(length)
 
