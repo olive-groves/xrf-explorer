@@ -63,6 +63,19 @@ function confirmStitchingDialog() {
 }
 
 function updatePartialScan(idx: number, prop: keyof PartialScanState, val: number[]) {
+    // Normalize rotation updates to 90-degree steps and clamp to [-180,180]
+    if (prop === 'rotation') {
+      const raw = Number(Array.isArray(val) ? val[0] : val);
+      const snapped = Math.round(raw / 90) * 90;
+      const clamped = Math.max(-180, Math.min(180, snapped));
+      partialScans.value[idx][prop] = [clamped];
+      try {
+        window.dispatchEvent(new CustomEvent('stitch:grayscale-prop-changed', { detail: { index: idx, prop, value: clamped } }));
+      } catch (e) {
+        console.warn('Could not dispatch grayscale prop change', e);
+      }
+      return;
+    }
     partialScans.value[idx][prop] = val;
     // no special-case forwarding here; use per-index events so each slider maps to its greyscale
     // Dispatch a generic per-index property change so the StitchViewer can react
@@ -116,11 +129,28 @@ function onGrayscalePosChanged(e: Event | CustomEvent) {
 
 onMounted(() => {
   window.addEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
+  // listen for rotation changes originating from the viewer (so the slider display updates)
+  window.addEventListener('stitch:grayscale-prop-changed', onGrayscalePropFromViewer as EventListener);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
+  window.removeEventListener('stitch:grayscale-prop-changed', onGrayscalePropFromViewer as EventListener);
 });
+
+function onGrayscalePropFromViewer(e: Event | CustomEvent) {
+  try {
+    const d = (e as CustomEvent).detail;
+    if (!d) return;
+    const { index, prop, value } = d as { index: number; prop: string; value: number };
+    if (prop !== 'rotation') return; // only handle rotation here
+    if (!partialScans.value[index]) return;
+    // update local rotation display without re-dispatching
+    partialScans.value[index].rotation = [Number(value)];
+  } catch (err) {
+    console.warn('Error handling grayscale prop from viewer', err);
+  }
+}
 
 // no selected-grayscale slider here; Partial Scan 1 slider forwards to the viewer directly
 
@@ -180,11 +210,11 @@ onBeforeUnmount(() => {
         <!-- Y offset displayed and adjustable via nudge buttons (viewer dragging will update this) -->
         
         <LabeledSlider
-          label="Rotation (degrees)"
+          label="Rotation"
           :modelValue="partialScans[idx]?.rotation ?? [0]"
           :min="-180" 
           :max="180" 
-          :step="0.1"
+          :step="90"
           @update:modelValue="val => updatePartialScan(idx, 'rotation', val)"
         />
       </div>

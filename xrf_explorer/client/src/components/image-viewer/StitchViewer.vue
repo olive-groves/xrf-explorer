@@ -597,7 +597,16 @@ watch(() => appState.workspace, () => loadGrayscaleImages(), { deep: true });
 
 function rotateBox(index: number) {
   const img = greyscaleImages.value[index];
-  img.rotation = (img.rotation + 90) % 360;
+  // increment by 90 and normalize into [-180, 180] for consistent UI display
+  const next = (Number(img.rotation) || 0) + 90;
+  const normalized = ((next + 180) % 360) - 180;
+  img.rotation = normalized;
+  // announce rotation change so controls can update
+  try {
+    window.dispatchEvent(new CustomEvent('stitch:grayscale-prop-changed', { detail: { index, prop: 'rotation', value: normalized } }));
+  } catch (e) {
+    // ignore
+  }
 }
 
 
