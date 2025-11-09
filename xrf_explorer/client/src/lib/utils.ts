@@ -156,8 +156,10 @@ export function flipSelectionAreaSelection(selection: SelectionAreaSelection, he
 }
 
 /**
- *
- * @param selection
+ * Returns whether a selection is active.
+ * A selection is considered active ifs it has a valid type and at least 2 points.
+ * @param selection The selection to check.
+ * @returns True if the selection type is not undefined and has at least 2 points, else false.
  */
 export function hasActiveSelection(selection: SelectionAreaSelection) {
   return selection.points.length > 1 && selection.type != undefined;
@@ -165,8 +167,9 @@ export function hasActiveSelection(selection: SelectionAreaSelection) {
 
 /**
  * Compares two Point2D objects for value equality.
- * @param p1
- * @param p2
+ * @param p1 First point.
+ * @param p2 Second point.
+ * @returns True if the x and y of the points are equivalent, false if not.
  */
 export function arePoint2DEqual(p1: Point2D, p2: Point2D): boolean {
   return p1.x === p2.x && p1.y === p2.y;
@@ -175,8 +178,9 @@ export function arePoint2DEqual(p1: Point2D, p2: Point2D): boolean {
 /**
  * Compares two SelectionAreaSelection objects for value equality.
  * It performs a deep comparison of their properties, including the points array.
- * @param s1
- * @param s2
+ * @param s1 First SelectionAreaSelection.
+ * @param s2 Second SelectionAreaSelection.
+ * @returns True if the type and points of the selections are equivalent, false if not.
  */
 export function areSelectionAreaSelectionsEqual(s1: SelectionAreaSelection, s2: SelectionAreaSelection): boolean {
   // Check type

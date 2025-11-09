@@ -272,19 +272,20 @@ const addElementSelection = () => {
   }
   elementsSelected.value.push(newElement);
 }
+
 /*
- * TODO: Write description.
+ * Returns a selection object that exactly covers the entire painting.
+ * @returns A `SelectionAreaSelection` object exactly covering the entire painting.
  */
-async function getFullImageSelection() {
+async function getFullImageSelection(): Promise<SelectionAreaSelection> {
   const size = await getTargetSize();
-  const newAreaSelection: SelectionAreaSelection = {
+  return {
     type: SelectionAreaType.Rectangle,
     points: [
       { x: 0, y: 0 },
       { x: size.width, y: size.height },
     ],
   };
-  return newAreaSelection;
 }
 
 function removeElement(index: number) {
