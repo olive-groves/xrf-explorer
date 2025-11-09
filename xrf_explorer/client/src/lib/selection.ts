@@ -86,6 +86,10 @@ export type ColorSegmentationSelection = {
    * selection. Used to make browser caching work properly.
    */
   lastCompleteSelectionTimestamp: number;
+  /**
+   * Unix timestamp representing the time when the color segmentation was run.
+   */
+  lastColorSegmentationRun: number;
 };
 
 /**

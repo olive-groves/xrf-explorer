@@ -165,6 +165,7 @@ async function fetchColors() {
       body: JSON.stringify(request_body),
     },
   );
+  selection.value.lastColorSegmentationRun = Date.now();
 
   if (!response.ok) {
     toast.warning("Failed to retrieve colors");

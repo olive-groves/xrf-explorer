@@ -24,7 +24,8 @@ export const appState = reactive<AppState>({
         type: undefined,
         points: [],
       },
-      lastCompleteSelectionTimestamp: 0
+      lastCompleteSelectionTimestamp: 0,
+      lastColorSegmentationRun: 0
     },
     dimensionalityReduction: {
       color: "#ffffff",
