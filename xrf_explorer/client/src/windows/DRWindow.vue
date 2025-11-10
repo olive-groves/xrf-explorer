@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -19,8 +19,13 @@ import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
 import { Separator } from "@/components/ui/separator";
-import { SelectionAreaType } from "@/lib/selection";
-import { remToPx } from "@/lib/utils";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { 
+  remToPx, 
+  deepClone, 
+  flipSelectionAreaSelection,
+  hasActiveSelection,
+  areSelectionAreaSelectionsEqual } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   NumberField,
@@ -29,6 +34,34 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { getTargetSize } from "@/components/image-viewer/api";
+
+//    Setup for selection tracking
+// Custom type for keeping track of what selection to use
+type DimensionalityReductionAreaSelection = {
+  areaSelection: SelectionAreaSelection;
+  lastChangedTimestamp: number;
+};
+
+// Computed properties
+const selection = computed(() => appState.selection.dimensionalityReductionPainting);
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+
+// Non-reactive variables
+const currentAreaSelection: DimensionalityReductionAreaSelection = {
+  areaSelection: {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: 10000, y: 10000 },
+    ],
+  },
+  lastChangedTimestamp: Date.now(),
+};
+
+// Watchers
+watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
+
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -76,7 +109,7 @@ const selectedOverlay = ref();
 const imageSourceUrl = ref();
 let abortController = new AbortController();
 
-// Selection
+// Selection in DR window
 const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
 
 /**
@@ -152,33 +185,100 @@ async function updateEmbedding() {
     return;
   }
 
+  updateSelection();
   status.value = Status.GENERATING;
+  let request_body: SelectionAreaSelection;
+  if (selectionChecked.value) { /// maybe check as well if there was actually a selection and error otherwise?
+    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height); // Deze gaat niet goed vlm?
+    console.log("selected area request body1: ", request_body);
+  } else {
+    request_body = await getFullImageSelection();
+    console.log("global area request body2: ", request_body);
+  }
 
-  // Create URL for embedding
-  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
+  console.log("gaat goed tot API");
+  console.log("Selected element:", selectedElement.value);
+  console.log("Selection checked:", selectionChecked.value);
+  console.log("Current area selection:", currentAreaSelection.areaSelection);
+  console.log("Target size:", await getTargetSize());
+  console.log("Request body:", request_body);
+  try {
+    // Make API call
+    const response2 = await fetch(`${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(request_body),
+    });
 
-  // Create the embedding
-  const { response, data } = await useFetch(apiURL).get().text();
+    console.log("Respons2 returns this: ", response2);
+    if (response2.ok) {//} && data2.value != null) {
+      // if (data2.value == "downsampled") {
+      //   toast.warning("Downsampled data points", {
+      //     description:
+      //       "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+      //   });
+      //  console.log("yaay");
+      //}
 
-  // Check if fetching the image was successful
-  if (response.value?.ok && data.value != null) {
-    if (data.value == "downsampled") {
-      toast.warning("Downsampled data points", {
-        description:
-          "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
-      });
+      // Load the new embedding
+      status.value = Status.LOADING;
+      await fetchDRImage();
+      return;
     }
 
-    // Load the new embedding
-    status.value = Status.LOADING;
-    await fetchDRImage();
-    return;
+  } catch (e) {
+    console.error("Error  getting data aahh", e); // Make better later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
+  // }
 
   // Set status to error
   currentError.value = "Generating embedding failed";
   status.value = Status.ERROR;
 }
+
+//    Below are functions for selection in the painting.
+
+/**
+ * Sets the DR selection.
+ */
+function updateSelection() {
+  if (selection.value != undefined) {
+    // Update selection
+    selection.value.useAreaSelection = selectionChecked.value;
+    selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
+    selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
+  }
+}
+
+/**
+ * Updates the currentAreaSelection if the new Selection made by the user is a new one, and valid.
+ * @param newSelection The new selection made by the user.
+ */
+function updateAreaSelection(newSelection: SelectionAreaSelection) {
+  if (
+    hasActiveSelection(newSelection) &&
+    !areSelectionAreaSelectionsEqual(newSelection, currentAreaSelection.areaSelection)
+  ) {
+    currentAreaSelection.areaSelection = deepClone(newSelection);
+    currentAreaSelection.lastChangedTimestamp = Date.now();
+  }
+}
+
+/**
+ * Returns a selection object that exactly covers the entire painting.
+ * @returns A `SelectionAreaSelection` object exactly covering the entire painting.
+ */
+async function getFullImageSelection(): Promise<SelectionAreaSelection> {
+  const size = await getTargetSize();
+  return {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: size.width, y: size.height },
+    ],
+  };
+}
+
 </script>
 
 <template>

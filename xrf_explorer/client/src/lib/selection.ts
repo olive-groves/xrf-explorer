@@ -21,6 +21,10 @@ export type Selection = {
    * The selection made in the dimensionality reduction window.
    */
   dimensionalityReduction: DimensionalityReductionSelection;
+  /**
+   * The selection made in the dimensionality reduction window.
+   */
+  dimensionalityReductionPainting: DimensionalityReductionPaintingSelection;
 };
 
 /**
@@ -100,6 +104,31 @@ export type DimensionalityReductionSelection = {
    * The selected area.
    */
   area: SelectionAreaSelection;
+};
+
+/**
+ * Describes the selected color segmentation segments.
+ */
+export type DimensionalityReductionPaintingSelection = {
+  /**
+   * The element index corresponding to the clusters
+   * If whole painting, it's 0, otherwise it's the
+   * element's channel plus 1.
+   */
+  element: number;
+  /**
+   * Whether the clusters are computed over only the active Areaselection, or not.
+   */
+  useAreaSelection: boolean;
+  /**
+   * Last complete area selection the segmentation will work with.
+   */
+  areaSelection: SelectionAreaSelection;
+  /**
+   * Unix timestamp representing the time when the last valid area selection was added to current color segmentation
+   * selection. Used to make browser caching work properly.
+   */
+  lastCompleteSelectionTimestamp: number;
 };
 
 /**

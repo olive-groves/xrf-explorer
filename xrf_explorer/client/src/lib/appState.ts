@@ -33,6 +33,15 @@ export const appState = reactive<AppState>({
         points: [],
       },
     },
+    dimensionalityReductionPainting: {
+      element: 0,
+      useAreaSelection: false,
+      areaSelection: {
+        type: undefined,
+        points: [],
+      },
+      lastCompleteSelectionTimestamp: 0,
+    },
   },
   secondViewer: false,
 });

@@ -14,7 +14,7 @@ from xrf_explorer.server.dim_reduction import (
 LOG: Logger = getLogger(__name__)
 
 
-@app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>")
+@app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>", methods=['POST'])
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """
     Generate the dimensionality reduction embedding of an element, given a threshold.
@@ -28,7 +28,10 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     """
     scaled_threshold: int = int(255 * threshold / 100)
     # Try to generate the embedding
-    result = generate_embedding(data_source, element, scaled_threshold, request.args)
+    LOG.info(f"WERE GOING INTOOOOOOOOOOOOO generate embedding BELOOOOWW")
+    requesting = request.get_json(silent=True)
+    LOG.info(f"WERE GOING INTOOOOOOOOOOOOO generate embedding BELOOOOWW, request json returns: {requesting}")
+    result = generate_embedding(data_source, element, scaled_threshold, request.args, requesting) # Adjust region to come from the JSON body later
     if result == "success" or result == "downsampled":
         return result
 
