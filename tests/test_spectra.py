@@ -44,7 +44,7 @@ class TestSpectra:
                                      [False, True, True],
                                      [True, False, False]])
         
-        expected_result: list[float] = [2.0, 2.0]
+        expected_result: list[float] = [50.0, 50.0]
         
         # execute
         result: list[float] = get_average_selection(self.DATA_SOURCE_FOLDER_NAME, mask)

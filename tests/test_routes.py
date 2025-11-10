@@ -1,5 +1,5 @@
 from os import rmdir, makedirs, remove
-from os.path import join, isdir, isfile
+from os.path import join, isdir, isfile, exists
 from shutil import rmtree
 
 import pytest
@@ -116,6 +116,10 @@ class TestRoutes:
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
 
+        # Ensure folder does not exist, happens in case previous test failed.
+        if exists(folder_path):
+            rmtree(folder_path)
+
         # execute
         response: TestResponse = client.post(f"/api/{completely_new_data_source}/create")
 
@@ -153,6 +157,10 @@ class TestRoutes:
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
 
+        # Ensure folder does not exist, happens in case previous test failed.
+        if exists(folder_path):
+            rmtree(folder_path)
+
         # setup - create data source with workspace and generated folder
         makedirs(folder_path)
         makedirs(join(folder_path, "generated"))
@@ -184,6 +192,10 @@ class TestRoutes:
         # setup
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
+
+        # Ensure folder does not exist, happens in case previous test failed.
+        if exists(folder_path):
+            rmtree(folder_path)
 
         # setup - create data source with workspace and generated folder
         makedirs(folder_path)

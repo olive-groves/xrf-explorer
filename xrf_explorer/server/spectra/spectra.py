@@ -88,15 +88,10 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
         LOG.info(f"Average of averages is: {np.mean(average)} ")
 
         # Normalize the average to be in the range [0, 100]
-        min_val: np.ndarray = np.min(average)
-        max_val: np.ndarray = np.max(average)
+        total_sum = np.sum(average)
 
-        # Avoid division by zero if all values are the same
-        if max_val - min_val > 0:
-            average = (average - min_val) / (max_val - min_val) * 100
-        else:
-            average = np.zeros_like(average)
-
+        if total_sum > 0:
+            average = (average / total_sum) * 100
 
     LOG.info("Calculated the average spectrum for the selection.")
     return average.tolist()
