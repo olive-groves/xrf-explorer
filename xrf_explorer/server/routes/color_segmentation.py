@@ -156,5 +156,6 @@ def get_color_cluster_bitmask(data_source: str):
     # If image doesn't exist, compute clusters
     if not exists(bitmask_full_path):
         LOG.info(f'Could not find bitmask for color segmentation')
+        return 'Bitmask path does not exist at ' + bitmask_full_path, 404
 
     return send_file(abspath(bitmask_full_path), mimetype='image/png')

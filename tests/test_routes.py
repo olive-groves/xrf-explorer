@@ -333,7 +333,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
+        assert response.text == f"Error parsing points: expected a list of points, got {type('string')}"
     
     def test_element_averages_selection(self, client: FlaskClient):
         # execute
@@ -532,7 +532,7 @@ class TestRoutes:
 
         # verify
         assert response.status_code == 400
-        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
+        assert response.text == f"Error parsing points: expected a list of points, got {type('string')}"
 
     def test_get_selection_spectra(self, client: FlaskClient):
         selection: dict = {
@@ -551,9 +551,17 @@ class TestRoutes:
         assert len(json.loads(response.text)) == 16
 
     def test_get_color_clusters_whole_cube(self, client: FlaskClient):
+        # setup JSON
+        elements = [[0, 100]]
+        
+        PAY_LOAD: dict = {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/false",
-                                             json=self.FULL_SELECTION)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/false",
+                                             json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -563,9 +571,17 @@ class TestRoutes:
         rmtree(self.GENERATED_FOLDER)
     
     def test_get_color_clusters_single_element(self, client: FlaskClient):
+        # setup JSON
+        elements = [[1,0]]
+        
+        PAY_LOAD: dict = {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false",
-                                             json=self.FULL_SELECTION)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/false",
+                                             json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -575,6 +591,9 @@ class TestRoutes:
         rmtree(self.GENERATED_FOLDER)
 
     def test_get_color_clusters_whole_cube_selection(self, client: FlaskClient):
+        # setup JSON
+        elements = [[0, 100]] 
+ 
         selection: dict = {
             "type": "rectangle",
             "points": [
@@ -582,9 +601,15 @@ class TestRoutes:
                 {"x": 1, "y": 1}
             ]
         }
+        
+        PAY_LOAD: dict = {
+            "selection": selection,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true",
-                                             json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true",
+                                             json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -594,6 +619,9 @@ class TestRoutes:
         rmtree(self.GENERATED_FOLDER)
 
     def test_get_color_clusters_single_element_selection(self, client: FlaskClient):
+        # setup JSON
+        elements = [[1,0]] 
+
         selection: dict = {
             "type": "rectangle",
             "points": [
@@ -601,9 +629,15 @@ class TestRoutes:
                 {"x": 1, "y": 1}
             ]
         }
+
+        PAY_LOAD: dict = {
+            "selection": selection,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/true",
-                                             json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true",
+                                             json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -614,11 +648,19 @@ class TestRoutes:
 
     def test_get_color_clusters_already_present(self, client: FlaskClient):
         # setup
-        url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/1/0/false"
+        url: str = f"/api/{self.DATA_SOURCE}/cs/clusters/1/false"
+
+        # setup JSON
+        elements = [[1, 0]]
+        
+        PAY_LOAD: dict = {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
 
         # execute
-        response1: TestResponse = client.post(url, json=self.FULL_SELECTION)
-        response2: TestResponse = client.post(url, json=self.FULL_SELECTION)
+        response1: TestResponse = client.post(url, json=PAY_LOAD)
+        response2: TestResponse = client.post(url, json=PAY_LOAD)
 
         # verify
         assert response1.status_code == 200
@@ -628,20 +670,9 @@ class TestRoutes:
         # cleanup
         rmtree(self.GENERATED_FOLDER)
 
-    def test_get_color_cluster_bitmask_whole_cube_exists(self, client: FlaskClient):
+    def test_get_color_cluster_bitmask_exists(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/0/1/100/false")
-
-        # verify
-        assert response.status_code == 200
-        assert response.data
-
-        # cleanup
-        response.close()
-    
-    def test_get_color_cluster_bitmask_single_element_exists(self, client: FlaskClient):
-        # execute
-        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/1/1/0/false")
+        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask")
 
         # verify
         assert response.status_code == 200
@@ -650,20 +681,9 @@ class TestRoutes:
         # cleanup
         response.close()
 
-    def test_get_color_cluster_bitmask_whole_cube_not_exists(self, client: FlaskClient):
+    def test_get_color_cluster_bitmask_not_exists(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/0/2/100/false")
-
-        # verify
-        assert response.status_code == 404
-        assert response.data
-
-        # cleanup
-        response.close()
-
-    def test_get_color_cluster_bitmask_single_element_not_exists(self, client: FlaskClient):
-        # execute
-        response: TestResponse = client.get(f"/api/{self.BITMASKS_DATA_SOURCE}/cs/bitmask/1/2/0/false")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask")
 
         # verify
         assert response.status_code == 404
@@ -677,7 +697,7 @@ class TestRoutes:
         set_config("this is not a config file.yml")
 
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask/1/1/0/false")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/cs/bitmask")
 
         # verify
         assert response.status_code == 500
@@ -720,6 +740,9 @@ class TestRoutes:
         assert error_msg in caplog.text
 
     def test_get_color_clusters_invalid_selection_type(self, client: FlaskClient):
+        # setup JSON
+        elements = [[0, 100]]
+
         selection: dict = {
             "type": "invalid_type",
             "points": [
@@ -728,33 +751,53 @@ class TestRoutes:
             ]
         }
 
+        PAY_LOAD: dict = {
+            "selection": selection,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
 
         # verify
         assert response.status_code == 400
         assert response.text == f"Error parsing selection of type {selection['type']}"
 
     def test_get_color_clusters_no_selection_type(self, client: FlaskClient):
-        # missing type/points
+        # setup JSON
+        elements = [[0, 100]]
+
         selection: dict = {"something": "invalid"}
 
+        PAY_LOAD: dict = {
+            "selection": selection,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
 
         # verify
         assert response.status_code == 400
         assert response.text == "Error occurred while getting selection type or points from request body"
 
     def test_get_color_clusters_points_not_list(self, client: FlaskClient):
+        # setup JSON
+        elements = [[0, 100]]
+
         selection: dict = {
             "type": "rectangle",
             "points": "not a list"
         }
 
+        PAY_LOAD: dict = {
+            "selection": selection,
+            "elements": elements
+        }
+
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/0/1/100/true", json=selection)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
 
         # verify
         assert response.status_code == 400
-        assert response.text == f"Error parsing points: expected a list of points, got {type("string")}"
+        assert response.text == f"Error parsing points: expected a list of points, got {type('string')}"

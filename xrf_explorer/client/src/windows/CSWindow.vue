@@ -153,7 +153,6 @@ async function fetchColors() {
     elements: selectedElements
   };
 
-  const elementIndex = getElementIndex(selectedElement.value);
   const response = await fetch(
     `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
       `/${number_clusters.value}/${useSelectionChecked.value}`,

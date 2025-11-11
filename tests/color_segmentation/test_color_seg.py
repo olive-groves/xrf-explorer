@@ -42,7 +42,7 @@ class TestColorSegmentation:
 
     FULL_SELECTION_MASK =  np.ones((3, 3), dtype=bool)
 
-    elem_threshold: float = 0.1
+    elem_threshold: np.ndarray[float] = [0.1]
     num_attempts: int = 10
     k: int = 2
 
@@ -170,15 +170,15 @@ class TestColorSegmentation:
             clusters: np.ndarray
             if missing_param == "datasource":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    "", self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
+                    "", self.IMAGE_NAME, np.array([i]), self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             elif missing_param == "image":
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, "", i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, "", np.array([i]), self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             else:
                 clusters, bitmask = get_elemental_clusters_using_k_means(
-                    self.DATA_SOURCE, self.IMAGE_NAME, i, self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
+                    self.DATA_SOURCE, self.IMAGE_NAME, np.array([i]), self.FULL_SELECTION_MASK, self.elem_threshold, self.k, self.num_attempts
                 )
             clusters_per_elem.append(clusters)
             bitmasks_per_elem.append(bitmask)
@@ -239,13 +239,13 @@ class TestColorSegmentation:
 
         # Set-up
         empty: np.ndarray = np.empty([0])
-        high_elem_threshold: float = 1000
+        high_elem_threshold: np.ndarray[float] = [1000]
 
         # Execute
         bitmask: list[np.ndarray]
         clusters: np.ndarray
         clusters, bitmask = get_elemental_clusters_using_k_means(
-            self.DATA_SOURCE, self.IMAGE_NAME, 0, self.FULL_SELECTION_MASK, high_elem_threshold, self.k, self.num_attempts
+            self.DATA_SOURCE, self.IMAGE_NAME, np.array([0]), self.FULL_SELECTION_MASK, high_elem_threshold, self.k, self.num_attempts
         )
 
         # Verify
