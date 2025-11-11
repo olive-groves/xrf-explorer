@@ -117,20 +117,16 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
         umap_parameters.update(new_umap_parameters)
 
     # Check if there was a selection, if so, reduce datacube to that selection
-    LOG.info(f"DO WE HAVE A REGION????? {{region: {region}}}")
     if region is not None:
-        LOG.info(f"WERE GOING TO ENCODE WITH SELECTION WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
         mask_selection = encode_selection(region, data_source, CubeType.Elemental); #Region is the selection data in JSON format as extracted from a request, so just the data as from request.get_json()
 
         if isinstance(mask_selection, np.ndarray) and mask_selection.dtype == bool:
             data_cube = data_cube * mask_selection[np.newaxis, :, :]
-            LOG.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA encode is not the issue")
         elif isinstance(mask_selection, tuple) and isinstance(mask_selection[0], np.ndarray):
             mask = mask_selection[0]
             data_cube = data_cube * mask[np.newaxis, :, :]
-            LOG.info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBencode is not the issue")
         else:
-            LOG.warning("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCEncode_selection() returned unexpected type: ", type(mask_selection))
+            LOG.warning("Encode_selection() returned unexpected type: ", type(mask_selection))
 
     # filter data
     max_samples: int = int(backend_config['dim-reduction']['max-samples'])
