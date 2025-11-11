@@ -108,7 +108,7 @@ watch(
       <div v-else class="p-8 text-center text-muted-foreground">Stitching is in-process
       </div>
     </div>
-    <div v-else-if="appState.workspace != undefined">
+    <div ref="content" v-else-if="appState.workspace != undefined">
       <slot />
     </div>
     <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div> 
