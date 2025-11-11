@@ -149,9 +149,9 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
-    :param elemental_channel: channel of the element to compute the color clusters of
+    :param elemental_channel: array of channels of the element to compute the color clusters of
     :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
-    :param elem_threshold: minimum concentration needed for an element to be present in the pixel
+    :param elem_threshold: array of minimum concentrations needed for the respective element to be present in the pixel
     :param k: number of clusters required at end. Defaults to 30
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
         Defaults to 10
