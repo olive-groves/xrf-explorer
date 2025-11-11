@@ -242,6 +242,28 @@ function toggleCluster(colorIndex: number) {
 }
 
 /**
+ * Enables all color clusters
+ */
+function enableAllClusters() {
+  for (var i = 0; i < selection.value.enabled.length; i++) {
+    if (selection.value.enabled[i] != undefined) {
+      selection.value.enabled[i] = true;
+    }
+  }
+}
+
+/**
+ * Disables all color clusters
+ */
+function disableAllClusters() {
+  for (var i = 0; i < selection.value.enabled.length; i++) {
+    if (selection.value.enabled[i] != undefined) {
+      selection.value.enabled[i] = false;
+    }
+  }
+}
+
+/**
  * Returns the index of the given element/complete painting to pass to the backend,
  * by setting the complete painting to index 0, and
  * the elements to their channel number plus 1.
@@ -428,6 +450,10 @@ function removeElement(index: number) {
           }"
           @click="toggleCluster(colorIndex)"
         />
+      </div>
+      <div v-if="status == Status.SUCCESS && colors.length > 0" class="flex gap-2 w-full">
+        <Button class="basis-1/2" variant="outline" @click="enableAllClusters">Select All</Button>
+        <Button class="basis-1/2" variant="outline" @click="disableAllClusters">Deselect All</Button>
       </div>
     </div>
     <Dialog v-model:open="showConfirmDialog">
