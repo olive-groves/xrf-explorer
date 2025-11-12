@@ -14,11 +14,11 @@ export const appState = reactive<AppState>({
     },
     elements: [],
     colorSegmentation: {
-      element: Array(1).fill(0),
+      elements: Array(1).fill(0),
       enabled: Array(1).fill(false),
       colors: [],
       k: 20,
-      threshold: Array(1).fill(0),
+      thresholds: Array(1).fill(0),
       useAreaSelection: false,
       areaSelection: {
         type: undefined,

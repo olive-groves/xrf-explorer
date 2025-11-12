@@ -172,6 +172,17 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
 
+    # check if element channels are valid
+    for i in range(len(elemental_channel)):
+        if elemental_channel[i] > len(data_cube):
+            LOG.error(f'elemental_channel={elemental_channel[i]} is not valid for this data cube')
+            return np.empty(0), []
+
+    for i in range(len(elem_threshold)):
+        if elem_threshold[i] < 0 or elem_threshold[i] > 255:
+            LOG.error(f'invalid threshold {elem_threshold[i]}')
+            return np.empty(0), []
+
     # Get registered image
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
     if registered_image is None:

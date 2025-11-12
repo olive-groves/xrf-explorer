@@ -46,15 +46,13 @@ type ColorSegmentationRequestBody = {
 // Constants and injected values
 const config = inject<FrontendConfig>("config")!;
 const selection = computed(() => appState.selection.colorSegmentation);
-const threshold = ref(20);
 const number_clusters = ref(10);
 const currentError = ref("Unknown error");
 const colors = ref<string[]>([""]);
-const selectedElement = ref<string>();
 const useSelectionChecked = ref<boolean>(false);
 const status = ref(Status.WAITING);
 
-const elementsSelected = ref([{id: 1, name: selectedElement, threshold: threshold}])
+const elementsSelected = ref([{id: 1, name: "", threshold: 20}])
 const selectableElementsList = computed(() => elements.value);
 const disabledElements = computed(() => {
   // Collect all currently selected names (except empty and 'complete')
@@ -69,7 +67,7 @@ let pendingElementsSelected: typeof elementsSelected.value | null = null;
 
 function handleConfirm(choice: boolean) {
   if (choice) {
-    elementsSelected.value = [{ id: 1, name: 'complete', threshold: threshold.value }];
+    elementsSelected.value = [{ id: 1, name: 'complete', threshold: elementsSelected.value[0].threshold }];
   } else {
     if (pendingElementsSelected) {
       const firstNonComplete = pendingElementsSelected.find(sel => sel.name && sel.name !== 'complete');
@@ -126,7 +124,7 @@ watch(
  */
 async function fetchColors() {
   status.value = Status.LOADING;
-  if (selectedElement.value == null) {
+  if (elementsSelected.value[0] == null) {
     currentError.value = "Please select an element";
     status.value = Status.ERROR;
     return;
@@ -153,6 +151,7 @@ async function fetchColors() {
     elements: selectedElements
   };
 
+  //Perform request
   const response = await fetch(
     `${config.api.endpoint}/${datasource.value}/cs/clusters/` +
       `/${number_clusters.value}/${useSelectionChecked.value}`,
@@ -200,16 +199,19 @@ async function generateColors() {
  * Sets the CS selection.
  */
 function updateSelection() {
-  const elementIndex = getElementIndex(selectedElement.value);
-
   if (selection.value != undefined) {
     // Update selection
-    selection.value.element[0] = elementIndex;
+    selection.value.elements = [] as number[];
+    selection.value.thresholds = [] as number[];
+    for (var i = 0; i < elementsSelected.value.length; i++) {
+      selection.value.elements.push(getElementIndex(elementsSelected.value[i].name));
+      selection.value.thresholds.push(elementsSelected.value[i].threshold);
+    }
+
     selection.value.enabled = Array(colors.value.length).fill(false);
     selection.value.colors = colors.value;
     selection.value.k = number_clusters.value;
 
-    selection.value.threshold[0] = threshold.value;
     selection.value.useAreaSelection = useSelectionChecked.value;
     selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
     selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
@@ -290,9 +292,20 @@ const addElementSelection = () => {
   const newElement = {
     id: elementsSelected.value.length + 1,
     name: "",
-    threshold: threshold.value
+    threshold: 20
   }
   elementsSelected.value.push(newElement);
+}
+
+/**
+ * Remove an element from the selected elements list.
+ * @param index the index of the element in the list to be removed.
+ */
+function removeElement(index: number) {
+  // Only remove if there's more than 1 element in the list
+  if (elementsSelected.value.length > 1) {
+    elementsSelected.value.splice(index, 1);
+  }
 }
 
 /*
@@ -310,13 +323,6 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
   };
 }
 
-function removeElement(index: number) {
-  // Only remove if there's more than 1 element in the list
-  if (elementsSelected.value.length > 1) {
-    elementsSelected.value.splice(index, 1);
-  }
-}
-
 </script>
 
 <template>
@@ -324,8 +330,8 @@ function removeElement(index: number) {
     <div class="space-y-2 p-2">
       <!-- USE SELECTION AREA CHECKBOX -->
       <div class="flex items-center space-x-2">
-        <Checkbox id="use_selection_area" v-model:checked="useSelectionChecked" />
-        <Label for="use_selection_area">Use only selection area</Label>
+        <Checkbox id="use_selection_area" class="align-bottom" v-model:checked="useSelectionChecked" />
+        <Label for="use_selection_area" class="align-middle">Use only selection area</Label>
       </div>
 
       <!-- COLOR CLUSTER GENERATION -->
@@ -351,11 +357,11 @@ function removeElement(index: number) {
             </NumberFieldContent>
           </NumberField>
         </div>
-        <div class="flex align-bottom">
-          <Checkbox id="recommendedClusterNumberCheck" title="Recommended number of clusters"/>
-          <label for="recommendedClusterNumberCheck" class="text-sm ml-2">Recommended Number Clusters</label>
-          <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
-        </div>
+      </div>
+      <div class="flex align-bottom">
+        <Checkbox id="recommendedClusterNumberCheck" class="align-bottom" title="Recommended number of clusters"/>
+        <label for="recommendedClusterNumberCheck" class="text-sm ml-2 align-middle">Recommended Number Clusters</label>
+        <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
       </div>
       <!-- ELEMENTS SELECTION -->
       
@@ -438,7 +444,7 @@ function removeElement(index: number) {
       </div>
 
       <!-- COLOR PALETTE -->
-      <div v-if="selectedElement && status == Status.SUCCESS" class="flex flex-wrap gap-2">
+      <div v-if="elementsSelected[0] && status == Status.SUCCESS" class="flex flex-wrap gap-2">
         <div
           v-for="(color, colorIndex) in colors"
           :key="color"

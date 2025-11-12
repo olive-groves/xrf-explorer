@@ -4,7 +4,7 @@ Color Segmentation
 In this section you can find how to use the color segmentation window
 
 Create Color Segmentation
------------------
+-----------------------------------
 The user first has to select a number of clusters to use, or the user can opt to use the recommended number of clusters. 
 The user can also decide to use only the selection for the color segmentation.
 The user then selects one or more elements with their respective thresholds, on which the color segmentation will be run.
@@ -13,13 +13,13 @@ After the color clustering is performed, the calculated cluster colors will be d
 The user can select these cluster colors to display their corresponding pixels in the main view.
 
 Color Clustering
----------------------
+-------------------------------------
 Color clustering is performed on the pixels with the selected elements and respective thresholds. 
 This color clustering is done using the k-means clustering algorithm.
 This algorithm calculates for the given k the optimal color clusters and their average color.
 These clusters and colors will be returned.
 
 Recommended number of clusters
---------------------------
+--------------------------------------------
 to be determined
 

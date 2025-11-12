@@ -801,3 +801,33 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.text == f"Error parsing points: expected a list of points, got {type('string')}"
+
+    def test_get_color_clusters_invalid_elements(self, client: FlaskClient):
+        elements = [[10000, 10]]
+
+        PAY_LOAD: dict = {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == f"No colors or bitmasks returned"
+
+    def test_get_color_clusters_invalid_elements(self, client: FlaskClient):
+        elements = [[1, 1500]]
+
+        PAY_LOAD: dict = {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
+
+        # execute
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+
+        # verify
+        assert response.status_code == 400
+        assert response.text == f"No colors or bitmasks returned"

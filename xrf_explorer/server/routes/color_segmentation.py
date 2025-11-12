@@ -115,6 +115,9 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
 
         LOG.info("Color segmentation bitmask: " + full_path_json)
 
+    if colors.size == 0 or len(bitmasks) == 0:
+        return f'No colors or bitmasks returned', 400
+
     # Combine bitmasks into one
     combined_bitmask: np.ndarray = combine_bitmasks(bitmasks)
     colors = convert_to_hex(colors)
