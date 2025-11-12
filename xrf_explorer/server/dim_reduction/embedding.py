@@ -130,7 +130,7 @@ def generate_embedding(data_source: str, element: int, threshold: int, new_umap_
 
     # filter data
     max_samples: int = int(backend_config['dim-reduction']['max-samples'])
-    all_indices, reduced_indices = filter_elemental_cube(data_cube, element, threshold, max_samples) # Give Mask here already
+    all_indices, reduced_indices = filter_elemental_cube(data_cube, element, threshold, max_samples)
     filtered_data: np.ndarray = data_cube[:, reduced_indices[:, 0], reduced_indices[:, 1]].transpose()
 
     # compute embedding

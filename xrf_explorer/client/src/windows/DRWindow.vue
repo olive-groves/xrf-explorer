@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
-import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
@@ -185,40 +184,34 @@ async function updateEmbedding() {
     return;
   }
 
+  // Check if the embedding should only apply to a selected area.
   updateSelection();
   status.value = Status.GENERATING;
   let request_body: SelectionAreaSelection;
-  if (selectionChecked.value) { /// maybe check as well if there was actually a selection and error otherwise?
-    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height); // Deze gaat niet goed vlm?
+  if (selectionChecked.value) {
+    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
     console.log("selected area request body1: ", request_body);
   } else {
     request_body = await getFullImageSelection();
     console.log("global area request body2: ", request_body);
   }
 
-  console.log("gaat goed tot API");
-  console.log("Selected element:", selectedElement.value);
-  console.log("Selection checked:", selectionChecked.value);
-  console.log("Current area selection:", currentAreaSelection.areaSelection);
-  console.log("Target size:", await getTargetSize());
-  console.log("Request body:", request_body);
   try {
     // Make API call
-    const response2 = await fetch(`${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`, {
+    const response = await fetch(`${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(request_body),
     });
+    const data = await response.text();
 
-    console.log("Respons2 returns this: ", response2);
-    if (response2.ok) {//} && data2.value != null) {
-      // if (data2.value == "downsampled") {
-      //   toast.warning("Downsampled data points", {
-      //     description:
-      //       "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
-      //   });
-      //  console.log("yaay");
-      //}
+    if (response.ok && data != null) {
+      if (data == "downsampled") {
+        toast.warning("Downsampled data points", {
+          description:
+            "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+        });
+      }
 
       // Load the new embedding
       status.value = Status.LOADING;
@@ -227,7 +220,7 @@ async function updateEmbedding() {
     }
 
   } catch (e) {
-    console.error("Error  getting data aahh", e); // Make better later!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    console.error("API call failed", e);
   }
   // }
 
@@ -236,10 +229,8 @@ async function updateEmbedding() {
   status.value = Status.ERROR;
 }
 
-//    Below are functions for selection in the painting.
-
 /**
- * Sets the DR selection.
+ * Sets the DR selection in the painting.
  */
 function updateSelection() {
   if (selection.value != undefined) {
