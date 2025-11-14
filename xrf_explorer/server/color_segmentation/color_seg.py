@@ -8,6 +8,9 @@ import numpy as np
 from cv2.typing import MatLike
 from skimage import color
 
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+
 from xrf_explorer.server.image_register import get_image_registered_to_data_cube
 from xrf_explorer.server.file_system.cubes import normalize_elemental_cube_per_layer, get_elemental_data_cube
 
@@ -242,6 +245,44 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     center = np.array([lab_to_rgb(c) for c in center])
     return center, cluster_masks
 
+def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=10, random_state=42):
+    """
+    Evaluate multiple metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin)
+    for a range of cluster numbers and recommend the best k.
+    """
+    silhouette_scores = []
+    ch_scores = []
+    db_scores = []
+
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k, n_init=n_init, random_state=random_state)
+        labels = kmeans.fit_predict(X)
+
+        silhouette_scores.append(silhouette_score(X, labels))
+        ch_scores.append(calinski_harabasz_score(X, labels))
+        db_scores.append(davies_bouldin_score(X, labels))
+
+    silhouette_scores = np.array(silhouette_scores)
+    ch_scores = np.array(ch_scores)
+    db_scores = np.array(db_scores)
+
+    # Normalize scores to comparable scale for combined ranking
+    sil_norm = (silhouette_scores - np.min(silhouette_scores)) / (np.max(silhouette_scores) - np.min(silhouette_scores))
+    ch_norm = (ch_scores - np.min(ch_scores)) / (np.max(ch_scores) - np.min(ch_scores))
+    db_norm = 1 - ((db_scores - np.min(db_scores)) / (np.max(db_scores) - np.min(db_scores)))  # Lower is better
+
+    combined_score = (sil_norm + ch_norm + db_norm) / 3
+    best_k = k_range[np.argmax(combined_score)]
+
+    print(f"Recommended k (based on combined score): {best_k}")
+    return {
+        "k_values": list(k_range),
+        "silhouette": silhouette_scores,
+        "calinski_harabasz": ch_scores,
+        "davies_bouldin": db_scores,
+        "combined_score": combined_score.tolist(),
+        "recommended_k": best_k
+    }
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     """

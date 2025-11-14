@@ -323,6 +323,42 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
   };
 }
 
+const recommendedClusters = ref<number | null>(null);
+
+// Calculate recommended clusters
+async function calculateRecommendedClusters() {
+  try {
+    const response = await fetch(
+      `${config.api.endpoint}/${datasource.value}/cs/recommend-k`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          selection: flipSelectionAreaSelection(
+            currentAreaSelection.areaSelection,
+            (await getTargetSize()).height
+          ),
+          elements: elementsSelected.value.map((sel) => [
+            getElementIndex(sel.name),
+            sel.threshold,
+          ]),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      toast.error("Failed to calculate recommended clusters");
+      return;
+    }
+
+    const data = await response.json();
+    recommendedClusters.value = data.recommended_k;
+  } catch (err) {
+    console.error(err);
+    toast.error("Error calculating recommended clusters");
+  }
+}
+
 </script>
 
 <template>
@@ -332,6 +368,22 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
       <div class="flex items-center space-x-2">
         <Checkbox id="use_selection_area" class="align-bottom" v-model:checked="useSelectionChecked" />
         <Label for="use_selection_area" class="align-middle">Use only selection area</Label>
+      </div>
+      <div class="border-t border-border flex flex-wrap space-y-1.5 pt-2 ">
+        <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
+        <div class="w-full md:w-3/4 p-1">
+          <Button class="w-full h-full text-center whitespace-normal" @click="calculateRecommendedClusters">
+            Calculate
+          </Button>
+        </div>
+        <div class="w-full md:w-1/4 p-1">
+          <div
+            class="border border-border rounded-md text-xl font-semibold 
+                  flex items-center justify-center h-full py-2"
+          >
+            {{ recommendedClusters || '' }}
+          </div>
+        </div>
       </div>
 
       <!-- COLOR CLUSTER GENERATION -->
@@ -358,13 +410,7 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
           </NumberField>
         </div>
       </div>
-      <div class="flex align-bottom">
-        <Checkbox id="recommendedClusterNumberCheck" class="align-bottom" title="Recommended number of clusters"/>
-        <label for="recommendedClusterNumberCheck" class="text-sm ml-2 align-middle">Recommended Number Clusters</label>
-        <!--<Checkbox id="recommendedClusterNumberCheck" v-model:checked="" @update:checked="" />-->
-      </div>
-      <!-- ELEMENTS SELECTION -->
-      
+      <!-- ELEMENT SELECTION -->
       <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key = elementSel.id>
         <div class="grow space-y-1 max-w-36">
           <Label for="element">Element</Label>

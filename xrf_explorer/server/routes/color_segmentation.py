@@ -133,6 +133,18 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
 
     return json.dumps(colors)
 
+@app.route('/api/<data_source>/cs/recommend-k', methods=['POST'])
+def recommend_k(data_source: str):
+    """
+    Computes the recommended number of clusters for the selected region.
+    Expects JSON:
+      {
+        "selection": SelectionAreaSelection,
+        "elements": [[elementIndex, thresholdPct], ...]
+      }
+    """
+
+    return json.dumps({"recommended_k": best_k})
 
 @app.route('/api/<data_source>/cs/bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
