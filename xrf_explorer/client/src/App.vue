@@ -27,8 +27,8 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
   <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
-  <StitchViewer v-if="appState.workspace?.stitchingMode === 'partial'"/>
-      <ImageViewer />
+      <StitchViewer v-if="appState.workspace?.stitchingMode === 'partial'"/>
+      <ImageViewer v-else/>
 
       <BaseContextMenu>
         <!-- Place all windows below here -->
