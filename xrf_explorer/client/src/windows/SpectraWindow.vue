@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ComputedRef, inject, ref, watch } from "vue";
+import { computed, ComputedRef, inject, nextTick, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, datasource, elements, spectralDataPresent } from "@/lib/appState";
@@ -18,8 +18,10 @@ import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
 import { clearChart } from "./charts";
 import { toast } from "vue-sonner";
+import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const spectraChart = ref<HTMLElement>();
+const popupVisible = ref(false);
 let ready: boolean = false;
 
 const binningData = ref(false);
@@ -173,7 +175,7 @@ function makeChart() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("Average Count/s (%)"),
+        .text("Average Counts (%)"),
     );
 
   // Create a group for the plot area and apply the clip-path
@@ -480,6 +482,14 @@ function updateSelectionSpectrum() {
 function updateElementSpectrum() {
   getElementSpectrum(selectedElement.value, excitation.value);
 }
+
+watch(popupVisible, async (open) => {
+  if (open) {
+    await nextTick();
+    svg = d3.select(spectraChart.value!);
+    makeChart();
+  }
+});
 </script>
 
 <template>
@@ -549,7 +559,27 @@ function updateElementSpectrum() {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
         </div>
+        <button
+          class="bg-background text-foreground border border-foreground hover:bg-foreground hover:text-background px-3 py-1.5 rounded-md font-medium transition-colors"
+          @click="popupVisible = true"
+        >
+          Open Popup Spectra Chart
+        </button>
       </div>
+
+      <!-- Popup Spectra Chart -->
+      <Dialog v-model:open="popupVisible">
+        <DialogTrigger asChild>
+          <span></span>
+        </DialogTrigger>
+
+        <DialogContent class="relative w-[950px] max-w-[95vw] p-6 fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <DialogTitle>Spectra Chart (Popup)</DialogTitle>
+          <div class="mt-4 flex justify-center">
+            <svg ref="spectraChart" width="900" height="600"></svg>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   </Window>
 </template>
