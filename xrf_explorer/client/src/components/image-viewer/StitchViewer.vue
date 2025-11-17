@@ -20,18 +20,17 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <div class="h-full flex flex-col">
     <!-- Toggle Button -->
-    <ToggleGroup type="single" v-model="mode" class="space-x-2">
-          <ToggleGroupItem value="edit" variant="outline">
-            Edit
-          </ToggleGroupItem>
-          <ToggleGroupItem value="preview" variant="outline">
-            Preview
-          </ToggleGroupItem>
+    <ToggleGroup type="single" v-model="mode" class="space-x-2 mb-2">
+      <ToggleGroupItem value="edit" variant="outline">Edit</ToggleGroupItem>
+      <ToggleGroupItem value="preview" variant="outline">Preview</ToggleGroupItem>
     </ToggleGroup>
 
-    <StitchMappingViewer v-if="mode === 'edit'" />
-    <StitchPreviewViewer v-else />
+    <!-- Viewer -->
+    <div class="flex-1 overflow-hidden">
+      <StitchMappingViewer v-if="mode === 'edit'" class="w-full h-full" />
+      <StitchPreviewViewer v-else class="w-full h-full" />
+    </div>
   </div>
 </template>
