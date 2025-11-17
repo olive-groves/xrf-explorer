@@ -63,6 +63,7 @@ function createBaseLayer(image: ContextualImage) {
     layers: [layer],
     index: 0,
     visible: true,
+    default_visibility: true,
     ...layerGroupDefaults,
   };
 
@@ -89,6 +90,7 @@ async function createContextualLayer(image: ContextualImage) {
     layers: [layer],
     index: -1,
     visible: false,
+    default_visibility: false,
     ...layerGroupDefaults,
   };
 

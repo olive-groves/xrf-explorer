@@ -2,8 +2,8 @@
 import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff, SlidersHorizontal } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
-import { LayerGroup, LayerVisibility } from "./types";
+import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty, updateLayerGroupLayers } from "./state";
+import { Layer, LayerGroup, LayerVisibility } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 
@@ -77,10 +77,33 @@ function checkedOutsideLens(group: LayerGroup) {
   }
   setLayerGroupVisibility(group);
 }
+
+/**
+ * Reset all sliders to default values
+ */
+function resetSliders() {
+  console.debug("Reset sliders");
+
+  for (var group in groups.value) {
+    console.debug(groups.value[group])
+    groups.value[group].visible = groups.value[group].default_visibility;
+
+    for (const property in properties) {
+      var propertyName = properties[property].name.toLowerCase();
+      console.log(propertyName)
+      console.log(groups.value[group][propertyName])
+      groups.value[group][propertyName][0] = properties[property].default;
+    }
+
+    updateLayerGroupLayers(groups.value[group]);
+  }
+}
+
 </script>
 
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
+    <Button class="basis-1/2" variant="outline" @click="resetSliders()">Reset Sliders</Button>
     <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">

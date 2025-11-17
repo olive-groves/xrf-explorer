@@ -150,6 +150,10 @@ export type LayerGroup = {
    */
   visibility: LayerVisibility;
   /**
+   * Default v
+   */
+  default_visibility: boolean;
+  /**
    * Opacity of the layers in this group.
    */
   opacity: number[];
