@@ -13,7 +13,15 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
-    <StitchMappingBase class="w-full h-full"/>
+  <div class="flex w-full h-full">
+    <!-- Greyscale viewer -->
+    <div class="w-1/2 h-full border-r border-black">
+      <StitchMappingGreyscale class="w-full h-full" />
+    </div>
+
+    <!-- Base viewer -->
+    <div class="w-1/2 h-full">
+      <StitchMappingBase class="w-full h-full" />
+    </div>
   </div>
 </template>

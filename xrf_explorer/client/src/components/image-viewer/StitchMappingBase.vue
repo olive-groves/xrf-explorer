@@ -55,7 +55,7 @@ const points = ref<{ x: number; y: number }[]>([]);
 const selectedPoint = ref<number | null>(null);
 const maxPoints = 4;
 
-// ------------------ GL Setup ------------------
+// GL Setup
 onMounted(async () => {
   toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 2000 });
   await setupGL();
@@ -180,7 +180,7 @@ function startRenderLoop() {
   animationFrame = requestAnimationFrame(render);
 }
 
-// ------------------ Base Image & Points ------------------
+// Base image
 const baseSrc = computed(() => {
   const ws = appState.workspace;
   if (!ws?.baseImage) return null;
@@ -189,10 +189,10 @@ const baseSrc = computed(() => {
 });
 
 watch(baseSrc, () => {
-  baseReady.value = false; // reset loading state
+  baseReady.value = false;
 });
 
-// ------------------ Viewport Controls ------------------
+// Viewport controls
 function resetViewport() {
   return getTargetSize().then((size) => {
     const fill = 0.9;
@@ -236,7 +236,7 @@ function onWheel(event: WheelEvent) {
   } else zoomLimitReached = false;
 }
 
-// ------------------ Points ------------------
+// Selection Points
 function getImageCoords(event: MouseEvent) {
   const img = event.target as HTMLImageElement;
   if (!img || !img.naturalWidth) return null;
