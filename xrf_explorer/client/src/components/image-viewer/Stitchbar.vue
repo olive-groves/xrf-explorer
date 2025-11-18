@@ -4,7 +4,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 // Import the necessary icons
-import { Hand,  Settings, Fullscreen} from "lucide-vue-next";
+import { Hand, Settings, Fullscreen, Search } from "lucide-vue-next";
 import { StitchTool, StitchState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { inject } from "vue";
@@ -25,6 +25,9 @@ const emit = defineEmits(["resetViewport", "clearSelection"]);
     <ToggleGroup type="single" v-model:model-value="state.tool">
       <ToggleGroupItem :value="StitchTool.Grab" class="size-8 p-2" title="Grab">
         <Hand />
+      </ToggleGroupItem>
+      <ToggleGroupItem :value="StitchTool.Lens" class="size-8 p-2" title="Lens">
+        <Search />
       </ToggleGroupItem>
     </ToggleGroup>
     <Separator orientation="vertical" class="h-8" />

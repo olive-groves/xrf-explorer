@@ -148,6 +148,7 @@ export enum Tool {
  */
 export enum StitchTool {
   Grab = "grab",
+  Lens = "lens",
 }
 
 /**

@@ -488,21 +488,12 @@ function startRenderLoop() {
       if (layer.uniform && layer.uniform.iViewport) {
         layer.uniform.iViewport.value.set(x, y, w, h);
       }
-      // lens radius and mouse handled similarly if available
-        if (layer.uniform && layer.uniform.uRadius) {
-          // Use the stitch toolbar lens size when an appropriate tool is active.
-          // If the current tool isn't a selection/lens tool, set the radius to a very large
-          // value to effectively disable the lens in the shader.
-          try {
-            const lensSize = stitchState.value.lensSize?.[0] ?? 0;
-            // Determine if a selection/lens tool is active — reuse existing computed
-            const selectionActive = Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string);
-            layer.uniform.uRadius.value = selectionActive ? Math.max(0, lensSize) : Number.MAX_VALUE;
-          } catch (e) {
-            // Fallback: disable lens
-            layer.uniform.uRadius.value = Number.MAX_VALUE;
-          }
-        }
+      // Set lens radius based on active tool
+      if (layer.uniform && layer.uniform.uRadius) {
+        const lensSize = stitchState.value.lensSize?.[0] ?? 0;
+        // Only enable lens when Lens tool is active
+        layer.uniform.uRadius.value = stitchState.value.tool === StitchTool.Lens ? Math.max(0, lensSize) : Number.MAX_VALUE;
+      }
     });
 
     // ensure renderer size matches container
@@ -591,14 +582,13 @@ watch(baseSrc, () => checkDomBaseAvailable());
 watch(
   () => [stitchState.value.lensSize?.[0], stitchState.value.tool],
   () => {
-    const selectionActive = Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string);
     const lensSize = stitchState.value.lensSize?.[0] ?? 0;
     layers.value.forEach((layer) => {
       if (layer.uniform && layer.uniform.uRadius) {
-        layer.uniform.uRadius.value = selectionActive ? Math.max(0, lensSize) : Number.MAX_VALUE;
+        layer.uniform.uRadius.value = stitchState.value.tool === StitchTool.Lens ? Math.max(0, lensSize) : Number.MAX_VALUE;
       }
     });
-     },
+  },
   { immediate: true },
 );
 
@@ -658,6 +648,7 @@ async function resetViewport() {
 }
 
 const dragging = ref(false);
+const lensLocked = ref(false);
 
 /**
  * Event handler for the onClick event on the glcanvas.
@@ -671,10 +662,30 @@ function onClick(event: MouseEvent) {
 }
 
 /**
+ * Event handler for the onMouseDown event on the glcontainer (background).
+ * @param event - The mouse event.
+ */
+function onContainerMouseDown(event: MouseEvent) {
+  if (event.button == 2 && stitchState.value.tool === StitchTool.Lens) {
+    // Right-click toggles lens lock when lens tool is active
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+    event.preventDefault();
+  } else if (event.button == 0 && !selectionToolActive.value) {
+    dragging.value = true;
+  }
+}
+
+/**
  * Event handler for the onMouseDown event on the glcanvas.
  * @param event - The mouse event.
  */
 function onMouseDown(event: MouseEvent, index: number) {
+  // Don't allow image selection when lens tool is active
+  if (stitchState.value.tool === StitchTool.Lens) {
+    return;
+  }
+  
   if (event.button == 0) {
     startDrag(index, event);
   } else if (event.button == 2) {
@@ -713,6 +724,27 @@ function onMouseMove(event: MouseEvent) {
     const scale = Math.exp(viewport.zoom) * stitchState.value.movementSpeed[0];
     viewport.center.x -= event.movementX * scale;
     viewport.center.y += event.movementY * scale;
+  }
+
+  // Update lens position for shader
+  const rect = glcanvas.value?.getBoundingClientRect();
+  if (rect) {
+    const mouseX = event.clientX - canvasSize.left.value;
+    const mouseY = event.clientY - canvasSize.top.value;
+
+    // Map mouse coordinates to [0,width] and [0,height],
+    // reversing y-axis to have (0,0) at top left
+    const normalizedX = (width.value * mouseX) / rect.width;
+    const normalizedY = height.value * (1 - mouseY / rect.height);
+
+    // Only update lens position in the shader if the mouse is not locked.
+    if (!lensLocked.value) {
+      layers.value.forEach((layer) => {
+        if (layer.uniform && layer.uniform.uMouse) {
+          layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+        }
+      });
+    }
   }
 }
 
@@ -781,6 +813,7 @@ return dragging.value ? "grabbing" : "grab";
     @click="onClick"
     @contextmenu="onClick"
     @dblclick="resetViewport"
+    @mousedown="onContainerMouseDown"
     @mouseup="onMouseUp"
     @mouseleave="onMouseLeave"
     @mousemove="onMouseMove"
