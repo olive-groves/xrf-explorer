@@ -530,7 +530,6 @@ function updateElementSpectrum() {
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
-                fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
@@ -543,10 +542,7 @@ function updateElementSpectrum() {
           </PopoverTrigger>
           <PopoverContent class="w-auto p-3" align="start">
             <div class="overflow-x-auto">
-              <div
-                class="inline-grid gap-0.5"
-                style="grid-template-columns: repeat(18, minmax(0, 1fr))"
-              >
+              <div class="inline-grid gap-0.5" style="grid-template-columns: repeat(18, minmax(0, 1fr))">
                 <template v-for="(row, rowIndex) in periodicTableLayout" :key="rowIndex">
                   <!-- Add an empty row between the main part and the extention -->
                   <div v-if="rowIndex === 7" class="col-span-full h-2"></div>
@@ -579,7 +575,7 @@ function updateElementSpectrum() {
                       :class="[
                         'size-8 rounded border text-xs font-semibold transition-colors',
                         ELEMENT_NO_SPECTRAL_DATA.includes(elementIndex)
-                          ? 'border-secondary bg-secondary/50 text-muted-foreground cursor-not-allowed'
+                          ? 'cursor-not-allowed border-secondary bg-secondary/50 text-muted-foreground'
                           : selectedElement === ELEMENT_SYMBOLS[elementIndex - 1]
                             ? 'border-primary bg-primary text-primary-foreground'
                             : rowIndex === 7
@@ -600,7 +596,7 @@ function updateElementSpectrum() {
                   </template>
                 </template>
               </div>
-              <div class="flex h-full flex-col items-center justify-center my-2">
+              <div class="my-2 flex h-full flex-col items-center justify-center">
                 <span class="opacity-70">Greyed-out elements have no available theoretical data</span>
               </div>
             </div>
