@@ -118,3 +118,8 @@ export const ELEMENT_SYMBOLS = [
   "Ts",
   "Og",
 ] as const;
+
+// Element numbers of element numbers that have no recorded spectral lines. As of xraydb version 4.5.4
+export const ELEMENT_NO_SPECTRAL_DATA = [
+  1, 2, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118,
+];
