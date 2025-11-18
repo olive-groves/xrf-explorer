@@ -591,8 +591,8 @@ function updateElementSpectrum() {
                       :title="ELEMENT_SYMBOLS[elementIndex - 1]"
                     >
                       <div class="flex h-full flex-col items-center justify-center gap-0 leading-none">
-                        <span class="my-0 leading-none">{{ ELEMENT_SYMBOLS[elementIndex - 1] }}</span>
                         <span class="my-0 text-[0.6rem] leading-none">{{ elementIndex }}</span>
+                        <span class="my-0 leading-none">{{ ELEMENT_SYMBOLS[elementIndex - 1] }}</span>
                       </div>
                     </button>
 
