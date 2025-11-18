@@ -254,7 +254,6 @@ watch(selectedIdx, (idx) => {
 import { appState } from "@/lib/appState";
 import { getImageSize } from "./api";
 import { getWorkspaceImageUrl } from "./workspace";
-import { computed as vueComputed } from "vue";
 import { getTargetSize } from "./api";
 
 async function ensureWorkspaceHasGrayscale() {
@@ -326,8 +325,12 @@ async function loadGrayscaleImages() {
     const baseId = appState.workspace && appState.workspace.baseImage ? `base_${snakeCase(appState.workspace.baseImage.name)}` : null;
     if (baseId) {
       const ok = await waitForLayerMesh(baseId, 30000);
-      baseReady.value = ok;
-      if (!ok) console.warn("Base GL layer did not become ready within timeout");
+      // mark baseReady true when the GL mesh becomes ready. 
+      if (ok) {
+        baseReady.value = true;
+      } else {
+        console.warn("Base GL layer did not become ready within timeout");
+      }
     }
 
     // create grayscale GL layers only after base is ready
@@ -433,6 +436,18 @@ async function checkDomBaseAvailable() {
     console.warn("Base DOM image fetch failed", e, src);
     showDomBase.value = false;
   }
+}
+
+function onDomBaseLoad() {
+  // DOM base image loaded successfully — clear the loading overlay so users
+  // can interact while GL textures finish loading in the background.
+  showDomBase.value = true;
+  baseReady.value = true;
+}
+
+function onDomBaseError(e: Event) {
+  console.warn('Base image failed to load (DOM)', e, baseSrc.value);
+  showDomBase.value = false;
 }
 
 /** Simple GL setup for stitch viewer */
@@ -559,7 +574,7 @@ function startRenderLoop() {
 }
 
 // Compute base image URL to show as background
-const baseSrc = vueComputed(() => {
+const baseSrc = computed(() => {
   const ws = appState.workspace;
   if (!ws || !ws.baseImage) return null;
   // If the configured imageLocation is a path-like location, use it directly
@@ -569,10 +584,8 @@ const baseSrc = vueComputed(() => {
   return getWorkspaceImageUrl(loc, ws.name);
 });
 
-watch(baseSrc, (v) => {
-  console.debug("StitchViewer baseSrc changed ->", v);
-  checkDomBaseAvailable();
-});
+watch(baseSrc, () => checkDomBaseAvailable());
+
 
 // When toolbar state changes (lens size / tool), update existing layer uniforms immediately
 watch(
@@ -777,6 +790,8 @@ return dragging.value ? "grabbing" : "grab";
   >
   <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
 
+    
+
     <!-- Base image (DOM fallback) -->
     <div
       v-if="baseSrc && showDomBase"
@@ -788,7 +803,8 @@ return dragging.value ? "grabbing" : "grab";
         class="w-full object-contain"
         :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)`, opacity: baseOpacity }"
         alt="base image"
-        @error="(e) => console.warn('Base image failed to load', e)"
+          @load="onDomBaseLoad"
+          @error="onDomBaseError"
       />
     </div>
 
@@ -796,6 +812,8 @@ return dragging.value ? "grabbing" : "grab";
     <div v-if="baseSrc && !baseReady" class="absolute inset-0 flex items-center justify-center bg-black/40 text-white" style="z-index:30">
       <div class="p-4 bg-black/60 rounded">Loading base image...</div>
     </div>
+
+  
 
     <div
       v-for="(img, index) in greyscaleImages"

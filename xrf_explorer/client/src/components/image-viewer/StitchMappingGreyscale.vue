@@ -179,8 +179,9 @@ const greyScaleSrc = computed(() => {
   return getWorkspaceImageUrl(gs.imageLocation, appState.workspace!.name);
 });
 
-watch(greyScaleSrc, () => {
-  baseReady.value = false; // reset loading state
+watch(greyScaleSrc, (newVal, oldVal) => {
+  // Only reset loading state when the grayscale source actually changes.
+  if (newVal !== oldVal) baseReady.value = false;
 });
 
 // Viewport Controls

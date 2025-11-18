@@ -188,8 +188,9 @@ const baseSrc = computed(() => {
   return getWorkspaceImageUrl(loc, ws.name);
 });
 
-watch(baseSrc, () => {
-  baseReady.value = false;
+watch(baseSrc, (newVal, oldVal) => {
+  // Only reset loading state when the base source actually changes.
+  if (newVal !== oldVal) baseReady.value = false;
 });
 
 // Viewport controls
