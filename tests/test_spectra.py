@@ -126,7 +126,7 @@ class TestSpectra:
     
     def test_get_theoretical_data(self):
         # execute
-        result: list[float] = get_theoretical_data('yAlK', 16, 0, 10, 1)
+        result: list[float] = get_theoretical_data('Al', 16, 0, 10, 1)
 
         # verify
         assert len(result) == 2

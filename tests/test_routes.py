@@ -485,7 +485,7 @@ class TestRoutes:
     
     def test_get_element_spectra(self, client: FlaskClient):
         # execute
-        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/get_element_spectrum/Si K/20")
+        response: TestResponse = client.get(f"/api/{self.DATA_SOURCE}/get_element_spectrum/Si/20")
 
         # verify
         assert response.status_code == 200
