@@ -21,6 +21,7 @@ import { toast } from "vue-sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const spectraChart = ref<HTMLElement>();
+const popupSpectraChart = ref<HTMLElement>();
 const popupVisible = ref(false);
 let ready: boolean = false;
 
@@ -29,7 +30,7 @@ const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
 
 // SVG container
-let svg = d3.select(spectraChart.value!);
+let svg = d3.select(spectraChart.value!); // Default selection
 let x = d3.scaleLinear();
 let y = d3.scaleLinear();
 
@@ -114,6 +115,10 @@ async function getOffset() {
  * Set up the axis and plot the data.
  */
 function makeChart() {
+  
+  let target = popupVisible.value ? popupSpectraChart : spectraChart;
+
+
   clearChart(svg);
 
   // Block viewing graphs below x-axis and left of y-axis
@@ -141,7 +146,7 @@ function makeChart() {
 
   // append the svg object to the body of the page
   svg = d3
-    .select(spectraChart.value!)
+    .select(target.value!)
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", [0, 0, width, height])
@@ -484,11 +489,9 @@ function updateElementSpectrum() {
 }
 
 watch(popupVisible, async (open) => {
-  if (open) {
-    await nextTick();
-    svg = d3.select(spectraChart.value!);
-    makeChart();
-  }
+  await nextTick();
+  svg = d3.select(open ? popupSpectraChart.value! : spectraChart.value!);
+  makeChart();
 });
 </script>
 
@@ -576,7 +579,7 @@ watch(popupVisible, async (open) => {
         <DialogContent class="relative w-[950px] max-w-[95vw] p-6 fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <DialogTitle>Spectra Chart (Popup)</DialogTitle>
           <div class="mt-4 flex justify-center">
-            <svg ref="spectraChart" width="900" height="600"></svg>
+            <svg ref="popupSpectraChart" width="900" height="600"></svg>
           </div>
         </DialogContent>
       </Dialog>
