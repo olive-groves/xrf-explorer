@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Eye, EyeOff, SlidersHorizontal, ListRestart } from "lucide-vue-next";
+import { Eye, EyeOff, Search, SearchX, SlidersHorizontal, ListRestart } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty, updateLayerGroupLayers } from "./state";
-import { Layer, LayerGroup, LayerVisibility } from "./types";
+import { Layer, LayerGroup, LayerVisibility, Tool, ToolState } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 
@@ -11,6 +11,7 @@ import { LabeledSlider } from "@/components/ui/slider";
 import "./workspace";
 
 const groups = ref<LayerGroup[]>([]);
+const state = defineModel<ToolState>("state", { required: true });
 
 // Used for generalizing the code.
 interface Property {
@@ -79,6 +80,13 @@ function checkedOutsideLens(group: LayerGroup) {
 }
 
 /**
+ * toggle lens in a layer
+ */
+function toggleLens(group: LayerGroup) {
+  checkedOutsideLens(group);
+}
+
+/**
  * Reset all sliders to default values
  */
 function resetSliders() {
@@ -109,12 +117,13 @@ function resetSliders() {
           <div>
             {{ group.name }}
           </div>
-          <div class="whitespace-nowrap text-muted-foreground">
-            {{ group.description }}
-          </div>
         </div>
         <div>
           <!-- SLIDERS POPOVER -->
+          <Button variant="ghost" class="size-8 p-2" title="Lens" @click="toggleLens(group)">
+            <SearchX v-if="group.visibility == LayerVisibility.InsideLens"/>
+            <Search v-else />
+          </Button>
           <Popover v-if="group.visible">
             <PopoverTrigger>
               <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
@@ -151,17 +160,11 @@ function resetSliders() {
         </div>
       </div>
       <div v-if="group.visible" class="space-y-2">
-        <!-- VISIBILITY CHECKBOX -->
-        <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
-          <Checkbox :id="`visibility_${group.name}`" :checked="group.visibility == LayerVisibility.InsideLens" />
-          <Label :for="`visibility_${group.name}`" class="whitespace-nowrap">Only visible inside of lens</Label>
-        </div>
-
         <!-- SLIDERS FOR ALL MAIN PROPERTIES -->
         <LabeledSlider
           v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
-          :label="property.name"
+          :label="property.min.toString()"
           v-model="group[property.nameRef]"
           :min="property.min"
           :max="property.max"
