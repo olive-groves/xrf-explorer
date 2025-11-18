@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     name: Run all Python Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Check out Repository
         uses: actions/checkout@v4
