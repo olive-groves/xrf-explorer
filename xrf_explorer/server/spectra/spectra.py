@@ -110,11 +110,6 @@ def get_theoretical_data(element: str, excitation_energy_kev: float, low: int, h
     :return: list with first element being a list of dictionaries representing the spectra points (normalized to 0-100),
         second being a list of dictionaries representing the peaks
     """
-    # remove last character to get periodic table symbol
-    element = element[:len(element) - 1].strip()
-    if element == 'yAl':
-        element = 'Al'
-
     try:
         # get spectrum and peaks
         data: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | np.ndarray = (

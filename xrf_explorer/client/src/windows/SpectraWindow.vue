@@ -2,10 +2,10 @@
 import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
-import { appState, datasource, elements, spectralDataPresent } from "@/lib/appState";
-import { ElementalChannel } from "@/lib/workspace";
+import { appState, datasource, spectralDataPresent } from "@/lib/appState";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
+import { ELEMENT_SYMBOLS } from "./elementSymbols";
 import {
   NumberField,
   NumberFieldContent,
@@ -13,6 +13,7 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
@@ -25,6 +26,9 @@ let ready: boolean = false;
 const binningData = ref(false);
 const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
+
+// Popover state for element selection
+const popoverOpen = ref(false);
 
 // SVG container
 let svg = d3.select(spectraChart.value!);
@@ -58,9 +62,18 @@ const margin = { top: 30, right: 30, bottom: 70, left: 60 },
   width = 860 - margin.left - margin.right,
   height = 600 - margin.top - margin.bottom;
 
-const trimmedList: ComputedRef<ElementalChannel[]> = computed(() =>
-  elements.value.filter((element: ElementalChannel) => element.name != "Continuum" && element.name != "chisq"),
-);
+// Periodic table layout (element indices, null for empty spaces). IUPAC format.
+const periodicTableLayout = [
+  [1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2],
+  [3, 4, null, null, null, null, null, null, null, null, null, null, null, 5, 6, 7, 8, 9, 10],
+  [11, 12, null, null, null, null, null, null, null, null, null, null, null, 13, 14, 15, 16, 17, 18],
+  [19, 20, 21, null, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
+  [37, 38, 39, null, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54],
+  [55, 56, null, null, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86],
+  [87, 88, null, null, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118],
+  [null, null, null, null, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+  [null, null, null, null, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103],
+];
 
 // For all variables below, index is bin/channel number, and value is average intensity for that bin/channel
 // Points of the global average spectrum
@@ -78,7 +91,6 @@ let offset: number = 0;
  * Set up the svg and axis of the graph.
  */
 async function setup() {
-  trimmedList.value.unshift({ name: "No element", channel: -1, enabled: false });
   ready = binned.value;
   binningData.value = !ready;
   watch(binned, () => {
@@ -504,20 +516,71 @@ function updateElementSpectrum() {
       <!-- ELEMENT SELECTION -->
       <Separator class="mt-2" />
       <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
-      <div class="mt-1 flex items-center">
-        <Select v-model:model-value="selectedElement" @update:model-value="updateElementSpectrum">
-          <SelectTrigger class="ml-1 w-32">
-            <SelectValue placeholder="Select an element" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Elements</SelectLabel>
-              <SelectItem :value="element.name" v-for="element in trimmedList" :key="element.name">
-                {{ element.name }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <div class="ml-1 mt-2">
+        <Popover v-model:open="popoverOpen">
+          <PopoverTrigger as-child>
+            <button
+              class="inline-flex h-9 w-fit items-center justify-between rounded-md border border-input bg-background px-3
+                py-2 text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2
+                focus:ring-ring"
+            >
+              <span>{{ selectedElement }}</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="ml-2 size-4 opacity-50"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent class="w-auto p-3" align="start">
+            <div class="overflow-x-auto">
+              <div
+                class="inline-grid gap-0.5"
+                style="grid-template-columns: repeat(3, minmax(0, 1fr)) 8px repeat(15, minmax(0, 1fr))"
+              >
+                <template v-for="(row, rowIndex) in periodicTableLayout" :key="rowIndex">
+                  <div v-if="rowIndex === 7" class="col-span-full h-2"></div>
+
+                  <template v-for="(elementIndex, colIndex) in row" :key="`${rowIndex}-${colIndex}`">
+                    <div v-if="colIndex === 3"></div>
+
+                    <button
+                      v-else-if="elementIndex !== null && ELEMENT_SYMBOLS[elementIndex - 1]"
+                      @click="
+                        selectedElement = ELEMENT_SYMBOLS[elementIndex - 1];
+                        updateElementSpectrum();
+                        popoverOpen = false;
+                      "
+                      :class="[
+                        'size-8 rounded border text-xs font-semibold transition-colors',
+                        selectedElement === ELEMENT_SYMBOLS[elementIndex - 1]
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-secondary hover:bg-secondary/80',
+                      ]"
+                      :title="ELEMENT_SYMBOLS[elementIndex - 1]"
+                    >
+                      <div class="flex h-full flex-col items-center justify-center gap-0 leading-none">
+                        <span class="my-0 leading-none">{{ ELEMENT_SYMBOLS[elementIndex - 1] }}</span>
+                        <span class="my-0 text-[0.6rem] leading-none">{{ elementIndex }}</span>
+                      </div>
+                    </button>
+
+                    <div v-else class="size-8"></div>
+                  </template>
+                </template>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       <!-- ENERGY SELECTION -->
       <Separator class="mt-2" />
