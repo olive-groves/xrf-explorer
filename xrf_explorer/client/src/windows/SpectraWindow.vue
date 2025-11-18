@@ -127,9 +127,7 @@ async function getOffset() {
  * Set up the axis and plot the data.
  */
 function makeChart() {
-  
-  let target = popupVisible.value ? popupSpectraChart : spectraChart;
-
+  const target = popupVisible.value ? popupSpectraChart : spectraChart;
 
   clearChart(svg);
 
@@ -192,7 +190,7 @@ function makeChart() {
         .attr("y", 20)
         .attr("fill", "currentColor")
         .attr("text-anchor", "start")
-        .text("Average Counts (%)"),
+        .text("Count (%)"),
     );
 
   // Create a group for the plot area and apply the clip-path
@@ -647,7 +645,8 @@ watch(popupVisible, async (open) => {
           </div>
         </div>
         <button
-          class="bg-background text-foreground border border-foreground hover:bg-foreground hover:text-background px-3 py-1.5 rounded-md font-medium transition-colors"
+          class="rounded-md border border-foreground bg-background px-3 py-1.5 font-medium text-foreground
+            transition-colors hover:bg-foreground hover:text-background"
           @click="popupVisible = true"
         >
           Open Popup Spectra Chart
@@ -656,11 +655,11 @@ watch(popupVisible, async (open) => {
 
       <!-- Popup Spectra Chart -->
       <Dialog v-model:open="popupVisible">
-        <DialogTrigger asChild>
+        <DialogTrigger as-child>
           <span></span>
         </DialogTrigger>
 
-        <DialogContent class="relative w-[950px] max-w-[95vw] p-6 fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <DialogContent class="fixed left-1/2 top-1/2 w-[950px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 p-6">
           <DialogTitle>Spectra Chart (Popup)</DialogTitle>
           <div class="mt-4 flex justify-center">
             <svg ref="popupSpectraChart" width="900" height="600"></svg>
