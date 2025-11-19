@@ -59,11 +59,11 @@ const selection = computed(() => appState.selection.elements);
               v-if="channel.selected"
               title="Select color"
               :for="`color_${channel.channel}`"
-              class="size-8 rounded-md p-2 hover:bg-accent"
+              class="size-8 rounded-md p-2 hover:bg-accent border-2 border-current flex items-center justify-center cursor-pointer"
             >
               <div
                 :for="`color_${channel.channel}`"
-                class="size-4 rounded-md border border-border"
+                class="size-4 aspect-square rounded-md border border-border flex items-center justify-center"
                 :style="{
                   'background-color': channel.color,
                 }"

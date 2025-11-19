@@ -280,10 +280,10 @@ async function updateEmbedding() {
           </ToggleGroupItem>
         </ToggleGroup>
         <Separator orientation="vertical" class="mx-1 h-8" />
-        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2 hover:bg-accent">
+        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2 hover:bg-accent border-2 border-current flex items-center justify-center cursor-pointer">
           <div
             for="color_dr"
-            class="size-4 rounded-md border border-border"
+            class="size-4 aspect-square rounded-md border border-border flex items-center justify-center"
             :style="{
               'background-color': appState.selection.dimensionalityReduction.color,
             }"
