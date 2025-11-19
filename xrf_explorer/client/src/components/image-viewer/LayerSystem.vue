@@ -3,7 +3,7 @@ import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff, Search, SearchX, SlidersHorizontal, ListRestart } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty, updateLayerGroupLayers } from "./state";
-import { Layer, LayerGroup, LayerVisibility, Tool, ToolState } from "./types";
+import { LayerGroup, LayerVisibility } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 
@@ -11,7 +11,6 @@ import { LabeledSlider } from "@/components/ui/slider";
 import "./workspace";
 
 const groups = ref<LayerGroup[]>([]);
-const state = defineModel<ToolState>("state", { required: true });
 
 // Used for generalizing the code.
 interface Property {
@@ -90,10 +89,9 @@ function toggleLens(group: LayerGroup) {
  * Reset all sliders to default values
  */
 function resetSliders() {
-  console.debug("Reset sliders");
-
   for (var group in groups.value) {
     groups.value[group].visible = groups.value[group].default_visibility;
+    groups.value[group].visibility = LayerVisibility.Visible;
 
     for (const property in properties) {
       var propertyName = properties[property].nameRef;
@@ -120,10 +118,14 @@ function resetSliders() {
         </div>
         <div>
           <!-- SLIDERS POPOVER -->
-          <Button variant="ghost" class="size-8 p-2" title="Lens" @click="toggleLens(group)">
-            <SearchX v-if="group.visibility == LayerVisibility.InsideLens"/>
-            <Search v-else />
-          </Button>
+          <Popover v-if="group.visible">
+            <PopoverTrigger>
+              <Button variant="ghost" class="size-8 p-2" title="Only visible inside lens" @click="toggleLens(group)">
+                <SearchX v-if="group.visibility == LayerVisibility.InsideLens"/>
+                <Search v-else />
+              </Button>
+            </PopoverTrigger>
+          </Popover>
           <Popover v-if="group.visible">
             <PopoverTrigger>
               <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
@@ -170,6 +172,7 @@ function resetSliders() {
           :max="property.max"
           :default="[property.default]"
           @update="() => setLayerGroupProperty(group, property.propertyName)"
+          :title="property.name"
         />
       </div>
     </Card>
