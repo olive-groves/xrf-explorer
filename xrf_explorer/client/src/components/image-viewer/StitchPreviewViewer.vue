@@ -17,7 +17,7 @@ const config = inject<FrontendConfig>("config")!;
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
-let camera: THREE.OrthographicCamera | null = null;
+let camera: THREE.OrthographicCamera;
 let animationFrame: number | null = null;
 
 const viewport: {
@@ -42,9 +42,6 @@ const selectionToolActive = computed(() =>
 const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
 const height = canvasSize.height;
-
-// Flag to prevent the zoom limit toast from being shown multiple times
-let zoomLimitReached = false;
 
 // Image boxes
 interface ImageBox {
@@ -86,6 +83,7 @@ onMounted(() => {
     await setupGL();
     await loadGrayscaleImages();
   });
+  glcontainer.value?.addEventListener("wheel", onWheel, { passive: false });
 });
 
 onBeforeUnmount(() => {
@@ -93,6 +91,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('stitch:base-opacity-changed', onBaseOpacityChanged as EventListener);
   window.removeEventListener('stitch:selected-grayscale-opacity-changed', onSelectedGrayscaleOpacityChanged as EventListener);
   window.removeEventListener('stitch:grayscale-prop-changed', onGrayscalePropChanged as EventListener);
+  glcontainer.value?.removeEventListener("wheel", onWheel);
   // dispose any GL layers we created for this viewer
   try {
     const g = appState.workspace?.grayscale ?? [];
@@ -482,18 +481,14 @@ function startRenderLoop() {
     const h = height.value * Math.exp(viewport.zoom);
     const x = viewport.center.x - w / 2;
     const y = viewport.center.y - h / 2;
+    const lensSize = Number.MAX_VALUE; // Lens disabled in stitch viewer
 
+    
     // Update uniforms for all layers so shaders know viewport
     layers.value.forEach((layer) => {
-      if (layer.uniform && layer.uniform.iViewport) {
-        layer.uniform.iViewport.value.set(x, y, w, h);
-      }
-      // Set lens radius based on active tool
-      if (layer.uniform && layer.uniform.uRadius) {
-        const lensSize = stitchState.value.lensSize?.[0] ?? 0;
-        // Only enable lens when Lens tool is active
-        layer.uniform.uRadius.value = stitchState.value.tool === StitchTool.Lens ? Math.max(0, lensSize) : Number.MAX_VALUE;
-      }
+      console.log("iViewport set:", x, y, w, h);
+      layer.uniform.iViewport.value.set(x, y, w, h);
+      layer.uniform.uRadius.value = lensSize;
     });
 
     // ensure renderer size matches container
@@ -544,24 +539,17 @@ function startRenderLoop() {
       // ignore per-frame sync errors
     }
 
-    // Update camera to match canvas and render
+    // Render the scene - camera is pass-through, zoom handled by shaders via iViewport
+    scene.renderer?.setSize(width.value, height.value);
     if (camera) {
-      // Orthographic camera parameters: left, right, top, bottom
-      const halfW = width.value / 2;
-      const halfH = height.value / 2;
-      camera.left = -halfW;
-      camera.right = halfW;
-      camera.top = halfH;
-      camera.bottom = -halfH;
-      camera.updateProjectionMatrix();
-      scene.renderer!.render(scene.scene, camera);
+      scene.renderer?.render(scene.scene, camera);
     }
 
-    animationFrame = requestAnimationFrame(render);
+    requestAnimationFrame(render);
   }
 
   // start
-  animationFrame = requestAnimationFrame(render);
+  requestAnimationFrame(render);
 }
 
 // Compute base image URL to show as background
@@ -582,10 +570,10 @@ watch(baseSrc, () => checkDomBaseAvailable());
 watch(
   () => [stitchState.value.lensSize?.[0], stitchState.value.tool],
   () => {
-    const lensSize = stitchState.value.lensSize?.[0] ?? 0;
+    // Lens disabled in stitch viewer
     layers.value.forEach((layer) => {
       if (layer.uniform && layer.uniform.uRadius) {
-        layer.uniform.uRadius.value = stitchState.value.tool === StitchTool.Lens ? Math.max(0, lensSize) : Number.MAX_VALUE;
+        layer.uniform.uRadius.value = Number.MAX_VALUE;
       }
     });
   },
@@ -639,12 +627,19 @@ function stopInteractions() {
  * Resets the viewport to a home position such that the entire painting is visible.
  */
 async function resetViewport() {
-  const size = await getTargetSize();
-  const fill = 0.9;
-  viewport.center.x = size.width / 2;
-  viewport.center.y = size.height / 2;
-  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
-  
+  try {
+    const size = await getTargetSize();
+    const fill = 0.9;
+    viewport.center.x = size.width / 2;
+    viewport.center.y = size.height / 2;
+    viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
+  } catch (error) {
+    console.error('resetViewport error:', error);
+    // Set default viewport if getTargetSize fails
+    viewport.center.x = width.value / 2;
+    viewport.center.y = height.value / 2;
+    viewport.zoom = 0;
+  }
 }
 
 const dragging = ref(false);
@@ -666,12 +661,7 @@ function onClick(event: MouseEvent) {
  * @param event - The mouse event.
  */
 function onContainerMouseDown(event: MouseEvent) {
-  if (event.button == 2 && stitchState.value.tool === StitchTool.Lens) {
-    // Right-click toggles lens lock when lens tool is active
-    lensLocked.value = !lensLocked.value;
-    onMouseMove(event);
-    event.preventDefault();
-  } else if (event.button == 0 && !selectionToolActive.value) {
+  if (event.button == 0 && !selectionToolActive.value) {
     dragging.value = true;
   }
 }
@@ -681,11 +671,6 @@ function onContainerMouseDown(event: MouseEvent) {
  * @param event - The mouse event.
  */
 function onMouseDown(event: MouseEvent, index: number) {
-  // Don't allow image selection when lens tool is active
-  if (stitchState.value.tool === StitchTool.Lens) {
-    return;
-  }
-  
   if (event.button == 0) {
     startDrag(index, event);
   } else if (event.button == 2) {
@@ -755,19 +740,31 @@ function onMouseMove(event: MouseEvent) {
  * @param event The wheel event containing the amount that was scrolled.
  */
 function onWheel(event: WheelEvent) {
-  viewport.zoom += (event.deltaY / 500.0) * stitchState.value.scrollSpeed[0];
+  event.preventDefault();
 
-  // Clamp zoom to a reasonable range
-  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
-    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
-    if (!zoomLimitReached) {
-      toast.info("Zoom limit reached");
-      // Prevent the toast from being shown multiple times
-      zoomLimitReached = true;
-    }
-  } else {
-    zoomLimitReached = false;
-     }
+  const delta = event.deltaY;
+
+  // Zoom amount
+  const zoomSpeed = stitchState.value.scrollSpeed[0] * 0.001;
+  const oldZoom = viewport.zoom;
+
+  viewport.zoom -= delta * zoomSpeed;
+
+  // Clamp zoom
+  const limit = config.imageViewer.zoomLimit;
+  viewport.zoom = Math.max(-limit, Math.min(limit, viewport.zoom));
+
+  // Zooming toward the mouse cursor — required for usable behavior
+  const rect = glcontainer.value!.getBoundingClientRect();
+  const mx = event.clientX - rect.left;
+  const my = rect.height - (event.clientY - rect.top);
+
+  // Convert mouse to world coords
+  const scaleBefore = Math.exp(oldZoom);
+  const scaleAfter = Math.exp(viewport.zoom);
+
+  viewport.center.x = mx + (viewport.center.x - mx) * (scaleBefore / scaleAfter);
+  viewport.center.y = my + (viewport.center.y - my) * (scaleBefore / scaleAfter);
 }
 
 // Move the images using arrow keys
@@ -817,7 +814,7 @@ return dragging.value ? "grabbing" : "grab";
     @mouseup="onMouseUp"
     @mouseleave="onMouseLeave"
     @mousemove="onMouseMove"
-    @wheel="onWheel"
+    @wheel.prevent="onWheel"
     @mousemove.stop="onImageMouseMove"
     @mouseup.stop="stopInteractions"
   >
@@ -860,6 +857,7 @@ return dragging.value ? "grabbing" : "grab";
         zIndex: 10,
         opacity: img.opacity ?? baseOpacity,
         transform: `rotate(${img.rotation}deg)`,
+        pointerEvents: 'auto',
       }"
       :class="['border', index === selectedIdx ? 'border border-yellow-500' : 'border-transparent']"
 
