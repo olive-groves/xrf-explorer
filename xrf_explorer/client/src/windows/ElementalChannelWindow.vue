@@ -44,10 +44,6 @@ const selection = computed(() => appState.selection.elements);
  * Reset all sliders to default values
  */
 function resetSliders() {
-  console.debug("Reset sliders");
-
-  console.debug(appState.selection.elements);
-  console.debug(appState.selection.elements[0]);
   for (let i = 0; i < appState.selection.elements.length; i++) {
     appState.selection.elements[i].selected = false;
     appState.selection.elements[i].thresholds = [0, 1];

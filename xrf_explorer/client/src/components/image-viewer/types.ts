@@ -150,7 +150,7 @@ export type LayerGroup = {
    */
   visibility: LayerVisibility;
   /**
-   * Default v
+   * Default visibility
    */
   default_visibility: boolean;
   /**
