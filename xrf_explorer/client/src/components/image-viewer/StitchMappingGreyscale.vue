@@ -12,6 +12,7 @@ import { useElementBounding } from "@vueuse/core";
 import { appState } from "@/lib/appState";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
+import type { CSSProperties } from "vue";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -229,20 +230,28 @@ function onWheel(event: WheelEvent) {
 }
 
 // Points
-function getImageCoords(event: MouseEvent) {
-  const img = event.target as HTMLImageElement;
-  if (!img || !img.naturalWidth) return null;
+function onBaseImageClick(event: MouseEvent) {
+  const img = glcontainer.value?.querySelector("img");
+  if (!img || !img.naturalWidth) return;
+
+  // DOM position of displayed image
   const rect = img.getBoundingClientRect();
+
+  // object-contain scale
   const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+
+  // letterboxed padding added by object-contain
   const offsetX = (rect.width - img.naturalWidth * scale) / 2;
   const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-  return { x: (event.clientX - rect.left - offsetX) / scale, y: (event.clientY - rect.top - offsetY) / scale };
-}
 
-function onBaseImageClick(event: MouseEvent) {
-  const coords = getImageCoords(event);
-  if (!coords) return;
+  // Convert click → image pixel coords
+  const x = (event.clientX - rect.left - offsetX) / scale;
+  const y = (event.clientY - rect.top - offsetY) / scale;
 
+  const coords = { x, y };
+  console.log("CLICKED:", coords);
+
+  // Check if clicking a nearby point
   for (let i = 0; i < points.value.length; i++) {
     const dx = points.value[i].x - coords.x;
     const dy = points.value[i].y - coords.y;
@@ -252,13 +261,40 @@ function onBaseImageClick(event: MouseEvent) {
     }
   }
 
+  // If a point is selected, move it
   if (selectedPoint.value !== null) {
     points.value[selectedPoint.value] = coords;
     selectedPoint.value = null;
     return;
   }
 
-  if (points.value.length < maxPoints) points.value.push(coords);
+  // Add a new point
+  if (points.value.length < maxPoints) {
+    points.value.push(coords);
+  }
+}
+
+function toDisplayCoords(p: { x: number; y: number }, i: number): CSSProperties {
+  const img = glcontainer.value?.querySelector("img");
+  if (!img || !img.naturalWidth || !img.naturalHeight) return {};
+
+  const rect = img.getBoundingClientRect();
+  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
+  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
+
+  const screenX = p.x * scale + offsetX;
+  const screenY = p.y * scale + offsetY;
+
+  return {
+    position: "absolute",
+    left: `${screenX}px`,
+    top: `${screenY}px`,
+    backgroundColor: i === selectedPoint.value ? "blue" : "red",
+    transform: "translate(-50%, -50%)",
+    zIndex: "2",
+    pointerEvents: "none",
+  } as CSSProperties;
 }
 
 function stopInteractions() {
@@ -303,13 +339,8 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
         v-for="(p, i) in points"
         :key="i"
         class="absolute w-4 h-4 rounded-full border border-black"
-        :style="{
-          background: i === selectedPoint ? 'blue' : 'red',
-          left: p.x + 'px',
-          top: p.y + 'px',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 2
-        }"
+        :style="toDisplayCoords(p, i)"
+      ></div>
       ></div>
     </div>
 
@@ -319,7 +350,6 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       class="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
       style="z-index: 3"
     >
-      <div class="p-4 bg-black/60 rounded">Loading grayscale image...</div>
+    <div class="p-4 bg-black/60 rounded">Loading grayscale image...</div>
     </div>
-  </div>
 </template>

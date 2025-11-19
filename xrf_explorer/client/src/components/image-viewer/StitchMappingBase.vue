@@ -300,6 +300,8 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       class="absolute inset-0 flex items-center justify-center pointer-events-auto"
       :style="{
         zIndex: 1,
+        width: '100%',
+        height: '100%',
         paddingTop: basePadding + 'px',
         paddingBottom: basePadding + 'px',
         backgroundColor: 'white',
@@ -309,10 +311,18 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     >
       <img
         :src="baseSrc"
-        class="w-full h-full object-contain"
-        :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)` }"
         @load="baseReady = true"
+        :style="{
+          width: 'auto',
+          height: 'auto',
+          maxWidth: `calc(100% - ${basePadding * 2}px)`,
+          maxHeight: `calc(100% - ${basePadding * 2}px)`,
+          display: 'block',
+          objectFit: 'contain',
+        }"
+        class="mx-auto"
       />
+
 
       <!-- Points overlay -->
       <div

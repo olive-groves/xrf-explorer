@@ -3,7 +3,7 @@
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { windowState } from "./state";
 import { SidepanelContextMenu, WindowSidepanel } from ".";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { BaseContextMenu } from "@/components/menus";
 import { remToPx } from "@/lib/utils";
 
@@ -30,6 +30,23 @@ const hitArea = {
   coarse: remToPx(1.5),
   fine: remToPx(0.5),
 };
+
+import { watch } from "vue";
+import { appState } from "@/lib/appState";
+
+onMounted(() => {
+  watch(
+    () => appState.workspace?.stitchingMode,
+    (mode) => {
+      if (mode === "partial") {
+        leftPanel.value?.collapse();
+      } else {
+        leftPanel.value?.expand();
+      }
+    },
+    { immediate: true }
+  );
+});
 </script>
 
 <template>
