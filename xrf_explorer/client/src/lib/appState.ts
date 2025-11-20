@@ -1,6 +1,7 @@
 import { computed, reactive } from "vue";
 import { WorkspaceConfig } from "./workspace";
 import { Selection } from "./selection";
+import { layerGroups } from "@/components/image-viewer/state";
 
 /**
  * Reactive value that contains the current appstate.
@@ -47,6 +48,7 @@ export const elements = computed(
 );
 export const elementalDataPresent = computed(() => (appState.workspace?.elementalCubes.length ?? 0) > 0);
 export const spectralDataPresent = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
+export const pinnedGroups = computed(() => Object.values(layerGroups.value).filter(g => g.pinned));
 
 /**
  * Type describing the state of the client.

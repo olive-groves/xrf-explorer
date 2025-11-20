@@ -169,6 +169,12 @@ export type LayerGroup = {
    * Brightness of the layers in this group.
    */
   brightness: number[];
+
+  /**
+   * Determines whether the group is pinned in the layer system.
+   * If pinned, the group stays at the top of the layer system.
+   */
+  pinned: boolean;
 };
 
 /**

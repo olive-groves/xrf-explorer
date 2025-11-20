@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Eye, EyeOff, SlidersHorizontal } from "lucide-vue-next";
+import { Eye, EyeOff, SlidersHorizontal, Pin } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
@@ -11,6 +11,7 @@ import { LabeledSlider } from "@/components/ui/slider";
 import "./workspace";
 
 const groups = ref<LayerGroup[]>([]);
+const numberOfPinnedLayers = computed(() => groups.value.filter(g => g.pinned).length);
 
 // Used for generalizing the code.
 interface Property {
@@ -77,6 +78,20 @@ function checkedOutsideLens(group: LayerGroup) {
   }
   setLayerGroupVisibility(group);
 }
+
+function togglePin(group: LayerGroup) {
+  if (!group.pinned) {
+    // Trying to pin
+    if (numberOfPinnedLayers.value >= 3) {
+      alert("You can only pin up to 3 layers.");
+      return;
+    }
+    group.pinned = true;
+  } else {
+    // Unpinning
+    group.pinned = false;
+  }
+}
 </script>
 
 <template>
@@ -93,6 +108,20 @@ function checkedOutsideLens(group: LayerGroup) {
           </div>
         </div>
         <div>
+          <!-- Pin button -->
+          <Button 
+            variant="ghost" 
+            class="size-8 p-2" 
+            :title="group.pinned ? 'Unpin layer' : 'Pin layer'" 
+            @click="togglePin(group)" 
+            :disabled="!group.pinned && numberOfPinnedLayers >= 3"
+          >
+            <Pin 
+              :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" 
+              class="w-5 h-5" 
+            />
+          </Button>
+
           <!-- SLIDERS POPOVER -->
           <Popover v-if="group.visible">
             <PopoverTrigger>
