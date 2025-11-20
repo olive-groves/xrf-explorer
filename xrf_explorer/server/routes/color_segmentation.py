@@ -3,6 +3,9 @@ import json
 from logging import Logger, getLogger
 from os.path import join, exists, abspath
 
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
 import numpy as np
 
 from flask import send_file, request
@@ -143,6 +146,58 @@ def recommend_k(data_source: str):
         "elements": [[elementIndex, thresholdPct], ...]
       }
     """
+    LOG.info("Calculating the recommended amount of clusters")
+    data = request.get_json()
+    selection = data["selection"]
+    elements = data["elements"]
+
+    selection_mask = encode_selection(selection, data_source, CubeType.Elemental)
+    LOG.info("Got back selection mask")
+
+    # elem == 0 indicates clusters for the whole painting
+    # if len(elements) == 1, the whole painting is the only channel to be clustered
+    # if len(elements) != 1, the whole painting channel can be ignored, since the
+    # intersection of the whole painting and an element is the element
+    if len(elements) == 1 and elements[0][0] == 0:
+        # Get mask
+        rgb_image_name = get_base_image_name(data_source)
+        mask = get_clusters_using_k_means(data_source, rgb_image_name, selection_mask, return_features_for_rec_clusters=True)
+        LOG.info("Got back complete painting mask")
+    else:
+        rgb_image_name = get_base_image_name(data_source)
+        # Create the correct lists to send to the color segmentation function
+        elementList = []
+        thresholdList = []
+        for i in range (len(elements)):
+            if elements[i][0] != 0: #ignore whole painting channel
+                elementList.append(elements[i][0] - 1)
+                thresholdList.append(int(255 * elements[i][1] / 100))
+
+        mask = get_elemental_clusters_using_k_means(
+            data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), return_features_for_rec_clusters=True
+            )
+        LOG.info("Got back element mask")
+    
+    # Code took too long so downsize
+    max_points = 5000
+    if mask.shape[0] > max_points:
+        idmask = np.random.choice(mask.shape[0], max_points, replace=False)
+        mask = mask[idmask]
+
+    # Compute recommended clusters, k is placeholder for what the optimal amount of clusters is
+    LOG.info("Computing recommened k")
+    max_k = min(50, len(mask))
+    best_score = -1
+    best_k = 0
+
+    LOG.info("before loop")
+    for k in range(2, max_k):
+        km = KMeans(n_clusters=k, n_init="auto").fit(mask)
+        score = silhouette_score(mask, km.labels_)
+        if score > best_score:
+            best_score = score
+            best_k = k
+    LOG.info("Finished loop")
 
     return json.dumps({"recommended_k": best_k})
 

@@ -76,7 +76,8 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
                                selection_mask: np.ndarray,
-                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
+                               k: int = 30, nr_of_attempts: int = 10,
+                               return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
@@ -118,6 +119,10 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
+    
+    # When calculating the recommended number of clusters, this masked_image is required.
+    if return_features_for_rec_clusters:
+        return masked_image
 
     # apply kmeans
     colors: np.ndarray
@@ -146,7 +151,8 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
                                          elem_threshold: np.ndarray[float] = [0.1], k: int = 30,
-                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
+                                         nr_of_attempts: int = 10,
+                                         return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
@@ -219,6 +225,10 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
+    
+    # When calculating the recommended number of clusters, this masked_image is required.
+    if return_features_for_rec_clusters:
+        return masked_image
 
     # k cannot be bigger than number of pixels w/element present
     labels: np.ndarray
