@@ -28,6 +28,9 @@ const trimmedList: ComputedRef<string[]> = computed(() => {
 });
 
 const props = defineProps<{
+  /**
+   * The currently selected element symbol.
+   */
   modelValue: string; // The selected element symbol
 }>();
 
@@ -68,8 +71,7 @@ function handleSelect(elementIndex: number) {
     <PopoverTrigger as-child>
       <button
         class="inline-flex h-9 w-fit items-center justify-between rounded-md border border-input bg-background px-3 py-2
-          text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2
-          focus:ring-ring"
+          text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <span>{{ props.modelValue }}</span>
         <svg
