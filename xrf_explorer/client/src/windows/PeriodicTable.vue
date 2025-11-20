@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { computed, ComputedRef, inject, nextTick, ref, watch } from "vue";
-import { ELEMENT_SYMBOLS, ELEMENT_NO_SPECTRAL_DATA } from "./elementSymbols";
-import { ElementalChannel, WorkspaceConfig } from "@/lib/workspace";
-import { initializeChannels, validateWorkspace } from "@/components/workspace/utils";
-
+import { computed, ComputedRef, onMounted, ref } from "vue";
+import { ELEMENT_SYMBOLS, ELEMENT_NAMES, ELEMENT_NO_SPECTRAL_DATA } from "./elementSymbols";
+import { ElementalChannel } from "@/lib/workspace";
+import { initializeChannels } from "@/components/workspace/utils";
+import { appState } from "@/lib/appState";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const model = defineModel<WorkspaceConfig>({ required: true });
-
+onMounted(() => {
+  // If the channels are not initialized in the global state, initialize them
+  if (
+    appState.workspace &&
+    (!appState.workspace.elementalChannels || appState.workspace.elementalChannels.length === 0)
+  ) {
+    initializeChannels(appState.workspace);
+  }
+});
 
 // Not finished
 const trimmedList: ComputedRef<string[]> = computed(() => {
-  const channels = model.value?.elementalChannels;
+  const channels = appState.workspace?.elementalChannels;
   if (!channels) return [];
 
   return channels
@@ -45,8 +52,8 @@ const periodicTableLayout = [
 ];
 
 /**
- *
- * @param elementIndex
+ * Run when an element is selected (button associated with the element is clicked).
+ * @param elementIndex Index of the element that got selected.
  */
 function handleSelect(elementIndex: number) {
   const symbol = ELEMENT_SYMBOLS[elementIndex - 1];
@@ -61,7 +68,8 @@ function handleSelect(elementIndex: number) {
     <PopoverTrigger as-child>
       <button
         class="inline-flex h-9 w-fit items-center justify-between rounded-md border border-input bg-background px-3 py-2
-          text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2
+          focus:ring-ring"
       >
         <span>{{ props.modelValue }}</span>
         <svg
@@ -108,18 +116,25 @@ function handleSelect(elementIndex: number) {
                 :disabled="ELEMENT_NO_SPECTRAL_DATA.includes(elementIndex)"
                 @click="handleSelect(elementIndex)"
                 :class="[
-                  'size-8 rounded border text-xs font-semibold transition-colors',
+                  'size-8 rounded border-2 text-xs font-semibold transition-colors',
                   ELEMENT_NO_SPECTRAL_DATA.includes(elementIndex)
                     ? 'cursor-not-allowed border-secondary bg-secondary/50 text-muted-foreground'
                     : props.modelValue === ELEMENT_SYMBOLS[elementIndex - 1]
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : rowIndex === 7
-                        ? 'border-border bg-red-500/30 hover:bg-red-500/40'
-                        : rowIndex === 8
-                          ? 'border-border bg-red-500/60 hover:bg-red-500/70'
-                          : 'border-border bg-secondary hover:bg-secondary/50',
+                      : [
+                          trimmedList.includes(ELEMENT_SYMBOLS[elementIndex - 1]) ? 'border-primary' : 'border-border',
+                          rowIndex === 7
+                            ? 'bg-red-500/30 hover:bg-red-500/40'
+                            : rowIndex === 8
+                              ? 'bg-red-500/60 hover:bg-red-500/70'
+                              : 'bg-secondary hover:bg-secondary/50',
+                        ],
                 ]"
-                :title="ELEMENT_SYMBOLS[elementIndex - 1]"
+                :title="
+                  ELEMENT_NO_SPECTRAL_DATA.includes(elementIndex)
+                    ? `${ELEMENT_NAMES[elementIndex - 1]} - No Theoretical data`
+                    : ELEMENT_NAMES[elementIndex - 1]
+                "
               >
                 <div class="flex h-full flex-col items-center justify-center gap-0 leading-none">
                   <span class="my-0 text-[0.6rem] leading-none">{{ elementIndex }}</span>
@@ -132,7 +147,7 @@ function handleSelect(elementIndex: number) {
           </template>
         </div>
         <div class="my-2 flex h-full flex-col items-center justify-center">
-          <span class="opacity-70">Greyed-out elements have no available theoretical data</span>
+          <span class="opacity-70">Elements with a yellow border are present in the project's elemental data</span>
         </div>
       </div>
     </PopoverContent>

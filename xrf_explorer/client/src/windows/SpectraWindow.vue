@@ -5,7 +5,6 @@ import * as d3 from "d3";
 import { appState, datasource, spectralDataPresent } from "@/lib/appState";
 import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
-import { ELEMENT_SYMBOLS, ELEMENT_NO_SPECTRAL_DATA } from "./elementSymbols";
 import {
   NumberField,
   NumberFieldContent,
@@ -13,7 +12,6 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
@@ -401,6 +399,10 @@ async function getElementSpectrum(element: string, excitation: number) {
       makeChart();
     } catch (e) {
       console.error("Error getting element theoretical spectrum", e);
+      svg.select("#elementLine").remove();
+      svg.selectAll(".peak-line").remove();
+      elementData = [];
+      elementPeaks = [];
     }
   } else {
     // remove previous element line
@@ -455,13 +457,10 @@ function updateGlobal() {
 function updateElement() {
   if (elementChecked.value && selectedElement.value != "No element") {
     svg.select("#elementLine").style("opacity", 1);
+    svg.selectAll(".peak-line").style("opacity", 1);
   } else {
     svg.select("#elementLine").style("opacity", 0);
-  }
-  if (selectedElement.value == "No element") {
     svg.selectAll(".peak-line").style("opacity", 0);
-  } else {
-    svg.selectAll(".peak-line").style("opacity", 1);
   }
 }
 
@@ -511,30 +510,30 @@ watch(popupVisible, async (open) => {
       </div>
       <!-- ELEMENT SELECTION -->
       <Separator class="mt-2" />
-      <p class="ml-1 font-bold">Choose element for theoretical spectrum:</p>
-      <div class="ml-1 mt-2">
-        <PeriodicTable
-          v-model="selectedElement"
-          @select="updateElementSpectrum"
-        />
+      <p class="ml-1 font-bold">Theoretical spectrum properties:</p>
+      <div class="flex-1 space-y-1">
+        <Label for="element">Element</Label>
+        <div class="ml-1 mt-2">
+          <PeriodicTable v-model="selectedElement" @select="updateElementSpectrum" />
+        </div>
       </div>
-      <!-- ENERGY SELECTION -->
-      <Separator class="mt-2" />
-      <p class="ml-1 mt-1 font-bold">Choose the excitation energy (keV):</p>
-      <NumberField
-        id="excitation-input"
-        class="ml-1 mt-1 w-64"
-        v-model="excitation"
-        @update:model-value="updateElementSpectrum"
-        :min="0"
-        :max="40"
-      >
-        <NumberFieldContent>
-          <NumberFieldInput />
-          <NumberFieldDecrement />
-          <NumberFieldIncrement />
-        </NumberFieldContent>
-      </NumberField>
+      <div class="flex-1 space-y-1">
+        <Label for="excitation-input">Excitation level (keV)</Label>
+        <NumberField
+          id="excitation-input"
+          class="ml-1 mt-1"
+          v-model="excitation"
+          @update:model-value="updateElementSpectrum"
+          :min="0"
+          :max="40"
+        >
+          <NumberFieldContent>
+            <NumberFieldInput />
+            <NumberFieldDecrement />
+            <NumberFieldIncrement />
+          </NumberFieldContent>
+        </NumberField>
+      </div>
       <!-- PLOTTING THE CHART -->
       <Separator class="mt-2" />
       <p class="ml-1 font-bold">Generated spectra chart:</p>
