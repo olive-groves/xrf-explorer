@@ -7,7 +7,7 @@ const props = defineProps<{
   /**
    * The optional default value of the slider.
    */
-  default?: number[];
+  default: number[];
   /**
    * The minimum value of the slider.
    */
@@ -28,7 +28,7 @@ const props = defineProps<{
 
 const emit = defineEmits(["update"]);
 
-const defaultValue = props.default ?? deepClone(model.value);
+const defaultValue = props.default;
 
 </script>
 

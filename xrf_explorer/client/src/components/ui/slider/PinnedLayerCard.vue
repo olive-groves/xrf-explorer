@@ -139,6 +139,7 @@ function togglePin(group: LayerGroup) {
             :max="1"
             :step="0.01"
             :value="group.opacity"
+            :default="[1]"
             @update="() => setLayerGroupProperty(props.group, 'opacityProperty')"
         />
     </div>
