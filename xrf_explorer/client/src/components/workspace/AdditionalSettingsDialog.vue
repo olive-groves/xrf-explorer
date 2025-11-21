@@ -10,7 +10,11 @@ const model = defineModel<WorkspaceConfig>({ required: true });
 
 const dialogOpen = ref(false);
 
-const constraints = "Parameters must respect 0 <= low < high <= 40, 0 < bin size <= high - low";
+// Min and max energy for spectra parameters
+const MIN_ENERGY = 0;
+const MAX_ENERGY = 4096;
+
+const constraints = `Parameters must respect ${MIN_ENERGY} ≤ low < high ≤ ${MAX_ENERGY}, 0 < bin size ≤ high - low`;
 
 /**
  * Updates the state of the dialog.
@@ -31,10 +35,10 @@ const correctSpectraParams = ref(true);
  */
 function updateCorrectParams() {
   if (
-    0 <= low.value &&
-    low.value < 40 &&
-    0 < high.value &&
-    high.value <= 40 &&
+    MIN_ENERGY <= low.value &&
+    low.value < MAX_ENERGY &&
+    MIN_ENERGY < high.value &&
+    high.value <= MAX_ENERGY &&
     0 < binSize.value &&
     binSize.value <= high.value - low.value
   ) {
@@ -69,12 +73,12 @@ function save() {
         <p class="font-bold">Spectral datacube parameters</p>
         <Label>{{ constraints }}</Label>
         <div class="space-x-2">
-          <Label for="low-input">Lower energy boundary (keV)</Label>
+          <Label for="low-input">Lower energy boundary (channels)</Label>
           <Input
             ref="inputComponent"
             type="number"
-            min="0"
-            max="40"
+            :min="MIN_ENERGY"
+            :max="MAX_ENERGY"
             step="1"
             v-model="low"
             id="low-input"
@@ -82,25 +86,25 @@ function save() {
           />
         </div>
         <div class="space-x-2">
-          <Label for="high-input">Higher energy boundary (keV)</Label>
+          <Label for="high-input">Higher energy boundary (channels)</Label>
           <Input
             ref="inputComponent"
             type="number"
             step="1"
-            min="0"
-            max="40"
+            :min="MIN_ENERGY"
+            :max="MAX_ENERGY"
             v-model="high"
             id="high-input"
             @change="updateCorrectParams"
           />
         </div>
         <div class="space-x-2">
-          <Label for="bin-size-input">Bin size (keV)</Label>
+          <Label for="bin-size-input">Bin size (channels)</Label>
           <Input
             ref="inputComponent"
             type="number"
             min="1"
-            max="40"
+            :max="MAX_ENERGY"
             step="1"
             v-model="binSize"
             id="bin-size-input"
