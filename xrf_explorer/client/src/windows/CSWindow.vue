@@ -32,6 +32,8 @@ enum Status {
   SUCCESS,
 }
 
+const recommendedStatus = ref(Status.WAITING);
+
 // Custom type for keeping track of what selection to use.
 type ColorSegmentationAreaSelection = {
   areaSelection: SelectionAreaSelection;
@@ -328,6 +330,16 @@ const recommendedClusters = ref<number | null>(null);
 // Calculate recommended clusters
 async function calculateRecommendedClusters() {
   try {
+    // Catch when the user hasn't selected an element.
+    for (const sel of elementsSelected.value) {
+      if (!sel || !sel.name || sel.threshold === undefined) {
+        toast.error("Invalid element selection");
+        return;
+      }
+    }
+
+    recommendedStatus.value = Status.LOADING;
+    
     const response = await fetch(
       `${config.api.endpoint}/${datasource.value}/cs/recommend-k`,
       {
@@ -347,13 +359,16 @@ async function calculateRecommendedClusters() {
     );
 
     if (!response.ok) {
+      recommendedStatus.value = Status.ERROR;
       toast.error("Failed to calculate recommended clusters");
       return;
     }
 
     const data = await response.json();
     recommendedClusters.value = data.recommended_k;
+    recommendedStatus.value = Status.SUCCESS;
   } catch (err) {
+    recommendedStatus.value = Status.ERROR;
     console.error(err);
     toast.error("Error calculating recommended clusters");
   }
@@ -378,10 +393,16 @@ async function calculateRecommendedClusters() {
         </div>
         <div class="w-full md:w-1/4 p-1">
           <div
-            class="border border-border rounded-md text-xl font-semibold 
-                  flex items-center justify-center h-full py-2"
+            class="border border-border rounded-md text-sm  
+                  flex items-center justify-center h-10 py-2"
           >
-            {{ recommendedClusters || '' }}
+            <LoaderPinwheel
+              v-if="recommendedStatus == Status.LOADING"
+              class="size-6 animate-spin"
+            />       
+            <span v-else>
+              {{ recommendedClusters || '' }}
+            </span>
           </div>
         </div>
       </div>
