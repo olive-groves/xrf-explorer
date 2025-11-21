@@ -86,7 +86,7 @@ function selectionUpdated(newSelection: ElementSelection[]) {
   });
 
   // Rerender the elemental maps after the selection has changed.
-  requestAnimationFrame(render);
+  requestAnimationFrame(renderElementalMaps);
 }
 
 /**
@@ -137,7 +137,7 @@ function loadMap(element: ElementSelection) {
       elementalScene.add(map.mesh);
 
       // Rerender elemental maps after adding new map to the scene.
-      requestAnimationFrame(render);
+      requestAnimationFrame(renderElementalMaps);
     },
     () => {
       map.loading = false;
@@ -178,7 +178,7 @@ function disposeMap(channel: number) {
 /**
  * Renders the elemental maps to the render target using order independent transparency.
  */
-function render() {
+export function renderElementalMaps() {
   if (scene.renderer != undefined) {
     // Accumulate all color values in elementalTarget, large values possible due to FloatType.
     // Every layer adds intensity * color to the rgb channels and intensity to the alpha channel.

@@ -124,4 +124,5 @@ export const layerGroupDefaults = {
   saturation: [1.0],
   gamma: [1.0],
   brightness: [0.0],
+  pinned: false,
 };

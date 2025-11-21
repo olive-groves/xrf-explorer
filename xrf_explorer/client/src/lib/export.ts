@@ -7,6 +7,7 @@ import { scene } from "@/components/image-viewer/scene";
 import { layers } from "@/components/image-viewer/state";
 import { toast } from "vue-sonner";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { renderElementalMaps } from "@/components/image-viewer/elementalHelper";
 import { datasource } from "./appState";
 
 /**
@@ -64,8 +65,20 @@ export async function exportScene() {
     layer.uniform.iViewport.value.set(0, 0, size.width, size.height);
   });
 
+  // Store the original renderer
+  const originalRenderer = scene.renderer;
+  
+  // Temporarily set the export renderer so elemental maps render with correct dimensions
+  scene.renderer = renderer;
+  
+  // Render elemental maps to update the render targets before final export
+  renderElementalMaps();
+  
   // Render the painting using the created renderer
   renderer.render(scene.scene, camera);
+  
+  // Restore the original renderer
+  scene.renderer = originalRenderer;
 
   // Convert the rendered painting and save it to the client
   renderer.domElement.toBlob((blob) => {
