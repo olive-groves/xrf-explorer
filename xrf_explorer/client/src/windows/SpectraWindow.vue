@@ -15,7 +15,7 @@ import {
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel } from "lucide-vue-next";
-import { clearChart } from "./charts";
+import { makeSpectraChart } from "./charts";
 import { toast } from "vue-sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PeriodicTable from "./PeriodicTable.vue";
@@ -29,10 +29,7 @@ const binningData = ref(false);
 const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
 
-// SVG container
-let svg = d3.select(spectraChart.value!); // Default selection
-let x = d3.scaleLinear();
-let y = d3.scaleLinear();
+
 
 // Zoom State
 let currentZoomTransform: d3.ZoomTransform | null = null;
@@ -88,7 +85,7 @@ async function setup() {
   });
   offset = await getOffset();
   await getAverageSpectrum();
-  makeChart();
+  drawChart();
 }
 
 /**
@@ -109,187 +106,43 @@ async function getOffset() {
 /**
  * Set up the axis and plot the data.
  */
-function makeChart() {
-  const target = popupVisible.value ? popupSpectraChart : spectraChart;
+/**
+ * Set up the axis and plot the data.
+ */
+function drawChart() {
+  const target = popupVisible.value ? popupSpectraChart.value : spectraChart.value;
+  if (!target) return;
 
-  clearChart(svg);
-
-  // Block viewing graphs below x-axis and left of y-axis
-  svg
-    .append("defs")
-    .append("clipPath")
-    .attr("id", "chart-area-clip")
-    .append("rect")
-    .attr("x", margin.left)
-    .attr("y", margin.top)
-    .attr("width", width - margin.left - margin.right)
-    .attr("height", height - margin.top - margin.bottom);
-
-  const max = getMax();
-
-  // Add X and Y axis
-  x = d3
-    .scaleLinear()
-    .range([margin.left, width - margin.right])
-    .domain([low.value * ((40 - offset) / high.value) + offset, high.value * ((40 - offset) / high.value) + offset]);
-  y = d3
-    .scaleLinear()
-    .range([height - margin.bottom, margin.top])
-    .domain([0, max * (100 / 255)]);
-
-  // append the svg object to the body of the page
-  svg = d3
-    .select(target.value!)
-    .attr("width", width)
-    .attr("height", height)
-    .attr("viewBox", [0, 0, width, height])
-    .attr("style", "max-width: 100%; height: auto;");
-
-  // add axis
-  svg
-    .append("g")
-    .attr("class", "x-axis")
-    .attr("transform", `translate(0, ${height - margin.bottom})`)
-    .call(d3.axisBottom(x))
-    .call((g) =>
-      g
-        .append("text")
-        .attr("x", width / 2)
-        .attr("y", 50)
-        .attr("fill", "currentColor")
-        .attr("text-anchor", "start")
-        .text("Energy (keV)"),
-    );
-
-  svg
-    .append("g")
-    .attr("class", "y-axis")
-    .attr("transform", `translate(${margin.left}, 0)`)
-    .call(d3.axisLeft(y))
-    .call((g) =>
-      g
-        .append("text")
-        .attr("x", -margin.left)
-        .attr("y", 20)
-        .attr("fill", "currentColor")
-        .attr("text-anchor", "start")
-        .text("Count (%)"),
-    );
-
-  // Create a group for the plot area and apply the clip-path
-  const plotArea = svg.append("g").attr("clip-path", "url(#chart-area-clip)");
-
-  // create line
-  const globalLine = createLine();
-
-  // Add the line to chart
-  plotArea
-    .append("path")
-    .datum(globalData)
-    .attr("fill", "none")
-    .attr("stroke", "steelblue")
-    .attr("stroke-width", 1)
-    .attr("id", "globalLine")
-    .attr("d", globalLine)
-    .style("opacity", 0);
-
-  // modify visibility based on checkbox status
-  updateGlobal();
-
-  // remove spectrum of previous selection
-  svg.select("#selectionLine").remove();
-
-  // create line
-  const selectionLine = createLine();
-
-  // Add the line to chart
-  plotArea
-    .append("path")
-    .datum(selectionData)
-    .attr("fill", "none")
-    .attr("stroke", "green")
-    .attr("stroke-width", 1)
-    .attr("id", "selectionLine")
-    .attr("d", selectionLine)
-    .style("opacity", 0);
-
-  // modify visibility based on checkbox status
-  updateSelectionSpectrum();
-
-  // remove previous element lines
-  svg.select("#elementLine").remove();
-  svg.selectAll(".peak-line").remove();
-
-  // create line
-  const elementLine = createLine();
-
-  // Add the line to chart
-  plotArea
-    .append("path")
-    .datum(elementData)
-    .attr("fill", "none")
-    .attr("stroke", "orange")
-    .attr("stroke-width", 1)
-    .attr("id", "elementLine")
-    .attr("d", elementLine)
-    .style("opacity", 0);
-
-  //Add peaks
-  elementPeaks.forEach((index) => {
-    plotArea
-      .append("line")
-      .attr("class", "peak-line")
-      .style("stroke", "grey")
-      .style("stroke-width", 1)
-      .attr("x1", x((index * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
-      .attr("y1", 30)
-      .attr("x2", x((index * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
-      .attr("y2", 430);
-  });
-
-  // modify visibility based on checkbox status
-  updateElement();
-
-  const zoom = d3
-    .zoom()
-    .scaleExtent([1, 8])
-    .on("zoom", (event) => {
-      currentZoomTransform = event.transform; // Store the current transform
-      const newX = event.transform.rescaleX(x);
-      const newY = event.transform.rescaleY(y);
-
-      // Update axes
-      svg.select(".x-axis").call(d3.axisBottom(newX) as never);
-      svg.select(".y-axis").call(d3.axisLeft(newY) as never);
-
-      // Create new line generator with transformed scales
-      const zoomedLine = d3
-        .line<number>()
-        .x((_, i) => newX((i * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
-        .y((d) => newY(d * (100 / 255)));
-
-      // Update all lines with zoomed scales
-      svg.select("#globalLine").attr("d", zoomedLine(globalData));
-      svg.select("#selectionLine").attr("d", zoomedLine(selectionData));
-      svg.select("#elementLine").attr("d", zoomedLine(elementData));
-
-      // Update peaks
-      svg
-        .selectAll(".peak-line")
-        .attr("x1", (_, i) =>
-          newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / high.value) + offset),
-        )
-        .attr("x2", (_, i) =>
-          newX((elementPeaks[i] * binSize.value + low.value) * ((40 - offset) / high.value) + offset),
-        );
-    });
-
-  svg.call(zoom as never);
-
-  // Restore the previous zoom transform if it exists
-  if (currentZoomTransform) {
-    svg.call(zoom.transform as never, currentZoomTransform);
-  }
+  makeSpectraChart(
+    target,
+    {
+      global: globalData,
+      selection: selectionData,
+      element: elementData,
+      elementPeaks: elementPeaks,
+    },
+    {
+      low: low.value,
+      high: high.value,
+      binSize: binSize.value,
+      offset: offset,
+    },
+    {
+      globalChecked: globalChecked.value,
+      selectionChecked: selectionChecked.value,
+      elementChecked: elementChecked.value,
+      selectedElement: selectedElement.value,
+    },
+    {
+      width: width,
+      height: height,
+      margin: margin,
+    },
+    {
+      currentZoomTransform: currentZoomTransform,
+      setZoomTransform: (t) => (currentZoomTransform = t),
+    },
+  );
 }
 
 const globalChecked = ref(false);
@@ -298,16 +151,7 @@ const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
 
-/**
- * Generates a D3 line based on the current binning parameters.
- * @returns - The D3 line.
- */
-function createLine() {
-  return d3
-    .line<number>()
-    .x((_, i) => x((i * binSize.value + low.value) * ((40 - offset) / high.value) + offset))
-    .y((d, _) => y(d * (100 / 255)));
-}
+
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
@@ -333,7 +177,7 @@ async function getAverageSpectrum() {
         body: JSON.stringify(request_body),
       });
       globalData = await response.json();
-      makeChart();
+      drawChart();
     } catch (e) {
       toast.warning("Something went wrong while fetching spectrum data.");
       console.error("Error getting global average spectrum", e);
@@ -376,7 +220,7 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
     }
 
     // update plot
-    makeChart();
+    drawChart();
     loadingSelection.value = false;
   }
 }
@@ -396,84 +240,21 @@ async function getElementSpectrum(element: string, excitation: number) {
       const data = await response.json();
       elementData = data[0];
       elementPeaks = data[1];
-      makeChart();
+      drawChart();
     } catch (e) {
       console.error("Error getting element theoretical spectrum", e);
-      svg.select("#elementLine").remove();
-      svg.selectAll(".peak-line").remove();
       elementData = [];
       elementPeaks = [];
+      drawChart();
     }
   } else {
-    // remove previous element line
-    svg.select("#elementLine").remove();
-    svg.selectAll(".peak-line").remove();
-  }
-
-  // modify visibility based on checkbox status
-  updateElement();
-}
-
-/**
- * Get the maximum y-value of the current global and selected data.
- * @returns - The maximum y-value.
- */
-function getMax() {
-  let globalMax: number = d3.max(globalData, (d) => d) as number;
-  let selectionMax: number = d3.max(selectionData, (d) => d) as number;
-
-  // Initialize max values if they are NaN
-  if (isNaN(globalMax)) globalMax = 0;
-  if (isNaN(selectionMax)) selectionMax = 0;
-
-  let max: number;
-
-  // Update the global and selection max values
-  if (selectionChecked.value && !globalChecked.value) {
-    max = selectionMax;
-  } else if (globalChecked.value && !selectionChecked.value) {
-    max = globalMax;
-  } else {
-    max = Math.max(...[globalMax, selectionMax]);
-  }
-
-  return max;
-}
-
-/**
- * Updates visibility of global average spectrum.
- */
-function updateGlobal() {
-  if (globalChecked.value) {
-    svg.select("#globalLine").style("opacity", 1);
-  } else {
-    svg.select("#globalLine").style("opacity", 0);
+    elementData = [];
+    elementPeaks = [];
+    drawChart();
   }
 }
 
-/**
- * Updates visibility of element theoretical spectrum.
- */
-function updateElement() {
-  if (elementChecked.value && selectedElement.value != "No element") {
-    svg.select("#elementLine").style("opacity", 1);
-    svg.selectAll(".peak-line").style("opacity", 1);
-  } else {
-    svg.select("#elementLine").style("opacity", 0);
-    svg.selectAll(".peak-line").style("opacity", 0);
-  }
-}
 
-/**
- * Updates visibility of selection average spectrum.
- */
-function updateSelectionSpectrum() {
-  if (selectionChecked.value) {
-    svg.select("#selectionLine").style("opacity", 1);
-  } else {
-    svg.select("#selectionLine").style("opacity", 0);
-  }
-}
 
 /**
  * Plots element spectrum when an element is selected in the dropdown.
@@ -482,10 +263,9 @@ function updateElementSpectrum() {
   getElementSpectrum(selectedElement.value, excitation.value);
 }
 
-watch(popupVisible, async (open) => {
+watch(popupVisible, async () => {
   await nextTick();
-  svg = d3.select(open ? popupSpectraChart.value! : spectraChart.value!);
-  makeChart();
+  drawChart();
 });
 </script>
 
@@ -496,15 +276,15 @@ watch(popupVisible, async (open) => {
       <div class="space-y-1">
         <p class="font-bold">Select which spectra to show:</p>
         <div class="mt-1 flex items-center">
-          <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="makeChart" />
+          <Checkbox id="globalCheck" v-model:checked="globalChecked" @update:checked="drawChart" />
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="makeChart" />
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="drawChart" />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="makeChart" />
+          <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="drawChart" />
           <label class="ml-1" for="elementCheck">Element theoretical</label>
         </div>
       </div>
