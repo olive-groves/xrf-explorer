@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
-import { LoaderPinwheel } from "lucide-vue-next";
+import { LoaderPinwheel, Maximize2, RotateCcw } from "lucide-vue-next";
+import { Button } from "@/components/ui/button";
 import { makeSpectraChart } from "./charts";
 import { toast } from "vue-sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -267,6 +268,11 @@ watch(popupVisible, async () => {
   await nextTick();
   drawChart();
 });
+
+function resetZoom() {
+  currentZoomTransform = null;
+  drawChart();
+}
 </script>
 
 <template>
@@ -301,7 +307,7 @@ watch(popupVisible, async () => {
         <Label for="excitation-input">Excitation level (keV)</Label>
         <NumberField
           id="excitation-input"
-          class="ml-1 mt-1"
+          class="ml-1 mt-1 max-w-[200px]"
           v-model="excitation"
           @update:model-value="updateElementSpectrum"
           :min="0"
@@ -327,13 +333,14 @@ watch(popupVisible, async () => {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
         </div>
-        <button
-          class="rounded-md border border-foreground bg-background px-3 py-1.5 font-medium text-foreground
-            transition-colors hover:bg-foreground hover:text-background"
-          @click="popupVisible = true"
-        >
-          Open Popup Spectra Chart
-        </button>
+        <div class="mt-2 mb-2 flex gap-2">
+          <Button variant="outline" size="icon" @click="popupVisible = true" title="Open Popup Spectra Chart">
+            <Maximize2 class="size-4" />
+          </Button>
+          <Button variant="outline" size="icon" @click="resetZoom" title="Reset Zoom">
+            <RotateCcw class="size-4" />
+          </Button>
+        </div>
       </div>
 
       <!-- Popup Spectra Chart -->
@@ -343,7 +350,7 @@ watch(popupVisible, async () => {
         </DialogTrigger>
 
         <DialogContent class="fixed left-1/2 top-1/2 w-[950px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 p-6">
-          <DialogTitle>Spectra Chart (Popup)</DialogTitle>
+          <DialogTitle>Spectra Chart</DialogTitle>
           <div class="mt-4 flex justify-center">
             <svg ref="popupSpectraChart" width="900" height="600"></svg>
           </div>

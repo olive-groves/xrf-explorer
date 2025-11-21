@@ -246,6 +246,8 @@ export function makeSpectraChart(
   // Restore the previous zoom transform if it exists
   if (zoomState.currentZoomTransform) {
     svg.call(zoom.transform as never, zoomState.currentZoomTransform);
+  } else {
+    svg.call(zoom.transform as never, d3.zoomIdentity);
   }
 
   return svg;
