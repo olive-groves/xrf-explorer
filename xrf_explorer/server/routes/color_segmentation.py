@@ -11,6 +11,7 @@ import numpy as np
 from flask import send_file, request
 
 from xrf_explorer import app
+from xrf_explorer.server.color_segmentation.color_seg import calculate_recommended_cluster_number
 
 from xrf_explorer.server.color_segmentation import (
     get_path_to_cs_folder,
@@ -184,22 +185,13 @@ def recommend_k(data_source: str):
         idmask = np.random.choice(mask.shape[0], max_points, replace=False)
         mask = mask[idmask]
 
-    # Compute recommended clusters, k is placeholder for what the optimal amount of clusters is
-    LOG.info("Computing recommened k")
+    LOG.info("Computing recommended k")
     max_k = min(50, len(mask))
-    best_score = -1
-    best_k = 0
 
-    LOG.info("before loop")
-    for k in range(2, max_k):
-        km = KMeans(n_clusters=k, n_init="auto").fit(mask)
-        score = silhouette_score(mask, km.labels_)
-        if score > best_score:
-            best_score = score
-            best_k = k
-    LOG.info("Finished loop")
+    # Call the new helper function
+    result = calculate_recommended_cluster_number(mask, k_range=range(2, max_k))
 
-    return json.dumps({"recommended_k": best_k})
+    return json.dumps({"recommended_k": result["recommended_k"]})
 
 @app.route('/api/<data_source>/cs/bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
