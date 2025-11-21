@@ -201,7 +201,15 @@ export function makeSpectraChart(
 
   const zoom = d3
     .zoom()
-    .scaleExtent([1, 8])
+    .scaleExtent([1, 1024])
+    .extent([
+      [margin.left, margin.top],
+      [width - margin.right, height - margin.bottom],
+    ])
+    .translateExtent([
+      [margin.left, margin.top],
+      [width - margin.right, height - margin.bottom],
+    ])
     .on("zoom", (event) => {
       zoomState.setZoomTransform(event.transform); // Store the current transform
       const newX = event.transform.rescaleX(x);
