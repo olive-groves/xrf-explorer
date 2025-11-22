@@ -26,6 +26,7 @@ export function makeSpectraChart(
     globalChecked: boolean;
     selectionChecked: boolean;
     elementChecked: boolean;
+    elementPeaksChecked: boolean;
     selectedElement: string;
   },
   dimensions: {
@@ -44,7 +45,7 @@ export function makeSpectraChart(
   const { width, height, margin } = dimensions;
   const { low, high, binSize, offset } = params;
   const { global: globalData, selection: selectionData, element: elementData, elementPeaks } = data;
-  const { globalChecked, selectionChecked, elementChecked, selectedElement } = flags;
+  const { globalChecked, selectionChecked, elementChecked, elementPeaksChecked, selectedElement } = flags;
 
   // Block viewing graphs below x-axis and left of y-axis
   svg
@@ -65,21 +66,31 @@ export function makeSpectraChart(
     if (isNaN(globalMax)) globalMax = 0;
     if (isNaN(selectionMax)) selectionMax = 0;
 
-    let max: number;
+    let yAxisMax: number;
 
     // Update the global and selection max values
     if (selectionChecked && !globalChecked) {
-      max = selectionMax;
+      yAxisMax = selectionMax;
     } else if (globalChecked && !selectionChecked) {
-      max = globalMax;
+      yAxisMax = globalMax;
     } else {
-      max = Math.max(...[globalMax, selectionMax]);
+      yAxisMax = Math.max(...[globalMax, selectionMax]);
     }
 
-    return max;
+    return { yAxisMax, globalMax };
   };
 
-  const max = getMax();
+  const { yAxisMax, globalMax } = getMax();
+
+  // Calculate scaling factor for element data
+  // Scale element data so its max matches the global max
+  let elementScalingFactor = 1;
+  if (elementChecked && elementData.length > 0) {
+    const elementMax = d3.max(elementData, (d) => d) as number;
+    if (elementMax > 0 && globalMax > 0) {
+      elementScalingFactor = globalMax / elementMax;
+    }
+  }
 
   // Add X and Y axis
   const x = d3
@@ -89,7 +100,7 @@ export function makeSpectraChart(
   const y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain([0, max * (100 / 255)]);
+    .domain([0, yAxisMax * (100 / 255)]);
 
   // append the svg object to the body of the page
   svg
@@ -171,8 +182,11 @@ export function makeSpectraChart(
     .attr("d", selectionLine)
     .style("opacity", selectionChecked ? 1 : 0);
 
-  // create line
-  const elementLine = createLine();
+  // create line for element data with scaling applied
+  const elementLine = d3
+    .line<number>()
+    .x((_, i) => x((i * binSize + low) * ((40 - offset) / high) + offset))
+    .y((d, _) => y(d * elementScalingFactor * (100 / 255)));
 
   // Add the line to chart
   plotArea
@@ -196,7 +210,7 @@ export function makeSpectraChart(
       .attr("y1", 30)
       .attr("x2", x((index * binSize + low) * ((40 - offset) / high) + offset))
       .attr("y2", 430)
-      .style("opacity", elementChecked && selectedElement != "No element" ? 1 : 0);
+      .style("opacity", elementPeaksChecked && selectedElement != "No element" ? 1 : 0);
   });
 
   const zoom = d3
@@ -225,10 +239,16 @@ export function makeSpectraChart(
         .x((_, i) => newX((i * binSize + low) * ((40 - offset) / high) + offset))
         .y((d) => newY(d * (100 / 255)));
 
+      // Create scaled line generator for element data
+      const zoomedElementLine = d3
+        .line<number>()
+        .x((_, i) => newX((i * binSize + low) * ((40 - offset) / high) + offset))
+        .y((d) => newY(d * elementScalingFactor * (100 / 255)));
+
       // Update all lines with zoomed scales
       svg.select("#globalLine").attr("d", zoomedLine(globalData));
       svg.select("#selectionLine").attr("d", zoomedLine(selectionData));
-      svg.select("#elementLine").attr("d", zoomedLine(elementData));
+      svg.select("#elementLine").attr("d", zoomedElementLine(elementData));
 
       // Update peaks
       svg

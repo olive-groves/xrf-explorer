@@ -132,6 +132,7 @@ function drawChart() {
       globalChecked: globalChecked.value,
       selectionChecked: selectionChecked.value,
       elementChecked: elementChecked.value,
+      elementPeaksChecked: elementPeaksChecked.value,
       selectedElement: selectedElement.value,
     },
     {
@@ -148,6 +149,7 @@ function drawChart() {
 
 const globalChecked = ref(false);
 const elementChecked = ref(false);
+const elementPeaksChecked = ref(false);
 const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
@@ -291,7 +293,11 @@ function resetZoom() {
         </div>
         <div class="mt-1 flex items-center">
           <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="drawChart" />
-          <label class="ml-1" for="elementCheck">Element theoretical</label>
+          <label class="ml-1" for="elementCheck">Element theoretical graph</label>
+        </div>
+        <div class="mt-1 flex items-center">
+          <Checkbox id="elementPeaksCheck" v-model:checked="elementPeaksChecked" @update:checked="drawChart" />
+          <label class="ml-1" for="elementPeaksCheck">Element theoretical peaks</label>
         </div>
       </div>
       <!-- ELEMENT SELECTION -->
