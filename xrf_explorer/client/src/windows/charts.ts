@@ -8,6 +8,45 @@ export function clearChart(svg: d3.Selection<HTMLElement, unknown, null, undefin
   svg.selectAll("*").remove();
 }
 
+/**
+ * Creates an interactive D3.js spectra chart for XRF (X-ray fluorescence) data visualization.
+ * This function renders multiple spectral datasets (global, selection, and theoretical element spectra)
+ * with zoom and pan capabilities. The chart displays energy (keV) on the x-axis and count percentage on the y-axis.
+ * @param target - The HTML element (typically an SVG) where the chart will be rendered.
+ * @param data - Object containing the spectral data arrays to be plotted.
+ * @param data.global - Array of intensity values representing the global average spectrum across the entire painting.
+ * Index represents bin/channel number, value represents average intensity for that bin/channel.
+ * @param data.selection - Array of intensity values representing the average spectrum of the selected area.
+ * Index represents bin/channel number, value represents average intensity for that bin/channel.
+ * @param data.element - Array of intensity values for the theoretical element spectrum.
+ * Scaled to match the global spectrum's peak for visual comparison.
+ * @param data.elementPeaks - Array of bin/channel indices where theoretical element peaks occur.
+ * @param params - Object containing spectral binning and energy range parameters.
+ * @param params.low - Lower bound of the energy range in channels (typically 0).
+ * @param params.high - Upper bound of the energy range in channels (e.g., 4096).
+ * @param params.binSize - Size of each bin in channels, used for x-axis position calculations.
+ * @param params.offset - Energy offset in keV applied to the x-axis for calibration purposes.
+ * @param flags - Object controlling visibility and display options for chart elements.
+ * @param flags.globalChecked - Whether to display the global average spectrum line (blue).
+ * @param flags.selectionChecked - Whether to display the selection average spectrum line (green).
+ * @param flags.elementChecked - Whether to display the theoretical element spectrum line (orange).
+ * @param flags.elementPeaksChecked - Whether to display vertical lines marking theoretical element peaks (grey).
+ * @param flags.selectedElement - Symbol of the currently selected element (e.g., "Fe", "Cu", or "No element").
+ * @param dimensions - Object defining the chart's size and margins.
+ * @param dimensions.width - Total width of the chart in pixels.
+ * @param dimensions.height - Total height of the chart in pixels.
+ * @param dimensions.margin - Object containing margins for top, right, bottom, and left sides.
+ * @param dimensions.margin.top - Top margin in pixels.
+ * @param dimensions.margin.right - Right margin in pixels.
+ * @param dimensions.margin.bottom - Bottom margin in pixels (includes space for x-axis label).
+ * @param dimensions.margin.left - Left margin in pixels (includes space for y-axis label).
+ * @param zoomState - Object managing the zoom/pan state of the chart.
+ * @param zoomState.currentZoomTransform - The current D3 zoom transform, or null if no zoom is applied.
+ * Used to restore zoom state when redrawing the chart.
+ * @param zoomState.setZoomTransform - Callback function to update the zoom transform state.
+ * Called during zoom/pan events to persist the current transform.
+ * @returns The D3 selection of the SVG element containing the rendered chart.
+ */
 export function makeSpectraChart(
   target: HTMLElement,
   data: {
@@ -39,6 +78,19 @@ export function makeSpectraChart(
     setZoomTransform: (t: d3.ZoomTransform) => void;
   },
 ) {
+  /**
+   * Generates a D3 line based on the current binning parameters.
+   * @param line_offset Offset in keV to be applied to the line.
+   * @param y_scaling Scaling factor to be applied to the Y values of the line.
+   * @returns - The D3 line with the given offset and y_scaling.
+   */
+  function createLine(line_offset: number = offset, y_scaling: number = 1) {
+    return d3
+      .line<number>()
+      .x((_, i) => x((i * binSize + low) * ((40 - line_offset) / high) + line_offset))
+      .y((d, _) => y(d * y_scaling));
+  }
+
   const svg = d3.select(target);
   clearChart(svg);
 
@@ -143,17 +195,6 @@ export function makeSpectraChart(
   // Create a group for the plot area and apply the clip-path
   const plotArea = svg.append("g").attr("clip-path", "url(#chart-area-clip)");
 
-  /**
-   * Generates a D3 line based on the current binning parameters.
-   * @returns - The D3 line.
-   */
-  function createLine() {
-    return d3
-      .line<number>()
-      .x((_, i) => x((i * binSize + low) * ((40 - offset) / high) + offset))
-      .y((d, _) => y(d * (100 / 255)));
-  }
-
   // create line
   const globalLine = createLine();
 
@@ -183,10 +224,7 @@ export function makeSpectraChart(
     .style("opacity", selectionChecked ? 1 : 0);
 
   // create line for element data with scaling applied
-  const elementLine = d3
-    .line<number>()
-    .x((_, i) => x((i * binSize + low) * ((40 - offset) / high) + offset))
-    .y((d, _) => y(d * elementScalingFactor * (100 / 255)));
+  const elementLine = createLine(0, elementScalingFactor);
 
   // Add the line to chart
   plotArea
@@ -220,14 +258,32 @@ export function makeSpectraChart(
       [margin.left, margin.top],
       [width - margin.right, height - margin.bottom],
     ])
-    .translateExtent([
-      [margin.left, margin.top],
-      [width - margin.right, height - margin.bottom],
-    ])
     .on("zoom", (event) => {
-      zoomState.setZoomTransform(event.transform); // Store the current transform
-      const newX = event.transform.rescaleX(x);
-      const newY = event.transform.rescaleY(y);
+      // Constrain panning to prevent going into negative X and Y directions
+      // while allowing unlimited panning in positive directions
+      let transform = event.transform;
+      
+      // Calculate the maximum allowed translation based on data coordinates
+      // We want to prevent data value 0 from appearing in the visible chart area
+      // For x: prevent x=0 from panning past the left edge of the chart
+      // For y: prevent y=0 from panning past the bottom edge of the chart
+      const maxTx = margin.left - transform.k * x(0);
+      const minTy = (height - margin.bottom) - transform.k * y(0);
+      
+      // Clamp the translation values to prevent panning into negative directions
+      // but allow unlimited panning in positive directions (negative transform values)
+      if (transform.x > maxTx || transform.y < minTy) {
+        transform = d3.zoomIdentity
+          .translate(Math.min(transform.x, maxTx), Math.max(transform.y, minTy))
+          .scale(transform.k);
+        
+        // Apply the constrained transform back to the SVG
+        svg.call(zoom.transform as never, transform);
+      }
+      
+      zoomState.setZoomTransform(transform); // Store the current transform
+      const newX = transform.rescaleX(x);
+      const newY = transform.rescaleY(y);
 
       // Update axes
       svg.select(".x-axis").call(d3.axisBottom(newX) as never);
@@ -237,13 +293,13 @@ export function makeSpectraChart(
       const zoomedLine = d3
         .line<number>()
         .x((_, i) => newX((i * binSize + low) * ((40 - offset) / high) + offset))
-        .y((d) => newY(d * (100 / 255)));
+        .y((d) => newY(d));
 
       // Create scaled line generator for element data
       const zoomedElementLine = d3
         .line<number>()
-        .x((_, i) => newX((i * binSize + low) * ((40 - offset) / high) + offset))
-        .y((d) => newY(d * elementScalingFactor * (100 / 255)));
+        .x((_, i) => newX((i * binSize + low) * (40 / high)))
+        .y((d) => newY(d * elementScalingFactor));
 
       // Update all lines with zoomed scales
       svg.select("#globalLine").attr("d", zoomedLine(globalData));
@@ -253,12 +309,8 @@ export function makeSpectraChart(
       // Update peaks
       svg
         .selectAll(".peak-line")
-        .attr("x1", (_, i) =>
-          newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset),
-        )
-        .attr("x2", (_, i) =>
-          newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset),
-        );
+        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset))
+        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset));
     });
 
   svg.call(zoom as never);

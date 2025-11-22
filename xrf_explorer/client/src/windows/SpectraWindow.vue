@@ -30,8 +30,6 @@ const binningData = ref(false);
 const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
 
-
-
 // Zoom State
 let currentZoomTransform: d3.ZoomTransform | null = null;
 
@@ -154,8 +152,6 @@ const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
 
-
-
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
  */
@@ -257,8 +253,6 @@ async function getElementSpectrum(element: string, excitation: number) {
   }
 }
 
-
-
 /**
  * Plots element spectrum when an element is selected in the dropdown.
  */
@@ -271,6 +265,9 @@ watch(popupVisible, async () => {
   drawChart();
 });
 
+/**
+ * Resets the zoom of the chart to its default, zoomed-out value.
+ */
 function resetZoom() {
   currentZoomTransform = null;
   drawChart();
@@ -339,7 +336,7 @@ function resetZoom() {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
         </div>
-        <div class="mt-2 mb-2 flex gap-2">
+        <div class="my-2 flex gap-2">
           <Button variant="outline" size="icon" @click="popupVisible = true" title="Open Popup Spectra Chart">
             <Maximize2 class="size-4" />
           </Button>

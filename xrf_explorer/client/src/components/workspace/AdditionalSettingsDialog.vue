@@ -103,7 +103,7 @@ function save() {
           <Input
             ref="inputComponent"
             type="number"
-            min="1"
+            min="0"
             :max="MAX_ENERGY"
             step="1"
             v-model="binSize"
