@@ -30,8 +30,6 @@ const binningData = ref(false);
 const loadingSelection = ref(false);
 const loadingGlobal = ref(false);
 
-
-
 // Zoom State
 let currentZoomTransform: d3.ZoomTransform | null = null;
 
@@ -132,6 +130,7 @@ function drawChart() {
       globalChecked: globalChecked.value,
       selectionChecked: selectionChecked.value,
       elementChecked: elementChecked.value,
+      elementPeaksChecked: elementPeaksChecked.value,
       selectedElement: selectedElement.value,
     },
     {
@@ -148,11 +147,10 @@ function drawChart() {
 
 const globalChecked = ref(false);
 const elementChecked = ref(false);
+const elementPeaksChecked = ref(false);
 const selectionChecked = ref(false);
 const selectedElement = ref("No element");
 const excitation = ref(0);
-
-
 
 /**
  * Plots the average channel spectrum over the whole painting in the chart.
@@ -255,8 +253,6 @@ async function getElementSpectrum(element: string, excitation: number) {
   }
 }
 
-
-
 /**
  * Plots element spectrum when an element is selected in the dropdown.
  */
@@ -269,6 +265,9 @@ watch(popupVisible, async () => {
   drawChart();
 });
 
+/**
+ * Resets the zoom of the chart to its default, zoomed-out value.
+ */
 function resetZoom() {
   currentZoomTransform = null;
   drawChart();
@@ -291,7 +290,11 @@ function resetZoom() {
         </div>
         <div class="mt-1 flex items-center">
           <Checkbox id="elementCheck" v-model:checked="elementChecked" @update:checked="drawChart" />
-          <label class="ml-1" for="elementCheck">Element theoretical</label>
+          <label class="ml-1" for="elementCheck">Element theoretical graph</label>
+        </div>
+        <div class="mt-1 flex items-center">
+          <Checkbox id="elementPeaksCheck" v-model:checked="elementPeaksChecked" @update:checked="drawChart" />
+          <label class="ml-1" for="elementPeaksCheck">Element theoretical peaks</label>
         </div>
       </div>
       <!-- ELEMENT SELECTION -->
@@ -333,7 +336,7 @@ function resetZoom() {
             <LoaderPinwheel class="size-full animate-spin" />
           </div>
         </div>
-        <div class="mt-2 mb-2 flex gap-2">
+        <div class="my-2 flex gap-2">
           <Button variant="outline" size="icon" @click="popupVisible = true" title="Open Popup Spectra Chart">
             <Maximize2 class="size-4" />
           </Button>
