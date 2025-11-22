@@ -11,7 +11,7 @@ import { LabeledSlider } from "@/components/ui/slider";
 import "./workspace";
 
 const groups = ref<LayerGroup[]>([]);
-const numberOfPinnedLayers = computed(() => groups.value.filter(g => g.pinned).length);
+const numberOfPinnedLayers = computed(() => groups.value.filter((g) => g.pinned).length);
 
 // Used for generalizing the code.
 interface Property {
@@ -79,6 +79,10 @@ function checkedOutsideLens(group: LayerGroup) {
   setLayerGroupVisibility(group);
 }
 
+/**
+ * Toggles the pinned state of a layer group.
+ * @param group - The layer group to toggle the pinned state of.
+ */
 function togglePin(group: LayerGroup) {
   if (!group.pinned) {
     // Trying to pin
@@ -109,17 +113,14 @@ function togglePin(group: LayerGroup) {
         </div>
         <div>
           <!-- Pin button -->
-          <Button 
-            variant="ghost" 
-            class="size-8 p-2" 
-            :title="group.pinned ? 'Unpin layer' : 'Pin layer'" 
-            @click="togglePin(group)" 
+          <Button
+            variant="ghost"
+            class="size-8 p-2"
+            :title="group.pinned ? 'Unpin layer' : 'Pin layer'"
+            @click="togglePin(group)"
             :disabled="!group.pinned && numberOfPinnedLayers >= 3"
           >
-            <Pin 
-              :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" 
-              class="w-5 h-5" 
-            />
+            <Pin :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" class="size-5" />
           </Button>
 
           <!-- SLIDERS POPOVER -->

@@ -29,7 +29,6 @@ const props = defineProps<{
 const emit = defineEmits(["update"]);
 
 const defaultValue = props.default;
-
 </script>
 
 <template>

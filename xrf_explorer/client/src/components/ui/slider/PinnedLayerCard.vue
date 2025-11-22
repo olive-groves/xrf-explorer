@@ -2,7 +2,12 @@
 import { PinnedSlider } from ".";
 import { Eye, EyeOff, SlidersHorizontal, Pin } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "@/components/image-viewer/state";
+import {
+  layerGroups,
+  setLayerGroupIndex,
+  setLayerGroupVisibility,
+  setLayerGroupProperty,
+} from "@/components/image-viewer/state";
 import { LayerGroup } from "@/components/image-viewer/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
@@ -12,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const groups = ref<LayerGroup[]>([]);
-const numberOfPinnedLayers = computed(() => groups.value.filter(g => g.pinned).length);
+const numberOfPinnedLayers = computed(() => groups.value.filter((g) => g.pinned).length);
 
 // Used for generalizing the code.
 interface Property {
@@ -63,6 +68,10 @@ watch(
   { immediate: true },
 );
 
+/**
+ * Toggles the pinned state of a layer group.
+ * @param group - The layer group to toggle the pinned state of.
+ */
 function togglePin(group: LayerGroup) {
   if (!group.pinned) {
     // Trying to pin
@@ -79,68 +88,65 @@ function togglePin(group: LayerGroup) {
 </script>
 
 <template>
-    <div class="bg-card shadow-md rounded-md p-3 w-[300px] border border-border">
-        <div class="flex justify-between items-center mb-2">
-            <div class="font-medium">{{ group.name }}</div>
-            <!-- All button at the right side of the header -->
-            <div class="flex space-x-1">
-                <!-- Pin button -->
-                <Button 
-                    variant="ghost" 
-                    class="size-8 p-2" 
-                    title="Unpin layer" 
-                    @click="togglePin(group)" 
-                    :disabled="!group.pinned && numberOfPinnedLayers >= 3"
-                >
-                    <Pin 
-                    :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" 
-                    class="w-5 h-5" 
-                    />
-                </Button>
-                    <!-- SLIDERS POPOVER -->
-                <Popover v-if="group.visible">
-                    <PopoverTrigger>
-                    <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
-                        <SlidersHorizontal />
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
-                    <!-- SLIDERS FOR ALL NON-MAIN PROPERTIES -->
-                    <LabeledSlider
-                        v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
-                        :key="property.name"
-                        :label="property.name"
-                        :min="property.min"
-                        :max="property.max"
-                        :default="[property.default]"
-                        v-model="group[property.nameRef]"
-                        @update="() => setLayerGroupProperty(group, property.propertyName)"
-                    />
-                    </PopoverContent>
-                </Popover>
-                <!-- VISIBILITY TOGGLE -->
-                <Button
-                    @click="
-                    group.visible = !group.visible;
-                    setLayerGroupVisibility(group);
-                    "
-                    variant="ghost"
-                    class="size-8 p-2"
-                    title="Toggle visibility"
-                >
-                    <Eye v-if="group.visible" />
-                    <EyeOff v-else />
-                </Button>
-            </div>
-        </div>
-        <PinnedSlider
-            v-model="group.opacity"
-            :min="0"
-            :max="1"
-            :step="0.01"
-            :value="group.opacity"
-            :default="[1]"
-            @update="() => setLayerGroupProperty(props.group, 'opacityProperty')"
-        />
+  <div class="w-[300px] rounded-md border border-border bg-card p-3 shadow-md">
+    <div class="mb-2 flex items-center justify-between">
+      <div class="font-medium">{{ group.name }}</div>
+      <!-- All button at the right side of the header -->
+      <div class="flex space-x-1">
+        <!-- Pin button -->
+        <Button
+          variant="ghost"
+          class="size-8 p-2"
+          title="Unpin layer"
+          @click="togglePin(group)"
+          :disabled="!group.pinned && numberOfPinnedLayers >= 3"
+        >
+          <Pin :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" class="size-5" />
+        </Button>
+        <!-- SLIDERS POPOVER -->
+        <Popover v-if="group.visible">
+          <PopoverTrigger>
+            <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
+              <SlidersHorizontal />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <!-- SLIDERS FOR ALL NON-MAIN PROPERTIES -->
+            <LabeledSlider
+              v-for="property in properties.filter((prop) => !mainProperties.includes(prop.name))"
+              :key="property.name"
+              :label="property.name"
+              :min="property.min"
+              :max="property.max"
+              :default="[property.default]"
+              v-model="group[property.nameRef]"
+              @update="() => setLayerGroupProperty(group, property.propertyName)"
+            />
+          </PopoverContent>
+        </Popover>
+        <!-- VISIBILITY TOGGLE -->
+        <Button
+          @click="
+            group.visible = !group.visible;
+            setLayerGroupVisibility(group);
+          "
+          variant="ghost"
+          class="size-8 p-2"
+          title="Toggle visibility"
+        >
+          <Eye v-if="group.visible" />
+          <EyeOff v-else />
+        </Button>
+      </div>
     </div>
+    <PinnedSlider
+      v-model="group.opacity"
+      :min="0"
+      :max="1"
+      :step="0.01"
+      :value="group.opacity"
+      :default="[1]"
+      @update="() => setLayerGroupProperty(props.group, 'opacityProperty')"
+    />
+  </div>
 </template>
