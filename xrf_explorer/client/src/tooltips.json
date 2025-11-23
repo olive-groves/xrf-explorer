@@ -1,0 +1,18 @@
+{
+    "Toolbar": {
+        "xrf-explorer": "Main application settings",
+        "github": "",
+        "documentation": "",
+        "reset_client": "Reset the application view to default settings",
+        "file_menu": "Manage Projects",
+        "new_project": "Create a new project",
+        "view_menu": "Open visualisation views",
+        "spectra": "Explore average spectra for painting or selected areas",
+        "elemental_charts": "Analyze how much each element appears in the painting",
+        "elemental_channels": "Analyze where each element appears in the painting",
+        "color_segmentation": "Analyze the color clusters for the entire painting or for individual elements",
+        "dimensionality_reduction": "Analyze the dimensionality reduction of the painting or of individual elements",
+        "layers": "Select what layers of the painting to show",
+        "workspace_menu": "Manage workspace of the project"
+    }
+}

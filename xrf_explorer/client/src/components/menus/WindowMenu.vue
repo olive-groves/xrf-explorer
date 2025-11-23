@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/menubar";
 import { windowState } from "@/components/ui/window/state";
 import { appState } from "@/lib/appState";
-import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { computed, useSlots } from "vue";
 import { toast } from "vue-sonner";
 
@@ -31,18 +30,14 @@ function toggleSecondViewer() {
 
 <template>
   <MenubarMenu>
-    <MenubarTrigger> View </MenubarTrigger>
-    <HelpDialog
-      title="View Help Menu"
-      text="The View menu allows you to toggle the visibility of different windows and enable a second main viewer."
-      :enabled="true"
-    />
+    <MenubarTrigger v-tooltip="'Toolbar.view_menu'"> View </MenubarTrigger>
     <MenubarContent>
       <MenubarCheckboxItem
         v-for="window in windowState"
         v-model:checked="window.opened"
         :disabled="window.disabled"
         :key="window.id"
+        :title="window.help"
       >
         {{ window.title }}
       </MenubarCheckboxItem>

@@ -24,6 +24,9 @@ const dialogOpen = ref(false);
 // Color mode variable
 const colorMode = useColorMode({ emitAuto: true });
 
+/**
+ * Toggle the visibility of the help menu buttons.
+ */
 function toggleHelpDialogs() {
   helpState.enabled = !helpState.enabled;
 }
@@ -32,12 +35,9 @@ function toggleHelpDialogs() {
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
-      <MenubarTrigger class="whitespace-nowrap font-bold"> XRF-Explorer </MenubarTrigger>
-      <HelpDialog
-        title="XRF Explorer Help Menu"
-        text="The XRF Explorer menu provides access to external resources, theme/help menu settings, and the option to reset the client."
-        :enabled="true"
-      />
+      <MenubarTrigger class="whitespace-nowrap font-bold" title="Main application settings">
+        XRF-Explorer
+      </MenubarTrigger>
       <MenubarContent>
         <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
           <MenubarItem inset> Github </MenubarItem>

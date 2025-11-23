@@ -13,6 +13,7 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { getTooltipByKey } from "@/lib/useToolTips";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
@@ -128,7 +129,12 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window title="Color segmentation" help="Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent" location="right" :disabled="!elementalDataPresent">
+  <Window
+    title="Color segmentation"
+    :help="getTooltipByKey('Toolbar.color_segmentation')"
+    location="right"
+    :disabled="!elementalDataPresent"
+  >
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
