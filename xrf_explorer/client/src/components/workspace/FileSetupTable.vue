@@ -9,6 +9,13 @@ import { Image, ImagePlus, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 
+enum DataComponentType {
+  BaseImage = "baseImage",
+  ContextualImage = "contextualImages",
+  Spectral_Datacube = "spectralCubes",
+  Elemental_Datacube = "elementalCubes",
+}
+
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
@@ -33,6 +40,9 @@ const showDeleteFileDialog = ref(false);
 const showDeleteComponentDialog = ref(false);
 const showMultiDeleteDialog = ref(false);
 const selectedFilesToDelete = ref<string[]>([]);
+
+const componentNameToDelete = ref("");
+const componentTypeToDelete = ref<DataComponentType>();
 
 // All files in the project folder (from server), excluding workspace.json
 const allProjectFiles = computed(() => {
@@ -96,38 +106,36 @@ function addElementToWorkspace() {
 
 /**
  * Removes a component from the workspace model.
- * @param componentNames The component names to be removed from the workspace.
+ * @param componentName The component names to be removed from the workspace.
+ * @param componentType The component type to be removed.
  */
-async function removeComponentsFromWorkspace() {
-  console.log("Remove components:");
-  console.log(selectedFilesToDelete.value);
-  for (const file in selectedFilesToDelete.value) {
-    const filename = selectedFilesToDelete.value[file];
-    console.log(filename);
-    console.log(model.value.contextualImages);
-    model.value.contextualImages = model.value.contextualImages.filter(
-      (img) => img.imageLocation !== filename && img.recipeLocation !== filename && img.name !== filename,
-    );
-    model.value.spectralCubes = model.value.spectralCubes.filter(
-      (cube) =>
-        cube.rawLocation !== filename &&
-        cube.rplLocation !== filename &&
-        cube.recipeLocation !== filename &&
-        cube.name !== filename,
-    );
-    model.value.elementalCubes = model.value.elementalCubes.filter(
-      (cube) => cube.dataLocation !== filename && cube.recipeLocation !== filename && cube.name !== filename,
-    );
-    if (model.value.baseImage.imageLocation === filename) {
-      model.value.baseImage.imageLocation = "";
-    }
+async function removeComponentsFromWorkspace(componentName: string, componentType?: DataComponentType) {
+  if (componentType == undefined) {
+    console.error("Could not delete component " + componentName);
+    return;
   }
-  selectedFilesToDelete.value = [];
+
+  switch (componentType) {
+    case DataComponentType.BaseImage:
+      model.value.baseImage.imageLocation = "";
+      break;
+
+    case DataComponentType.ContextualImage:
+      model.value.contextualImages = model.value.contextualImages.filter((img) => img.name !== componentName);
+      break;
+
+    case DataComponentType.Spectral_Datacube:
+      model.value.spectralCubes = model.value.spectralCubes.filter((img) => img.name !== componentName);
+      break;
+
+    case DataComponentType.Elemental_Datacube:
+      model.value.elementalCubes = model.value.elementalCubes.filter((img) => img.name !== componentName);
+      break;
+  }
 
   // Refresh the file list from server
   await fileFetch.execute();
 
-  console.log(model.value);
   // Update workspace.json with the modified model
   const workspaceResponse = await fetch(`${config.api.endpoint}/${model.value.name}/workspace`, {
     method: "POST",
@@ -140,6 +148,36 @@ async function removeComponentsFromWorkspace() {
   }
 
   showDeleteComponentDialog.value = false;
+}
+
+/**
+ * Remove file from component.
+ * @param filename The file to be removed from the component, if it exists anywhere.
+ */
+async function removeFileFromComponent(filename: string) {
+  console.log("Removing file: " + filename);
+
+  if (model.value.baseImage.name == filename) {
+    model.value.baseImage.name == "";
+  }
+
+  model.value.contextualImages = model.value.contextualImages.map((img) => ({
+    ...img,
+    imageLocation: img.imageLocation === filename ? "" : img.imageLocation,
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation,
+  }));
+
+  model.value.spectralCubes = model.value.spectralCubes.map((img) => ({
+    ...img,
+    imageLocation: img.rawLocation === filename ? "" : img.rawLocation,
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation,
+  }));
+
+  model.value.elementalCubes = model.value.elementalCubes.map((img) => ({
+    ...img,
+    imageLocation: img.dataLocation === filename ? "" : img.dataLocation,
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation,
+  }));
 }
 
 /**
@@ -171,7 +209,10 @@ async function handleMultiDeleteConfirmed() {
       // Optionally show user which files failed to delete
     }
 
-    removeComponentsFromWorkspace();
+    for (const filename in result.deleted) {
+      removeFileFromComponent(result.deleted[filename]);
+    }
+    //removeComponentsFromWorkspace();
   } catch (error) {
     console.error("Error during multi-delete:", error);
   }
@@ -211,7 +252,8 @@ async function handleMultiDeleteConfirmed() {
             class="row-span-2 size-full p-2"
             @click="
               showDeleteComponentDialog = true;
-              selectedFilesToDelete.push(image.name);
+              componentNameToDelete = image.name;
+              componentTypeToDelete = DataComponentType.ContextualImage;
             "
           >
             <Trash2 />
@@ -230,7 +272,8 @@ async function handleMultiDeleteConfirmed() {
             class="row-span-3 size-full p-2"
             @click="
               showDeleteComponentDialog = true;
-              selectedFilesToDelete.push(cube.name);
+              componentNameToDelete = cube.name;
+              componentTypeToDelete = DataComponentType.Spectral_Datacube;
             "
           >
             <Trash2 />
@@ -250,7 +293,8 @@ async function handleMultiDeleteConfirmed() {
             class="row-span-2 size-full p-2"
             @click="
               showDeleteComponentDialog = true;
-              selectedFilesToDelete.push(cube.name);
+              componentNameToDelete = cube.name;
+              componentTypeToDelete = DataComponentType.Elemental_Datacube;
             "
           >
             <Trash2 />
@@ -267,7 +311,11 @@ async function handleMultiDeleteConfirmed() {
           </div>
           <div class="flex justify-end space-x-2">
             <Button variant="outline" @click="showDeleteComponentDialog = false">Cancel</Button>
-            <Button variant="destructive" @click="removeComponentsFromWorkspace">Delete</Button>
+            <Button
+              variant="destructive"
+              @click="removeComponentsFromWorkspace(componentNameToDelete, componentTypeToDelete)"
+              >Delete</Button
+            >
           </div>
         </div>
       </div>
