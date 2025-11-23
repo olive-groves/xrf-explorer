@@ -28,20 +28,16 @@ const rawFiles = computed(() => filterByExtension(files.value, ["raw"]));
 const rplFiles = computed(() => filterByExtension(files.value, ["rpl"]));
 const elementalFiles = computed(() => filterByExtension(files.value, ["csv", "dms"]));
 
-// Multi-delete functionality
+// Delete functionality
+const showDeleteFileDialog = ref(false);
+const showDeleteComponentDialog = ref(false);
 const showMultiDeleteDialog = ref(false);
 const selectedFilesToDelete = ref<string[]>([]);
 
 // All files in the project folder (from server), excluding workspace.json
 const allProjectFiles = computed(() => {
-  return (files.value || []).filter(file => file.toLowerCase() !== 'workspace.json');
+  return (files.value || []).filter((file) => file.toLowerCase() !== "workspace.json");
 });
-
-// Single delete functionality
-const showDeleteDialog = ref(false);
-const deleteType = ref("");
-const deleteName = ref("");
-const deleteFile = ref("");
 
 /**
  * Filters a list of filenames to only include files with the specified extensions.
@@ -98,100 +94,91 @@ function addElementToWorkspace() {
   }
 }
 
-async function handleDeleteConfirmed() {
-  // Delete on server
-  await fetch(`${config.api.endpoint}/${model.value.name}/delete_file`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename: deleteFile.value }),
-  });
-
-  // Remove locally
-  switch (deleteType.value) {
-    case "contextual_image":
-      model.value.contextualImages = model.value.contextualImages.filter((value) => value.name != deleteName.value);
-      break;
-    case "spectral_cube":
-      model.value.spectralCubes = model.value.spectralCubes.filter((value) => value.name != deleteName.value);
-      break;
-    case "elemental_cube":
-      model.value.elementalCubes = model.value.elementalCubes.filter((value) => value.name != deleteName.value);
-      break;
+/**
+ * Removes a component from the workspace model.
+ * @param componentNames The component names to be removed from the workspace.
+ */
+async function removeComponentsFromWorkspace() {
+  console.log("Remove components:");
+  console.log(selectedFilesToDelete.value);
+  for (const file in selectedFilesToDelete.value) {
+    const filename = selectedFilesToDelete.value[file];
+    console.log(filename);
+    console.log(model.value.contextualImages);
+    model.value.contextualImages = model.value.contextualImages.filter(
+      (img) => img.imageLocation !== filename && img.recipeLocation !== filename && img.name !== filename,
+    );
+    model.value.spectralCubes = model.value.spectralCubes.filter(
+      (cube) =>
+        cube.rawLocation !== filename &&
+        cube.rplLocation !== filename &&
+        cube.recipeLocation !== filename &&
+        cube.name !== filename,
+    );
+    model.value.elementalCubes = model.value.elementalCubes.filter(
+      (cube) => cube.dataLocation !== filename && cube.recipeLocation !== filename && cube.name !== filename,
+    );
+    if (model.value.baseImage.imageLocation === filename) {
+      model.value.baseImage.imageLocation = "";
+    }
   }
+  selectedFilesToDelete.value = [];
 
-  // Update workspace.json on the server
-  await fetch(`${config.api.endpoint}/${model.value.name}/workspace`, {
+  // Refresh the file list from server
+  await fileFetch.execute();
+
+  console.log(model.value);
+  // Update workspace.json with the modified model
+  const workspaceResponse = await fetch(`${config.api.endpoint}/${model.value.name}/workspace`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(model.value),
   });
 
-  showDeleteDialog.value = false;
+  if (!workspaceResponse.ok) {
+    console.error("Failed to update workspace.json:", workspaceResponse.statusText);
+  }
+
+  showDeleteComponentDialog.value = false;
 }
 
+/**
+ * Delete the files from the workspace and the server.
+ */
 async function handleMultiDeleteConfirmed() {
+  console.log("Remove files:");
   try {
+    console.log(selectedFilesToDelete.value);
+
     // Use the new batch delete endpoint - note the endpoint name matches your backend
     const response = await fetch(`${config.api.endpoint}/${model.value.name}/delete_files`, {
       method: "DELETE", // Your backend supports both DELETE and POST
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filenames: selectedFilesToDelete.value }),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Failed to delete files:", response.status, errorText);
       return;
     }
-    
+
     const result = await response.json();
     console.log(`Successfully deleted ${result.deleted.length} files`);
-    
+
     if (result.failed.length > 0) {
       console.warn("Some files failed to delete:", result.failed);
       // Optionally show user which files failed to delete
     }
-    
-    // Remove successfully deleted files from local model
-    for (const filename of result.deleted) {
-      model.value.contextualImages = model.value.contextualImages.filter(
-        (img) => img.imageLocation !== filename && img.recipeLocation !== filename
-      );
-      model.value.spectralCubes = model.value.spectralCubes.filter(
-        (cube) =>
-          cube.rawLocation !== filename &&
-          cube.rplLocation !== filename &&
-          cube.recipeLocation !== filename
-      );
-      model.value.elementalCubes = model.value.elementalCubes.filter(
-        (cube) =>
-          cube.dataLocation !== filename && cube.recipeLocation !== filename
-      );
-      if (model.value.baseImage.imageLocation === filename) {
-        model.value.baseImage.imageLocation = "";
-      }
-    }
-    
-    // Refresh the file list from server
-    await fileFetch.execute();
-    
-    // Update workspace.json with the modified model
-    const workspaceResponse = await fetch(`${config.api.endpoint}/${model.value.name}/workspace`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(model.value),
-    });
-    
-    if (!workspaceResponse.ok) {
-      console.error("Failed to update workspace.json:", workspaceResponse.statusText);
-    }
-    
+
+    removeComponentsFromWorkspace();
   } catch (error) {
     console.error("Error during multi-delete:", error);
   }
-  
+
   selectedFilesToDelete.value = [];
   showMultiDeleteDialog.value = false;
+  showDeleteFileDialog.value = false;
 }
 </script>
 
@@ -223,10 +210,8 @@ async function handleMultiDeleteConfirmed() {
             variant="destructive"
             class="row-span-2 size-full p-2"
             @click="
-              showDeleteDialog = true;
-              deleteType = 'contextual_image';
-              deleteName = image.name;
-              deleteFile = image.imageLocation;
+              showDeleteComponentDialog = true;
+              selectedFilesToDelete.push(image.name);
             "
           >
             <Trash2 />
@@ -244,10 +229,8 @@ async function handleMultiDeleteConfirmed() {
             variant="destructive"
             class="row-span-3 size-full p-2"
             @click="
-              showDeleteDialog = true;
-              deleteType = 'spectral_cube';
-              deleteName = cube.name;
-              deleteFile = cube.rawLocation;
+              showDeleteComponentDialog = true;
+              selectedFilesToDelete.push(cube.name);
             "
           >
             <Trash2 />
@@ -264,18 +247,29 @@ async function handleMultiDeleteConfirmed() {
           <FileSetupTableRow type="a data" :options="elementalFiles" v-model="cube.dataLocation" />
           <Button
             variant="destructive"
-            class=" row-span-2 size-full p-2"
+            class="row-span-2 size-full p-2"
             @click="
-              showDeleteDialog = true;
-              deleteType = 'elemental_cube';
-              deleteName = cube.name;
-              deleteFile = cube.dataLocation;
+              showDeleteComponentDialog = true;
+              selectedFilesToDelete.push(cube.name);
             "
           >
             <Trash2 />
           </Button>
           <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="cube.recipeLocation" />
         </template>
+      </div>
+      <!-- Delete confirmation dialog -->
+      <div v-if="showDeleteComponentDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div class="min-w-[320px] rounded-lg bg-background p-6 text-foreground shadow-lg">
+          <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
+          <div class="mb-4 text-sm text-muted-foreground">
+            Are you sure you want to delete this component from the workspace? This action cannot be undone.
+          </div>
+          <div class="flex justify-end space-x-2">
+            <Button variant="outline" @click="showDeleteComponentDialog = false">Cancel</Button>
+            <Button variant="destructive" @click="removeComponentsFromWorkspace">Delete</Button>
+          </div>
+        </div>
       </div>
     </ScrollArea>
 
@@ -298,51 +292,18 @@ async function handleMultiDeleteConfirmed() {
       </div>
       <div class="flex space-x-2">
         <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
-        <Button variant="destructive" @click="showMultiDeleteDialog = true">
-          Delete Selected
-        </Button>
-      </div>
-    </div>
-
-    <!-- Delete confirmation dialog -->
-    <div
-      v-if="showDeleteDialog"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-    >
-      <div class="bg-background text-foreground rounded-lg shadow-lg p-6 min-w-[320px]">
-        <div class="font-bold text-lg mb-2">Confirm Deletion</div>
-        <div class="text-sm text-muted-foreground mb-4">
-          Are you sure you want to delete <span class="font-bold">{{ deleteName }}</span>? This action cannot be undone.
-        </div>
-        <div class="flex justify-end space-x-2">
-          <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
-          <Button variant="destructive" @click="handleDeleteConfirmed">Delete</Button>
-        </div>
+        <Button variant="destructive" @click="showMultiDeleteDialog = true"> Delete Selected </Button>
       </div>
     </div>
 
     <!-- Multi delete dialog -->
-    <div
-      v-if="showMultiDeleteDialog"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-    >
-      <div class="bg-background text-foreground rounded-lg shadow-lg p-6 min-w-[360px] max-h-[500px] overflow-y-auto">
-        <div class="font-bold text-lg mb-2">Delete Files</div>
-        <div class="text-sm text-muted-foreground mb-4">
-          Select the files you want to delete from this project.
-        </div>
-        <div class="space-y-2 mb-4">
-          <label
-            v-for="file in allProjectFiles"
-            :key="file"
-            class="flex items-center space-x-2"
-          >
-            <input
-              type="checkbox"
-              :value="file"
-              v-model="selectedFilesToDelete"
-              class="form-checkbox"
-            />
+    <div v-if="showMultiDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div class="max-h-[500px] min-w-[360px] overflow-y-auto rounded-lg bg-background p-6 text-foreground shadow-lg">
+        <div class="mb-2 text-lg font-bold">Delete Files</div>
+        <div class="mb-4 text-sm text-muted-foreground">Select the files you want to delete from this project.</div>
+        <div class="mb-4 space-y-2">
+          <label v-for="file in allProjectFiles" :key="file" class="flex items-center space-x-2">
+            <input type="checkbox" :value="file" v-model="selectedFilesToDelete" class="form-checkbox" />
             <span class="truncate">{{ file }}</span>
           </label>
         </div>
@@ -351,10 +312,24 @@ async function handleMultiDeleteConfirmed() {
           <Button
             variant="destructive"
             :disabled="selectedFilesToDelete.length === 0"
-            @click="handleMultiDeleteConfirmed"
+            @click="showDeleteFileDialog = true"
           >
             Delete Selected
           </Button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete confirmation dialog -->
+    <div v-if="showDeleteFileDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div class="min-w-[320px] rounded-lg bg-background p-6 text-foreground shadow-lg">
+        <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
+        <div class="mb-4 text-sm text-muted-foreground">
+          Are you sure you want to delete these files? This action cannot be undone.
+        </div>
+        <div class="flex justify-end space-x-2">
+          <Button variant="outline" @click="showDeleteFileDialog = false">Cancel</Button>
+          <Button variant="destructive" @click="handleMultiDeleteConfirmed">Delete</Button>
         </div>
       </div>
     </div>
