@@ -279,7 +279,7 @@ defineExpose({
             Fragment <span v-if="(spectralArr.length > 1 || elementalArr.length > 1) && (includeElemental || includeSpectral)"> {{ index}}</span>
           </div>
           <!-- Spectral datacube -->
-          <div v-if="includeSpectral" class="col-span-full grid grid-cols-subgrid gap-2">
+          <div v-if="includeSpectral && spectralArr[index - 1]" class="col-span-full grid grid-cols-subgrid gap-2">
             <div class="col-span-full text-sm font-medium text-gray-500 mb-1 justify-self-start">
               Spectral Datacube
             </div>
@@ -306,7 +306,7 @@ defineExpose({
           </div>
 
           <!-- Elemental datacube -->
-          <div v-if="includeElemental" class="col-span-full grid grid-cols-subgrid gap-2">
+          <div v-if="includeElemental && elementalArr[index - 1]" class="col-span-full grid grid-cols-subgrid gap-2">
             <div class="col-span-full text-sm font-medium text-gray-500 mb-1 justify-self-start">
               Elemental Datacube
             </div>
