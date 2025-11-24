@@ -8,7 +8,7 @@ import numpy as np
 from cv2.typing import MatLike
 from skimage import color
 
-from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans as KMeans
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
 
 from xrf_explorer.server.image_register import get_image_registered_to_data_cube
@@ -255,7 +255,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     center = np.array([lab_to_rgb(c) for c in center])
     return center, cluster_masks
 
-def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=10, random_state=42):
+def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, random_state=42):
     """
     Evaluate multiple metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin)
     for a range of cluster numbers and recommend the best k.
@@ -268,7 +268,7 @@ def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=10, ran
         kmeans = KMeans(n_clusters=k, n_init=n_init, random_state=random_state)
         labels = kmeans.fit_predict(X)
 
-        silhouette_scores.append(silhouette_score(X, labels))
+        silhouette_scores.append(silhouette_score(X, labels, sample_size=min(1000, len(X))))
         ch_scores.append(calinski_harabasz_score(X, labels))
         db_scores.append(davies_bouldin_score(X, labels))
 

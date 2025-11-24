@@ -374,6 +374,15 @@ async function calculateRecommendedClusters() {
   }
 }
 
+// Update number of clusters variable to match the calculated recommended number of clusters.
+async function setRecommendedClusters() {
+  if (recommendedClusters.value == null) {
+    toast.error("No recommended amount of clusters calculated");
+    return;
+  }
+  number_clusters.value = recommendedClusters.value;
+} 
+
 </script>
 
 <template>
@@ -386,24 +395,22 @@ async function calculateRecommendedClusters() {
       </div>
       <div class="border-t border-border flex flex-wrap space-y-1.5 pt-2 ">
         <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
-        <div class="w-full md:w-3/4 p-1">
+        <div class="w-full md:w-2/5 p-1">
           <Button class="w-full h-full text-center whitespace-normal" @click="calculateRecommendedClusters">
             Calculate
           </Button>
         </div>
-        <div class="w-full md:w-1/4 p-1">
-          <div
-            class="border border-border rounded-md text-sm  
-                  flex items-center justify-center h-10 py-2"
-          >
-            <LoaderPinwheel
+        <div class="w-full md:w-3/5 p-1">
+            <Button 
               v-if="recommendedStatus == Status.LOADING"
-              class="size-6 animate-spin"
-            />       
-            <span v-else>
-              {{ recommendedClusters || '' }}
-            </span>
-          </div>
+              class="w-full h-full text-center whitespace-normal">
+              Loading
+            </Button>
+            <Button 
+              v-else
+              class="w-full h-full text-center whitespace-normal" @click="setRecommendedClusters">
+              Use recommended ({{ recommendedClusters || ''  }})
+            </Button>
         </div>
       </div>
 
