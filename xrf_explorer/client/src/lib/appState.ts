@@ -15,17 +15,18 @@ export const appState = reactive<AppState>({
     },
     elements: [],
     colorSegmentation: {
-      element: 0,
+      elements: Array(1).fill(0),
       enabled: Array(1).fill(false),
       colors: [],
       k: 20,
-      threshold: 20,
+      thresholds: Array(1).fill(0),
       useAreaSelection: false,
       areaSelection: {
         type: undefined,
         points: [],
       },
       lastCompleteSelectionTimestamp: 0,
+      lastColorSegmentationRun: 0
     },
     dimensionalityReduction: {
       color: "#ffffff",

@@ -8,6 +8,9 @@ import numpy as np
 from cv2.typing import MatLike
 from skimage import color
 
+from sklearn.cluster import MiniBatchKMeans as KMeans
+from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+
 from xrf_explorer.server.image_register import get_image_registered_to_data_cube
 from xrf_explorer.server.file_system.cubes import normalize_elemental_cube_per_layer, get_elemental_data_cube
 
@@ -73,7 +76,8 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
 def get_clusters_using_k_means(data_source: str, image_name: str,
                                selection_mask: np.ndarray,
-                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
+                               k: int = 30, nr_of_attempts: int = 10,
+                               return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
@@ -115,6 +119,10 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
+    
+    # When calculating the recommended number of clusters, this masked_image is required.
+    if return_features_for_rec_clusters:
+        return masked_image
 
     # apply kmeans
     colors: np.ndarray
@@ -140,18 +148,19 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     return colors, bitmasks
 
 
-def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: int,
+def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
-                                         elem_threshold: float = 0.1, k: int = 30,
-                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
+                                         elem_threshold: np.ndarray[float] = [0.1], k: int = 30,
+                                         nr_of_attempts: int = 10,
+                                         return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
     :param data_source: the name of the data source
     :param image_name: the name of the image to apply k-means on
-    :param elemental_channel: channel of the element to compute the color clusters of
+    :param elemental_channel: array of channels of the element to compute the color clusters of
     :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
-    :param elem_threshold: minimum concentration needed for an element to be present in the pixel
+    :param elem_threshold: array of minimum concentrations needed for the respective element to be present in the pixel
     :param k: number of clusters required at end. Defaults to 30
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
         Defaults to 10
@@ -160,7 +169,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     """
     LOG.info(
         f'Computing element-wise color clusters with parameters:'
-        f'k={k}, data_source={data_source}, elemental_channel={elemental_channel}'
+        f'k={k}, data_source={data_source}, elemental_channels={elemental_channel} with thresholds={elem_threshold}'
     )
 
     # Get the elemental data cube
@@ -171,6 +180,17 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     # Normalize the elemental data cube
     data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
+
+    # check if element channels are valid
+    for i in range(len(elemental_channel)):
+        if elemental_channel[i] > len(data_cube):
+            LOG.error(f'elemental_channel={elemental_channel[i]} is not valid for this data cube')
+            return np.empty(0), []
+
+    for i in range(len(elem_threshold)):
+        if elem_threshold[i] < 0 or elem_threshold[i] > 255:
+            LOG.error(f'invalid threshold {elem_threshold[i]}')
+            return np.empty(0), []
 
     # Get registered image
     registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
@@ -191,25 +211,26 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
-    # Get bitmask of pixels with high element concentration and get respective pixels in the image
-    bitmask: np.ndarray = np.array(data_cube[elemental_channel] >= elem_threshold)
-    combined_mask = bitmask & selection_mask
+    # Get bitmasks of pixels with high element concentration and get respective pixels in the image
+    combined_mask = selection_mask
+    for i in range(len(elemental_channel)):
+        curElementMask = (np.array(data_cube[elemental_channel[i]]) >= elem_threshold[i])
+        combined_mask = combined_mask & curElementMask
+
     masked_image: np.ndarray = image[combined_mask]
     masked_image = reshape_image(masked_image)
-
-    if masked_image.size < k:
-        LOG.error(f"Two few elements for clustering. "
-                  f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
-        return np.empty(0), []
 
     # If empty image, continue (elem. not present)
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
+    
+    # When calculating the recommended number of clusters, this masked_image is required.
+    if return_features_for_rec_clusters:
+        return masked_image
 
     # k cannot be bigger than number of pixels w/element present
-    k = min(k, masked_image.size)
     labels: np.ndarray
     center: np.ndarray
     _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
@@ -217,7 +238,7 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     labels = labels.flatten()
     subset_indices: tuple[np.ndarray, ...] = np.nonzero(combined_mask)
 
-    bitmasks: list[np.ndarray] = []
+    cluster_masks: list[np.ndarray] = []
     # Bitmasks for each cluster
     for i in range(k):
         # Indices for cluster "i"
@@ -228,12 +249,85 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
         # Convert mask to boolean
         cluster_mask = cluster_mask.astype(bool)
-        bitmasks.append(cluster_mask)
+        cluster_masks.append(cluster_mask)
 
     # Transform back to rgb
     center = np.array([lab_to_rgb(c) for c in center])
-    return center, bitmasks
+    return center, cluster_masks
 
+def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, random_state=42):
+    """
+    Calculates the recommended number of clusters by evaluating multiple clustering
+    quality metrics over a range of k values.
+
+    For each k in the provided range, the function performs k-means clustering and
+    computes the following metrics:
+      - Silhouette Score (higher is better)
+        - Measures how similar each pixel is to its own cluster vs other clusters.
+        - Good when clusters have intuitive boundaries.
+      - Calinski–Harabasz Index (higher is better)
+        - Measures the ratio of between-cluster variance to within-cluster variance.
+      - Davies–Bouldin Index (lower is better)
+        - Measures average similarity ratio of each cluster with its most similar cluster.
+
+    These metrics are normalized and combined into a single aggregated score to
+    determine the most stable and well-separated clustering configuration.
+
+    :param X: A 2D numpy array (N, 3) containing LAB pixel features extracted
+              from the selected region. Each row corresponds to a pixel.
+    :param k_range: Range or list of integers specifying which cluster counts
+                    to evaluate. Defaults to range(2, 11).
+    :param n_init: Number of k-means initializations per k. Higher values yield
+                   more stable clustering but increase computation time.
+                   Default is set to 3.
+    :param random_state: Seed used to ensure reproducibility of results.
+                         Default is set to 42.
+
+    :return: A dictionary containing:
+             - "k_values": list of evaluated k values
+             - "silhouette": list of silhouette scores
+             - "calinski_harabasz": list of Calinski–Harabasz scores
+             - "davies_bouldin": list of Davies–Bouldin scores
+             - "combined_score": normalized aggregated metric scores
+             - "recommended_k": the best k according to the combined score
+    """
+    silhouette_scores = []
+    ch_scores = []
+    db_scores = []
+
+    # Evaluate clustering for each k
+    for k in k_range:
+        kmeans = KMeans(n_clusters=k, n_init=n_init, random_state=random_state)
+        labels = kmeans.fit_predict(X)
+
+        silhouette_scores.append(silhouette_score(X, labels, sample_size=min(1000, len(X))))
+        ch_scores.append(calinski_harabasz_score(X, labels))
+        db_scores.append(davies_bouldin_score(X, labels))
+
+    # Convert lists to numpy arrays for easier manipulation
+    silhouette_scores = np.array(silhouette_scores)
+    ch_scores = np.array(ch_scores)
+    db_scores = np.array(db_scores)
+
+    # Normalize scores to comparable scale for combined ranking
+    sil_norm = (silhouette_scores - np.min(silhouette_scores)) / (np.max(silhouette_scores) - np.min(silhouette_scores))
+    ch_norm = (ch_scores - np.min(ch_scores)) / (np.max(ch_scores) - np.min(ch_scores))
+    db_norm = 1 - ((db_scores - np.min(db_scores)) / (np.max(db_scores) - np.min(db_scores)))  # Lower is better
+
+    # Combine normalized scores (equal weighting)
+    combined_score = (sil_norm + ch_norm + db_norm) / 3
+    best_k = k_range[np.argmax(combined_score)]
+
+    # print debug info
+    print(f"Recommended k (based on combined score): {best_k}")
+    return {
+        "k_values": list(k_range),
+        "silhouette": silhouette_scores,
+        "calinski_harabasz": ch_scores,
+        "davies_bouldin": db_scores,
+        "combined_score": combined_score.tolist(),
+        "recommended_k": best_k
+    }
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     """
