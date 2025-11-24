@@ -19,6 +19,7 @@
     "@vee-validate/zod": "^4.12.8",
     "@vueuse/core": "^10.9.0",
     "@vueuse/integrations": "^10.9.0",
+    "axios": "^1.13.2",
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.1.0",
+    "@types/axios": "^0.9.36",
     "@types/d3": "^7.4.3",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20.12.7",

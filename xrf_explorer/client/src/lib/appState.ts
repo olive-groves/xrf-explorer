@@ -36,6 +36,12 @@ export const appState = reactive<AppState>({
       },
     },
   },
+  user: {
+    username: "",
+    role: "",
+    projects: [],
+    // token: "",
+  },
 });
 
 /**
@@ -64,6 +70,21 @@ export const elementalDataPresent = computed(() => (appState.workspace?.elementa
 export const spectralDataPresent = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
 export const pinnedGroups = computed(() => Object.values(layerGroups.value).filter(g => g.pinned));
 
+type User = {
+  /**
+   * The username of the current logged in user
+   */
+  username: string;
+  /**
+   * The role of the current logged in user
+   */
+  role: string;
+  /**
+   * The projects the current logged in user has access to
+   */
+  projects: string[];
+}
+
 /**
  * Type describing the state of the client.
  * Solely intended for data that needs to be accessed from many different unrelated components.
@@ -82,4 +103,12 @@ export type AppState = {
    */
   // deprecated: keep the property documented for older code paths. Prefer workspace.stitchingMode.
   stitching?: boolean;
+  /**  
+   * The role of the current logged in user
+   */
+  user: User;
+  /**
+   * The authentication token of the current logged in user
+   */
+  // token: string;
 };

@@ -17,6 +17,16 @@ const sources = computed(() => {
   return JSON.parse((request.data.value ?? "[]") as string) as string[];
 });
 
+// Reactive filtered sources
+const filteredSources = computed(() => {
+  // Admins can see all sources
+  if (appState.user.role === "ADMIN") {
+    return sources.value;
+  }
+  const userProjects = appState.user.projects ?? [];
+  return sources.value.filter(source => userProjects.includes(source));
+});
+
 // Dialog visibility variable
 const dialogOpen = ref(false);
 
@@ -25,6 +35,11 @@ const dialogOpen = ref(false);
  * @param source - The source to load.
  */
 function loadWorkspace(source: string) {
+  // Prevent loading if the user does not have access
+  if (appState.user.projects.includes(source) === false && appState.user.role !== "ADMIN") {
+    toast.error(`You do not have permission to access project ${source}`);
+    return;
+  }
   const errorMsg = {
     message: `Failed to load workspace ${source}`,
     data: {
@@ -57,12 +72,11 @@ function loadWorkspace(source: string) {
     <MenubarMenu>
       <MenubarTrigger @click="() => request.execute()" title="Manage projects"> File </MenubarTrigger>
       <MenubarContent>
-        <DialogTrigger class="w-full"
-          ><MenubarItem title="Create a new project">New project</MenubarItem></DialogTrigger
-        >
-        <MenubarSeparator />
-        <MenubarItem disabled v-if="sources.length <= 0">No projects available</MenubarItem>
-        <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
+        <!-- Only show new project button for admins and editors -->
+        <DialogTrigger v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
+        <MenubarSeparator v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"/>
+        <MenubarItem disabled v-if="filteredSources.length <= 0">No projects available</MenubarItem>
+        <MenubarItem v-for="source in filteredSources" :key="source" @click="() => loadWorkspace(source)">
           {{ source }}
         </MenubarItem>
         <MenubarItem @click="() => { if (appState.workspace) { appState.workspace.stitchingMode = appState.workspace.stitchingMode === 'partial' ? 'full' : 'partial' } }">

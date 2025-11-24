@@ -1,6 +1,9 @@
 """This module routes all incoming front-end requests to the appropriate backend functions"""
 
+from .accounts import get_accounts
 from .color_segmentation import get_color_clusters, get_color_cluster_bitmask
+from .create_account import create_account
+from .delete_account import delete_account
 from .dim_reduction import get_dr_embedding, get_dr_overlay, get_dr_embedding_mapping
 from .elemental_cube import (
     data_cube_size,
@@ -12,7 +15,11 @@ from .elemental_cube import (
     list_element_averages_selection
 )
 from .general import api
+from .get_projects import get_projects
 from .images import contextual_image, contextual_image_size, contextual_image_recipe
+from .login import login
+from .logout import logout
+from .manage_project_access import grant_project_access, revoke_project_access
 from .project import (
     list_accessible_data_sources,
     datasource_files,
@@ -23,3 +30,4 @@ from .project import (
     upload_chunk
 )
 from .spectral_cube import bin_raw_data, get_offset, get_average_data, get_element_spectra, get_selection_spectra
+from .update_account import update_account

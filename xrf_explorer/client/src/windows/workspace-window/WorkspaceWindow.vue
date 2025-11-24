@@ -90,10 +90,16 @@ function updateWorkspace() {
     },
   );
 }
+
+// Check if the user is an admin
+const isAdmin = computed(() => appState.user.role === "ADMIN");
+
+// Check if the user is an editor
+const isEditor = computed(() => appState.user.role === "EDITOR");
 </script>
 
 <template>
-  <Window title="Workspace" help="Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting" location="left">
+  <Window title="Workspace" help="Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting" location="left" v-if="isAdmin || isEditor">
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
         <div class="text-muted-foreground">Workspace name:</div>
@@ -142,15 +148,15 @@ function updateWorkspace() {
           </WorkspaceCard>
         </div>
       </div>
-      <Button variant="destructive" @click="deletionDialog = true"> Delete project </Button>
+      <Button variant="destructive" @click="deletionDialog = true" v-if="isAdmin"> Delete project </Button>
       <Dialog v-model:open="deletionDialog">
         <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
       </Dialog>
-      <Dialog v-model:open="fileDialog">
-        <FileSetupDialog v-model="localWorkspace!" @save="updateWorkspace" />
+      <Dialog v-model:open="fileDialog" v-if="localWorkspace">
+        <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
-      <Dialog v-model:open="channelsDialog">
-        <ChannelSetupDialog v-model="localWorkspace!" @save="updateWorkspace" />
+      <Dialog v-model:open="channelsDialog" v-if="localWorkspace">
+        <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
     </div>
   </Window>
