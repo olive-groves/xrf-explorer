@@ -377,7 +377,6 @@ async function calculateRecommendedClusters() {
 // Update number of clusters variable to match the calculated recommended number of clusters.
 async function setRecommendedClusters() {
   if (recommendedClusters.value == null) {
-    toast.error("No recommended amount of clusters calculated");
     return;
   }
   number_clusters.value = recommendedClusters.value;
