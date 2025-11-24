@@ -21,6 +21,10 @@ export type Selection = {
    * The selection made in the dimensionality reduction window.
    */
   dimensionalityReduction: DimensionalityReductionSelection;
+  /**
+   * The selection made in the painting, used for dimensionality reduction.
+   */
+  dimensionalityReductionPainting: DimensionalityReductionPaintingSelection;
 };
 
 /**
@@ -104,6 +108,30 @@ export type DimensionalityReductionSelection = {
    * The selected area.
    */
   area: SelectionAreaSelection;
+};
+
+/**
+ * Describes the selected area in the painting for dimensionality reduction.
+ */
+export type DimensionalityReductionPaintingSelection = {
+  /**
+   * The element index corresponding to the clusters
+   * It's the element's channel plus 1.
+   */
+  element: number;
+  /**
+   * Whether the dimensionality reduction embedding is performed only on an active Areaselection, or not.
+   */
+  useAreaSelection: boolean;
+  /**
+   * Last complete area selection the embedding will work with.
+   */
+  areaSelection: SelectionAreaSelection;
+  /**
+   * Unix timestamp representing the time when the last valid area selection was added to the
+   * selection to be used for dimensionality reduction. Used to make browser caching work properly.
+   */
+  lastCompleteSelectionTimestamp: number;
 };
 
 /**

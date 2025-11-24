@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, ComputedRef, inject, ref, watch } from "vue";
 import { appState, datasource, elements, elementalDataPresent } from "@/lib/appState";
-import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
 import { ContextualImage } from "@/lib/workspace";
 import { LassoSelect, LoaderPinwheel, SquareMousePointer } from "lucide-vue-next";
@@ -19,8 +18,13 @@ import { exportableElements } from "@/lib/export";
 import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
 import { SelectionArea } from "@/components/ui/selection-area";
 import { Separator } from "@/components/ui/separator";
-import { SelectionAreaType } from "@/lib/selection";
-import { remToPx } from "@/lib/utils";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { 
+  remToPx, 
+  deepClone, 
+  flipSelectionAreaSelection,
+  hasActiveSelection,
+  areSelectionAreaSelectionsEqual } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   NumberField,
@@ -29,6 +33,34 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
+import { getTargetSize } from "@/components/image-viewer/api";
+
+//    Setup for selection tracking
+// Custom type for keeping track of what selection to use
+type DimensionalityReductionAreaSelection = {
+  areaSelection: SelectionAreaSelection;
+  lastChangedTimestamp: number;
+};
+
+// Computed properties
+const selection = computed(() => appState.selection.dimensionalityReductionPainting);
+const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
+
+// Non-reactive variables
+const currentAreaSelection: DimensionalityReductionAreaSelection = {
+  areaSelection: {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: 10000, y: 10000 },
+    ],
+  },
+  lastChangedTimestamp: Date.now(),
+};
+
+// Watchers
+watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
+
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -65,6 +97,7 @@ enum Status {
 
 const status = ref(Status.WELCOME);
 const currentError = ref("Unknown error");
+const selectionChecked = ref(false);
 
 // Dimensionality reduction parameters
 const threshold = ref(30);
@@ -75,7 +108,7 @@ const selectedOverlay = ref();
 const imageSourceUrl = ref();
 let abortController = new AbortController();
 
-// Selection
+// Selection in DR window
 const selectionAreaType = ref<SelectionAreaType>(SelectionAreaType.Rectangle);
 
 /**
@@ -151,33 +184,92 @@ async function updateEmbedding() {
     return;
   }
 
+  // Check if the embedding should only apply to a selected area.
+  updateSelection();
   status.value = Status.GENERATING;
+  let request_body: SelectionAreaSelection;
+  if (selectionChecked.value) {
+    request_body = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+    console.log("selected area request body1: ", request_body);
+  } else {
+    request_body = await getFullImageSelection();
+    console.log("global area request body2: ", request_body);
+  }
 
-  // Create URL for embedding
-  const apiURL = `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`;
+  try {
+    // Make API call
+    const response = await fetch(`${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(request_body),
+    });
+    const data = await response.text();
 
-  // Create the embedding
-  const { response, data } = await useFetch(apiURL).get().text();
+    if (response.ok && data != null) {
+      if (data == "downsampled") {
+        toast.warning("Downsampled data points", {
+          description:
+            "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+        });
+      }
 
-  // Check if fetching the image was successful
-  if (response.value?.ok && data.value != null) {
-    if (data.value == "downsampled") {
-      toast.warning("Downsampled data points", {
-        description:
-          "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
-      });
+      // Load the new embedding
+      status.value = Status.LOADING;
+      await fetchDRImage();
+      return;
     }
 
-    // Load the new embedding
-    status.value = Status.LOADING;
-    await fetchDRImage();
-    return;
+  } catch (e) {
+    console.error("API call failed", e);
   }
+  // }
 
   // Set status to error
   currentError.value = "Generating embedding failed";
   status.value = Status.ERROR;
 }
+
+/**
+ * Sets the DR selection in the painting.
+ */
+function updateSelection() {
+  if (selection.value != undefined) {
+    // Update selection
+    selection.value.useAreaSelection = selectionChecked.value;
+    selection.value.areaSelection = deepClone(currentAreaSelection.areaSelection);
+    selection.value.lastCompleteSelectionTimestamp = currentAreaSelection.lastChangedTimestamp;
+  }
+}
+
+/**
+ * Updates the currentAreaSelection if the new Selection made by the user is a new one, and valid.
+ * @param newSelection The new selection made by the user.
+ */
+function updateAreaSelection(newSelection: SelectionAreaSelection) {
+  if (
+    hasActiveSelection(newSelection) &&
+    !areSelectionAreaSelectionsEqual(newSelection, currentAreaSelection.areaSelection)
+  ) {
+    currentAreaSelection.areaSelection = deepClone(newSelection);
+    currentAreaSelection.lastChangedTimestamp = Date.now();
+  }
+}
+
+/**
+ * Returns a selection object that exactly covers the entire painting.
+ * @returns A `SelectionAreaSelection` object exactly covering the entire painting.
+ */
+async function getFullImageSelection(): Promise<SelectionAreaSelection> {
+  const size = await getTargetSize();
+  return {
+    type: SelectionAreaType.Rectangle,
+    points: [
+      { x: 0, y: 0 },
+      { x: size.width, y: size.height },
+    ],
+  };
+}
+
 </script>
 
 <template>
@@ -219,6 +311,10 @@ async function updateEmbedding() {
             </NumberFieldContent>
           </NumberField>
         </div>
+      </div>
+      <div class="mt-1 flex items-center">
+        <Checkbox id="selectionCheck" v-model:checked="selectionChecked"/>
+        <label class="ml-1" for="selectionCheck">Selection area only</label>
       </div>
       <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
 
