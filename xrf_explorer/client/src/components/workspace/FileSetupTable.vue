@@ -8,12 +8,14 @@ import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-enum DataComponentType {
-  BaseImage = "baseImage",
-  ContextualImage = "contextualImages",
-  Spectral_Datacube = "spectralCubes",
-  Elemental_Datacube = "elementalCubes",
-}
+/** 
+ * enum DataComponentType {
+ * BaseImage = "baseImage",
+ * ContextualImage = "contextualImages",
+ * Spectral_Datacube = "spectralCubes",
+ * Elemental_Datacube = "elementalCubes",
+ *}
+ */
 
 const config = inject<FrontendConfig>("config")!;
 const model = defineModel<WorkspaceConfig>({ required: true });
