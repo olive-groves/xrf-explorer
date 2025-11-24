@@ -29,7 +29,7 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
     scaled_threshold: int = int(255 * threshold / 100)
     # Try to generate the embedding
     requesting = request.get_json(silent=True)
-    result = generate_embedding(data_source, element, scaled_threshold, request.args, requesting) # Adjust region to come from the JSON body later
+    result = generate_embedding(data_source, element, scaled_threshold, request.args, requesting)
     if result == "success" or result == "downsampled":
         return result
 

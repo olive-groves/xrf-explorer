@@ -3,6 +3,7 @@ import logging
 from os import remove
 from os.path import isfile, join, normpath, isdir
 from shutil import rmtree
+from unittest.mock import patch
 
 import numpy as np
 
@@ -12,6 +13,7 @@ from xrf_explorer.server.dim_reduction import (
 )
 from xrf_explorer.server.dim_reduction.general import create_image_of_indices_to_embedding
 from xrf_explorer.server.dim_reduction.overlay import plot_embedding_with_overlay
+from xrf_explorer.server.file_system.cubes import get_elemental_data_cube
 
 RESOURCES_PATH: str = join('tests', 'resources')
 
@@ -157,6 +159,107 @@ class TestDimReduction:
 
         # verify log messages
         assert 'Failed to compute embedding' in caplog.text
+
+    def test_mask_full_selection(self, caplog):
+        # setup
+        element = 2
+        threshold = 100
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # setup region
+        cube = get_elemental_data_cube(self.TEST_DATA_SOURCE)
+        full_mask = np.ones(cube.shape[1:], dtype=bool)
+
+        # execute, with patch
+        with patch(
+            "xrf_explorer.server.dim_reduction.embedding.encode_selection",
+            return_value=full_mask
+        ):
+            result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, region={"type":"mask"})
+
+        # verify
+        assert result in ("success", "downsampled")
+        assert "unexpected type" not in caplog.text
+    
+    def test_mask_invalid_type(self, caplog):
+        # setup
+        element = 2
+        threshold = 100
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # setup region
+        region = {"type": "rectangle", "points": "NO_LIST"}
+
+        # execute
+        result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, region=region)
+
+        # verify
+        assert result in ("success", "downsampled")
+        assert "Encode_selection() returned unexpected type" in caplog.text
+
+    def test_mask_bool_applied(self, caplog):
+        # setup
+        caplog.set_level(logging.INFO)
+        element = 2
+        threshold = 0
+        set_config(self.CUSTOM_CONFIG_PATH)
+        cube = get_elemental_data_cube(self.TEST_DATA_SOURCE)
+
+        # setup  region
+        mask = np.zeros(cube.shape[1:], dtype=bool)
+        mask[0, 0] = True
+        region = {"type": "mask", "mask": mask}
+
+        # execute
+        result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, region=region)
+
+        # verify
+        assert result in ("success", "downsampled")
+        assert "Generating embedding" in caplog.text
+
+    def test_mask_tuple_handled(self, caplog):
+        # setup
+        element = 2
+        threshold = 0
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute with patch
+        with patch("xrf_explorer.server.routes.helper.encode_selection", 
+                   return_value=(np.ones((10, 10), dtype=bool), None)):
+            region = {"type": "mask"}
+            result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, region=region)
+
+        # verify
+        assert result in ("success", "downsampled", "error")
+        assert "Encode_selection() returned unexpected type" in caplog.text
+
+    def test_region_none(self, caplog):
+        #setup
+        element = 2
+        threshold = 100
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold)
+
+        # verify
+        assert result in ("success", "downsampled")
+        assert "Encode_selection" not in caplog.text
+
+    def test_mask_encode_selection_returns_none(self, caplog):
+        # setup
+        element = 2
+        threshold = 100
+        caplog.set_level(logging.WARNING)
+        set_config(self.CUSTOM_CONFIG_PATH)
+
+        # execute
+        with patch("xrf_explorer.server.routes.helper.encode_selection", return_value=None):
+            result = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, region={"type": "mask"})
+
+        # verify
+        assert result in ("success", "downsampled", "error")
+        assert "Encode_selection() returned unexpected type" in caplog.text
 
     def do_test_valid_image(self, caplog, overlay_type: str):
         caplog.set_level(logging.INFO)
