@@ -9,6 +9,8 @@ import { useElementSize } from "@vueuse/core";
 import { BaseContextMenu } from "@/components/menus";
 import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
+import { getTooltipByKey } from "@/lib/useToolTips";
+import { snakeCase } from "change-case";
 
 const props = defineProps<{
   /**
@@ -417,8 +419,8 @@ function handleDragMovement(event: MouseEvent) {
               <div class="font-bold">
                 {{ state[id].title }} 
                 <HelpDialog
-                  :title= "state[id].title + ' Help Menu'"
-                  :text= "state[id].help"
+                  :title="state[id].title + ' Help Menu'"
+                  :text="getTooltipByKey('help_menu.' + snakeCase(state[id].title))"
                   :enabled="true"
                 />
               </div>

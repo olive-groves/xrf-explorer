@@ -35,7 +35,7 @@ function toggleHelpDialogs() {
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
-      <MenubarTrigger class="whitespace-nowrap font-bold" title="Main application settings">
+      <MenubarTrigger class="whitespace-nowrap font-bold" v-tooltip="'toolbar.main_menu'">
         XRF-Explorer
       </MenubarTrigger>
       <MenubarContent>

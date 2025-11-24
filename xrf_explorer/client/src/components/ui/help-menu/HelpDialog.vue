@@ -25,7 +25,8 @@ watch(isEnabled, (enabled) => {
 <template>
   <div v-if="isEnabled" class="inline-flex items-center">
     <button
-      class="ml-1 mr-1 w-4 h-4 flex items-center justify-center text-[10px] leading-none text-gray-500 border border-gray-400 rounded-full hover:text-gray-700 hover:border-gray-600 p-0"
+      class="mx-1 flex size-4 items-center justify-center rounded-full border border-gray-400 p-0 text-[10px]
+        leading-none text-gray-500 hover:border-gray-600 hover:text-gray-700"
       title="Help"
       @click.stop="open = true"
     >

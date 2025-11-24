@@ -55,7 +55,7 @@ function loadWorkspace(source: string) {
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
-      <MenubarTrigger @click="() => request.execute()" title="Manage projects"> File </MenubarTrigger>
+      <MenubarTrigger @click="() => request.execute()" v-tooltip="'toolbar.file_menu'"> File </MenubarTrigger>
       <MenubarContent>
         <DialogTrigger class="w-full"
           ><MenubarItem title="Create a new project">New project</MenubarItem></DialogTrigger

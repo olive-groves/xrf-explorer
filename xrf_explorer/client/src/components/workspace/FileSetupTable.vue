@@ -340,7 +340,7 @@ async function handleMultiDeleteConfirmed() {
       </div>
       <div class="flex space-x-2">
         <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
-        <Button variant="destructive" @click="showMultiDeleteDialog = true"> Delete Selected </Button>
+        <Button variant="destructive" @click="showMultiDeleteDialog = true"> Delete Files </Button>
       </div>
     </div>
 

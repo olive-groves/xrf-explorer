@@ -131,7 +131,7 @@ function getElementIndex(elementName: string | undefined) {
 <template>
   <Window
     title="Color segmentation"
-    :help="getTooltipByKey('Toolbar.color_segmentation')"
+    :help="getTooltipByKey('toolbar.color_segmentation')"
     location="right"
     :disabled="!elementalDataPresent"
   >
