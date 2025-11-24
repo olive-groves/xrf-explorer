@@ -15,29 +15,24 @@ interface LogoutResponse {
   success: boolean;
 }
 
-// On logout, notify the user, reset stored user role and emit close event
+// On logout, notify the user, reset stored user data and emit close event
 // Function to attempt logout
 async function attemptLogout() {
 
   try {
     const response = await axios.post<LogoutResponse>('/api/logout', {});
-    if (response.data.success) {
-      
+    if (response.data.success) {    
       toast.info(`Logged out successfully`);
       appState.user.username = '';
       appState.user.role = '';
+      appState.user.projects = [];
       emit("close");
 
     }
   }
-
-
   catch (error: any) {
     toast.error(error.response?.data?.message || `Logout failed`);
-    
-
   }
-
 }
 
 </script>

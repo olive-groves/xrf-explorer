@@ -28,6 +28,7 @@ interface LoginResponse {
   message: string;
   username: string;
   role: string;
+  projects: string[];
   // token: string;
 }
 
@@ -42,7 +43,7 @@ async function attemptLogin() {
   try {
     const response = await axios.post<LoginResponse>('/api/login', {
       username: username.value,
-      password: password.value
+      password: password.value,
       // token: token.value
     });
 
@@ -51,6 +52,7 @@ async function attemptLogin() {
       toast.info("Login successful");
       appState.user.username = response.data.username; // Set the username in appState
       appState.user.role = response.data.role; // Set the user role from the response
+      appState.user.projects = response.data.projects; // Set the user projects from the response
       // appState.token = response.data.token; // Set the auth token from the response
       resetFields();
       emit("close");

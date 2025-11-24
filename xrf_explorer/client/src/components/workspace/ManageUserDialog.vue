@@ -3,10 +3,14 @@ import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
-import { ref} from "vue";
+import { ref, computed, inject } from "vue";
 import { toast } from "vue-sonner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import axios from "axios";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useFetch } from "@vueuse/core";
+import { FrontendConfig } from "@/lib/config";
+
 
 // Define emits
 const emit = defineEmits<{
@@ -14,6 +18,7 @@ const emit = defineEmits<{
     (e: 'deleteAccount', deleteUser: {original_username: string}): void // Delete specific user and pass (original) username
 }>();
 
+// Define props
 const props = defineProps<{
     user: {original_username: string; username: string; role: string} // User data passed from parent
 }>();
@@ -23,14 +28,44 @@ const username = ref(props.user.username); // Selected username
 const password = ref(""); // New password (optional)
 const role = ref(props.user.role.toLowerCase()); // Selected role
 
+// Search query for filtering projects
+const projectQuery = ref("");
+
+// Inject the frontend configuration
+const config = inject<FrontendConfig>("config")!;
+
+// Fetch files
+const request = useFetch(`${config.api.endpoint}/data_sources`);
+const projects = computed(() => {
+  return JSON.parse((request.data.value ?? "[]") as string) as string[];
+});
+
+// Store projects the user has access to
+const accessedProjects = ref<string[]>([]);
+refreshProjects();
+
+// Computed list of projects with access status
+const computedProjects = computed(() =>
+  projects.value.map((str) => ({
+    name: str,
+    access: role.value == "admin" || accessedProjects.value.includes(str) ? "Yes" : "No"
+  }))
+);
 const passwordType = ref("password");
 
+// Get project access for the user
+async function refreshProjects() {
+  const res = await axios.get(`/api/projects/${username.value}`);
+  accessedProjects.value = res.data;
+}
+
+// Toggle password visibility
 function toggleText() {
   passwordType.value = passwordType.value === "password" ? "text" : "password";
 }
 
 // Interface for API response
-interface UpdateAccountResponse {
+interface APIResponse {
   success: boolean;
   message?: string;
 }
@@ -45,7 +80,7 @@ async function updateAccount() {
 
   // Make API call to update account
   try {
-    const response = await axios.post<UpdateAccountResponse>('/api/update_account', {
+    const response = await axios.post<APIResponse>('/api/update_account', {
       originalUsername: originalUsername.value,
       username: username.value,
       password: password.value,
@@ -64,10 +99,12 @@ async function updateAccount() {
   }
 }
 
+// Delete account
 function deleteAccount() {
     emit("deleteAccount", {original_username: originalUsername.value});
 }
 
+// Determine if password is valid
 function validPassword(password: string): boolean {
     if (password === "") {
         return true; // Allow empty password (no change)
@@ -84,6 +121,86 @@ function validPassword(password: string): boolean {
     return lengthValid && numberValid && specialCharValid;
 }
 
+// Filter logic
+const filteredProjects = computed(() => {
+  const query = projectQuery.value.toLowerCase().trim();
+  if (!query) return computedProjects.value;
+  return computedProjects.value.filter(
+    (a) =>
+      a.name.toLowerCase().includes(query) ||
+      a.access.toLowerCase().includes(query)
+  );
+});
+
+// Give access to a project
+async function giveAccess(projectName: string) {
+  try {
+    const response = await axios.post('/api/grant_project_access', {
+      username: username.value,
+      project: projectName
+    });
+  
+    // On success, notify user; else give error message
+    if (response.data.success) {
+      toast.info("Access granted successfully");
+      await refreshProjects();
+    } else {
+      toast.error(response.data.message || "Grant Access failed");
+    }
+  } catch (error: any) {
+    toast.error("Grant Access failed");
+  }
+}
+
+// Give access to all projects
+async function giveAccessAll() {
+  if (role.value == "admin") {
+    toast.error("Admins have access to all projects by default");
+    return;
+  } else{
+    for (const project of projects.value) {
+      if (!accessedProjects.value.includes(project))
+        await giveAccess(project);
+    }
+  }
+}
+
+// Remove access to a project
+async function removeAccess(projectName: string) {
+  if (role.value == "admin") {
+    toast.error("Admins have access to all projects by default");
+    return;
+  }
+  try {
+    const response = await axios.post('/api/revoke_project_access', {
+      username: username.value,
+      project: projectName
+    });
+  
+    // On success, notify user; else give error message
+    if (response.data.success) {
+      toast.info("Access revoked successfully");
+      await refreshProjects();
+    } else {
+      toast.error(response.data.message || "Revoke Access failed");
+    }
+  } catch (error: any) {
+    toast.error("Revoke Access failed");
+  }
+} 
+
+// Remove access to all projects
+async function removeAccessAll() {
+  if (role.value == "admin") {
+    toast.error("Admins have access to all projects by default");
+    return;
+  } else{
+    for (const project of projects.value) {
+      if (accessedProjects.value.includes(project))
+        await removeAccess(project);
+    }
+  }
+}
 
 </script>
 
@@ -123,6 +240,37 @@ function validPassword(password: string): boolean {
             </SelectGroup>
           </SelectContent>
         </Select>
+    <div>
+            <Input
+                v-model="projectQuery"
+                placeholder="Search by project or access..."
+            />
+        </div>
+        <div>
+          <!-- Scrollbar -->
+            <ScrollArea class="border h-[40vh]">
+              <!-- Table of user data from the database -->
+            <table class="w-full text-center border-collapse">
+                <thead>
+                  <th><Button @click="giveAccessAll"> Give access to all </Button> </th>
+                  <th></th>
+                  <th><Button @click="removeAccessAll"> Remove access from all </Button></th>
+                    <tr>
+                        <th>Project</th>
+                        <th>Access?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(project, projectIndex) in filteredProjects" :key="projectIndex" style="text-align: center;">
+                        <td>{{ project.name }}</td>
+                        <td :class="project.access === 'Yes' ? 'text-green-600' : 'text-red-600'">{{ project.access }}</td>
+                        <td> <Button v-if="project.access == 'No'" @click="giveAccess(project.name)"> Give access </Button>
+                             <Button v-if="project.access == 'Yes'" @click="removeAccess(project.name)"> Remove access </Button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </ScrollArea>
+        </div>
     <div class="flex items-center justify-between">
       <Button @click="emit('close')" >
         Cancel

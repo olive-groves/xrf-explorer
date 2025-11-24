@@ -31,6 +31,7 @@ export const appState = reactive<AppState>({
   user: {
     username: "",
     role: "",
+    projects: [],
     // token: "",
   },
 });
@@ -55,6 +56,10 @@ type User = {
    * The role of the current logged in user
    */
   role: string;
+  /**
+   * The projects the current logged in user has access to
+   */
+  projects: string[];
 }
 
 /**

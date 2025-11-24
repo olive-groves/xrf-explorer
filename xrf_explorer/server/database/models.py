@@ -2,6 +2,8 @@ import flask_login
 from werkzeug.security import generate_password_hash, check_password_hash
 from xrf_explorer.server.database.database import db
 from enum import Enum
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy.types import JSON
 # from database import db
 
 class UserRole(Enum):
@@ -19,6 +21,7 @@ class User(db.Model, flask_login.UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.VIEWER) # 0 = admin, 1 = viewer, 2 = editor
+    projects = db.Column(MutableList.as_mutable(JSON), nullable=False, default=list) # List of projects the user has access to
 
     def set_password(self, password: str):
         """Generate and store the password hash."""
