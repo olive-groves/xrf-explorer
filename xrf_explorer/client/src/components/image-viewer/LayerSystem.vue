@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { VueDraggableNext } from "vue-draggable-next";
-import { Eye, EyeOff, SlidersHorizontal, Pin } from "lucide-vue-next";
+import { Eye, EyeOff, Search, SearchX, SlidersHorizontal, ListRestart, Pin } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty } from "./state";
+import {
+  layerGroups,
+  setLayerGroupIndex,
+  setLayerGroupVisibility,
+  setLayerGroupProperty,
+  updateLayerGroupLayers,
+} from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
@@ -96,19 +102,45 @@ function togglePin(group: LayerGroup) {
     group.pinned = false;
   }
 }
+
+/**
+ * Toggle lens in a layer.
+ * @param group The LayerGroup to toggle the lens of.
+ */
+function toggleLens(group: LayerGroup) {
+  checkedOutsideLens(group);
+}
+
+/**
+ * Reset all sliders to default values.
+ */
+function resetSliders() {
+  for (const group in groups.value) {
+    groups.value[group].visible = groups.value[group].default_visibility;
+    groups.value[group].visibility = LayerVisibility.Visible;
+
+    for (const property in properties) {
+      const propertyName = properties[property].nameRef;
+
+      (groups.value[group][propertyName] as number[])[0] = properties[property].default;
+    }
+
+    updateLayerGroupLayers(groups.value[group]);
+  }
+}
 </script>
 
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
+    <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings"
+      ><ListRestart
+    /></Button>
     <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">
         <div>
           <div>
             {{ group.name }}
-          </div>
-          <div class="whitespace-nowrap text-muted-foreground">
-            {{ group.description }}
           </div>
         </div>
         <div>
@@ -124,6 +156,14 @@ function togglePin(group: LayerGroup) {
           </Button>
 
           <!-- SLIDERS POPOVER -->
+          <Popover v-if="group.visible">
+            <PopoverTrigger>
+              <Button variant="ghost" class="size-8 p-2" title="Only visible inside lens" @click="toggleLens(group)">
+                <SearchX v-if="group.visibility == LayerVisibility.InsideLens" />
+                <Search v-else />
+              </Button>
+            </PopoverTrigger>
+          </Popover>
           <Popover v-if="group.visible">
             <PopoverTrigger>
               <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
@@ -160,22 +200,17 @@ function togglePin(group: LayerGroup) {
         </div>
       </div>
       <div v-if="group.visible" class="space-y-2">
-        <!-- VISIBILITY CHECKBOX -->
-        <div class="flex items-center space-x-2" @click="() => checkedOutsideLens(group)">
-          <Checkbox :id="`visibility_${group.name}`" :checked="group.visibility == LayerVisibility.InsideLens" />
-          <Label :for="`visibility_${group.name}`" class="whitespace-nowrap">Only visible inside of lens</Label>
-        </div>
-
         <!-- SLIDERS FOR ALL MAIN PROPERTIES -->
         <LabeledSlider
           v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
-          :label="property.name"
+          :label="property.min.toString()"
           v-model="group[property.nameRef]"
           :min="property.min"
           :max="property.max"
           :default="[property.default]"
           @update="() => setLayerGroupProperty(group, property.propertyName)"
+          :title="property.name"
         />
       </div>
     </Card>

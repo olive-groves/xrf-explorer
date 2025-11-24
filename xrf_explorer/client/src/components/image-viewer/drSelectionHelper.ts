@@ -264,6 +264,7 @@ export async function createDRSelectionLayer() {
     layers: [layer],
     index: -2,
     visible: true,
+    default_visibility: true,
     ...layerGroupDefaults,
   };
 

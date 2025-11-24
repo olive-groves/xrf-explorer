@@ -89,6 +89,7 @@ export async function loadPlaceholderLayer() {
     layers: [layer],
     index: -2,
     visible: true,
+    default_visibility: true,
     ...layerGroupDefaults,
   };
 

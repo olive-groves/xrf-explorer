@@ -257,6 +257,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
     layers: layers,
     index: -2,
     visible: true,
+    default_visibility: true,
     ...layerGroupDefaults,
   };
 

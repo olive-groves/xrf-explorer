@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Card } from "@/components/ui/card";
-import { Eye, EyeOff } from "lucide-vue-next";
+import { Eye, EyeOff, ListRestart } from "lucide-vue-next";
 import { Window } from "@/components/ui/window";
 import { computed, watch } from "vue";
 import { appState, elements, elementalDataPresent } from "@/lib/appState";
@@ -39,10 +39,22 @@ function getChannelName(index: number): string {
 }
 
 const selection = computed(() => appState.selection.elements);
+
+/**
+ * Reset all sliders to default values
+ */
+function resetSliders() {
+  for (let i = 0; i < appState.selection.elements.length; i++) {
+    appState.selection.elements[i].selected = false;
+    appState.selection.elements[i].thresholds = [0, 1];
+    appState.selection.elements[i].color = "#FFFFFF";
+  }
+}
 </script>
 
 <template>
   <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
+    <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings"><ListRestart /></Button>
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"
