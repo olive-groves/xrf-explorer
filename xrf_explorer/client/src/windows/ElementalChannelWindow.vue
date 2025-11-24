@@ -53,12 +53,10 @@ function resetSliders() {
 </script>
 
 <template>
-  <Window
-    title="Elemental channels"
-    help="Select which elements to show in the main view, select their colors, and select the thresholds that should be visible"
-    location="left"
-    :disabled="!elementalDataPresent"
-  >
+  <Window 
+    title="Elemental channels" 
+    help="Select which elements to show in the main view, select their colors, and select the thresholds that should be visible" 
+    location="left" :disabled="!elementalDataPresent">
     <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings">
       <ListRestart />
     </Button>
