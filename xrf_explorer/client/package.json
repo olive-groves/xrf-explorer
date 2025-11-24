@@ -19,7 +19,7 @@
     "@vee-validate/zod": "^4.12.8",
     "@vueuse/core": "^10.9.0",
     "@vueuse/integrations": "^10.9.0",
-    "axios": "^1.12.2",
+    "axios": "^1.13.2",
     "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

@@ -11,8 +11,6 @@ class UserRole(Enum):
     VIEWER = 1
     EDITOR = 2
 
-
-
 class User(db.Model, flask_login.UserMixin):
     """User model for authentication and role management."""
 
@@ -25,18 +23,20 @@ class User(db.Model, flask_login.UserMixin):
 
     def set_password(self, password: str):
         """Generate and store the password hash."""
+        if not password:
+            raise ValueError("Password cannot be empty")
+        
         self.password_hash = generate_password_hash(password)
     
     def check_password(self, password: str) -> bool:
         """Check the password against the stored hash."""
         return check_password_hash(self.password_hash, password)
     
-    def __repr__(self):
-        return f'<ID: {self.id}, Username {self.username}, Role {self.role}>'
-    
-    def isAdmin(self):
+    def isAdmin(self) -> bool:
         return self.role == UserRole.ADMIN
     
-    def isEditor(self):
+    def isEditor(self) -> bool:
         return self.role == UserRole.EDITOR or self.role == UserRole.ADMIN
 
+    def __repr__(self) -> str:
+        return f'<ID: {self.id}, Username {self.username}, Role {self.role}>'
