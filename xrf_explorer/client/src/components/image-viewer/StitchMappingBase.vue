@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, inject, onMounted, onBeforeUnmount, watch, CSSProperties } from "vue";
 import { StitchTool, StitchState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { toast } from "vue-sonner";
@@ -51,13 +51,18 @@ const dragging = ref(false);
 const draggingIndex = ref<number | null>(null);
 
 // Points selection
-const points = ref<{ x: number; y: number }[]>([]);
-const selectedPoint = ref<number | null>(null);
-const maxPoints = 4;
+import {
+  stitchPoints,
+  selectedPointId,
+  updateBasePoint,
+  selectPoint,
+  deselect,
+  checkSelectPoint
+} from "./stitchPoints";
 
 // GL Setup
 onMounted(async () => {
-  toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 2000 });
+  toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 500 });
   await setupGL();
 });
 
@@ -237,37 +242,88 @@ function onWheel(event: WheelEvent) {
   } else zoomLimitReached = false;
 }
 
-// Selection Points
-function getImageCoords(event: MouseEvent) {
-  const img = event.target as HTMLImageElement;
-  if (!img || !img.naturalWidth) return null;
-  const rect = img.getBoundingClientRect();
-  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
-  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
-  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-  return { x: (event.clientX - rect.left - offsetX) / scale, y: (event.clientY - rect.top - offsetY) / scale };
-}
-
 function onBaseImageClick(event: MouseEvent) {
-  const coords = getImageCoords(event);
-  if (!coords) return;
+  const img = glcontainer.value?.querySelector("img");
+  if (!img) return;
 
-  for (let i = 0; i < points.value.length; i++) {
-    const dx = points.value[i].x - coords.x;
-    const dy = points.value[i].y - coords.y;
-    if (dx * dx + dy * dy < 20 * 20) {
-      selectedPoint.value = i;
+  const { x, y } = computeToImageCoords(event, img);
+
+  // Detect clicking on existing base point
+  for (const p of stitchPoints.value) {
+    if (!p.base) continue;
+
+    const dx = p.base.x - x;
+    const dy = p.base.y - y;
+
+    if (dx*dx + dy*dy < 20*20) {
+      if (checkSelectPoint(p.id)) {
+        deselect();
+        return;
+      }
+      selectPoint(p.id);
       return;
     }
   }
 
-  if (selectedPoint.value !== null) {
-    points.value[selectedPoint.value] = coords;
-    selectedPoint.value = null;
-    return;
+  // If a grayscale point is selected → map it
+  if (selectedPointId.value !== null) {
+    updateBasePoint(selectedPointId.value, x, y);
   }
+}
 
-  if (points.value.length < maxPoints) points.value.push(coords);
+function toDisplayCoords(p: { x: number; y: number }, i: number): CSSProperties {
+  const img = glcontainer.value?.querySelector("img");
+  if (!img || !img.naturalWidth) return {};
+
+  const rect = img.getBoundingClientRect();
+  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+
+  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
+  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
+
+  const screenX = rect.left + offsetX + p.x * scale;
+  const screenY = rect.top + offsetY + p.y * scale;
+
+  return {
+    position: "fixed",
+    left: `${screenX}px`,
+    top: `${screenY}px`,
+    transform: "translate(-50%, -50%)",
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    backgroundColor: i === selectedPointId.value ? "blue" : "red",
+    pointerEvents: "none",
+    zIndex: 9999
+  };
+}
+
+// Converts mouse click to image coordinates
+function computeToImageCoords(event: MouseEvent, img: HTMLImageElement) {
+  const rect = img.getBoundingClientRect();
+  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
+  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
+
+  const x = (event.clientX - rect.left - offsetX) / scale;
+  const y = (event.clientY - rect.top - offsetY) / scale;
+
+  return { x, y };
+}
+
+// Label coordinates for point numbers
+function labelCoords(p: { x: number; y: number }, i: number): CSSProperties {
+  const coords = toDisplayCoords(p, i);
+  return {
+    position: "fixed",
+    left: coords.left,
+    top: coords.top,
+    transform: "translate(-50%, -120%)",
+    color: "white",
+    textShadow: "0 0 4px black, 0 0 6px black",
+    pointerEvents: "none",
+    zIndex: 10000,
+  };
 }
 
 function stopInteractions() {
@@ -325,18 +381,21 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
 
 
       <!-- Points overlay -->
-      <div
-        v-for="(p, i) in points"
-        :key="i"
-        class="absolute w-4 h-4 rounded-full border border-black"
-        :style="{
-          background: i === selectedPoint ? 'blue' : 'red',
-          left: p.x + 'px',
-          top: p.y + 'px',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 2
-        }"
-      ></div>
+      <div v-for="p in stitchPoints" :key="p.id">
+        <div
+          v-if="p.base"
+          class="absolute w-4 h-4 rounded-full border border-black"
+          :style="toDisplayCoords(p.base, p.id)"
+        ></div>
+
+        <div
+          v-if="p.base"
+          class="absolute text-xs font-bold"
+          :style="labelCoords(p.base, p.id)"
+        >
+          {{ p.id + 1 }}
+        </div>
+      </div>
     </div>
 
     <!-- Loading overlay -->

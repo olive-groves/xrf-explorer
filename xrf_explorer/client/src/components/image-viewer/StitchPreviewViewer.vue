@@ -79,7 +79,7 @@ onMounted(() => {
   window.addEventListener('stitch:grayscale-prop-changed', onGrayscalePropChanged as EventListener);
   // Ensure we have latest workspace so grayscale entries are visible
   ensureWorkspaceHasGrayscale().then(async () => {
-    toast.info("Loading preview, this may take a few minutes...", { duration: 2000 });
+    toast.info("Loading preview, this may take a few minutes...", { duration: 500 });
     await setupGL();
     await loadGrayscaleImages();
   });
