@@ -339,7 +339,7 @@ async function calculateRecommendedClusters() {
     }
 
     recommendedStatus.value = Status.LOADING;
-    
+    // Prepare request
     const response = await fetch(
       `${config.api.endpoint}/${datasource.value}/cs/recommend-k`,
       {
@@ -357,13 +357,13 @@ async function calculateRecommendedClusters() {
         }),
       }
     );
-
+    // Handle response
     if (!response.ok) {
       recommendedStatus.value = Status.ERROR;
       toast.error("Failed to calculate recommended clusters");
       return;
     }
-
+    // Get data
     const data = await response.json();
     recommendedClusters.value = data.recommended_k;
     recommendedStatus.value = Status.SUCCESS;

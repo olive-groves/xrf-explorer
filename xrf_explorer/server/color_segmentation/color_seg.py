@@ -257,13 +257,45 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
 def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, random_state=42):
     """
-    Evaluate multiple metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin)
-    for a range of cluster numbers and recommend the best k.
+    Calculates the recommended number of clusters by evaluating multiple clustering
+    quality metrics over a range of k values.
+
+    For each k in the provided range, the function performs k-means clustering and
+    computes the following metrics:
+      - Silhouette Score (higher is better)
+        - Measures how similar each pixel is to its own cluster vs other clusters.
+        - Good when clusters have intuitive boundaries.
+      - Calinski–Harabasz Index (higher is better)
+        - Measures the ratio of between-cluster variance to within-cluster variance.
+      - Davies–Bouldin Index (lower is better)
+        - Measures average similarity ratio of each cluster with its most similar cluster.
+
+    These metrics are normalized and combined into a single aggregated score to
+    determine the most stable and well-separated clustering configuration.
+
+    :param X: A 2D numpy array (N, 3) containing LAB pixel features extracted
+              from the selected region. Each row corresponds to a pixel.
+    :param k_range: Range or list of integers specifying which cluster counts
+                    to evaluate. Defaults to range(2, 11).
+    :param n_init: Number of k-means initializations per k. Higher values yield
+                   more stable clustering but increase computation time.
+                   Default is set to 3.
+    :param random_state: Seed used to ensure reproducibility of results.
+                         Default is set to 42.
+
+    :return: A dictionary containing:
+             - "k_values": list of evaluated k values
+             - "silhouette": list of silhouette scores
+             - "calinski_harabasz": list of Calinski–Harabasz scores
+             - "davies_bouldin": list of Davies–Bouldin scores
+             - "combined_score": normalized aggregated metric scores
+             - "recommended_k": the best k according to the combined score
     """
     silhouette_scores = []
     ch_scores = []
     db_scores = []
 
+    # Evaluate clustering for each k
     for k in k_range:
         kmeans = KMeans(n_clusters=k, n_init=n_init, random_state=random_state)
         labels = kmeans.fit_predict(X)
@@ -272,6 +304,7 @@ def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, rand
         ch_scores.append(calinski_harabasz_score(X, labels))
         db_scores.append(davies_bouldin_score(X, labels))
 
+    # Convert lists to numpy arrays for easier manipulation
     silhouette_scores = np.array(silhouette_scores)
     ch_scores = np.array(ch_scores)
     db_scores = np.array(db_scores)
@@ -281,9 +314,11 @@ def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, rand
     ch_norm = (ch_scores - np.min(ch_scores)) / (np.max(ch_scores) - np.min(ch_scores))
     db_norm = 1 - ((db_scores - np.min(db_scores)) / (np.max(db_scores) - np.min(db_scores)))  # Lower is better
 
+    # Combine normalized scores (equal weighting)
     combined_score = (sil_norm + ch_norm + db_norm) / 3
     best_k = k_range[np.argmax(combined_score)]
 
+    # print debug info
     print(f"Recommended k (based on combined score): {best_k}")
     return {
         "k_values": list(k_range),
