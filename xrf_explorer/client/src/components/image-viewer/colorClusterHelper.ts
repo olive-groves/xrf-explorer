@@ -49,11 +49,9 @@ function selectionUpdated(newSelection: ColorSegmentationSelection) {
     if (layerGroups.value.colorClusters != undefined) {
       layerGroups.value.colorClusters.layers.forEach((layer) => {
         const filename =
-          `${config.api.endpoint}/${datasource.value}/cs/bitmask/` +
-          `${newSelection.element}/${newSelection.k}/${newSelection.threshold}` +
-          (newSelection.useAreaSelection ? "/true" : "/false") +
+          `${config.api.endpoint}/${datasource.value}/cs/bitmask` +
           "?v=" +
-          newSelection.lastCompleteSelectionTimestamp;
+          selection.value.lastColorSegmentationRun;
         // Only upload image if it changed
         if (layer.image !== filename) {
           disposeLayer(layer);
