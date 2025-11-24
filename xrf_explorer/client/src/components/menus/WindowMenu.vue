@@ -30,13 +30,14 @@ function toggleSecondViewer() {
 
 <template>
   <MenubarMenu>
-    <MenubarTrigger> View </MenubarTrigger>
+    <MenubarTrigger v-tooltip="'Toolbar.view_menu'"> View </MenubarTrigger>
     <MenubarContent>
       <MenubarCheckboxItem
         v-for="window in windowState"
         v-model:checked="window.opened"
         :disabled="window.disabled"
         :key="window.id"
+        :title="window.help"
       >
         {{ window.title }}
       </MenubarCheckboxItem>

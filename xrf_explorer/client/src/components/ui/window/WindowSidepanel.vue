@@ -7,6 +7,7 @@ import { ChevronRight } from "lucide-vue-next";
 import { remToPx } from "@/lib/utils";
 import { useElementSize } from "@vueuse/core";
 import { BaseContextMenu } from "@/components/menus";
+import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
 
 const props = defineProps<{
@@ -25,6 +26,7 @@ const windows = computed(() => {
       if (!(id in state.value)) {
         state.value[id] = {
           title: windowState[id].title,
+          help: windowState[id].help,
           index: 0,
           minimized: true,
           height: 0,
@@ -413,7 +415,12 @@ function handleDragMovement(event: MouseEvent) {
                 }"
               />
               <div class="font-bold">
-                {{ state[id].title }}
+                {{ state[id].title }} 
+                <HelpDialog
+                  :title= "state[id].title + ' Help Menu'"
+                  :text= "state[id].help"
+                  :enabled="true"
+                />
               </div>
             </div>
             <div

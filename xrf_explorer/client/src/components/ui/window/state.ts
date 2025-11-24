@@ -18,6 +18,10 @@ export type WindowState = {
    */
   title: string;
   /**
+   * string describing the help text for the window.
+   */
+  help: string;
+  /**
    * If the content of the window should be scrollable.
    */
   scrollable: boolean;
@@ -51,6 +55,10 @@ export type SidepanelWindowState = {
    * The title of the window.
    */
   title: string;
+  /**
+   * string describing the help text for the window.
+   */
+  help: string;
   /**
    * The index of the window when sorted from top to bottom.
    */

@@ -55,9 +55,11 @@ function loadWorkspace(source: string) {
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
-      <MenubarTrigger @click="() => request.execute()"> File </MenubarTrigger>
+      <MenubarTrigger @click="() => request.execute()" title="Manage projects"> File </MenubarTrigger>
       <MenubarContent>
-        <DialogTrigger class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
+        <DialogTrigger class="w-full"
+          ><MenubarItem title="Create a new project">New project</MenubarItem></DialogTrigger
+        >
         <MenubarSeparator />
         <MenubarItem disabled v-if="sources.length <= 0">No projects available</MenubarItem>
         <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">

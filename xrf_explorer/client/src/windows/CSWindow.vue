@@ -21,6 +21,7 @@ import {
   flipSelectionAreaSelection,
   hasActiveSelection,
 } from "@/lib/utils.ts";
+import { getTooltipByKey } from "@/lib/useToolTips";
 
 // Custom type for keeping track of what selection to use.
 type ColorSegmentationAreaSelection = {
@@ -210,7 +211,12 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
 </script>
 
 <template>
-  <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
+  <Window
+    title="Color segmentation"
+    :help="getTooltipByKey('Toolbar.color_segmentation')"
+    location="right"
+    :disabled="!elementalDataPresent"
+  >
     <div class="space-y-2 p-2">
       <!-- USE SELECTION AREA CHECKBOX -->
       <div class="flex items-center space-x-2">

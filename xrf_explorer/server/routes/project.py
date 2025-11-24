@@ -164,6 +164,96 @@ def delete_data_source(data_source: str):
 
     return jsonify({"dataSourceDir": data_source})
 
+@app.route("/api/<data_source>/delete_files", methods=["DELETE", "POST"])
+def delete_multiple_files(data_source: str):
+    """
+    Delete multiple files from a data source directory.
+
+    :param data_source: The data source to delete files from
+    :return: JSON with results of deletion operation
+    """
+    try:
+        # Get config
+        config: dict | None = get_config()
+        
+        error_response_config: tuple[str, int] | None = validate_config(config)
+        if error_response_config:
+            return error_response_config
+
+        # Get filenames from request body
+        data: any = request.get_json()
+        if not data:
+            LOG.error("No JSON body provided for file deletion")
+            return {"error": "JSON body required"}, 400
+            
+        filenames = data.get('filenames', [])
+        
+        if not filenames or not isinstance(filenames, list):
+            LOG.error("Invalid filenames array provided")
+            return {"error": "Array of filenames required"}, 400
+            
+        # Get data source directory path (same pattern as your other functions)
+        data_source_dir: str = join(config['uploads-folder'], data_source)
+        
+        # Check if data source directory exists
+        if not isdir(data_source_dir):
+            error_msg: str = "Data source does not exist."
+            LOG.error(error_msg)
+            return {"error": error_msg}, 404
+            
+        deleted_files = []
+        failed_files = []
+        
+        for filename in filenames:
+            try:
+                # Skip workspace.json to prevent accidental deletion
+                if filename.lower() == 'workspace.json':
+                    failed_files.append({'filename': filename, 'error': 'Cannot delete workspace.json'})
+                    continue
+                
+                # Skip generated folder
+                if filename.lower() == 'generated':
+                    failed_files.append({'filename': filename, 'error': 'Cannot delete generated folder'})
+                    continue
+                    
+                file_path: str = abspath(join(data_source_dir, filename))
+                
+                # Security check - ensure file is within data source directory
+                # (same security pattern as your upload_chunk function)
+                if not file_path.startswith(abspath(data_source_dir)):
+                    failed_files.append({'filename': filename, 'error': 'Invalid file path'})
+                    LOG.warning(f"Attempted to delete file outside data source directory: {file_path}")
+                    continue
+                    
+                # Delete the file
+                if isfile(file_path):
+                    unlink(file_path)
+                    deleted_files.append(filename)
+                    LOG.info(f"Deleted file: {file_path}")
+                else:
+                    failed_files.append({'filename': filename, 'error': 'File not found'})
+                    LOG.warning(f"File not found for deletion: {file_path}")
+                    
+            except Exception as e:
+                failed_files.append({'filename': filename, 'error': str(e)})
+                LOG.error(f"Error deleting file {filename}: {str(e)}")
+                
+        success_message = f'Deleted {len(deleted_files)} files'
+        if failed_files:
+            success_message += f', {len(failed_files)} failed'
+            
+        LOG.info(success_message)
+        
+        return {
+            'deleted': deleted_files,
+            'failed': failed_files,
+            'message': success_message
+        }, 200
+        
+    except Exception as e:
+        error_msg = f"Unexpected error during batch file deletion: {str(e)}"
+        LOG.error(error_msg)
+        return {"error": error_msg}, 500
 
 @app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
 def upload_chunk(data_source: str, file_name: str, start: int):

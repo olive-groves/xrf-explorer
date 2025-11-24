@@ -24,6 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Window } from "@/components/ui/window";
+import { vTooltip } from "./components/ui/tooltips/tooltips";
 
 // Obtain configuration
 export const config = await getConfig();
@@ -48,6 +49,8 @@ app.component("SelectValue", SelectValue);
 app.component("Separator", Separator);
 app.component("Slider", Slider);
 app.component("Window", Window);
+
+app.directive("tooltip", vTooltip);
 
 // Mount the app
 app.mount("#app");

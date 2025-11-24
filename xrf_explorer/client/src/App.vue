@@ -10,6 +10,8 @@ import { FrontendConfig } from "./lib/config";
 import { LayerWindow } from "@/windows/layer-window";
 import { WorkspaceWindow } from "./windows/workspace-window";
 import { DRWindow, ChartWindow, SpectraWindow, ElementalChannelWindow, CSWindow } from "@/windows";
+import FAQWindow from "@/windows/FAQWindow.vue";
+import { faqWindowOpen } from "@/lib/windowState";
 
 // Provide configuration to app
 const props = defineProps<{
@@ -20,6 +22,7 @@ const props = defineProps<{
 }>();
 provide("config", props.config);
 console.info("XRF-Explorer client created with configuration: ", props.config);
+
 </script>
 
 <template>
@@ -38,7 +41,12 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
+        <FAQWindow
+          v-if="faqWindowOpen"
+          class="absolute top-0 left-0 w-full h-full z-[9999] bg-background"
+        ></FAQWindow>
       </BaseContextMenu>
     </WindowContainer>
   </div>
 </template>
+

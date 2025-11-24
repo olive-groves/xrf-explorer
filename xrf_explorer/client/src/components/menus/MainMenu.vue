@@ -8,23 +8,36 @@ import {
   MenubarRadioItem,
   MenubarSeparator,
   MenubarTrigger,
+  MenubarCheckboxItem
 } from "@/components/ui/menubar";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ResetClientDialog } from "@/components/workspace";
 import { ref } from "vue";
+import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
+import { helpState } from "@/lib/helpState";
+import { faqWindowOpen } from "@/lib/windowState";
 // Import for the color mode
 import { useColorMode } from "@vueuse/core";
 
-// Dialog visibility variable
+// Dialog visibility variables
 const dialogOpen = ref(false);
 // Color mode variable
 const colorMode = useColorMode({ emitAuto: true });
-</script>
 
+/**
+ * Toggle the visibility of the help menu buttons.
+ */
+function toggleHelpDialogs() {
+  helpState.enabled = !helpState.enabled;
+}
+
+</script>
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
-      <MenubarTrigger class="whitespace-nowrap font-bold"> XRF-Explorer </MenubarTrigger>
+      <MenubarTrigger class="whitespace-nowrap font-bold" title="Main application settings">
+        XRF-Explorer
+      </MenubarTrigger>
       <MenubarContent>
         <a href="https://github.com/olive-groves/xrf-explorer" target="_blank" rel="noopener noreferrer">
           <MenubarItem inset> Github </MenubarItem>
@@ -42,7 +55,27 @@ const colorMode = useColorMode({ emitAuto: true });
           <MenubarRadioItem value="dark">Dark mode</MenubarRadioItem>
         </MenubarRadioGroup>
         <MenubarSeparator />
-        <DialogTrigger class="w-full"><MenubarItem inset>Reset client</MenubarItem></DialogTrigger>
+        <MenubarCheckboxItem
+          :checked="helpState.enabled"
+          @click="toggleHelpDialogs"
+        >
+          Show Help Icons
+        </MenubarCheckboxItem>
+        <MenubarSeparator />
+        <div class="flex items-center justify-between w-full">
+          <DialogTrigger class="flex-grow">
+            <MenubarItem inset>Reset client</MenubarItem>
+          </DialogTrigger>
+          <HelpDialog
+            title="Reset Client Help Menu"
+            text="The Reset client resets the application view to default settings."
+            :enabled="true"
+          />
+        </div>
+        <MenubarSeparator />
+        <MenubarItem inset @click="faqWindowOpen = true">
+          FAQ
+        </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <ResetClientDialog @close="dialogOpen = false" />
