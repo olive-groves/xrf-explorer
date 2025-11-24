@@ -58,7 +58,7 @@ const hitArea = {
     <ResizableHandle :hit-area-margins="hitArea" />
     <ResizablePanel
       ref="rightPanel"
-      :default-size="20"
+      :default-size="23"
       :min-size="0"
       collapsible
       :collapsed-size="0"

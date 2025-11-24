@@ -393,24 +393,29 @@ async function setRecommendedClusters() {
         <Checkbox id="use_selection_area" class="align-bottom" v-model:checked="useSelectionChecked" />
         <Label for="use_selection_area" class="align-middle">Use only selection area</Label>
       </div>
-      <div class="border-t border-border flex flex-wrap space-y-1.5 pt-2 ">
+      <div class="border-t border-border flex flex-col space-y-1.5 pt-2">
         <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
-        <div class="w-full md:w-2/5 p-1">
-          <Button class="w-full h-full text-center whitespace-normal" @click="calculateRecommendedClusters">
-            Calculate
-          </Button>
-        </div>
-        <div class="w-full md:w-3/5 p-1">
-            <Button 
-              v-if="recommendedStatus == Status.LOADING"
-              class="w-full h-full text-center whitespace-normal">
-              Loading
+        <div class="flex flex-nowrap space-x-2 w-full">
+          <div class="basis-2/5 min-w-0 p-1">
+            <Button class="w-full h-full text-center whitespace-normal" @click="calculateRecommendedClusters">
+              Calculate
             </Button>
-            <Button 
-              v-else
-              class="w-full h-full text-center whitespace-normal" @click="setRecommendedClusters">
-              Use recommended ({{ recommendedClusters || ''  }})
+          </div>
+          <div class="basis-3/5 min-w-0 p-1">
+            <Button
+              class="w-full h-full text-center whitespace-normal"
+              :disabled="recommendedStatus !== Status.SUCCESS"
+              @click="setRecommendedClusters"
+            >
+              <template v-if="recommendedStatus === Status.LOADING">
+                Loading...
+              </template>
+
+              <template v-else>
+                Use recommended ({{ recommendedClusters || '' }})
+              </template>
             </Button>
+          </div>
         </div>
       </div>
 
