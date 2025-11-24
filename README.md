@@ -214,3 +214,4 @@ The `workspace.json` file follows the following format:
 ```
 
 Take into account that filenames must include the extension type (i.e. `spectral.raw` instead of just `spectral`).
+This is very important

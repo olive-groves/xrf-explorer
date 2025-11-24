@@ -19,17 +19,34 @@ export type WorkspaceConfig = {
    */
   spectralCubes: SpectralCube[];
   /**
+   * All partial spectral cubes in the workspace.
+   */
+  partialSpectralCubes: SpectralCube[];
+  /**
    * All elemental cubes in the workspace.
    */
   elementalCubes: ElementalCube[];
+  /**
+   * All partial elemental cubes in the workspace.
+   */
+  partialElementalCubes: ElementalCube[];
   /**
    * All elemental channels present in the elemental cubes.
    */
   elementalChannels: ElementalChannel[];
   /**
+   * All grayscale images generated from the cubes.
+   */
+  grayscale: Grayscale[];
+  /**
    * The parameters to read the spectral data.
    */
   spectralParams: SpectralParams;
+  /**
+   * Optional stitching mode for this workspace.
+   * When set to 'partial' the stitching UI is active.
+   */
+  stitchingMode?: "partial" | "full";
 };
 
 /**
@@ -49,6 +66,33 @@ export type ContextualImage = {
    * Empty string indicates that the image should not be registered.
    */
   recipeLocation: string;
+};
+
+/**
+ * Represent a grayscale image.
+ */
+export type Grayscale = {
+  /**
+   * The name of the grayscale image.
+   */
+  name: string;
+  /**
+   * The location of the image file, used by the backend.
+   */
+  imageLocation: string;
+  /**
+   * The location of the registering recipe, used by the backend.
+   * Empty string indicates that the image should not be registered.
+   */
+  recipeLocation: string;
+  /**
+   * Optional: the name of the cube that generated this grayscale image.
+   */
+  sourceCubeName?: string;
+  /**
+   * Optional: the type of cube that generated this grayscale image: 'elemental' | 'spectral'
+   */
+  sourceCubeType?: "elemental" | "spectral";
 };
 
 /**

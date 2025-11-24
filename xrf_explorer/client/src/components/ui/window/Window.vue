@@ -75,13 +75,48 @@ watch(
   },
   { immediate: true },
 );
+
+// Open Stitching window when stitching starts
+// Watch the workspace stitching mode and enable/disable windows accordingly
+watch(
+  () => appState.workspace?.stitchingMode,
+  (mode) => {
+    const isStitching = mode === "partial";
+    if (isStitching) {
+      if (state.value.id == "stitching") {
+        windowState[state.value.id].disabled = false;
+        windowState[state.value.id].opened = true;
+      } else if (state.value.id == "workspace") {
+        windowState[state.value.id].disabled = false;
+        windowState[state.value.id].opened = false;
+      } else {
+        windowState[state.value.id].opened = false;
+        windowState[state.value.id].disabled = true;
+      }
+    } else {
+      // Not stitching: enable other windows (keep stitching window closed/disabled)
+      if (state.value.id != "stitching") {
+        windowState[state.value.id].disabled = false;
+      }
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-    <div ref="content" v-if="appState.workspace != undefined">
+  <div ref="content" v-if="appState.workspace?.stitchingMode === 'partial'">
+      <div v-if="state.id == 'stitching'">
+        <slot />
+      </div>
+      <div v-else class="p-8 text-center text-muted-foreground">Stitching is in-process
+      </div>
+    </div>
+    <div ref="content" v-else-if="appState.workspace != undefined">
       <slot />
     </div>
-    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div>
+    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div> 
   </Teleport>
 </template>
+

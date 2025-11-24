@@ -19,12 +19,26 @@ from xrf_explorer.server.file_system.cubes import (
     get_elemental_map,
     normalize_ndarray_to_grayscale
 )
+from xrf_explorer.server.file_system.cubes.convert_csv import get_elemental_data_cube_from_csv
+from xrf_explorer.server.file_system.cubes.convert_dms import get_elemental_data_cube_from_dms
+from xrf_explorer.server.file_system.cubes.spectral import parse_rpl
 
 from xrf_explorer.server.file_system.workspace import (
     get_workspace_dict,
     get_elemental_cube_recipe_path,
     get_elemental_cube_path
 )
+from xrf_explorer.server.file_system.workspace.file_access import (
+    get_elemental_cube_path_from_name,
+    get_elemental_cube_file_names,
+    get_base_image_path,
+    get_path_to_workspace
+)
+from xrf_explorer.server.file_system.helper import get_path_to_generated_folder, get_config
+from PIL.Image import fromarray
+import os
+import uuid
+import json
 
 from xrf_explorer.server.image_register import load_points_dict
 from xrf_explorer.server.image_to_cube_selection import CubeType
@@ -183,3 +197,190 @@ def list_element_averages_selection(data_source: str):
     except Exception as e:
         LOG.error(f"Failed to serialize element averages: {str(e)}")
         return "Error occurred while listing element averages", 500
+
+@app.route("/api/<data_source>/grayscale/from_elemental_cube", methods=["POST"])
+def create_grayscale_from_elemental_cube(data_source: str):
+    """
+    Create a grayscale PNG from an elemental cube layer and persist it in the uploads folder.
+
+    Body JSON: { "cubeName": "name", "layer": <int> (optional), "outputName": "optional-filename.png" (optional) }
+    Returns the grayscale metadata object to be included in workspace.grayscale
+    """
+    try:
+        body = request.get_json()
+        cube_name: str = body.get("cubeName")
+        layer: int | None = body.get("layer")
+        output_name: str | None = body.get("outputName")
+    except Exception:
+        LOG.error("Invalid JSON body for grayscale creation request")
+        return "Invalid request body", 400
+
+    LOG.info(f"grayscale request for data_source={data_source}, cubeName={cube_name}, layer={layer}")
+
+    if not cube_name:
+        LOG.error("Missing cubeName in grayscale request")
+        return "Missing cubeName", 400
+
+    # Resolve cube path
+    cube_path = get_elemental_cube_path_from_name(data_source, cube_name)
+    cube = None
+    is_elemental = False
+    # Try to find elemental cube by name
+    load_path: str | None = None
+    try:
+        if cube_path is not None:
+            load_path = cube_path
+            is_elemental = True
+        else:
+            # check partialElementalCubes in workspace
+            workspace = get_workspace_dict(data_source)
+            if workspace is None:
+                return "Workspace not found", 404
+            for cube_info in workspace.get("partialElementalCubes", []) or []:
+                if cube_info.get("name") == cube_name:
+                    backend_config = get_config()
+                    uploads_folder = backend_config["uploads-folder"]
+                    load_path = os.path.join(uploads_folder, data_source, cube_info.get("dataLocation"))
+                    is_elemental = True
+                    break
+    except Exception as e:
+        LOG.error(f"Error while resolving elemental cube path: {e}")
+        return "Failed to resolve elemental cube path", 500
+
+    if load_path is not None:
+        # Load elemental cube from path
+        try:
+            if load_path.endswith('.csv'):
+                cube = get_elemental_data_cube_from_csv(load_path)
+            elif load_path.endswith('.dms'):
+                cube = get_elemental_data_cube_from_dms(load_path)
+            else:
+                LOG.error(f"Unknown elemental cube format for {load_path}")
+                return "Unknown elemental cube format", 500
+
+            if cube is None or cube.size == 0:
+                return "Failed to read elemental cube", 500
+        except Exception as e:
+            LOG.error(f"Error reading elemental cube from path {load_path}: {e}")
+            return "Failed to read elemental cube", 500
+    else:
+        # Try spectral cube with given name
+        workspace = get_workspace_dict(data_source)
+        if workspace is None:
+            return "Workspace not found", 404
+
+        spectral_lists = []
+        spectral_lists.extend(workspace.get("partialSpectralCubes", []) or [])
+        spectral_lists.extend(workspace.get("spectralCubes", []) or [])
+
+        matched = None
+        for s in spectral_lists:
+            if s.get("name") == cube_name:
+                matched = s
+                break
+
+        if matched is None:
+            return f"Cube {cube_name} not found (not elemental nor spectral)", 404
+
+        # Read raw + rpl for this spectral cube
+        try:
+            backend_config = get_config()
+            uploads_folder = backend_config["uploads-folder"]
+            raw_name = matched.get("rawLocation")
+            rpl_name = matched.get("rplLocation")
+            raw_path = os.path.join(uploads_folder, data_source, raw_name)
+            rpl_path = os.path.join(uploads_folder, data_source, rpl_name)
+
+            info = parse_rpl(rpl_path)
+            if not info:
+                return "Failed to parse rpl file", 500
+            width = int(info.get("width"))
+            height = int(info.get("height"))
+            depth = int(info.get("depth")) if info.get("depth") is not None else 0
+
+            # Load full raw data
+            dat = np.fromfile(raw_path, dtype=np.uint16)
+            # reshape may fail if counts mismatch
+            dat = np.reshape(dat, (height, width, depth))
+            cube = np.transpose(dat, (2, 0, 1))
+            is_elemental = False
+        except Exception as e:
+            LOG.error(f"Error reading spectral cube data: {e}")
+            return "Failed to read spectral cube data", 500
+
+    # Select layer if requested, otherwise compute summary
+    try:
+        if layer is not None:
+            arr = cube[layer]
+        else:
+            arr = cube.sum(axis=0)
+    except Exception as e:
+        LOG.error(f"Error extracting layer from cube: {e}")
+        return "Invalid layer index", 400
+
+    # Normalize array
+    try:
+        image_array = normalize_ndarray_to_grayscale(arr)
+    except Exception as e:
+        LOG.error(f"Error normalizing array: {e}")
+        return "Failed to normalize cube", 500
+
+    # Build output filename
+    if not output_name:
+        output_name = f"grayscale_{cube_name}_{uuid.uuid4().hex[:8]}.png"
+
+    # Save PNG to generated/uploads folder inside datasource folder
+    try:
+        backend_config = get_config()
+        uploads_folder = backend_config["uploads-folder"]
+        # get_path_to_generated_folder returns the full path to the generated folder for this data source
+        generated_folder = get_path_to_generated_folder(data_source)
+        if not generated_folder:
+            LOG.error("Could not determine generated folder for data source %s", data_source)
+            return "Failed to save image", 500
+        if not os.path.isdir(generated_folder):
+            os.makedirs(generated_folder, exist_ok=True)
+
+        out_path = os.path.join(generated_folder, output_name)
+        img = fromarray(image_array).convert("L")
+        img.save(out_path)
+    except Exception as e:
+        LOG.error(f"Failed to save grayscale image: {e}")
+        return "Failed to save image", 500
+
+    # Build grayscale metadata entry
+    entry_name = f"grayscale_{cube_name}"
+    if not is_elemental:
+        entry_name = f"grayscale_spectral_{cube_name}"
+
+    grayscale_entry = {
+        "name": entry_name,
+        # imageLocation is stored relative to the data source, use generated folder name + filename
+        "imageLocation": os.path.join(get_path_to_generated_folder(data_source).replace('\\', '/').split('/')[-1], output_name).replace("\\", "/"),
+        "recipeLocation": "",
+        # metadata to identify origin
+        "sourceCubeName": cube_name,
+        "sourceCubeType": "elemental" if is_elemental else "spectral"
+    }
+
+    # Update workspace.json to append grayscale entry
+    try:
+        workspace_path = get_path_to_workspace(data_source)
+        if not workspace_path:
+            return "Workspace not found", 404
+
+        with open(workspace_path, "r+") as f:
+            workspace = json.load(f)
+            if "grayscale" not in workspace:
+                workspace["grayscale"] = []
+            workspace["grayscale"].append(grayscale_entry)
+            f.seek(0)
+            f.write(json.dumps(workspace))
+            f.truncate()
+    except Exception as e:
+        LOG.error(f"Failed to update workspace with grayscale: {e}")
+        return "Failed to update workspace", 500
+
+    LOG.info(f"Created grayscale image for cube={cube_name}, saved as {output_name}, workspace updated")
+
+    return grayscale_entry, 200

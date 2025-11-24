@@ -31,6 +31,33 @@ const channelsDialog = ref(false);
 const deletionDialog = ref(false);
 
 /**
+ * Open file dialog with fresh workspace data.
+ */
+function openFileDialog() {
+  console.log('openFileDialog called, workspace.value:', workspace.value);
+  if (!workspace.value) {
+    console.error('Cannot open file dialog: workspace is undefined');
+    return;
+  }
+  const cloned = deepClone(workspace.value);
+  // Ensure partial arrays exist (for older workspaces that don't have them)
+  if (!cloned.partialSpectralCubes) cloned.partialSpectralCubes = [];
+  if (!cloned.partialElementalCubes) cloned.partialElementalCubes = [];
+  localWorkspace.value = cloned;
+  console.log('localWorkspace after sync:', localWorkspace.value);
+  fileDialog.value = true;
+}
+
+/**
+ * Open channels dialog with fresh workspace data.
+ */
+function openChannelsDialog() {
+  if (!workspace.value) return;
+  localWorkspace.value = deepClone(workspace.value);
+  channelsDialog.value = true;
+}
+
+/**
  * Update the workspace persistently.
  */
 function updateWorkspace() {
@@ -75,7 +102,7 @@ function updateWorkspace() {
       <div>
         <div class="text-muted-foreground">Data sources:</div>
         <div class="space-y-2">
-          <WorkspaceCard :name="workspace.baseImage.name" description="Base image" @settings="fileDialog = true">
+          <WorkspaceCard :name="workspace.baseImage.name" description="Base image" @settings="openFileDialog">
             <template #icon><Image class="size-full" /></template>
           </WorkspaceCard>
           <WorkspaceCard
@@ -83,7 +110,7 @@ function updateWorkspace() {
             :key="image.name"
             :name="image.name"
             description="Contextual image"
-            @settings="fileDialog = true"
+            @settings="openFileDialog"
           >
             <template #icon><ImagePlus class="size-full" /></template>
           </WorkspaceCard>
@@ -92,7 +119,7 @@ function updateWorkspace() {
             :key="cube.name"
             :name="cube.name"
             description="Spectral cube"
-            @settings="fileDialog = true"
+            @settings="openFileDialog"
           >
             <template #icon><AudioWaveform class="size-full" /></template>
           </WorkspaceCard>
@@ -101,14 +128,14 @@ function updateWorkspace() {
             :key="cube.name"
             :name="cube.name"
             description="Elemental cube"
-            @settings="fileDialog = true"
+            @settings="openFileDialog"
           >
             <template #icon><Atom class="size-full" /></template>
           </WorkspaceCard>
           <WorkspaceCard
             name="Elemental channels"
             description="Generated data"
-            @settings="channelsDialog = true"
+            @settings="openChannelsDialog"
             v-if="workspace.elementalCubes.length > 0"
           >
             <template #icon><Layers3 class="size-full" /></template>
@@ -120,10 +147,10 @@ function updateWorkspace() {
         <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
       </Dialog>
       <Dialog v-model:open="fileDialog">
-        <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+        <FileSetupDialog v-model="localWorkspace!" @save="updateWorkspace" />
       </Dialog>
       <Dialog v-model:open="channelsDialog">
-        <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+        <ChannelSetupDialog v-model="localWorkspace!" @save="updateWorkspace" />
       </Dialog>
     </div>
   </Window>

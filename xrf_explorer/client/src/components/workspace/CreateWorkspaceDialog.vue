@@ -30,8 +30,11 @@ function createEmptyWorkspace(): WorkspaceConfig {
     },
     contextualImages: [],
     spectralCubes: [],
+    partialSpectralCubes: [],
     elementalCubes: [],
+    partialElementalCubes: [],
     elementalChannels: [],
+    grayscale: [],
     spectralParams: {
       low: 0,
       high: 40,
@@ -247,6 +250,46 @@ async function updateWorkspace() {
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
       });
+      // Publish the created workspace to the global app state so UI reacts immediately
+      try {
+        appState.workspace = deepClone(workspace.value);
+      } catch (e) {
+        console.warn("Failed to set appState.workspace after create", e);
+      }
+      // If partial stitching mode, request server to generate grayscale images for partial cubes
+      try {
+        if (workspace.value.stitchingMode === "partial") {
+          const ds = workspace.value.name;
+          // Prefer partialElementalCubes, fallback to partialSpectralCubes
+          const partials = (workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0)
+            ? workspace.value.partialElementalCubes
+            : workspace.value.partialSpectralCubes || [];
+
+          for (const cube of partials) {
+            try {
+              const body = { cubeName: cube.name };
+              const resp = await fetch(`${config.api.endpoint}/${ds}/grayscale/from_elemental_cube`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              });
+              if (resp.ok) {
+                const grayscaleEntry = await resp.json();
+                // append to local workspace and publish
+                workspace.value.grayscale = workspace.value.grayscale || [];
+                workspace.value.grayscale.push(grayscaleEntry);
+                try { appState.workspace = deepClone(workspace.value); } catch {}
+              } else {
+                console.warn("Failed to create grayscale for cube", cube.name, await resp.text());
+              }
+            } catch (err) {
+              console.warn("Error creating grayscale for cube", cube.name, err);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Error in grayscale generation flow", e);
+      }
       resetProgress();
     }
   }

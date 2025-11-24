@@ -200,6 +200,7 @@ def get_workspace_dict(data_source_folder_name: str) -> dict | None:
     workspace_json_dir = join(
         backend_config["uploads-folder"], data_source_folder_name, "workspace.json"
     )
+    LOG.info(f"Attempting to open workspace.json at: {workspace_json_dir}")
     try:
         with open(workspace_json_dir, "r") as workspace:
             workspace_json = json.loads(workspace.read())

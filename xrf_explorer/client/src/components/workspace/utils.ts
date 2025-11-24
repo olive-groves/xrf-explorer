@@ -17,29 +17,32 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
     if (image.imageLocation.trim() == "") return [false, "Contextual image must have an associated image file"];
   }
 
-  // Check if the spectral cubes have names and associated files, and are valid
-  if (workspace.spectralCubes.length > 1) return [false, "Having multiple spectral cubes is currently not supported"];
-  for (const cube of workspace.spectralCubes) {
-    if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
-    if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associated raw file"];
-    if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associated rpl file"];
-    if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
+  // Only validate spectral cubes if any are present
+  if (workspace.spectralCubes.length > 0) {
+    for (const cube of workspace.spectralCubes) {
+      if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
+      if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associated raw file"];
+      if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associated rpl file"];
+      if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
+    }
   }
 
   // Check if the elemental cubes have names and associated files, and are valid
-  if (workspace.elementalCubes.length > 1) return [false, "Having multiple elemental cubes is currently not supported"];
   for (const cube of workspace.elementalCubes) {
     if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];
     if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associated data file"];
-    if (cube.recipeLocation.trim() == "") return [false, "Elemental cube must have an associated recipe file"];
+    // Require recipe file only if no spectral cubes are present
+    if (workspace.spectralCubes.length === 0 && cube.recipeLocation.trim() == "") {
+      return [false, "Elemental cube must have an associated recipe file if no spectral cubes are present"];
+    }
   }
 
   // Check if the elemental channels have names and are unique
-  const names = [];
+  const names: string[] = [];
   names.push(workspace.baseImage.name);
-  workspace.contextualImages.forEach((image) => names.push(image.name));
-  workspace.spectralCubes.forEach((cube) => names.push(cube.name));
-  workspace.elementalCubes.forEach((cube) => names.push(cube.name));
+  workspace.contextualImages.forEach((image: { name: string }) => names.push(image.name));
+  workspace.spectralCubes.forEach((cube: { name: string }) => names.push(cube.name));
+  workspace.elementalCubes.forEach((cube: { name: string }) => names.push(cube.name));
   if (new Set(names).size !== names.length) return [false, "Names must be unique"];
 
   return [true, ""];
