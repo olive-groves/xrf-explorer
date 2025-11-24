@@ -54,7 +54,7 @@ export type ColorSegmentationSelection = {
    * If whole painting, it's 0, otherwise it's the
    * element's channel plus 1.
    */
-  element: number;
+  elements: number[];
   /**
    * Whether each cluster is enabled.
    */
@@ -72,7 +72,7 @@ export type ColorSegmentationSelection = {
    * range from 0 to 100.
    * Arbitrary number if computing clusters over the whole image.
    */
-  threshold: number;
+  thresholds: number[];
   /**
    * Whether the clusters are computed over only the active Areaselection, or not.
    */
@@ -86,6 +86,10 @@ export type ColorSegmentationSelection = {
    * selection. Used to make browser caching work properly.
    */
   lastCompleteSelectionTimestamp: number;
+  /**
+   * Unix timestamp representing the time when the color segmentation was run.
+   */
+  lastColorSegmentationRun: number;
 };
 
 /**

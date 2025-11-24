@@ -7,3 +7,4 @@ windows
    spectra_chart
    bar_chart
    dim_reduction
+   color_segmentation
