@@ -21,7 +21,7 @@ function reset() {
 <template>
     <Dialog v-model:open="dialogOpen" @update:open="reset">
         <MenubarMenu>
-            <MenubarTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR')"> 
+            <MenubarTrigger v-tooltip="'toolbar.workspace'" v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR')"> 
                 Workspace 
             </MenubarTrigger>
             <MenubarTrigger v-else class="w-full opacity-50 cursor-not-allowed pointer-events-none">
@@ -29,7 +29,7 @@ function reset() {
             </MenubarTrigger>
             <MenubarContent>
                 <!-- Display setup workspace dialog and setup elemental channels dialog -->
-                 <DialogTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'workspace'; dialogOpen = true;">
+                 <DialogTrigger v-tooltip="'toolbar.setup_workspace'" v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'workspace'; dialogOpen = true;">
                      <MenubarItem>
                         Setup Workspace
                      </MenubarItem>
@@ -39,7 +39,7 @@ function reset() {
                         Setup Workspace
                     </MenubarItem>
                 </DialogTrigger>
-                 <DialogTrigger v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'elementalChannels'; dialogOpen = true;">
+                 <DialogTrigger v-tooltip="'toolbar.setup_elemental_channels'" v-if ="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined" class="w-full" @click="window = 'elementalChannels'; dialogOpen = true;">
                     <MenubarItem>
                         Setup Elemental Channels
                     </MenubarItem>
