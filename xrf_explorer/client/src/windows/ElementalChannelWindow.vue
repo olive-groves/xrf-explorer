@@ -41,7 +41,7 @@ function getChannelName(index: number): string {
 const selection = computed(() => appState.selection.elements);
 
 /**
- * Reset all sliders to default values
+ * Reset all sliders to default values.
  */
 function resetSliders() {
   for (let i = 0; i < appState.selection.elements.length; i++) {
@@ -75,11 +75,11 @@ function resetSliders() {
               v-if="channel.selected"
               title="Select color"
               :for="`color_${channel.channel}`"
-              class="size-8 rounded-md p-2 hover:bg-accent"
+              class="size-8 rounded-md p-2"
             >
               <div
                 :for="`color_${channel.channel}`"
-                class="size-4 rounded-md border border-border"
+                class="size-4 rounded-md border"
                 :style="{
                   'background-color': channel.color,
                 }"

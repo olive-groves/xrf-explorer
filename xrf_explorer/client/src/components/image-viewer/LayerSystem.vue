@@ -86,6 +86,7 @@ function checkedOutsideLens(group: LayerGroup) {
 
 /**
  * Toggle lens in a layer.
+ * #TODO: enable lens in toolbar.
  * @param group The group to change the lens off.
  */
 function toggleLens(group: LayerGroup) {
@@ -131,7 +132,7 @@ function resetSliders() {
           <Popover v-if="group.visible">
             <PopoverTrigger>
               <Button variant="ghost" class="size-8 p-2" title="Only visible inside lens" @click="toggleLens(group)">
-                <SearchX v-if="group.visibility == LayerVisibility.InsideLens"/>
+                <SearchX v-if="group.visibility == LayerVisibility.InsideLens" />
                 <Search v-else />
               </Button>
             </PopoverTrigger>
@@ -151,7 +152,7 @@ function resetSliders() {
                 :min="property.min"
                 :max="property.max"
                 :default="[property.default]"
-                v-model="group[property.nameRef]"
+                v-model="group[property.nameRef] as any"
                 @update="() => setLayerGroupProperty(group, property.propertyName)"
               />
             </PopoverContent>
@@ -177,7 +178,7 @@ function resetSliders() {
           v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
           :label="property.min.toString()"
-          v-model="group[property.nameRef]"
+          v-model="group[property.nameRef] as any"
           :min="property.min"
           :max="property.max"
           :default="[property.default]"
