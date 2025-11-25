@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/menubar";
 import { windowState } from "@/components/ui/window/state";
 import { computed, useSlots } from "vue";
-import { appState } from "@/lib/appState";
 
 // Define the slots
 // Allow passing content from a parent component to a child component
@@ -17,21 +16,14 @@ const hasSlot = computed(() => {
   return "default" in slots;
 });
 
-// Check if the user is an admin
-const isAdmin = computed(() => appState.user.role === "ADMIN");
-
-// Check if the user is an editor
-const isEditor = computed(() => appState.user.role === "EDITOR");
-
 // Filtered windowState to exclude certain windows for non-admins
 const filteredWindows = computed(() => {
-  return Object.values(windowState).filter(window => {
+  return Object.values(windowState).filter((window) => {
     // Only show the workspace window for admins and editors
-    if (window.id === "workspace" && (!isAdmin.value && !isEditor.value)) return false;
+    if (window.id === "workspace") return false;
     return true;
   });
 });
-
 </script>
 
 <template>

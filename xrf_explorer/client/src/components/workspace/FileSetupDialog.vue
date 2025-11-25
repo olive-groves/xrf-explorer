@@ -23,12 +23,11 @@ const modelValidity = computed(() => validateWorkspace(model.value));
  */
 function save() {
   // Read the UploadingPartialData value exposed by FileSetupTable and persist stitchingMode
-  const uploading = (fileSetupRef.value as any)?.getUploadingPartialData?.();
-  if (uploading === "partial") {
-    model.value.stitchingMode = "partial";
-  } else {
-    model.value.stitchingMode = "full";
-  }
+  const uploading = fileSetupRef.value?.getUploadingPartialData?.() ?? null;
+  model.value.stitchingMode = uploading === "partial" ? "partial" : "full";
+
+  // Debug log print stitchingmode
+  console.debug("Setting stitching mode to:", model.value.stitchingMode);
   emit("save");
 }
 </script>

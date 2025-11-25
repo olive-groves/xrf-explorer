@@ -261,9 +261,10 @@ async function updateWorkspace() {
         if (workspace.value.stitchingMode === "partial") {
           const ds = workspace.value.name;
           // Prefer partialElementalCubes, fallback to partialSpectralCubes
-          const partials = (workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0)
-            ? workspace.value.partialElementalCubes
-            : workspace.value.partialSpectralCubes || [];
+          const partials =
+            workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0
+              ? workspace.value.partialElementalCubes
+              : workspace.value.partialSpectralCubes || [];
 
           for (const cube of partials) {
             try {
@@ -278,7 +279,9 @@ async function updateWorkspace() {
                 // append to local workspace and publish
                 workspace.value.grayscale = workspace.value.grayscale || [];
                 workspace.value.grayscale.push(grayscaleEntry);
-                try { appState.workspace = deepClone(workspace.value); } catch {}
+                try {
+                  appState.workspace = deepClone(workspace.value);
+                } catch {}
               } else {
                 console.warn("Failed to create grayscale for cube", cube.name, await resp.text());
               }

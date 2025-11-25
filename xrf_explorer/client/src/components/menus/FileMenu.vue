@@ -24,7 +24,7 @@ const filteredSources = computed(() => {
     return sources.value;
   }
   const userProjects = appState.user.projects ?? [];
-  return sources.value.filter(source => userProjects.includes(source));
+  return sources.value.filter((source) => userProjects.includes(source));
 });
 
 // Dialog visibility variable
@@ -73,11 +73,22 @@ function loadWorkspace(source: string) {
       <MenubarTrigger @click="() => request.execute()" title="Manage projects"> File </MenubarTrigger>
       <MenubarContent>
         <!-- Only show new project button for admins and editors -->
-        <DialogTrigger v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" class="w-full"><MenubarItem>New project</MenubarItem></DialogTrigger>
-        <MenubarItem v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" @click="() => { if (appState.workspace) { appState.workspace.stitchingMode = appState.workspace.stitchingMode === 'partial' ? 'full' : 'partial' } }">
+        <DialogTrigger v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" class="w-full"
+          ><MenubarItem>New project</MenubarItem>
+        </DialogTrigger>
+        <MenubarItem
+          v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
+          @click="
+            () => {
+              if (appState.workspace) {
+                appState.workspace.stitchingMode = appState.workspace.stitchingMode === 'partial' ? 'full' : 'partial';
+              }
+            }
+          "
+        >
           {{ "Stitch" }}
         </MenubarItem>
-        <MenubarSeparator v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"/>
+        <MenubarSeparator v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" />
         <MenubarItem disabled v-if="filteredSources.length <= 0">No projects available</MenubarItem>
         <MenubarItem v-for="source in filteredSources" :key="source" @click="() => loadWorkspace(source)">
           {{ source }}
