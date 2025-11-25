@@ -1,5 +1,9 @@
 import * as d3 from "d3";
 
+// The maximum value of the energy axis in keV
+// This has been provided to be 40 keV.
+const MAX_KEV = 40;
+
 /**
  * Clear the whole chart (including axes).
  * @param svg - The SVG element to clear.
@@ -87,7 +91,7 @@ export function makeSpectraChart(
   function createLine(line_offset: number = offset, y_scaling: number = 1) {
     return d3
       .line<number>()
-      .x((_, i) => x((i * binSize + low) * ((40 - line_offset) / high) + line_offset))
+      .x((_, i) => x((i * binSize + low) * ((MAX_KEV - line_offset) / high) + line_offset))
       .y((d, _) => y(d * y_scaling));
   }
 
@@ -148,11 +152,11 @@ export function makeSpectraChart(
   const x = d3
     .scaleLinear()
     .range([margin.left, width - margin.right])
-    .domain([low * ((40 - offset) / high) + offset, high * ((40 - offset) / high) + offset]);
+    .domain([low * ((MAX_KEV - offset) / high) + offset, high * ((MAX_KEV - offset) / high) + offset]);
   const y = d3
     .scaleLinear()
     .range([height - margin.bottom, margin.top])
-    .domain([0, yAxisMax * (100 / 255)]);
+    .domain([0, yAxisMax]);
 
   // append the svg object to the body of the page
   svg
@@ -244,10 +248,10 @@ export function makeSpectraChart(
       .attr("class", "peak-line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x((index * binSize + low) * (40 / high)))
-      .attr("y1", 30)
-      .attr("x2", x((index * binSize + low) * (40 / high)))
-      .attr("y2", 430)
+      .attr("x1", x((index * binSize + low) * (MAX_KEV / high)))
+      .attr("y1", margin.top)
+      .attr("x2", x((index * binSize + low) * (MAX_KEV / high)))
+      .attr("y2", height - margin.bottom)
       .style("opacity", elementPeaksChecked && selectedElement != "No element" ? 1 : 0);
   });
 
@@ -262,25 +266,25 @@ export function makeSpectraChart(
       // Constrain panning to prevent going into negative X and Y directions
       // while allowing unlimited panning in positive directions
       let transform = event.transform;
-      
+
       // Calculate the maximum allowed translation based on data coordinates
       // We want to prevent data value 0 from appearing in the visible chart area
       // For x: prevent x=0 from panning past the left edge of the chart
       // For y: prevent y=0 from panning past the bottom edge of the chart
       const maxTx = margin.left - transform.k * x(0);
-      const minTy = (height - margin.bottom) - transform.k * y(0);
-      
+      const minTy = height - margin.bottom - transform.k * y(0);
+
       // Clamp the translation values to prevent panning into negative directions
       // but allow unlimited panning in positive directions (negative transform values)
       if (transform.x > maxTx || transform.y < minTy) {
         transform = d3.zoomIdentity
           .translate(Math.min(transform.x, maxTx), Math.max(transform.y, minTy))
           .scale(transform.k);
-        
+
         // Apply the constrained transform back to the SVG
         svg.call(zoom.transform as never, transform);
       }
-      
+
       zoomState.setZoomTransform(transform); // Store the current transform
       const newX = transform.rescaleX(x);
       const newY = transform.rescaleY(y);
@@ -292,13 +296,13 @@ export function makeSpectraChart(
       // Create new line generator with transformed scales
       const zoomedLine = d3
         .line<number>()
-        .x((_, i) => newX((i * binSize + low) * ((40 - offset) / high) + offset))
+        .x((_, i) => newX((i * binSize + low) * ((MAX_KEV - offset) / high) + offset))
         .y((d) => newY(d));
 
       // Create scaled line generator for element data
       const zoomedElementLine = d3
         .line<number>()
-        .x((_, i) => newX((i * binSize + low) * (40 / high)))
+        .x((_, i) => newX((i * binSize + low) * (MAX_KEV / high)))
         .y((d) => newY(d * elementScalingFactor));
 
       // Update all lines with zoomed scales
@@ -309,8 +313,8 @@ export function makeSpectraChart(
       // Update peaks
       svg
         .selectAll(".peak-line")
-        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize + low) * (40 / high)))
-        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize + low) * (40 / high)));
+        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize + low) * (MAX_KEV / high)))
+        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize + low) * (MAX_KEV / high)));
     });
 
   svg.call(zoom as never);
