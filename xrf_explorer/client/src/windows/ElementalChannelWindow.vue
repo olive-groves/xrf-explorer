@@ -54,7 +54,11 @@ function resetSliders() {
 
 <template>
   <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
-    <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings"><ListRestart /></Button>
+    <div class="flex items-center">
+      <Button variant="outline" size="icon" @click="resetSliders()" title="Reset elemental settings" class="ml-2 mt-2">
+        <ListRestart class="size-4" />
+      </Button>
+    </div>
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"

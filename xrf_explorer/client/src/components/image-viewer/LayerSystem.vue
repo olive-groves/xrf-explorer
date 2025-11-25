@@ -2,7 +2,13 @@
 import { VueDraggableNext } from "vue-draggable-next";
 import { Eye, EyeOff, Search, SearchX, SlidersHorizontal, ListRestart } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
-import { layerGroups, setLayerGroupIndex, setLayerGroupVisibility, setLayerGroupProperty, updateLayerGroupLayers } from "./state";
+import {
+  layerGroups,
+  setLayerGroupIndex,
+  setLayerGroupVisibility,
+  setLayerGroupProperty,
+  updateLayerGroupLayers,
+} from "./state";
 import { LayerGroup, LayerVisibility } from "./types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
@@ -79,22 +85,25 @@ function checkedOutsideLens(group: LayerGroup) {
 }
 
 /**
- * toggle lens in a layer
+ * Toggle lens in a layer.
+ * @param group The group to change the lens off.
  */
 function toggleLens(group: LayerGroup) {
   checkedOutsideLens(group);
 }
 
 /**
- * Reset all sliders to default values
+ * Reset all sliders to default values.
  */
 function resetSliders() {
-  for (var group in groups.value) {
+  //loop through al groups
+  for (const group in groups.value) {
     groups.value[group].visible = groups.value[group].default_visibility;
     groups.value[group].visibility = LayerVisibility.Visible;
 
+    //Loop through all the properties in the group and reset to default
     for (const property in properties) {
-      var propertyName = properties[property].nameRef;
+      const propertyName = properties[property].nameRef;
 
       (groups.value[group][propertyName] as number[])[0] = properties[property].default;
     }
@@ -102,12 +111,13 @@ function resetSliders() {
     updateLayerGroupLayers(groups.value[group]);
   }
 }
-
 </script>
 
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
-    <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings"><ListRestart /></Button>
+    <Button class="basis-1/2" variant="outline" @click="resetSliders()" title="Reset layer settings"
+      ><ListRestart class="size-4" />
+    </Button>
     <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">
