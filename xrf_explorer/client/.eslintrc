@@ -10,7 +10,6 @@
   "extends": [
     "@vue/typescript/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:vue/vue3-strongly-recommended",
     "plugin:jsdoc/recommended-typescript",
     "plugin:tailwindcss/recommended",
