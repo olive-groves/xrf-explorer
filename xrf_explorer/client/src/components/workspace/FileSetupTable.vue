@@ -173,6 +173,7 @@ async function removeComponentsFromWorkspace(fragmentIndex: number | null) {
 }
 
 async function removeFileFromComponent(filename: string) {
+  console.log("Deleting file from component: " + filename);
   if (model.value.baseImage.name === filename) model.value.baseImage.name = "";
 
   model.value.contextualImages = model.value.contextualImages.map(img => ({
@@ -184,7 +185,15 @@ async function removeFileFromComponent(filename: string) {
   model.value.spectralCubes = model.value.spectralCubes.map(img => ({
     ...img,
     rawLocation: img.rawLocation === filename ? "" : img.rawLocation,
-    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation,
+    rplLocation: img.rplLocation === filename ? "" : img.rplLocation,
+  }));
+
+  model.value.partialSpectralCubes = model.value.partialSpectralCubes.map(img => ({
+    ...img,
+    rawLocation: img.rawLocation === filename ? "" : img.rawLocation,
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation,
+    rplLocation: img.rplLocation === filename ? "" : img.rplLocation,
   }));
 
   model.value.elementalCubes = model.value.elementalCubes.map(img => ({
@@ -192,6 +201,14 @@ async function removeFileFromComponent(filename: string) {
     dataLocation: img.dataLocation === filename ? "" : img.dataLocation,
     recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation
   }));
+
+  model.value.partialElementalCubes = model.value.partialElementalCubes.map(img => ({
+    ...img,
+    dataLocation: img.dataLocation === filename ? "" : img.dataLocation,
+    recipeLocation: img.recipeLocation === filename ? "" : img.recipeLocation
+  }));
+
+  console.log(model.value);
 }
 
 async function handleMultiDeleteConfirmed() {
@@ -205,7 +222,9 @@ async function handleMultiDeleteConfirmed() {
     if (!response.ok) { console.error("Failed to delete files"); return; }
 
     const result = await response.json();
-    for (const filename of result.deleted) removeFileFromComponent(filename);
+    for (const filename of result.deleted)  {
+      removeFileFromComponent(filename);
+    }
 
   } catch (error) { console.error("Error during multi-delete:", error); }
 
