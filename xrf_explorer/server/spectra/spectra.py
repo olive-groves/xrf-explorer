@@ -1,4 +1,5 @@
 import logging
+import math
 
 from math import ceil, floor, log
 
@@ -262,3 +263,12 @@ def gaussian_convolve(
                       np.exp(-(1 / std) * (x_kevs - peak_energy) ** 2)
 
     return x_kevs, y_spectrum
+
+def contains_nan(seq: list[float]) -> bool:
+    """
+    Returns true if an array contains at least 1 element that is NaN.
+
+    :param seq: The input list of floats.
+    :returns: True if the list contains at least one NaN element, False otherwise.
+    """
+    return any(isinstance(x, float) and math.isnan(x) for x in seq)

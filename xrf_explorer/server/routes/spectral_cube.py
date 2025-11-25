@@ -19,7 +19,7 @@ from xrf_explorer.server.file_system.cubes import (
 from xrf_explorer.server.file_system.workspace import get_raw_rpl_paths
 from xrf_explorer.server.image_to_cube_selection import CubeType
 from xrf_explorer.server.routes.helper import encode_selection
-from xrf_explorer.server.spectra import get_average_global, get_theoretical_data, get_average_selection
+from xrf_explorer.server.spectra import get_average_global, get_theoretical_data, get_average_selection, contains_nan
 
 LOG: Logger = getLogger(__name__)
 
@@ -117,6 +117,10 @@ def get_element_spectra(data_source: str, element: str, excitation: float):
     high: int = params["high"]
     bin_size: int = params["binSize"]
     theoretical_data: list = get_theoretical_data(element, float(excitation), low, high, bin_size)
+
+    # Check if there is actually any data to return.
+    if contains_nan(theoretical_data[0]):
+        return f"No Theoretical data for element {element} with excitation level {excitation}.", 404
 
     return json.dumps(theoretical_data)
 

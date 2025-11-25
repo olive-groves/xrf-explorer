@@ -230,26 +230,58 @@ async function getSelectionSpectrum(selection: SelectionAreaSelection) {
  * @param excitation Excitation energy.
  */
 async function getElementSpectrum(element: string, excitation: number) {
-  if (element != "No element" && element != "" && excitation != null && (excitation as unknown as string) != "") {
-    try {
-      //make api call
-      const response = await fetch(
-        `${config.api.endpoint}/${datasource.value}/get_element_spectrum/${element}/${excitation}`,
-      );
-      const data = await response.json();
-      elementData = data[0];
-      elementPeaks = data[1];
-      drawChart();
-    } catch (e) {
-      console.error("Error getting element theoretical spectrum", e);
-      elementData = [];
-      elementPeaks = [];
-      drawChart();
-    }
-  } else {
+  // Helper to reset elemental data
+  const clearElementData = () => {
     elementData = [];
     elementPeaks = [];
     drawChart();
+  };
+
+  // Validate Inputs
+  if (
+    !element ||
+    element === "No element" ||
+    excitation === null ||
+    excitation === undefined ||
+    excitation === 0 ||
+    excitation.toString() === ""
+  ) {
+    clearElementData();
+    return;
+  }
+
+  try {
+    // Request
+    const url = `${config.api.endpoint}/${datasource.value}/get_element_spectrum/${element}/${excitation}`;
+    const response = await fetch(url);
+
+    // Handle 404; No data for requested element at excitation level.
+    if (response.status === 404) {
+      toast.info(`No theoretical data for element ${element} with excitation level ${excitation}.`);
+      clearElementData();
+      return;
+    }
+
+    // Handle other non-ok response codes.
+    if (!response.ok) {
+      throw new Error(`Server returned status: ${response.status}`);
+    }
+
+    // Valid response
+    const data = await response.json();
+
+    if (Array.isArray(data) && data.length >= 2) {
+      elementData = data[0];
+      elementPeaks = data[1];
+      drawChart();
+    } else {
+      throw new Error("Invalid data format received from API");
+    }
+  } catch (e) {
+    console.error("Error getting element theoretical spectrum:", e);
+    toast.error("Something went wrong while loading theoretical spectrum data. " + e);
+
+    clearElementData();
   }
 }
 

@@ -244,9 +244,9 @@ export function makeSpectraChart(
       .attr("class", "peak-line")
       .style("stroke", "grey")
       .style("stroke-width", 1)
-      .attr("x1", x((index * binSize + low) * ((40 - offset) / high) + offset))
+      .attr("x1", x((index * binSize + low) * (40 / high)))
       .attr("y1", 30)
-      .attr("x2", x((index * binSize + low) * ((40 - offset) / high) + offset))
+      .attr("x2", x((index * binSize + low) * (40 / high)))
       .attr("y2", 430)
       .style("opacity", elementPeaksChecked && selectedElement != "No element" ? 1 : 0);
   });
@@ -309,8 +309,8 @@ export function makeSpectraChart(
       // Update peaks
       svg
         .selectAll(".peak-line")
-        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset))
-        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize + low) * ((40 - offset) / high) + offset));
+        .attr("x1", (_, i) => newX((elementPeaks[i] * binSize + low) * (40 / high)))
+        .attr("x2", (_, i) => newX((elementPeaks[i] * binSize + low) * (40 / high)));
     });
 
   svg.call(zoom as never);
