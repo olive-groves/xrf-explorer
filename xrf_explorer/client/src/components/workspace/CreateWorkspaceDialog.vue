@@ -245,7 +245,7 @@ async function updateWorkspace() {
       fileDialog.value = false;
       channelDialog.value = true;
     } else if (setup) {
-      binData();
+      await binData();
       // Complete setup
       toast.success("Created workspace", {
         description: "The created workspace can be opened from the file menu.",
