@@ -4,13 +4,17 @@
   "parserOptions": {
     "parser": "@typescript-eslint/parser",
     "sourceType": "module",
+    "project": ["./tsconfig.json"],
+    "extraFileExtensions": [".vue"]
   },
   "extends": [
     "@vue/typescript/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:vue/vue3-strongly-recommended",
     "plugin:jsdoc/recommended-typescript",
     "plugin:tailwindcss/recommended",
-    "prettier",
+    "prettier"
   ],
   "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic"],
   "rules": {
@@ -26,23 +30,37 @@
       "error",
       {
         "script": {
-          "lang": "ts",
-        },
-      },
+          "lang": "ts"
+        }
+      }
     ],
+
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-misused-promises": [
+      "error",
+      {
+        "checksConditionals": true,
+        "checksVoidReturn": {
+          "arguments": false,
+          "attributes": false
+        }
+      }
+    ],
+
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_",
-      },
+        "caughtErrorsIgnorePattern": "^_"
+      }
     ],
+
     "vue/require-prop-comment": [
       "warn",
       {
-        "type": "JSDoc",
-      },
+        "type": "JSDoc"
+      }
     ],
     "jsdoc/require-jsdoc": [
       "warn",
@@ -50,7 +68,7 @@
         "publicOnly": {
           "esm": true,
           "cjs": true,
-          "window": true,
+          "window": true
         },
         "require": {
           "ArrowFunctionExpression": true,
@@ -58,16 +76,21 @@
           "ClassExpression": true,
           "FunctionDeclaration": true,
           "FunctionExpression": true,
-          "MethodDefinition": true,
+          "MethodDefinition": true
         },
-        "contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration", "TSEnumDeclaration", "TSPropertySignature"],
-      },
+        "contexts": [
+          "TSInterfaceDeclaration",
+          "TSTypeAliasDeclaration",
+          "TSEnumDeclaration",
+          "TSPropertySignature"
+        ]
+      }
     ],
     "tailwindcss/no-custom-classname": [
       "warn",
       {
-        "whitelist": ["custom\\-.*"],
-      },
+        "whitelist": ["custom\\-.*"]
+      }
     ],
     "jsdoc/require-description": "warn",
     "jsdoc/require-description-complete-sentence": "warn",
@@ -85,8 +108,8 @@
         "ignoreUrls": true,
         "ignoreStrings": false,
         "ignoreTemplateLiterals": false,
-        "ignoreRegExpLiterals": false,
-      },
-    ],
-  },
+        "ignoreRegExpLiterals": false
+      }
+    ]
+  }
 }
