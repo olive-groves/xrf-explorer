@@ -349,7 +349,7 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
       <div class="flex space-x-2 items-center">
         <Button v-if="UploadingPartialData === 'partial'" variant="outline" @click="addDatacube">Add partial data cube</Button>
         <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
-        <Button variant="destructive" @click="showMultiDeleteDialog = true">Delete Selected</Button>
+        <Button variant="destructive" @click="showMultiDeleteDialog = true"> Delete Files </Button>
       </div>
     </div>
 

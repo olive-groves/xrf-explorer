@@ -7,6 +7,7 @@ import {
   MenubarSeparator,
 } from "@/components/ui/menubar";
 import { windowState } from "@/components/ui/window/state";
+import { getTooltipByKey } from "@/lib/useToolTips";
 import { computed, useSlots } from "vue";
 
 // Define the slots
@@ -28,14 +29,14 @@ const filteredWindows = computed(() => {
 
 <template>
   <MenubarMenu>
-    <MenubarTrigger v-tooltip="'Toolbar.view_menu'"> View </MenubarTrigger>
+    <MenubarTrigger v-tooltip="'toolbar.view_menu'"> View </MenubarTrigger>
     <MenubarContent>
       <MenubarCheckboxItem
         v-for="window in filteredWindows"
         v-model:checked="window.opened"
         :disabled="window.disabled"
         :key="window.id"
-        :title="window.help"
+        :title="getTooltipByKey('toolbar.' + window.id)"
       >
         {{ window.title }}
       </MenubarCheckboxItem>
