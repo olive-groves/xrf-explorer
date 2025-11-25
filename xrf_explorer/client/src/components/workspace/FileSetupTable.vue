@@ -304,9 +304,9 @@ async function handleMultiDeleteConfirmed() {
       </div>
       <!-- Delete confirmation dialog -->
       <div v-if="showDeleteComponentDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div class="min-w-[320px] rounded-lg bg-background p-6 text-foreground shadow-lg">
+        <div class="min-w-[320px] rounded-lg p-6 shadow-lg">
           <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
-          <div class="mb-4 text-sm text-muted-foreground">
+          <div class="mb-4 text-sm">
             Are you sure you want to delete this component from the workspace? This action cannot be undone.
           </div>
           <div class="flex justify-end space-x-2">
@@ -346,12 +346,12 @@ async function handleMultiDeleteConfirmed() {
 
     <!-- Multi delete dialog -->
     <div v-if="showMultiDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div class="max-h-[500px] min-w-[360px] overflow-y-auto rounded-lg bg-background p-6 text-foreground shadow-lg">
+      <div class="max-h-[500px] min-w-[360px] overflow-y-auto rounded-lg p-6 shadow-lg">
         <div class="mb-2 text-lg font-bold">Delete Files</div>
-        <div class="mb-4 text-sm text-muted-foreground">Select the files you want to delete from this project.</div>
+        <div class="mb-4 text-sm">Select the files you want to delete from this project.</div>
         <div class="mb-4 space-y-2">
           <label v-for="file in allProjectFiles" :key="file" class="flex items-center space-x-2">
-            <input type="checkbox" :value="file" v-model="selectedFilesToDelete" class="form-checkbox" />
+            <input type="checkbox" :value="file" v-model="selectedFilesToDelete" class="" />
             <span class="truncate">{{ file }}</span>
           </label>
         </div>
@@ -370,11 +370,9 @@ async function handleMultiDeleteConfirmed() {
 
     <!-- Delete confirmation dialog -->
     <div v-if="showDeleteFileDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div class="min-w-[320px] rounded-lg bg-background p-6 text-foreground shadow-lg">
+      <div class="min-w-[320px] rounded-lg p-6 shadow-lg">
         <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
-        <div class="mb-4 text-sm text-muted-foreground">
-          Are you sure you want to delete these files? This action cannot be undone.
-        </div>
+        <div class="mb-4 text-sm">Are you sure you want to delete these files? This action cannot be undone.</div>
         <div class="flex justify-end space-x-2">
           <Button variant="outline" @click="showDeleteFileDialog = false">Cancel</Button>
           <Button variant="destructive" @click="handleMultiDeleteConfirmed">Delete</Button>
