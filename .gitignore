@@ -25,3 +25,6 @@ xrf_explorer/client/docs/
 
 # Ignore test coverage files
 .coverage
+
+# Ignore key
+xrf_explorer/secret_key.txt
