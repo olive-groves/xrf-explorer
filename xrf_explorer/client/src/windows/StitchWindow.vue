@@ -2,10 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
-import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount, inject, Ref } from "vue";
 import { windowState } from "@/components/ui/window/state";
-// no lifecycle imports needed
+import { getWorkspaceImageUrl } from "@/components/image-viewer/workspace";
 
+const selectedGreyscale = ref<number | null>(0);
+const mode = inject<Ref<'edit' | 'preview'>>("stitchMode", ref('edit'));
 const workspace = computed(() => appState.workspace);
 interface PartialScanState {
     opacity: number[];
@@ -24,6 +26,16 @@ const partialScans = ref<PartialScanState[]>([
         rotation: [0],
     }
 ]);
+
+
+onMounted(() => {
+  if (selectedGreyscale.value !== null) {
+    window.dispatchEvent(
+      new CustomEvent("stitch:selected-grayscale", { detail: selectedGreyscale.value })
+    );
+  }
+});
+
 // Keep partialScans in sync with workspace grayscale count so each slider has a model
 watch(
   () => workspace.value?.grayscale,
@@ -127,6 +139,15 @@ function onGrayscalePosChanged(e: Event | CustomEvent) {
   }
 }
 
+function selectGreyscale(idx: number) {
+  selectedGreyscale.value = idx;
+
+  // Notify the mapping viewer so it can highlight / enable editing
+  window.dispatchEvent(
+    new CustomEvent("stitch:selected-grayscale", { detail: idx })
+  );
+}
+
 onMounted(() => {
   window.addEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
   // listen for rotation changes originating from the viewer (so the slider display updates)
@@ -157,7 +178,7 @@ function onGrayscalePropFromViewer(e: Event | CustomEvent) {
 </script>
 
 <template>
-  <Window title="Stitching" location="right">
+  <Window v-if="mode === 'preview'" title="Stitching" location="right">
     <div class="space-y-2 p-2">
       <Button
         variant="outline"
@@ -242,6 +263,36 @@ function onGrayscalePropFromViewer(e: Event | CustomEvent) {
          <Button @click="closeDialog">Cancel</Button>
          </div>
          </div>
+    </div>
+  </Window>
+  <Window v-if="mode === 'edit'" title="Stitching" location="right">
+    <div class="space-y-4 p-4">
+
+      <h3 class="font-semibold text-lg">Select a Fragment</h3>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div
+          v-for="(greyscale, idx) in workspace?.grayscale"
+          :key="idx"
+          class="cursor-pointer border rounded-md overflow-hidden transition"
+          :class="{
+            'ring-4 ring-blue-500': selectedGreyscale === idx,
+            'hover:ring-2 hover:ring-blue-300': selectedGreyscale !== idx
+          }"
+          @click="selectGreyscale(idx)"
+        >
+          <div class="w-full h-32 bg-gray-100 dark:bg-black flex items-center justify-center pt-4">
+            <img
+              :src="getWorkspaceImageUrl(greyscale.imageLocation, workspace?.name)"
+              class="max-h-full max-w-full object-contain"
+            />
+          </div>
+          <div class="text-center text-sm p-1 bg-gray-50 dark:bg-black dark:text-gray-200">
+            {{ greyscale.name.replace(/^grayscale_/, "") }}
+          </div>
+        </div>
+      </div>
+
     </div>
   </Window>
 </template>

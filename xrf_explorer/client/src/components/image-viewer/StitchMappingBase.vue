@@ -37,6 +37,12 @@ const selectionToolActive = computed(() =>
   Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string),
 );
 
+// When outside components pick a grayscale, update shared selection (no local selectedIndex)
+window.addEventListener("stitch:selected-grayscale", (e: Event) => {
+  const i = (e as CustomEvent).detail as number;
+  setSelectedGrayscaleIndex(i);
+});
+
 const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
 const height = canvasSize.height;
@@ -52,13 +58,26 @@ const draggingIndex = ref<number | null>(null);
 
 // Points selection
 import {
-  stitchPoints,
+  StitchPoint,
+  grayscalePoints,
   selectedPointId,
+  selectedGrayscaleIndex,
+  createGrayPoint,
+  updateGrayPoint,
   updateBasePoint,
   selectPoint,
   deselect,
-  checkSelectPoint
+  checkSelectPoint,
+  setSelectedGrayscaleIndex
 } from "./stitchPoints";
+
+// Points for the currently selected grayscale
+const currentPoints = computed(() => {
+  const idx = selectedGrayscaleIndex.value ?? null;
+  if (idx === null) return [];
+  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
+  return grayscalePoints.value[idx];
+});
 
 // GL Setup
 onMounted(async () => {
@@ -242,21 +261,24 @@ function onWheel(event: WheelEvent) {
   } else zoomLimitReached = false;
 }
 
+// clear selected point whenever selected grayscale changes
+watch(selectedGrayscaleIndex, () => {
+  selectedPointId.value = null;
+});
+
 function onBaseImageClick(event: MouseEvent) {
   const img = glcontainer.value?.querySelector("img");
   if (!img) return;
 
   const { x, y } = computeToImageCoords(event, img);
 
-  // Detect clicking on existing base point
-  for (const p of stitchPoints.value) {
+  // Check whether the user clicked near an existing *base* mapping and select it
+  for (const p of currentPoints.value) {
     if (!p.base) continue;
-
     const dx = p.base.x - x;
     const dy = p.base.y - y;
-
-    if (dx*dx + dy*dy < 20*20) {
-      if (checkSelectPoint(p.id)) {
+    if (dx * dx + dy * dy < 20 * 20) {
+      if ((selectedPointId.value === p.id) ) {
         deselect();
         return;
       }
@@ -264,10 +286,12 @@ function onBaseImageClick(event: MouseEvent) {
       return;
     }
   }
-
-  // If a grayscale point is selected → map it
-  if (selectedPointId.value !== null) {
+  
+  // If there is a selected grayscale point, map it to this base position
+  if (selectedPointId.value !== null && selectedGrayscaleIndex.value !== null) {
+    // set the base mapping for the selected grayscale point
     updateBasePoint(selectedPointId.value, x, y);
+    return;
   }
 }
 
@@ -353,14 +377,13 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     <!-- Base image -->
     <div
       v-if="baseSrc"
-      class="absolute inset-0 flex items-center justify-center pointer-events-auto"
+      class="absolute inset-0 flex items-center justify-center pointer-events-auto bg-white dark:bg-black"
       :style="{
         zIndex: 1,
         width: '100%',
         height: '100%',
         paddingTop: basePadding + 'px',
         paddingBottom: basePadding + 'px',
-        backgroundColor: 'white',
         opacity: baseOpacity
       }"
       @click="onBaseImageClick"
@@ -368,29 +391,21 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       <img
         :src="baseSrc"
         @load="baseReady = true"
-        :style="{
-          width: 'auto',
-          height: 'auto',
-          maxWidth: `calc(100% - ${basePadding * 2}px)`,
-          maxHeight: `calc(100% - ${basePadding * 2}px)`,
-          display: 'block',
-          objectFit: 'contain',
-        }"
-        class="mx-auto"
+        class="mx-auto w-auto h-auto max-w-[calc(100%-40px)] max-h-[calc(100%-40px)] object-contain"
       />
 
-
       <!-- Points overlay -->
-      <div v-for="p in stitchPoints" :key="p.id">
+      <div v-for="p in currentPoints" :key="p.id">
         <div
           v-if="p.base"
-          class="absolute w-4 h-4 rounded-full border border-black"
+          class="absolute w-4 h-4 rounded-full border border-black dark:border-white"
           :style="toDisplayCoords(p.base, p.id)"
         ></div>
 
+        <!-- Label -->
         <div
           v-if="p.base"
-          class="absolute text-xs font-bold"
+          class="absolute text-xs font-bold text-white dark:text-black"
           :style="labelCoords(p.base, p.id)"
         >
           {{ p.id + 1 }}
