@@ -42,7 +42,7 @@ const selection = computed(() => appState.selection.elements);
 </script>
 
 <template>
-  <Window title="Elemental channels" help="Select which elements to show in the main view, select their colors, and select the thresholds that should be visible" location="left" :disabled="!elementalDataPresent">
+  <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"
@@ -59,11 +59,11 @@ const selection = computed(() => appState.selection.elements);
               v-if="channel.selected"
               title="Select color"
               :for="`color_${channel.channel}`"
-              class="size-8 rounded-md p-2 hover:bg-accent"
+              class="size-8 rounded-md p-2"
             >
               <div
                 :for="`color_${channel.channel}`"
-                class="size-4 rounded-md border border-border"
+                class="size-4 rounded-md border"
                 :style="{
                   'background-color': channel.color,
                 }"

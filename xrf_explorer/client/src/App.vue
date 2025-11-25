@@ -22,7 +22,6 @@ const props = defineProps<{
 }>();
 provide("config", props.config);
 console.info("XRF-Explorer client created with configuration: ", props.config);
-
 </script>
 
 <template>
@@ -41,12 +40,8 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
-        <FAQWindow
-          v-if="faqWindowOpen"
-          class="absolute top-0 left-0 w-full h-full z-[9999] bg-background"
-        ></FAQWindow>
+        <FAQWindow v-if="faqWindowOpen" class="absolute left-0 top-0 z-[9999] size-full"></FAQWindow>
       </BaseContextMenu>
     </WindowContainer>
   </div>
 </template>
-

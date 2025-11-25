@@ -201,6 +201,7 @@ def delete_multiple_files(data_source: str):
             LOG.error(error_msg)
             return {"error": error_msg}, 404
             
+        # Variables to return later
         deleted_files = []
         failed_files = []
         

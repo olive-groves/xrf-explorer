@@ -8,6 +8,7 @@ import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { ChannelSetupDialog, FileSetupDialog } from "@/components/workspace";
 import { deepClone } from "@/lib/utils";
+import { WorkspaceConfig } from "@/lib/workspace";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
@@ -66,14 +67,14 @@ function updateWorkspace() {
 </script>
 
 <template>
-  <Window title="Workspace" help="Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting" location="left">
+  <Window title="Workspace" location="left">
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
-        <div class="text-muted-foreground">Workspace name:</div>
+        <div class="">Workspace name:</div>
         <div>{{ workspace.name }}</div>
       </div>
       <div>
-        <div class="text-muted-foreground">Data sources:</div>
+        <div class="">Data sources:</div>
         <div class="space-y-2">
           <WorkspaceCard :name="workspace.baseImage.name" description="Base image" @settings="fileDialog = true">
             <template #icon><Image class="size-full" /></template>
@@ -120,10 +121,10 @@ function updateWorkspace() {
         <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
       </Dialog>
       <Dialog v-model:open="fileDialog">
-        <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+        <FileSetupDialog v-model="localWorkspace as WorkspaceConfig" @save="updateWorkspace" />
       </Dialog>
       <Dialog v-model:open="channelsDialog">
-        <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+        <ChannelSetupDialog v-model="localWorkspace as WorkspaceConfig" @save="updateWorkspace" />
       </Dialog>
     </div>
   </Window>

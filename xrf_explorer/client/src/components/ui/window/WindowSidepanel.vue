@@ -9,8 +9,6 @@ import { useElementSize } from "@vueuse/core";
 import { BaseContextMenu } from "@/components/menus";
 import HelpDialog from "@/components/ui/help-menu/HelpDialog.vue";
 import { ContextMenuItem, ContextMenuRadioGroup, ContextMenuRadioItem, ContextMenuSeparator } from "../context-menu";
-import { getTooltipByKey } from "@/lib/useToolTips";
-import { snakeCase } from "change-case";
 
 const props = defineProps<{
   /**
@@ -417,16 +415,12 @@ function handleDragMovement(event: MouseEvent) {
                 }"
               />
               <div class="font-bold">
-                {{ state[id].title }} 
-                <HelpDialog
-                  :title="state[id].title + ' Help Menu'"
-                  :text="getTooltipByKey('help_menu.' + snakeCase(state[id].title))"
-                  :enabled="true"
-                />
+                {{ state[id].title }}
+                <HelpDialog :title="state[id].title + ' help menu'" :enabled="true" />
               </div>
             </div>
             <div
-              class="z-0 -mt-px overflow-hidden border-t border-border duration-100"
+              class="z-0 -mt-px overflow-hidden border-t duration-100"
               :style="{
                 height: `${state[id].minimized ? '0px' : `${state[id].height - headerSize + 1}px`}`,
               }"

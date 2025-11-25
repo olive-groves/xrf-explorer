@@ -8,6 +8,9 @@ interface FAQItem {
   videoUrl?: string;
 }
 
+/**
+ * The items to be display in the FAQ. Format: question: "", answer: "", videoUrl:"".
+ */
 const faqItems = ref<FAQItem[]>([
   {
     question: "How do I load a project?",
@@ -19,51 +22,44 @@ const faqItems = ref<FAQItem[]>([
     answer: "Hover over 'XRF-Explorer' and click 'Reset client'. This will clear all local data.",
   },
   {
-      question: "How do I switch between light and dark mode?",
-      answer: "Hover over 'XRF-Explorer' and select which mode you want to use.",
+    question: "How do I switch between light and dark mode?",
+    answer: "Hover over 'XRF-Explorer' and select which mode you want to use.",
   },
   {
-      question: "Add in FAQs here",
-      answer: "Answers here",
+    question: "Add in FAQs here",
+    answer: "Answers here",
   },
   {
-      question: "Add in FAQs here",
-      answer: "Answers here",
+    question: "Add in FAQs here",
+    answer: "Answers here",
   },
   {
-      question: "Add in FAQs here",
-      answer: "Answers here",
+    question: "Add in FAQs here",
+    answer: "Answers here",
   },
 ]);
 
+/**
+ * Set global boolean, default is false.
+ */
 const closeFAQ = () => {
   faqWindowOpen.value = false;
 };
 </script>
 
 <template>
-  <div class="w-full h-full p-6 overflow-auto bg-background">
-    <div class="flex justify-between items-center mb-4">
+  <div class="size-full overflow-auto p-6">
+    <div class="mb-4 flex items-center justify-between">
       <h1 class="text-2xl font-bold">FAQ</h1>
-      <button
-        @click="closeFAQ"
-        class="px-2 py-1 rounded bg-accent text-accent-foreground hover:opacity-80"
-      >
-        ✕
-      </button>
+      <button @click="closeFAQ" class="rounded px-2 py-1 hover:opacity-80">✕</button>
     </div>
 
-    <div v-for="(item, i) in faqItems" :key="i" class="mb-6 border rounded-md p-4 shadow-sm">
+    <!-- The questions and answers -->
+    <div v-for="(item, i) in faqItems" :key="i" class="mb-6 rounded-md border p-4 shadow-sm">
       <details>
-        <summary class="font-semibold text-lg cursor-pointer">{{ item.question }}</summary>
+        <summary class="cursor-pointer text-lg font-semibold">{{ item.question }}</summary>
         <p class="mt-2">{{ item.answer }}</p>
-        <iframe
-          v-if="item.videoUrl"
-          :src="item.videoUrl"
-          class="w-full h-64 mt-2"
-          frameborder="0"
-          allowfullscreen
-        />
+        <iframe v-if="item.videoUrl" :src="item.videoUrl" class="mt-2 h-64 w-full" frameborder="0" allowfullscreen />
       </details>
     </div>
   </div>

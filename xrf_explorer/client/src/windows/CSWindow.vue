@@ -13,7 +13,6 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-import { getTooltipByKey } from "@/lib/useToolTips";
 
 //Constants
 const config = inject<FrontendConfig>("config")!;
@@ -129,12 +128,7 @@ function getElementIndex(elementName: string | undefined) {
 </script>
 
 <template>
-  <Window
-    title="Color segmentation"
-    :help="getTooltipByKey('toolbar.color_segmentation')"
-    location="right"
-    :disabled="!elementalDataPresent"
-  >
+  <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
@@ -219,7 +213,7 @@ function getElementIndex(elementName: string | undefined) {
           :style="{ 'background-color': color }"
           class="inline-block size-12 rounded-md"
           :class="{
-            'ring-2 ring-foreground ring-offset-1 ring-offset-background': selection.enabled[colorIndex],
+            'ring-2 ring-offset-1': selection.enabled[colorIndex],
           }"
           @click="toggleCluster(colorIndex)"
         />

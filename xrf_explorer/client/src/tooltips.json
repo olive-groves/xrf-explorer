@@ -7,7 +7,7 @@
         "file_menu": "Manage Projects",
         "new_project": "Create a new project",
         "view_menu": "Open visualisation views",
-        "spectra": "Explore average spectra for painting or selected areas",
+        "spectrum": "Explore average spectra for painting or selected areas",
         "elemental_charts": "Analyze how much each element appears in the painting",
         "elemental_channels": "Analyze where each element appears in the painting",
         "color_segmentation": "Analyze the color clusters for the entire painting or for individual elements",
@@ -16,12 +16,14 @@
         "workspace": "Manage workspace of the project"
     },
     "help_menu": {
-        "color_segmentation": "Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent.",
-        "dimensionality_reduction":	"Decrease the redundant information in the painting to simplify analyzing the painting. Select the element to be simplified and the threshold that should be met to include the point in the data set.",
-        "elemental_channels": "Select which elements to show in the main view, select their colors, and select the thresholds that should be visible",
-        "elemental_charts": "Show the average abundance of all the selected elements in the entire painting or in the selection. Show this of all the elements in the painting, or select the elements to be shown in the elemental channels view.",
-        "layers": "Determine what layers to show and modify their properties to make them easier to analyze. Select the lens to dynamically analyze the painting.",
-        "spectrum": "Show how much each element reacts to X-ray beams to indentify and analyze the used pigments in the painting. Choose the elements and then strength of the X-ray beams.",
-        "workspace": "Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting."
+        "color_segmentation_help_menu": "Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent.",
+        "dimensionality_reduction_help_menu":	"Decrease the redundant information in the painting to simplify analyzing the painting. Select the element to be simplified and the threshold that should be met to include the point in the data set.",
+        "elemental_channels_help_menu": "Select which elements to show in the main view, select their colors, and select the thresholds that should be visible",
+        "elemental_charts_help_menu": "Show the average abundance of all the selected elements in the entire painting or in the selection. Show this of all the elements in the painting, or select the elements to be shown in the elemental channels view.",
+        "layers_help_menu": "Determine what layers to show and modify their properties to make them easier to analyze. Select the lens to dynamically analyze the painting.",
+        "spectrum_help_menu": "Show how much each element reacts to X-ray beams to indentify and analyze the used pigments in the painting. Choose the elements and then strength of the X-ray beams.",
+        "workspace_help_menu": "Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting.",
+        "reset_client_help_menu": "Reset the entire UI to default settings, the settings when you open the program for the first time",
+        "error": "No help text provided"
     }
 }

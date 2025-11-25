@@ -419,7 +419,7 @@ function updateElementSpectrum() {
 </script>
 
 <template>
-  <Window title="Spectrum" help="Show how much each element reacts to X-ray beams to indentify and analyze the used pigments in the painting. Choose the elements and then strength of the X-ray beams" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
+  <Window title="Spectrum" location="right" @window-mounted="setup" :disabled="!spectralDataPresent">
     <div class="mx-2">
       <!-- SPECTRA SELECTION -->
       <div class="space-y-1">
@@ -479,7 +479,7 @@ function updateElementSpectrum() {
         <svg class="ml-1" ref="spectraChart"></svg>
         <div
           v-if="loadingGlobal || loadingSelection || binningData"
-          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+          class="absolute left-0 top-0 flex size-full items-center justify-center"
         >
           <div class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />
