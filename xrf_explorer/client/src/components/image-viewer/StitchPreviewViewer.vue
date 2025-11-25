@@ -825,16 +825,17 @@ return dragging.value ? "grabbing" : "grab";
     <!-- Base image (DOM fallback) -->
     <div
       v-if="baseSrc && showDomBase"
-      class="absolute inset-0 pointer-events-none flex items-center justify-center"
-      :style="{ zIndex: 0, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', backgroundColor: 'white', opacity: baseOpacity }"
+      class="absolute inset-0 pointer-events-none flex items-center justify-center
+            bg-white dark:bg-black"
+      :style="{ zIndex: 0, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', opacity: baseOpacity }"
     >
       <img
         :src="baseSrc"
         class="w-full object-contain"
         :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)`, opacity: baseOpacity }"
         alt="base image"
-          @load="onDomBaseLoad"
-          @error="onDomBaseError"
+        @load="onDomBaseLoad"
+        @error="onDomBaseError"
       />
     </div>
 

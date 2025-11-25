@@ -53,18 +53,39 @@ const draggingIndex = ref<number | null>(null);
 
 // Points selection
 import {
-  stitchPoints,
+  grayscalePoints,
   selectedPointId,
+  selectedGrayscaleIndex,
   createGrayPoint,
   updateGrayPoint,
   selectPoint,
   checkSelectPoint,
-  deselect
+  deselect,
+  setSelectedGrayscaleIndex
 } from "./stitchPoints";
+
+// points for the currently selected grayscale
+const currentPoints = computed(() => {
+  const idx = selectedGrayscaleIndex.value ?? null;
+  if (idx === null) return [];
+  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
+  return grayscalePoints.value[idx];
+});
+
 const pointRefresh = ref(0);
 
-// Selected Grayscale 
-const selectedGrayscale = ref(appState.workspace?.grayscale?.[0] ?? null);
+// Use shared selectedGrayscaleIndex
+const selectedGrayscale = computed(() => {
+  const idx = selectedGrayscaleIndex.value ?? null;
+  if (idx === null) return null;
+  return appState.workspace?.grayscale?.[idx] ?? null;
+});
+
+// update the shared selected index
+window.addEventListener("stitch:selected-grayscale", (e: Event) => {
+  const i = (e as CustomEvent).detail as number;
+  setSelectedGrayscaleIndex(i);
+});
 
 // GL Setup 
 onMounted(async () => {
@@ -243,11 +264,11 @@ function onBaseImageClick(event: MouseEvent) {
 
   const { x, y } = computeToImageCoords(event, img);
 
-  // Clicking near an existing grayscale point selects it
-  for (const p of stitchPoints.value) {
+  // Clicking near an existing point selects it
+  for (const p of currentPoints.value) {
     const dx = p.gray.x - x;
     const dy = p.gray.y - y;
-    if (dx*dx + dy*dy < 20*20) {
+    if (dx * dx + dy * dy < 20 * 20) {
       if (checkSelectPoint(p.id)) {
         deselect();
         return;
@@ -257,16 +278,15 @@ function onBaseImageClick(event: MouseEvent) {
     }
   }
 
-  // Move selected grayscale point
+  // Move selected point
   if (selectedPointId.value !== null) {
     updateGrayPoint(selectedPointId.value, x, y);
     return;
   }
 
-  // Create new grayscale point
+  // Create new point
   createGrayPoint(x, y);
 }
-
 function toDisplayCoords(p: { x: number; y: number }, i: number): CSSProperties {
   pointRefresh.value;
 
@@ -333,7 +353,7 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
   <div
     ref="glcontainer"
     class="relative w-full h-full"
-    :style="{ cursor: cursor }"
+    :style="{ cursor: cursor, backgroundColor: 'black' }"
     @click="onClick"
     @contextmenu="onClick"
     @dblclick="resetViewport"
@@ -348,8 +368,14 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     <!-- Selected Grayscale Image -->
     <div
       v-if="greyScaleSrc"
-      class="absolute inset-0 flex items-center justify-center pointer-events-auto"
-      :style="{ zIndex: 1, paddingTop: basePadding + 'px', paddingBottom: basePadding + 'px', backgroundColor: 'white', opacity: baseOpacity }"
+      class="absolute inset-0 flex items-center justify-center pointer-events-auto
+            bg-white dark:bg-black"
+      :style="{ 
+        zIndex: 1, 
+        paddingTop: basePadding + 'px', 
+        paddingBottom: basePadding + 'px', 
+        opacity: baseOpacity 
+      }"
       @click="onBaseImageClick"
     >
       <img
@@ -360,31 +386,30 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       />
 
       <!-- Points overlay -->
-      <div v-for="(p, i) in stitchPoints" :key="p.id">
+      <div v-for="(p, i) in currentPoints" :key="p.id">
         <!-- Point Dot -->
         <div
-          class="absolute w-4 h-4 rounded-full border border-black"
+          class="absolute w-4 h-4 rounded-full border border-black dark:border-white"
           :style="toDisplayCoords(p.gray, p.id)"
         ></div>
 
         <!-- Label -->
         <div
-          class="absolute text-xs font-bold"
+          class="absolute text-xs font-bold text-black dark:text-white"
           :style="labelCoords(p.gray, p.id)"
         >
           {{ i + 1 }}
         </div>
       </div>
-
-      ></div>
     </div>
 
     <!-- Loading overlay -->
     <div
       v-if="!baseReady"
-      class="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
+      class="absolute inset-0 flex items-center justify-center bg-black/40 dark:bg-black text-white"
       style="z-index: 3"
     >
-    <div class="p-4 bg-black/60 rounded">Loading grayscale image...</div>
+      <div class="p-4 bg-black/60 dark:bg-black rounded">Loading grayscale image...</div>
     </div>
+</div>
 </template>
