@@ -43,23 +43,20 @@ elemental_fragments = [
     ElementalDatacubeFragment.from_file(rf"element4.dms", 1 * 90),
 ]
 
+
 intensity_scales = [0.96, 0.85, 1.0, 0.9]
 
-stitcher = DatacubeStitcher(spectral_fragments, intensity_scales, points, Dimensions(0,0, rgb_width, rgb_height))
-#stitcher.stitch_datacubes()
-#SpectralDatacubeFragment.from_file(rf"stitched_spectral.raw", rf"stitched_spectral.rpl").unshape_cube("stitched_spectral.raw", "normal_stitched_spectral.raw")
+stitcher = DatacubeStitcher(spectral_fragments, intensity_scales, points, Dimensions(rgb_width, rgb_height), 0.6)
+el = stitcher.stitch_datacubes()
 
-el = SpectralDatacubeFragment.from_file(rf"normal_stitched_spectral.raw", rf"stitched_spectral.rpl")
+# reshape the spectral datacubes spectral1.reshaped
+# projection = el.create_greyscale_projection()
 
-# #el = ElementalDatacubeFragment.from_file(rf"stitched_elemental.dms")
-
-projection = el.create_greyscale_projection()
-
-plt.figure(figsize=(10, 10))
-plt.imshow(projection, cmap='gray', vmin=np.min(projection), vmax=np.max(projection))
-plt.axis('off')
-plt.title("Warped images placed inside RGB-sized frame")
-plt.show()
+# plt.figure(figsize=(10, 10))
+# plt.imshow(projection, cmap='gray', vmin=np.min(projection), vmax=np.max(projection))
+# plt.axis('off')
+# plt.title("Warped images placed inside RGB-sized frame")
+# plt.show()
 
 # display_img = stitcher.stitch_greyscales([img_1,img_2, img_3, img_4])
 # plt.figure(figsize=(10, 10))

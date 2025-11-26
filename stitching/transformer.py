@@ -4,11 +4,15 @@ import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
 from typing import Sequence, Callable
-import os.path
 from concurrent.futures import ThreadPoolExecutor, wait
 import queue
+import os
 
 def split_range(start, end, parts):
+    if parts <= 0:
+        raise ValueError("parts must be >= 1")
+    if (parts == 1):
+        return [(start, end)]
     length = end - start
     base = length // parts
     remainder = length % parts
@@ -25,11 +29,14 @@ def split_range(start, end, parts):
     return result
 
 class DatacubeStitcher():
-    def __init__(self, fragments: Sequence[DatacubeFragment], intensity_scales: list[float], points: list[tuple[WarpSelection, WarpSelection]], frame: Dimensions):
+    def __init__(self, fragments: Sequence[DatacubeFragment], intensity_scales: list[float], points: list[tuple[WarpSelection, WarpSelection]], frame: Dimensions, scalar: float = 1.0):
         self.fragments = fragments
         self.frame = frame
         self.points = points
         self.intensity_scales = intensity_scales
+        self.scalar = scalar
+        self.scaled_height = int(frame.height * self.scalar)
+        self.scaled_width = int(frame.width * self.scalar)
 
         if (fragments is None or len(fragments) == 0):
             raise ValueError("No fragments provided")
@@ -47,10 +54,10 @@ class DatacubeStitcher():
     def stitch_greyscales(self, images: list[np.ndarray]):   
         if (len(images) != len(self.points)):
             raise ValueError("Number of images must match number of point sets.")
-        canvas = np.full((self.frame.height, self.frame.width), 0, dtype=np.float32)
+        canvas = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.float32)
         for i, image in enumerate(images):
             img = image.astype(np.float32)
-            warped_image = cv.warpPerspective(img, self.perspective_matrices[i], (self.frame.width, self.frame.height), flags=cv.INTER_NEAREST, borderValue=-1)
+            warped_image = cv.warpPerspective(img, self.perspective_matrices[i], (self.scaled_width, self.scaled_height), flags=cv.INTER_NEAREST, borderValue=-1)
             mask = warped_image != -1
             canvas[mask] = warped_image[mask] * self.intensity_scales[i]
         
@@ -70,24 +77,45 @@ class DatacubeStitcher():
         else:
             raise ValueError("Rotation must be 0, 90, 180, or 270")
 
-    def fill_subset_layers(self, update, maps: list[np.memmap], output_map: np.memmap, channel_start: int, channel_end: int):
-        warp_buffers = [ np.empty((self.frame.height, self.frame.width), dtype=np.float32) for _ in maps]
+    def write_buffered_channel(self, output: np.memmap, input: np.ndarray, channel: int, buffer_size: int = 128) -> None:
+        height, _ = input.shape
+        for y0 in range(0, height, buffer_size):
+            y1 = min(y0 + buffer_size, height)
+            output[y0:y1, :, channel] = input[y0:y1, :]
+
+    def read_buffered_channel(self, input: np.memmap, channel: int, buffer_size: int = 128) -> np.ndarray:
+        height, width, _ = input.shape
+        out = np.empty((height, width), dtype=input.dtype)
+        for y0 in range(0, height, buffer_size):
+            y1 = min(y0 + buffer_size, height)
+            out[y0:y1, :] = input[y0:y1, :, channel]
+        return out
+
+
+    def fill_subset_layers(self, update: queue.Queue, input_maps: list[np.memmap], output_map: np.memmap, channel_start: int, channel_end: int):
+        warp_buffers = [ np.empty((self.scaled_height, self.scaled_width), dtype=np.float32) for _ in input_maps]
         cached_mask = [None] * len(self.fragments)
         
         for channel in range(channel_start, channel_end):
-            layer = np.full((self.frame.height, self.frame.width), 0, dtype=np.float32)
-            for i, map in enumerate(maps):
-                layer_fragment = map[channel, :, :]
+            layer = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.float32)
+            for i, input_map in enumerate(input_maps):
+
+                if self.base_cube.is_spectral():
+                    layer_fragment = self.read_buffered_channel(input_map, channel).astype(np.float32, copy=False)
+                else: 
+                    layer_fragment = input_map[channel, :, :]
                 scale = self.intensity_scales[i]
                 if (scale != 1.0):
                     layer_fragment = np.multiply(layer_fragment, scale, dtype=np.float32)
                 layer_fragment = self.rotate_cv(layer_fragment, self.fragments[i].rotation)
-                cv.warpPerspective(layer_fragment, self.perspective_matrices[i], (self.frame.width, self.frame.height), flags=cv.INTER_NEAREST, borderValue=-1, dst=warp_buffers[i])
+                cv.warpPerspective(layer_fragment, self.perspective_matrices[i], (self.scaled_width, self.scaled_height), flags=cv.INTER_NEAREST, borderValue=-1, dst=warp_buffers[i])
                 if cached_mask[i] is None:
                     cached_mask[i] = (warp_buffers[i] != -1)
                 np.copyto(layer, warp_buffers[i], where=cached_mask[i])
             if self.base_cube.is_spectral():
-                 output_map[channel, :, :] = np.clip(layer, 0, 255).astype(np.uint8)
+                 #layer = np.clip(layer, 0, 255).astype(output_map.dtype)
+                 self.write_buffered_channel(output_map, np.clip(layer, 0, 255).astype(output_map.dtype), channel)
+                 #output_map[:, :, channel] = np.clip(layer, 0, 255).astype(output_map.dtype)
             else: 
                 output_map[channel, :, :] = layer
 
@@ -96,19 +124,13 @@ class DatacubeStitcher():
     def fill_layers(self, output_map: np.memmap) -> None:
         maps = []
         updates = queue.Queue()
-        for i, cube in enumerate(self.fragments):
-            
-            if (self.base_cube.is_spectral()):
-                print(f"Reshaping cube {i}")
-                maps.append(cube.reshape_cube(f"reshaped_{i}.bin"))
-                print(f"Reshaped cube {i} written to reshaped_{i}.bin")
-            else:
-                maps.append(cube.load_datacube())
+        maps = [cube.load_datacube() for cube in self.fragments]
         
-        with ThreadPoolExecutor(max_workers=8) as executor:
+        workers = os.cpu_count() if self.base_cube.is_spectral() else 1
+        with ThreadPoolExecutor(max_workers=workers) as executor:
             futures = [
                 executor.submit(self.fill_subset_layers, updates, maps, output_map, start, end)
-                for (start, end) in split_range(0, self.base_cube.channels, 8)
+                for (start, end) in split_range(0, self.base_cube.channels, workers)
             ]
             completed = 0
             while completed < self.base_cube.channels:
@@ -121,31 +143,31 @@ class DatacubeStitcher():
 
             wait(futures)
 
-    def stitch_datacubes(self) -> None:
+    def stitch_datacubes(self) -> DatacubeFragment:
         if (len(self.fragments) != len(self.points)):
             raise ValueError("Number of images must match number of point sets.")
 
         if (self.base_cube.is_spectral()):
             datacube_file = "stitched_spectral.raw"
             rpl_file = "stitched_spectral.rpl"
-            SpectralDatacubeFragment.write_file(
+            print("Estimated file size is:", (self.scaled_width * self.scaled_height * self.base_cube.channels)/(1024**3), "GB")
+            return SpectralDatacubeFragment.write_file(
                 datacube_file,
                 rpl_file,
                 self.base_cube.rpl_meta,
                 self.base_cube.data_type,
-                self.frame.width,
-                self.frame.height,
+                self.scaled_width,
+                self.scaled_height,
                 self.base_cube.channels,
                 lambda output_map:
                     self.fill_layers(output_map)
             )
-            #SpectralDatacubeFragment.from_file(datacube_file, rpl_file).unshape_cube(datacube_file, "normal_stitched_spectral.raw")
         else:
             datacube_file = "stitched_elemental.dms"
-            ElementalDatacubeFragment.write_file(
+            return ElementalDatacubeFragment.write_file(
                 datacube_file,
-                self.frame.width,
-                self.frame.height,
+                self.scaled_width,
+                self.scaled_height,
                 self.base_cube.channels,
                 self.base_cube.elements,
                 lambda output_map:
@@ -154,8 +176,8 @@ class DatacubeStitcher():
 
     def get_perspective_matrices(self) -> list[np.ndarray]:
         perspective_matrices = []
-        for i, (warp1, warp2) in enumerate(self.points):
-            perspective_matrice = cv.getPerspectiveTransform(warp1.get_points(), warp2.get_points())    
+        for i, (src, dst) in enumerate(self.points):
+            perspective_matrice = cv.getPerspectiveTransform(src.get_points(), dst.get_points(self.scalar))    
             perspective_matrices.append(perspective_matrice)
         return perspective_matrices
 
@@ -167,13 +189,19 @@ class WarpSelection:
         self.bottom_left = bottom_left
         self.bottom_right = bottom_right
 
-    def get_points(self) -> np.ndarray:
-        return np.array([self.top_left, self.top_right, self.bottom_left, self.bottom_right], dtype=np.float32)
+    def get_points(self, scalar: float = 1.0) -> np.ndarray:
+        if (scalar != 1.0):
+            return np.array([
+                (int(self.top_left[0] * scalar), int(self.top_left[1] * scalar)),
+                (int(self.top_right[0] * scalar), int(self.top_right[1] * scalar)),
+                (int(self.bottom_left[0] * scalar), int(self.bottom_left[1] * scalar)),
+                (int(self.bottom_right[0] * scalar), int(self.bottom_right[1] * scalar))
+            ], dtype=np.float32)
+        else:
+            return np.array([self.top_left, self.top_right, self.bottom_left, self.bottom_right], dtype=np.float32)
 
 class Dimensions:
-    def __init__(self, x: int, y: int, width: int, height: int):
-        self.x = x
-        self.y = y
+    def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
 
@@ -208,12 +236,12 @@ class DatacubeFragment(ABC):
     def create_greyscale_projection(self, chunk_size: int =256) -> np.ndarray:
         memmap = self.load_datacube()
         out = np.zeros((self.height, self.width), dtype=np.float32)
-        if not self.is_spectral():
+        if self.is_spectral():
             for y0 in range(0, self.height, chunk_size):
                 y1 = min(y0 + chunk_size, self.height)
                 print("Reducing chunk rows", y0, "to", y1, "of", self.height)
                 chunk = memmap[y0:y1, :, :]
-                out[y0:y1, :] = chunk.mean(axis=0).astype(np.float32)
+                out[y0:y1, :] = chunk.mean(axis=2).astype(np.float32)
                 memmap.flush()
         else:
             acc = np.zeros((self.height, self.width), dtype=np.float32)
@@ -261,12 +289,12 @@ class ElementalDatacubeFragment(DatacubeFragment):
         return self.channels == datacube.channels and np.array_equal(self.elements, datacube.elements)
 
     @staticmethod
-    def write_file(file: str, width: int, height: int, channels:int, elements: list[str], content_write_function: Callable[[np.ndarray]]) -> None:
+    def write_file(datacube_file: str, width: int, height: int, channels:int, elements: list[str], content_write_function: Callable[[np.ndarray]]) -> ElementalDatacubeFragment:
         header = ElementalDatacubeFragment.create_file_header(width, height, channels)
-        with open(file, "wb") as f:
+        with open(datacube_file, "wb") as f:
             f.write(header)
         output_map = np.memmap(
-            file,
+            datacube_file,
             dtype=np.float32,
             offset=len(header),
             mode="r+",
@@ -275,8 +303,9 @@ class ElementalDatacubeFragment(DatacubeFragment):
         content_write_function(output_map)
         output_map.flush()
         footer = ElementalDatacubeFragment.create_file_footer(elements)
-        with open(file, "ab") as f:
+        with open(datacube_file, "ab") as f:
             f.write(footer)
+        return ElementalDatacubeFragment.from_file(datacube_file)
 
     @staticmethod
     def create_file_header(width: int, height: int, channels:int) -> bytes:
@@ -295,14 +324,14 @@ class ElementalDatacubeFragment(DatacubeFragment):
         return False
 
 class SpectralDatacubeFragment(DatacubeFragment):
-    def __init__(self, datacube_file, width, height, channels, offset, data_type, rotation, rpl_meta: dict):
+    def __init__(self, datacube_file: str, width: int, height: int, channels: int, offset: int, data_type, rotation: int, rpl_meta: dict):
         super().__init__(datacube_file, width, height, channels, rotation)
         self.offset = offset
         self.data_type = data_type
         self.rpl_meta = rpl_meta
-
     @classmethod
     def from_file(cls, datacube_file: str, rpl_file: str, rotation: int = 0):
+        is_reshaped = datacube_file.endswith(".reshaped")
         meta = cls.parse_rpl_file(rpl_file)
         width = meta.get("width", 0)
         height = meta.get("height", 0)
@@ -339,48 +368,18 @@ class SpectralDatacubeFragment(DatacubeFragment):
     def load_datacube(self):
         print("Loading spectral datacube:", self.datacube_file)
         memmap: np.memmap = np.memmap(
-            self.datacube_file,
-            dtype=self.data_type,
-            mode="r",
-            offset=self.offset,
-            shape=(self.height, self.width, self.channels),
-        )
+                self.datacube_file,
+                dtype=self.data_type,
+                mode="r",
+                offset=self.offset,
+                shape=(self.height, self.width, self.channels),
+            )
         return memmap
 
     def are_compatible(self, datacube) -> bool:
         if not isinstance(datacube, SpectralDatacubeFragment):
             return False
         return self.channels == datacube.channels and self.data_type == datacube.data_type
-    
-    def unshape_cube(self, file, target) -> None:
-        src = np.memmap(
-            file,
-            dtype=self.data_type,
-            mode="r",
-            shape=(self.channels, self.height, self.width),
-        )
-        dst = np.memmap(
-            target,
-            dtype=self.data_type,
-            mode="w+", 
-            shape=(self.height, self.width, self.channels))
-        for h in range(self.height):
-            dst[h, :, :] = src[:, h, :].transpose(1, 0)
-            if (h + 1) % 64 == 0:   # for example, every 64 rows
-                dst.flush()
-                print(f"Unshaped row {h+1}/{self.height}")
-            print(f"Unshaped row {h+1}/{self.height}")
-
-    def reshape_cube(self, file) -> np.memmap:
-        if not os.path.exists(file):
-            map = self.load_datacube()
-            map.astype(np.float32).transpose(2,0,1).ravel().tofile(file)
-        return np.memmap(
-            file,
-            dtype=np.float32,
-            mode="r",
-            shape=(self.channels, self.height, self.width),
-        )
 
     @staticmethod
     def write_rpl_file(rpl_file: str, rpl_meta: dict, width: int, height: int) -> None:
@@ -393,14 +392,15 @@ class SpectralDatacubeFragment(DatacubeFragment):
                 f.write(f"{key:<12}\t{value}\n")
 
     @staticmethod
-    def write_file(datacube_file: str, rpl_file: str, rpl_meta: dict, data_type: str, width: int, height: int, channels:int, content_write_function: Callable[[np.memmap]]) -> None:
+    def write_file(datacube_file: str, rpl_file: str, rpl_meta: dict, data_type: str, width: int, height: int, channels:int, content_write_function: Callable[[np.memmap]]) -> SpectralDatacubeFragment:
         output_map = np.memmap(
             datacube_file,
             dtype=data_type,
             offset=0,
             mode="w+",
-            shape=(channels, height, width),
+            shape=(height, width, channels),
         )
         content_write_function(output_map)
         output_map.flush()
         SpectralDatacubeFragment.write_rpl_file(rpl_file, rpl_meta, width, height)
+        return SpectralDatacubeFragment.from_file(datacube_file, rpl_file)
