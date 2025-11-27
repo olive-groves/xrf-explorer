@@ -304,7 +304,7 @@ async function handleMultiDeleteConfirmed() {
       </div>
       <!-- Delete confirmation dialog -->
       <div v-if="showDeleteComponentDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div class="min-w-[320px] rounded-lg p-6 shadow-lg">
+        <div class="min-w-[320px] rounded-lg p-6 shadow-lg bg-background">
           <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
           <div class="mb-4 text-sm">
             Are you sure you want to delete this component from the workspace? This action cannot be undone.
@@ -370,7 +370,7 @@ async function handleMultiDeleteConfirmed() {
 
     <!-- Delete confirmation dialog -->
     <div v-if="showDeleteFileDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div class="min-w-[320px] rounded-lg p-6 shadow-lg">
+      <div class="min-w-[320px] rounded-lg p-6 shadow-lg bg-background">
         <div class="mb-2 text-lg font-bold">Confirm Deletion</div>
         <div class="mb-4 text-sm">Are you sure you want to delete these files? This action cannot be undone.</div>
         <div class="flex justify-end space-x-2">
