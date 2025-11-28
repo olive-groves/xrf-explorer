@@ -40,7 +40,11 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
+<<<<<<< HEAD
         <FAQWindow v-if="faqWindowOpen" class="bg-background absolute left-0 top-0 z-[9999] size-full"></FAQWindow>
+=======
+        <FAQWindow v-if="faqWindowOpen" class="absolute top-0 left-0 w-full h-full z-[9999] bg-background" ></FAQWindow>
+>>>>>>> 65820e9423566d2579c933eda2ef85e0a2c5ed64
       </BaseContextMenu>
     </WindowContainer>
   </div>
