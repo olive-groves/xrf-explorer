@@ -5,6 +5,7 @@ import { appState } from '@/lib/appState';
 import { ref, computed, watch, onMounted, onBeforeUnmount, inject, Ref } from "vue";
 import { windowState } from "@/components/ui/window/state";
 import { getWorkspaceImageUrl } from "@/components/image-viewer/workspace";
+import { getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
 
 const selectedGreyscale = ref<number | null>(0);
 const mode = inject<Ref<'edit' | 'preview'>>("stitchMode", ref('edit'));
@@ -227,17 +228,6 @@ function onGrayscalePropFromViewer(e: Event | CustomEvent) {
                 <Button size="sm" @click="nudgeY(idx, 1)">Down</Button>
             </div>
         </div>
-
-        <!-- Y offset displayed and adjustable via nudge buttons (viewer dragging will update this) -->
-        
-        <LabeledSlider
-          label="Rotation"
-          :modelValue="partialScans[idx]?.rotation ?? [0]"
-          :min="-180" 
-          :max="180" 
-          :step="90"
-          @update:modelValue="val => updatePartialScan(idx, 'rotation', val)"
-        />
       </div>
       
       <Button
@@ -289,6 +279,16 @@ function onGrayscalePropFromViewer(e: Event | CustomEvent) {
           </div>
           <div class="text-center text-sm p-1 bg-gray-50 dark:bg-black dark:text-gray-200">
             {{ greyscale.name.replace(/^grayscale_/, "") }}
+          </div>
+          <div class="mt-2 p-2 border rounded-md">
+            <LabeledSlider
+              label="Rotation"
+              :modelValue="[getRotation(idx)]"
+              :min="-180"
+              :max="180"
+              :step="90"
+              @update:modelValue="val => setRotation(idx, val[0])"
+            />
           </div>
         </div>
       </div>

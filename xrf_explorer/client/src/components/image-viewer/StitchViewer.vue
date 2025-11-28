@@ -1,22 +1,19 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { ref } from 'vue';
 import StitchMappingViewer from './StitchMappingViewer.vue';
 import StitchPreviewViewer from './StitchPreviewViewer.vue';
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { canPreview } from './stitchPoints';
 
-export default defineComponent({
+export default {
   name: 'StitchViewer',
-  components: {
-    StitchMappingViewer,
-    StitchPreviewViewer,
-    ToggleGroup,
-    ToggleGroupItem
-  },
+  components: { StitchMappingViewer, StitchPreviewViewer, ToggleGroup, ToggleGroupItem },
   setup() {
-    const mode = ref<'edit' | 'preview'>('edit'); // default is edit
-    return { mode };
+    const mode = ref<'edit' | 'preview'>('edit');
+
+    return { mode, canPreview };
   }
-});
+};
 </script>
 
 <template>
@@ -24,7 +21,15 @@ export default defineComponent({
     <!-- Toggle Button -->
     <ToggleGroup type="single" v-model="mode" class="space-x-2 mb-2">
       <ToggleGroupItem value="edit" variant="outline">Edit</ToggleGroupItem>
-      <ToggleGroupItem value="preview" variant="outline">Preview</ToggleGroupItem>
+      <div :title="!canPreview ? 'Can only preview after mapping 4 points for each greyscale' : ''">
+        <ToggleGroupItem
+          value="preview"
+          variant="outline"
+          :disabled="!canPreview"
+        >
+          Preview
+        </ToggleGroupItem>
+      </div>
     </ToggleGroup>
 
     <!-- Viewer -->

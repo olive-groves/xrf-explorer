@@ -58,16 +58,12 @@ const draggingIndex = ref<number | null>(null);
 
 // Points selection
 import {
-  StitchPoint,
   grayscalePoints,
   selectedPointId,
   selectedGrayscaleIndex,
-  createGrayPoint,
-  updateGrayPoint,
   updateBasePoint,
   selectPoint,
   deselect,
-  checkSelectPoint,
   setSelectedGrayscaleIndex
 } from "./stitchPoints";
 

@@ -13,6 +13,7 @@ import { appState } from "@/lib/appState";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import type { CSSProperties } from "vue";
+import { getRotation } from "./stitchPoints";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -46,7 +47,7 @@ let zoomLimitReached = false;
 
 const baseReady = ref(false);
 const baseOpacity = ref(1.0);
-const basePadding = 20;
+const basePadding = 5;
 
 const dragging = ref(false);
 const draggingIndex = ref<number | null>(null);
@@ -79,6 +80,11 @@ const selectedGrayscale = computed(() => {
   const idx = selectedGrayscaleIndex.value ?? null;
   if (idx === null) return null;
   return appState.workspace?.grayscale?.[idx] ?? null;
+});
+
+const grayscaleRotation = computed(() => {
+  const idx = selectedGrayscaleIndex.value;
+  return idx == null ? 0 : getRotation(idx);
 });
 
 // update the shared selected index
@@ -381,7 +387,10 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       <img
         :src="greyScaleSrc"
         class="w-full h-full object-contain"
-        :style="{ maxHeight: `calc(100% - ${basePadding * 2}px)` }"
+        :style="{
+          maxHeight: `calc(100% - ${basePadding * 2}px)`,
+          transform: `rotate(${grayscaleRotation}deg)`
+        }"
         @load="baseReady = true"
       />
 
@@ -389,13 +398,13 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
       <div v-for="(p, i) in currentPoints" :key="p.id">
         <!-- Point Dot -->
         <div
-          class="absolute w-4 h-4 rounded-full border border-black dark:border-white"
+          class="absolute w-4 h-4 rounded-full border border-black dark:border-white pointer-events-none"
           :style="toDisplayCoords(p.gray, p.id)"
         ></div>
 
         <!-- Label -->
         <div
-          class="absolute text-xs font-bold text-black dark:text-white"
+          class="absolute text-xs font-bold text-black dark:text-white pointer-events-none"
           :style="labelCoords(p.gray, p.id)"
         >
           {{ i + 1 }}
