@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { deepClone } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
 
 const model = defineModel<number[]>({ required: true });
 

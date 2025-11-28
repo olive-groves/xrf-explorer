@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { WorkspaceConfig } from "./workspace";
 import { Selection } from "./selection";
 import { layerGroups } from "@/components/image-viewer/state";
@@ -26,7 +26,7 @@ export const appState = reactive<AppState>({
         points: [],
       },
       lastCompleteSelectionTimestamp: 0,
-      lastColorSegmentationRun: 0
+      lastColorSegmentationRun: 0,
     },
     dimensionalityReduction: {
       color: "#ffffff",
@@ -49,7 +49,6 @@ export const appState = reactive<AppState>({
     username: "",
     role: "",
     projects: [],
-    // token: "",
   },
 });
 
@@ -77,22 +76,40 @@ export const elements = computed(
 );
 export const elementalDataPresent = computed(() => (appState.workspace?.elementalCubes.length ?? 0) > 0);
 export const spectralDataPresent = computed(() => (appState.workspace?.spectralCubes.length ?? 0) > 0);
-export const pinnedGroups = computed(() => Object.values(layerGroups.value).filter(g => g.pinned));
+export const pinnedGroups = computed(() => Object.values(layerGroups.value).filter((g) => g.pinned));
+/**
+ * Positions of pinned groups in the image viewer.
+ * @param x X-coordinate of the pinned group position.
+ * @param y Y-coordinate of the pinned group position.
+ */
+export const pinnedGroupPositions = ref<Record<string, { x: number; y: number }>>({});
+
+watch(
+  pinnedGroups,
+  (groups) => {
+    groups.forEach((group) => {
+      if (!pinnedGroupPositions.value[group.name]) {
+        pinnedGroupPositions.value[group.name] = { x: 0, y: 0 };
+      }
+    });
+  },
+  { deep: true },
+);
 
 type User = {
   /**
-   * The username of the current logged in user
+   * The username of the current logged in user.
    */
   username: string;
   /**
-   * The role of the current logged in user
+   * The role of the current logged in user.
    */
   role: string;
   /**
-   * The projects the current logged in user has access to
+   * The projects the current logged in user has access to.
    */
   projects: string[];
-}
+};
 
 /**
  * Type describing the state of the client.
@@ -108,16 +125,12 @@ export type AppState = {
    */
   selection: Selection;
   /**
-   * Whether the stitching viewer is enabled
+   * Whether the stitching viewer is enabled.
    */
   // deprecated: keep the property documented for older code paths. Prefer workspace.stitchingMode.
   stitching?: boolean;
-  /**  
-   * The role of the current logged in user
+  /**
+   * The role of the current logged in user.
    */
   user: User;
-  /**
-   * The authentication token of the current logged in user
-   */
-  // token: string;
 };

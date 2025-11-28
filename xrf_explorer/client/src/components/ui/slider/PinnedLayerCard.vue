@@ -11,6 +11,7 @@ import {
 import { LayerGroup } from "@/components/image-viewer/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
+import { emit } from "process";
 
 const props = defineProps<{
   group: LayerGroup;
@@ -42,6 +43,10 @@ const properties: Property[] = [
 ];
 
 const groupNames = computed(() => Object.keys(layerGroups.value));
+
+const emit = defineEmits<{
+  (e: "unpin", group: LayerGroup): void;
+}>();
 
 /**
  * Loads the layer groups into the LayerSystem.
@@ -83,6 +88,7 @@ function togglePin(group: LayerGroup) {
   } else {
     // Unpinning
     group.pinned = false;
+    emit("unpin", group);
   }
 }
 </script>
