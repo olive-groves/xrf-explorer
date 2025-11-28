@@ -13,7 +13,14 @@
         "color_segmentation": "Analyze the color clusters for the entire painting or for individual elements",
         "dimensionality_reduction": "Analyze the dimensionality reduction of the painting or of individual elements",
         "layers": "Select what layers of the painting to show",
-        "workspace": "Manage workspace of the project"
+        "workspace": "Manage workspace of the project",
+        "data_missing": "Sidepanel unavailable due to missing data",
+        "export": "Export different images from workspace",
+        "export_painting": "Export background rgb image",
+        "export_spectral": "Export spectrum graph as image",
+        "export_elements": "Export elemental charts as image",
+        "export_embedding": "Export dimensionality reduction embedding as image",
+        "export_missing": "Nothing selected to export"
     },
     "help_menu": {
         "color_segmentation_help_menu": "Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent.",
