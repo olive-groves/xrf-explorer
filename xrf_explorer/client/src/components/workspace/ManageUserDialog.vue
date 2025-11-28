@@ -55,7 +55,7 @@ const passwordType = ref("password");
 
 // Get project access for the user
 async function refreshProjects() {
-  const res = await axios.get(`/api/projects/${username.value}`);
+  const res = await axios.get<string[]>(`/api/projects/${username.value}`);
   accessedProjects.value = res.data;
 }
 
@@ -135,7 +135,7 @@ const filteredProjects = computed(() => {
 // Give access to a project
 async function giveAccess(projectName: string) {
   try {
-    const response = await axios.post('/api/grant_project_access', {
+    const response = await axios.post<APIResponse>('/api/grant_project_access', {
       username: username.value,
       project: projectName
     });
@@ -172,7 +172,7 @@ async function removeAccess(projectName: string) {
     return;
   }
   try {
-    const response = await axios.post('/api/revoke_project_access', {
+    const response = await axios.post<APIResponse>('/api/revoke_project_access', {
       username: username.value,
       project: projectName
     });

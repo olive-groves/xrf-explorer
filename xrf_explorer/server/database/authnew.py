@@ -45,5 +45,23 @@ def editor_required(func):
 
     return decorated_view
 
+def userCanAccessProject(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        project = kwargs.get("data_source")
+        print(project)
+        if not (current_user.isAdmin() or current_user.checkProjectAccess(project)):
+            return current_app.login_manager.unauthorized()
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return decorated_view
+
+def giveUserProjectAccess(project):
+    current_user.giveProjectAccess(project)
+
 
 

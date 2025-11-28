@@ -6,7 +6,6 @@ import { validateWorkspace } from "./utils";
 import { computed } from "vue";
 import { TriangleAlert } from "lucide-vue-next";
 import { appState } from "@/lib/appState";
-import axios from "axios";
 import { toast } from "vue-sonner";
 
 // Define the workspace model
@@ -21,27 +20,12 @@ const modelValidity = computed(() => validateWorkspace(model.value));
  * Emit the save event, thus prompting the containing element to save the updated setup.
  */
 async function save() {
-  if (appState.user.role !== 'admin' && appState.user.role !== 'editor') {
+  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
     toast.error("You do not have permission to save projects.");
     return;
   }
   // Add the project to the user's accessible projects
   appState.user.projects.push(model.value.name);
-  try {
-    const response = await axios.post('/api/grant_project_access', {
-      username: appState.user.username,
-      project: model.value.name
-    });
-  
-    // On success, notify user; else give error message
-    if (response.data.success) {
-      toast.info("Access granted successfully");
-    } else {
-      toast.error(response.data.message || "Grant Access failed");
-    }
-  } catch (error: any) {
-    toast.error("Grant Access failed");
-  }
   emit("save");
 }
 </script>

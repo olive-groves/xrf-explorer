@@ -68,7 +68,7 @@ const channelDialog = ref(false);
  */
 async function initializeDataSource() {
   // Check user permissions
-  if (appState.user.role !== 'admin' && appState.user.role !== 'editor') {
+  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
     toast.error("You do not have permission to create projects.");
     return;
   }
