@@ -80,7 +80,7 @@ defineExpose({ resetFields });
     <Input placeholder="Username" v-model:model-value="username" />
     <div class="text">Password</div>
     <div class="flex items-center">
-    <Input placeholder="Password" :type="passwordType" v-model:model-value="password" />
+    <Input placeholder="Password" :type="passwordType" v-model:model-value="password" v-on:keyup.enter="attemptLogin" />
       <Button
         @click="toggleText"
         variant="ghost"

@@ -2,13 +2,13 @@ from flask import request, jsonify
 from flask_login import login_required
 from xrf_explorer import app, db
 # from xrf_explorer import auth
-from xrf_explorer.server.database.authnew import admin_required
+from xrf_explorer.server.database.authnew import admin_required, editor_required
 from xrf_explorer.server.database.models import User, UserRole
 from sqlalchemy.orm.attributes import flag_modified
 
 @app.route('/api/grant_project_access', methods=['POST'])
 @login_required
-@admin_required
+@editor_required
 def grant_project_access():
     """
     Grant access to a project for a user.
