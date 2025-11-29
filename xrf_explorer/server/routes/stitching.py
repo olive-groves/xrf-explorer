@@ -1,5 +1,7 @@
 from flask import request, jsonify
 
+from xrf_explorer import app
+
 @app.route("/api/<data_source>/stitch_datacubes/", methods=["POST"])
 def stitch_datacubes(data_source: str):
     data = request.get_json(silent=True)
