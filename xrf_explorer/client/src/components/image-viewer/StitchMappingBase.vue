@@ -226,23 +226,95 @@ function resetViewport() {
   });
 }
 
+const lensLocked = ref(false);
+
+
+
+function getBaseImageCoords(event: MouseEvent) {
+  const rect = glcanvas.value!.getBoundingClientRect();
+
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+
+  const zoomScale = Math.exp(viewport.zoom);
+
+  const halfW = width.value / 2;
+  const halfH = height.value / 2;
+
+  // Convert screen pixel → world space
+  const worldX = viewport.center.x + (px - halfW) * zoomScale;
+  const worldY = viewport.center.y - (py - halfH) * zoomScale;
+
+  // Base image = world coordinates
+  return { x: worldX, y: worldY };
+}
+
 function onClick(event: MouseEvent) {
   if (event.button === 2) event.preventDefault();
+  
+  const pos = getBaseImageCoords(event);
+  toast(`Base coords: x=${pos.x}, y=${pos.y}`);
+  
 }
 
+/**
+ * Event handler for the onMouseDown event on the glcanvas.
+ * @param event - The mouse event.
+ */
+function onMouseDown(event: MouseEvent) {
+  if (event.button == 2) {
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+  }
+
+  if (event.button == 0 && !selectionToolActive.value) {
+    dragging.value = true;
+  }
+}
+
+/**
+ * Event handler for the onMouseUp event on the glcanvas.
+ * @param event - The mouse event.
+ */
 function onMouseUp(event: MouseEvent) {
-  if (event.button === 0 || (event.button === 2 && selectionToolActive.value)) dragging.value = false;
+  if (event.button == 0) {
+    dragging.value = false;
+  }
 }
 
+/**
+ * Event handler for the onMouseLeave event on the glcanvas.
+ */
 function onMouseLeave() {
   dragging.value = false;
 }
 
+/**
+ * Event handler for the onMouseMove event on the glcanvas.
+ * Modifies the viewport if the mouse is pressed down.
+ * @param event The event containing the movement of the mouse.
+ */
 function onMouseMove(event: MouseEvent) {
   if (dragging.value) {
     const scale = Math.exp(viewport.zoom) * stitchState.value.movementSpeed[0];
     viewport.center.x -= event.movementX * scale;
     viewport.center.y += event.movementY * scale;
+  }
+
+  const rect = glcanvas.value!.getBoundingClientRect();
+  const mouseX = event.clientX - canvasSize.left.value;
+  const mouseY = event.clientY - canvasSize.top.value;
+
+  // Map mouse coordinates to [0,width] and [0,height],
+  // reversing y-axis to have (0,0) at top left
+  const normalizedX = (width.value * mouseX) / rect.width;
+  const normalizedY = height.value * (1 - mouseY / rect.height);
+
+  // Only update lens position in the shader if the mouse is not locked.
+  if (!lensLocked.value) {
+    layers.value.forEach((layer) => {
+      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+    });
   }
 }
 
@@ -262,89 +334,11 @@ watch(selectedGrayscaleIndex, () => {
   selectedPointId.value = null;
 });
 
-function onBaseImageClick(event: MouseEvent) {
-  const img = glcontainer.value?.querySelector("img");
-  if (!img) return;
 
-  const { x, y } = computeToImageCoords(event, img);
 
-  // Check whether the user clicked near an existing *base* mapping and select it
-  for (const p of currentPoints.value) {
-    if (!p.base) continue;
-    const dx = p.base.x - x;
-    const dy = p.base.y - y;
-    if (dx * dx + dy * dy < 20 * 20) {
-      if ((selectedPointId.value === p.id) ) {
-        deselect();
-        return;
-      }
-      selectPoint(p.id);
-      return;
-    }
-  }
-  
-  // If there is a selected grayscale point, map it to this base position
-  if (selectedPointId.value !== null && selectedGrayscaleIndex.value !== null) {
-    // set the base mapping for the selected grayscale point
-    updateBasePoint(selectedPointId.value, x, y);
-    return;
-  }
-}
 
-function toDisplayCoords(p: { x: number; y: number }, i: number): CSSProperties {
-  const img = glcontainer.value?.querySelector("img");
-  if (!img || !img.naturalWidth) return {};
 
-  const rect = img.getBoundingClientRect();
-  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
 
-  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
-  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-
-  const screenX = rect.left + offsetX + p.x * scale;
-  const screenY = rect.top + offsetY + p.y * scale;
-
-  return {
-    position: "fixed",
-    left: `${screenX}px`,
-    top: `${screenY}px`,
-    transform: "translate(-50%, -50%)",
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    backgroundColor: i === selectedPointId.value ? "blue" : "red",
-    pointerEvents: "none",
-    zIndex: 9999
-  };
-}
-
-// Converts mouse click to image coordinates
-function computeToImageCoords(event: MouseEvent, img: HTMLImageElement) {
-  const rect = img.getBoundingClientRect();
-  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
-  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
-  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-
-  const x = (event.clientX - rect.left - offsetX) / scale;
-  const y = (event.clientY - rect.top - offsetY) / scale;
-
-  return { x, y };
-}
-
-// Label coordinates for point numbers
-function labelCoords(p: { x: number; y: number }, i: number): CSSProperties {
-  const coords = toDisplayCoords(p, i);
-  return {
-    position: "fixed",
-    left: coords.left,
-    top: coords.top,
-    transform: "translate(-50%, -120%)",
-    color: "white",
-    textShadow: "0 0 4px black, 0 0 6px black",
-    pointerEvents: "none",
-    zIndex: 10000,
-  };
-}
 
 function stopInteractions() {
   draggingIndex.value = null;
@@ -366,56 +360,14 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     @mousemove="onMouseMove"
     @wheel="onWheel"
     @mouseup.stop="stopInteractions"
+    @mousedown="onMouseDown"
+
   >
     <!-- WebGL canvas -->
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" style="z-index: 0;" />
 
-    <!-- Base image -->
-    <div
-      v-if="baseSrc"
-      class="absolute inset-0 flex items-center justify-center pointer-events-auto bg-white dark:bg-black"
-      :style="{
-        zIndex: 1,
-        width: '100%',
-        height: '100%',
-        paddingTop: basePadding + 'px',
-        paddingBottom: basePadding + 'px',
-        opacity: baseOpacity
-      }"
-      @click="onBaseImageClick"
-    >
-      <img
-        :src="baseSrc"
-        @load="baseReady = true"
-        class="mx-auto w-auto h-auto max-w-[calc(100%-40px)] max-h-[calc(100%-40px)] object-contain"
-      />
 
-      <!-- Points overlay -->
-      <div v-for="p in currentPoints" :key="p.id">
-        <div
-          v-if="p.base"
-          class="absolute w-4 h-4 rounded-full border border-black dark:border-white"
-          :style="toDisplayCoords(p.base, p.id)"
-        ></div>
 
-        <!-- Label -->
-        <div
-          v-if="p.base"
-          class="absolute text-xs font-bold text-white dark:text-black"
-          :style="labelCoords(p.base, p.id)"
-        >
-          {{ p.id + 1 }}
-        </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div
-      v-if="!baseReady"
-      class="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
-      style="z-index: 3"
-    >
-      <div class="p-4 bg-black/60 rounded">Loading base image...</div>
-    </div>
   </div>
 </template>
