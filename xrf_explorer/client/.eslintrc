@@ -15,7 +15,7 @@
     "plugin:tailwindcss/recommended",
     "prettier"
   ],
-  "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic"],
+  "plugins": ["@typescript-eslint", "prettier", "jsdoc", "@stylistic", "import"],
   "rules": {
     "prettier/prettier": ["warn"],
     "vue/no-reserved-props": "off",
@@ -109,6 +109,45 @@
         "ignoreTemplateLiterals": false,
         "ignoreRegExpLiterals": false
       }
+    ],
+    "complexity": [
+      "error",
+      {
+        "max": 20
+      }
+    ],
+    "max-lines": [
+      "error",
+      {
+        "max": 400,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "import/no-cycle": [
+      2,
+      {
+        "maxDepth": 1
+      }
+    ],
+    "import/max-dependencies": [
+      "warn",
+      {
+        "max": 15
+      }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx", "**/*.vue"],
+      "rules": {
+        "complexity": [
+          "error",
+          {
+            "max": 10
+          }
+        ]
+      }
+    }
+  ]
 }
