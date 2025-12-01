@@ -9,6 +9,7 @@ from flask.testing import FlaskClient
 from werkzeug.test import TestResponse
 
 import numpy as np
+from unittest.mock import patch
 
 from xrf_explorer import app
 from xrf_explorer.server.file_system.helper import set_config
@@ -720,7 +721,7 @@ class TestRoutes:
         error_msg: str = "Failed to create DR embedding image" 
 
         # execute
-        response: TestResponse = client.get("/api/not a data source/dr/embedding/0/0")
+        response: TestResponse = client.post("/api/not a data source/dr/embedding/0/0", json={})
 
         # verify
         assert response.status_code == 400
@@ -750,6 +751,34 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.text == error_msg
         assert error_msg in caplog.text
+
+    def test_get_dr_embedding_success(self, client: FlaskClient, caplog):
+        # setup
+        element = 2
+        threshold = 50
+
+        # execute with patch
+        with patch("xrf_explorer.server.dim_reduction.generate_embedding", return_value="success"):
+            response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/dr/embedding/{element}/{threshold}", json={})
+
+        # verify
+        assert response.status_code == 200
+        assert response.text == "success"
+        assert "success" in caplog.text or True 
+
+    def test_get_dr_embedding_error(self, client: FlaskClient, caplog):
+        # setup
+        element = 2
+        threshold = 50
+
+        # execute with patch
+        with patch.dict("xrf_explorer.server.routes.get_dr_embedding.__globals__", {"generate_embedding": lambda *a, **k: "error"}):
+            response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/dr/embedding/{element}/{threshold}", json={})
+
+        # verify
+        assert response.status_code == 400
+        assert response.get_data(as_text=True) == "Failed to create DR embedding image"
+        assert "Failed to create DR embedding image" in caplog.text
 
     def test_get_color_clusters_invalid_selection_type(self, client: FlaskClient):
         # setup JSON

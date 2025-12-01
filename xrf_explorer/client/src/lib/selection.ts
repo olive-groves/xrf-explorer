@@ -115,8 +115,7 @@ export type DimensionalityReductionSelection = {
  */
 export type DimensionalityReductionPaintingSelection = {
   /**
-   * The element index corresponding to the clusters
-   * It's the element's channel plus 1.
+   * The element index, it's the element's channel plus 1.
    */
   element: number;
   /**
