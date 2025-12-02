@@ -7,6 +7,7 @@ from typing import Sequence, Callable
 from concurrent.futures import ThreadPoolExecutor, wait
 import queue
 import os
+from scipy.optimize import minimize_scalar
 
 def split_range(start, end, parts):
     if parts <= 0:
@@ -27,6 +28,32 @@ def split_range(start, end, parts):
         current = next_pos
 
     return result
+
+class ScalarOptimizer:
+
+    def __init__(self, points: list[tuple[WarpSelection, WarpSelection]]):
+        self.points = points
+
+    def calculate_loss_percentage(self, scalar: float) -> list[int]:
+        return [round(self.get_scale_factor(src, dst, scalar) * 100, 1) for (src, dst) in self.points]
+
+    def find_best_scalar(self) -> tuple[float, float]:
+        res = minimize_scalar(self.cost_function, bounds=(0.1, 2.0), method='bounded')
+        return res.x, res.fun
+
+    def get_scale_factor(self, src: WarpSelection, dst: WarpSelection, scalar: float) -> float:
+        H, _ = cv.findHomography(src.get_points(), dst.get_points(scalar), cv.RANSAC)
+        s1 = np.linalg.norm(H[0:2, 0])
+        s2 = np.linalg.norm(H[0:2, 1])
+        scale = np.sqrt(s1 * s2)
+        return scale
+
+    def cost_function(self, scalar: float) -> float:
+        total_cost = 0
+        for (src, dst) in self.points:
+            scale = self.get_scale_factor(src, dst, scalar)
+            total_cost += (scale - 1)**2
+        return total_cost/len(self.points)
 
 class DatacubeStitcher():
     def __init__(self, fragments: Sequence[DatacubeFragment], intensity_scales: list[float], points: list[tuple[WarpSelection, WarpSelection]], frame: Dimensions, scalar: float = 1.0):
