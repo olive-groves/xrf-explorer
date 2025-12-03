@@ -70,6 +70,11 @@ const channelDialog = ref(false);
  * Creates the project/data source directory in the backend if it does not yet exist with a workspace.json inside.
  */
 async function initializeDataSource() {
+  // Check user permissions
+  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
+    toast.error("You do not have permission to create projects.");
+    return;
+  }
   if (progress.value == Progress.Name) {
     progress.value = Progress.Busy;
     const name = sourceName.value;

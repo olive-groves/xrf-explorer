@@ -4,6 +4,8 @@ from xrf_explorer.server.database.database import db
 from enum import Enum
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.types import JSON
+from sqlalchemy.orm.attributes import flag_modified
+# from database import db
 
 class UserRole(Enum):
     ADMIN = 0
@@ -18,7 +20,7 @@ class User(db.Model, flask_login.UserMixin):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.VIEWER) # 0 = admin, 1 = viewer, 2 = editor
-    projects = db.Column(MutableList.as_mutable(JSON), nullable=False, default=list) # List of projects the user has access to
+    projects: list[str] = db.Column(MutableList.as_mutable(JSON), nullable=False, default=list) # List of projects the user has access to
 
     def set_password(self, password: str):
         """Generate and store the password hash."""
@@ -36,6 +38,22 @@ class User(db.Model, flask_login.UserMixin):
     
     def isEditor(self) -> bool:
         return self.role == UserRole.EDITOR or self.role == UserRole.ADMIN
+
+    def checkProjectAccess(self, project) -> bool:
+        return project in self.projects
+    
+    def giveProjectAccess(self, project):
+        self.projects.append(project)
+        flag_modified(self, "projects")
+        db.session.commit()
+
+    def revokeProjectAccess(self, project):
+        self.projects.remove(project)
+        flag_modified(self, "projects")
+        db.session.commit()
+
+    def getProjects(self):
+        return self.projects
 
     def __repr__(self) -> str:
         return f'<ID: {self.id}, Username {self.username}, Role {self.role}>'

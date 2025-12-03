@@ -10,7 +10,7 @@ from flask_login import login_required
 from markupsafe import escape
 
 from xrf_explorer import app
-from xrf_explorer.server.database.authnew import admin_required, editor_required
+from xrf_explorer.server.database.authnew import editor_required, userCanAccessProject, giveUserProjectAccess
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import update_workspace, get_path_to_workspace
@@ -42,6 +42,7 @@ def datasource_files(data_source: str):
 
 
 @app.route("/api/<data_source>/workspace", methods=["GET", "POST"])
+@userCanAccessProject
 def get_workspace(data_source: str):
     """
     Gets the workspace content for the specified data source or writes to it if a POST request is made.
@@ -87,7 +88,7 @@ def create_data_source_dir(data_source: str):
     """
     # Get config
     config: dict | None = get_config()
-
+    
     error_response_config: tuple[str, int] | None = validate_config(config)
     if error_response_config:
         return error_response_config
@@ -103,6 +104,8 @@ def create_data_source_dir(data_source: str):
     if not isdir(data_source_dir):
         LOG.info(f"Creating data source directory at {data_source_dir}")
         mkdir(data_source_dir)
+    
+    giveUserProjectAccess(data_source)
 
     return jsonify({"dataSourceDir": data_source})
 
@@ -110,6 +113,7 @@ def create_data_source_dir(data_source: str):
 @app.route("/api/<data_source>/remove", methods=["POST"])
 @login_required
 @editor_required
+@userCanAccessProject
 def remove_data_source(data_source: str):
     """
     Removes `workspace.json` from a data source,
@@ -117,6 +121,7 @@ def remove_data_source(data_source: str):
     :param data_source: The name of the data source to be aborted
     :return: JSON with directory name
     """
+
     # Get config
     config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
@@ -148,6 +153,7 @@ def remove_data_source(data_source: str):
 @app.route("/api/<data_source>/delete", methods=["DELETE"])
 @login_required
 @editor_required
+@userCanAccessProject
 def delete_data_source(data_source: str):
     """
     Completely deletes and removes all files from data source.
@@ -155,6 +161,7 @@ def delete_data_source(data_source: str):
     :param data_source: The data source to delete.
     :return: JSON with directory name
     """
+
     # Get config
     config: dict | None = get_config()
     LOG.info(f"Aborting data source directory creation for {data_source}")
@@ -267,6 +274,7 @@ def delete_multiple_files(data_source: str):
 @app.route("/api/<data_source>/upload/<file_name>/<int:start>", methods=["POST"])
 @login_required
 @editor_required
+@userCanAccessProject
 def upload_chunk(data_source: str, file_name: str, start: int):
     """
     Upload a chunk of bytes to a file in specified data source.
@@ -276,6 +284,7 @@ def upload_chunk(data_source: str, file_name: str, start: int):
     :param start: The start index of the chunk in the specified file
     :return: A message indicating the success of the upload
     """
+
 
     # get config
     config: dict | None = get_config()

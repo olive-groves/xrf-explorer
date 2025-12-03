@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { AdditionalSettingsDialog, FileSetupTable } from ".";
-import { ref } from "vue";
 import { WorkspaceConfig } from "@/lib/workspace";
 import { validateWorkspace } from "./utils";
 import { computed } from "vue";
 import { TriangleAlert } from "lucide-vue-next";
+import { appState } from "@/lib/appState";
+import { toast } from "vue-sonner";
 
 // Define the workspace model
 const model = defineModel<WorkspaceConfig>({ required: true });
-
-// Reference to the FileSetupTable child so we can read the UploadingPartialData
-const fileSetupRef = ref<InstanceType<typeof FileSetupTable> | null>(null);
 
 // Define the save event
 const emit = defineEmits(["save"]);
@@ -21,13 +19,13 @@ const modelValidity = computed(() => validateWorkspace(model.value));
 /**
  * Emit the save event, thus prompting the containing element to save the updated setup.
  */
-function save() {
-  // Read the UploadingPartialData value exposed by FileSetupTable and persist stitchingMode
-  const uploading = fileSetupRef.value?.getUploadingPartialData?.() ?? null;
-  model.value.stitchingMode = uploading === "partial" ? "partial" : "full";
-
-  // Debug log print stitchingmode
-  console.debug("Setting stitching mode to:", model.value.stitchingMode);
+async function save() {
+  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
+    toast.error("You do not have permission to save projects.");
+    return;
+  }
+  // Add the project to the user's accessible projects
+  appState.user.projects.push(model.value.name);
   emit("save");
 }
 </script>
@@ -38,8 +36,8 @@ function save() {
       <!-- Header -->
       <DialogTitle class="font-bold">Set up workspace data</DialogTitle>
 
-  <!-- Content -->
-  <FileSetupTable ref="fileSetupRef" v-model="model" />
+      <!-- Content -->
+      <FileSetupTable v-model="model" />
 
       <!-- Footer -->
       <div class="flex justify-between">
