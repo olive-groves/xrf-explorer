@@ -160,7 +160,6 @@ const {
           </NumberField>
         </div>
       </div>
-      
       <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
