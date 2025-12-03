@@ -11,13 +11,7 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-<<<<<<< HEAD
-
 import { Checkbox } from "@/components/ui/checkbox";
-import { getTooltipByKey } from "@/lib/useToolTips";
-=======
->>>>>>> help_menu
-
 import { useCSWindow, Status } from "@/windows/CSWindow.ts";
 
 // Using the composable function to manage state and behavior
