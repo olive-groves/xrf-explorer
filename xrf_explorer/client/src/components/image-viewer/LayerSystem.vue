@@ -115,10 +115,12 @@ function toggleLens(group: LayerGroup) {
  * Reset all sliders to default values.
  */
 function resetSliders() {
+  //loop through al groups
   for (const group in groups.value) {
     groups.value[group].visible = groups.value[group].default_visibility;
     groups.value[group].visibility = LayerVisibility.Visible;
 
+    //Loop through all the properties in the group and reset to default
     for (const property in properties) {
       const propertyName = properties[property].nameRef;
 
@@ -132,9 +134,9 @@ function resetSliders() {
 
 <template>
   <VueDraggableNext class="space-y-2" v-model="groups">
-    <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings"
-      ><ListRestart
-    /></Button>
+    <Button class="basis-1/2" variant="outline" @click="resetSliders()" title="Reset layer settings"
+      ><ListRestart class="size-4" />
+    </Button>
     <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">
@@ -179,7 +181,7 @@ function resetSliders() {
                 :min="property.min"
                 :max="property.max"
                 :default="[property.default]"
-                v-model="group[property.nameRef]"
+                v-model="group[property.nameRef] as any"
                 @update="() => setLayerGroupProperty(group, property.propertyName)"
               />
             </PopoverContent>
@@ -205,7 +207,7 @@ function resetSliders() {
           v-for="property in properties.filter((prop) => mainProperties.includes(prop.name))"
           :key="property.name"
           :label="property.min.toString()"
-          v-model="group[property.nameRef]"
+          v-model="group[property.nameRef] as any"
           :min="property.min"
           :max="property.max"
           :default="[property.default]"
