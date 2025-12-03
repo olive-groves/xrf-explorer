@@ -20,7 +20,7 @@ const modelValidity = computed(() => validateWorkspace(model.value));
  * Emit the save event, thus prompting the containing element to save the updated setup.
  */
 async function save() {
-  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
+  if (appState.user.role !== "ADMIN" && appState.user.role !== "EDITOR") {
     toast.error("You do not have permission to save projects.");
     return;
   }

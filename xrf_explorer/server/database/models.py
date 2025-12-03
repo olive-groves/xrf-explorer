@@ -5,7 +5,6 @@ from enum import Enum
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.types import JSON
 from sqlalchemy.orm.attributes import flag_modified
-# from database import db
 
 class UserRole(Enum):
     ADMIN = 0

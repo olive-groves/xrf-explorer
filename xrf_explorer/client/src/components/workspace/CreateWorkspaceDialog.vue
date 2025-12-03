@@ -71,7 +71,7 @@ const channelDialog = ref(false);
  */
 async function initializeDataSource() {
   // Check user permissions
-  if (appState.user.role !== 'ADMIN' && appState.user.role !== 'EDITOR') {
+  if (appState.user.role !== "ADMIN" && appState.user.role !== "EDITOR") {
     toast.error("You do not have permission to create projects.");
     return;
   }
@@ -109,7 +109,7 @@ async function initializeDataSource() {
       // Move to the next step
       progress.value = Progress.Files;
     }
-    initializeDataSource();
+    void initializeDataSource();
   } else if (progress.value == Progress.ExistingFiles) {
     existingFilesDialog.value = true;
   } else if (progress.value == Progress.Files) {
@@ -126,7 +126,7 @@ function closedExistingFilesDialog() {
   if (existingFilesDialog.value) return;
 
   progress.value = Progress.Files;
-  initializeDataSource();
+  void initializeDataSource();
 }
 
 /**
@@ -135,7 +135,7 @@ function closedExistingFilesDialog() {
 function deletedExistingFiles() {
   existingFilesDialog.value = false;
   progress.value = Progress.Files;
-  initializeDataSource();
+  void initializeDataSource();
 }
 
 /**
@@ -235,7 +235,7 @@ async function updateWorkspace() {
 
     if (workspace.value.elementalCubes.length > 0 && workspace.value.elementalChannels.length == 0) {
       // Elemental channels need to get set up
-      const initialized = initializeChannels(workspace.value);
+      const initialized = await initializeChannels(workspace.value);
 
       // Check if the channels can be initialized
       if (!initialized) {
@@ -261,44 +261,52 @@ async function updateWorkspace() {
       } catch (e) {
         console.warn("Failed to set appState.workspace after create", e);
       }
+
       // If partial stitching mode, request server to generate grayscale images for partial cubes
       try {
-        if (workspace.value.stitchingMode === "partial") {
-          const ds = workspace.value.name;
-          // Prefer partialElementalCubes, fallback to partialSpectralCubes
-          const partials =
-            workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0
-              ? workspace.value.partialElementalCubes
-              : workspace.value.partialSpectralCubes || [];
-
-          for (const cube of partials) {
-            try {
-              const body = { cubeName: cube.name };
-              const resp = await fetch(`${config.api.endpoint}/${ds}/grayscale/from_elemental_cube`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-              });
-              if (resp.ok) {
-                const grayscaleEntry = await resp.json();
-                // append to local workspace and publish
-                workspace.value.grayscale = workspace.value.grayscale || [];
-                workspace.value.grayscale.push(grayscaleEntry);
-                try {
-                  appState.workspace = deepClone(workspace.value);
-                } catch {}
-              } else {
-                console.warn("Failed to create grayscale for cube", cube.name, await resp.text());
-              }
-            } catch (err) {
-              console.warn("Error creating grayscale for cube", cube.name, err);
-            }
-          }
-        }
+        void requestGrayScales();
       } catch (e) {
         console.warn("Error in grayscale generation flow", e);
       }
       resetProgress();
+    }
+  }
+}
+
+/**
+ * Request the server to generate grayscale images for partial cubes.
+ */
+async function requestGrayScales() {
+  if (workspace.value.stitchingMode === "partial") {
+    const ds = workspace.value.name;
+    // Prefer partialElementalCubes, fallback to partialSpectralCubes
+    const partials =
+      workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0
+        ? workspace.value.partialElementalCubes
+        : workspace.value.partialSpectralCubes || [];
+
+    for (const cube of partials) {
+      try {
+        const body = { cubeName: cube.name };
+        const resp = await fetch(`${config.api.endpoint}/${ds}/grayscale/from_elemental_cube`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (resp.ok) {
+          const grayscaleEntry = await resp.json();
+          // append to local workspace and publish
+          workspace.value.grayscale = workspace.value.grayscale || [];
+          workspace.value.grayscale.push(grayscaleEntry);
+          try {
+            appState.workspace = deepClone(workspace.value);
+          } catch {}
+        } else {
+          console.warn("Failed to create grayscale for cube", cube.name, await resp.text());
+        }
+      } catch (err) {
+        console.warn("Error creating grayscale for cube", cube.name, err);
+      }
     }
   }
 }
