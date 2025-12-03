@@ -8,6 +8,7 @@ import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { ChannelSetupDialog, FileSetupDialog } from "@/components/workspace";
 import { deepClone } from "@/lib/utils";
+import { WorkspaceConfig } from "@/lib/workspace";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
@@ -99,14 +100,18 @@ const isEditor = computed(() => appState.user.role === "EDITOR");
 </script>
 
 <template>
+<<<<<<< HEAD
   <Window title="Workspace" help="Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting" location="left" v-if="isAdmin || isEditor">
+=======
+  <Window title="Workspace" location="left">
+>>>>>>> help_menu
     <div class="space-y-2 p-2" v-if="workspace != undefined">
       <div>
-        <div class="text-muted-foreground">Workspace name:</div>
+        <div class="">Workspace name:</div>
         <div>{{ workspace.name }}</div>
       </div>
       <div>
-        <div class="text-muted-foreground">Data sources:</div>
+        <div class="">Data sources:</div>
         <div class="space-y-2">
           <WorkspaceCard :name="workspace.baseImage.name" description="Base image" @settings="openFileDialog">
             <template #icon><Image class="size-full" /></template>
@@ -152,11 +157,19 @@ const isEditor = computed(() => appState.user.role === "EDITOR");
       <Dialog v-model:open="deletionDialog">
         <DeleteWorkspaceDialog :name="workspace.name" @close="deletionDialog = false" />
       </Dialog>
+<<<<<<< HEAD
       <Dialog v-model:open="fileDialog" v-if="localWorkspace">
         <FileSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
       </Dialog>
       <Dialog v-model:open="channelsDialog" v-if="localWorkspace">
         <ChannelSetupDialog v-model="localWorkspace" @save="updateWorkspace" />
+=======
+      <Dialog v-model:open="fileDialog">
+        <FileSetupDialog v-model="localWorkspace as WorkspaceConfig" @save="updateWorkspace" />
+      </Dialog>
+      <Dialog v-model:open="channelsDialog">
+        <ChannelSetupDialog v-model="localWorkspace as WorkspaceConfig" @save="updateWorkspace" />
+>>>>>>> help_menu
       </Dialog>
     </div>
   </Window>

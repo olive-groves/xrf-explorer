@@ -31,15 +31,15 @@ const filteredWindows = computed(() => {
   <MenubarMenu>
     <MenubarTrigger v-tooltip="'toolbar.view_menu'"> View </MenubarTrigger>
     <MenubarContent>
-      <MenubarCheckboxItem
-        v-for="window in filteredWindows"
-        v-model:checked="window.opened"
-        :disabled="window.disabled"
+      <div
+        v-for="window in windowState"
         :key="window.id"
-        :title="getTooltipByKey('toolbar.' + window.id)"
+        :title="window.disabled ? getTooltipByKey('toolbar.data_missing') : getTooltipByKey('toolbar.' + window.id)"
       >
-        {{ window.title }}
-      </MenubarCheckboxItem>
+        <MenubarCheckboxItem v-model:checked="window.opened" :key="window.id" :disabled="window.disabled">
+          {{ window.title }}
+        </MenubarCheckboxItem>
+      </div>
       <MenubarSeparator v-if="hasSlot" />
       <slot />
     </MenubarContent>

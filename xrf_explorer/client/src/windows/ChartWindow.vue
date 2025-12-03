@@ -381,7 +381,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
 </script>
 
 <template>
-  <Window title="Elemental charts" help="Show the average abundance of all the selected elements in the entire painting or in the selection. Show this of all the elements in the painting, or select the elements to be shown in the elemental channels view." @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
+  <Window title="Elemental charts" @window-mounted="setupWindow" location="right" :disabled="!elementalDataPresent">
     <div class="mx-2 space-y-1">
       <!-- CHART TYPE CHECKBOXES -->
       <p class="font-bold">Charts</p>
@@ -408,7 +408,7 @@ watch(elementSelection, updateCharts, { deep: true, immediate: true });
         <svg class="ml-2" ref="chart"></svg>
         <div
           v-if="loadingGlobal || loadingSelection"
-          class="absolute left-0 top-0 flex size-full items-center justify-center bg-muted/30"
+          class="absolute left-0 top-0 flex size-full items-center justify-center"
         >
           <div class="size-6">
             <LoaderPinwheel class="size-full animate-spin" />

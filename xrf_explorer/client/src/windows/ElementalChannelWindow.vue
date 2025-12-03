@@ -53,6 +53,7 @@ function resetSliders() {
 </script>
 
 <template>
+<<<<<<< HEAD
   <Window 
     title="Elemental channels" 
     help="Select which elements to show in the main view, select their colors, and select the thresholds that should be visible" 
@@ -60,6 +61,9 @@ function resetSliders() {
     <Button class="basis-1/2" variant="ghost" @click="resetSliders()" title="Reset layer settings">
       <ListRestart />
     </Button>
+=======
+  <Window title="Elemental channels" location="left" :disabled="!elementalDataPresent">
+>>>>>>> help_menu
     <div class="space-y-2 p-2">
       <Card
         v-for="channel in selection"
@@ -76,12 +80,20 @@ function resetSliders() {
               v-if="channel.selected"
               title="Select color"
               :for="`color_${channel.channel}`"
+<<<<<<< HEAD
               class="flex size-8 cursor-pointer items-center justify-center rounded-md border-2 border-current p-2
                 hover:bg-accent"
             >
               <div
                 :for="`color_${channel.channel}`"
                 class="flex aspect-square size-4 items-center justify-center rounded-md border border-border"
+=======
+              class="size-8 rounded-md p-2"
+            >
+              <div
+                :for="`color_${channel.channel}`"
+                class="size-4 rounded-md border"
+>>>>>>> help_menu
                 :style="{
                   'background-color': channel.color,
                 }"

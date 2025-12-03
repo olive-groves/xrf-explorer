@@ -18,7 +18,7 @@ export type WindowState = {
    */
   title: string;
   /**
-   * string describing the help text for the window.
+   * String describing the help text for the window.
    */
   help: string;
   /**
@@ -56,7 +56,7 @@ export type SidepanelWindowState = {
    */
   title: string;
   /**
-   * string describing the help text for the window.
+   * String describing the help text for the window.
    */
   help: string;
   /**

@@ -8,7 +8,7 @@ import {
   MenubarRadioItem,
   MenubarSeparator,
   MenubarTrigger,
-  MenubarCheckboxItem
+  MenubarCheckboxItem,
 } from "@/components/ui/menubar";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { ResetClientDialog } from "@/components/workspace";
@@ -30,8 +30,8 @@ const colorMode = useColorMode({ emitAuto: true });
 function toggleHelpDialogs() {
   helpState.enabled = !helpState.enabled;
 }
-
 </script>
+
 <template>
   <Dialog v-model:open="dialogOpen">
     <MenubarMenu>
@@ -55,27 +55,18 @@ function toggleHelpDialogs() {
           <MenubarRadioItem value="dark">Dark mode</MenubarRadioItem>
         </MenubarRadioGroup>
         <MenubarSeparator />
-        <MenubarCheckboxItem
-          :checked="helpState.enabled"
-          @click="toggleHelpDialogs"
-        >
+        <MenubarCheckboxItem :checked="helpState.enabled" @click="toggleHelpDialogs">
           Show Help Icons
         </MenubarCheckboxItem>
         <MenubarSeparator />
-        <div class="flex items-center justify-between w-full">
-          <DialogTrigger class="flex-grow">
-            <MenubarItem inset>Reset client</MenubarItem>
+        <div class="flex w-full items-center justify-between">
+          <DialogTrigger class="grow">
+            <MenubarItem inset v-tooltip="'toolbar.reset_client'">Reset client</MenubarItem>
           </DialogTrigger>
-          <HelpDialog
-            title="Reset Client Help Menu"
-            text="The Reset client resets the application view to default settings."
-            :enabled="true"
-          />
+          <HelpDialog :title="'Reset client help menu'" :enabled="true" />
         </div>
         <MenubarSeparator />
-        <MenubarItem inset @click="faqWindowOpen = true">
-          FAQ
-        </MenubarItem>
+        <MenubarItem inset @click="faqWindowOpen = true"> FAQ </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <ResetClientDialog @close="dialogOpen = false" />
