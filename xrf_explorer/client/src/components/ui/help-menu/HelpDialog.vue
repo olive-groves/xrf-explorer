@@ -1,25 +1,32 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { helpState } from "@/lib/helpState"
+import { ref, watch, computed } from "vue";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { helpState } from "@/lib/helpState";
 import { faqWindowOpen } from "@/lib/windowState";
+import { getTooltipByKey } from "@/lib/useToolTips";
+import { snakeCase } from "change-case";
 
 interface Props {
-  title?: string
-  text?: string
-  enabled?: boolean
+  /**
+   * Title of the help menu dialog.
+   */
+  title?: string;
+  /**
+   * To check whether it should be shown or not.
+   */
+  enabled?: boolean;
 }
 
-const props = defineProps<Props>()
-const open = ref(false)
+const props = defineProps<Props>();
+const open = ref(false);
 
 // Combine global and local enable states
-const isEnabled = computed(() => props.enabled !== false && helpState.enabled)
+const isEnabled = computed(() => props.enabled !== false && helpState.enabled);
 
 // Close automatically if disabled while open
 watch(isEnabled, (enabled) => {
-  if (!enabled) open.value = false
-})
+  if (!enabled) open.value = false;
+});
 </script>
 
 <template>
@@ -35,9 +42,9 @@ watch(isEnabled, (enabled) => {
 
     <Dialog v-if="isEnabled" v-model:open="open">
       <DialogContent class="max-w-md">
-        <DialogTitle>{{ props.title || 'Help' }}</DialogTitle>
-        <p class="text-sm text-gray-600 mt-2">
-          {{ props.text || 'No help text provided.' }}
+        <DialogTitle>{{ props.title || "Help" }}</DialogTitle>
+        <p class="mt-2 text-sm text-gray-600">
+          {{ getTooltipByKey("help_menu." + snakeCase(props.title || "error")) }}
         </p>
         <Button
           variant="link"

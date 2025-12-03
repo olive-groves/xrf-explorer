@@ -11,10 +11,7 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from "@/components/ui/number-field";
-
 import { Checkbox } from "@/components/ui/checkbox";
-import { getTooltipByKey } from "@/lib/useToolTips";
-
 import { useCSWindow, Status } from "@/windows/CSWindow.ts";
 
 // Using the composable function to manage state and behavior
@@ -46,12 +43,7 @@ const {
 </script>
 
 <template>
-  <Window
-    title="Color segmentation"
-    :help="getTooltipByKey('toolbar.color_segmentation')"
-    location="right"
-    :disabled="!elementalDataPresent"
-  >
+  <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- USE SELECTION AREA CHECKBOX -->
       <div class="flex items-center space-x-2">
@@ -190,7 +182,7 @@ const {
           :style="{ 'background-color': color }"
           class="inline-block size-12 rounded-md"
           :class="{
-            'ring-2 ring-foreground ring-offset-1 ring-offset-background': selection.enabled[colorIndex],
+            'ring-2 ring-offset-1': selection.enabled[colorIndex],
           }"
           @click="toggleCluster(colorIndex)"
         />

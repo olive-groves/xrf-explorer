@@ -235,6 +235,44 @@ class TestRoutes:
 
         # cleanup
         remove(file_path)
+
+    def test_delete_multiple_files(self, client: FlaskClient):
+        # setup
+        filename = "test.txt"
+        path = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, filename)
+        with open(path, "w") as file:
+            file.write("test")
+
+        jsonData = {}
+        jsonData['filenames'] = [filename];
+
+        # execute
+        client.post(f"/api/{self.DATA_SOURCE}/delete_files", json=jsonData)
+
+        # check
+        assert not exists(path)
+
+    def test_delete_multiple_files(self, client: FlaskClient):
+        # setup
+        filename1 = "test1.txt"
+        path1 = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, filename1)
+        with open(path1, "w") as file1:
+            file1.write("test1")
+
+        filename2 = "test2.txt"
+        path2 = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, filename2)
+        with open(path1, "w") as file2:
+            file2.write("test2")
+
+        jsonData = {}
+        jsonData['filenames'] = [filename1, filename2];
+
+        # execute
+        client.post(f"/api/{self.DATA_SOURCE}/delete_files", json=jsonData)
+
+        # check
+        assert not exists(path1)
+        assert not exists(path2)
     
     def test_upload_chunk_no_config(self, client: FlaskClient, caplog):
         # setup

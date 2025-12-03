@@ -273,7 +273,7 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
 </script>
 
 <template>
-  <Window title="Dimensionality reduction" help = "Decrease the redundant information in the painting to simplify analyzing the painting. Select the element to be simplified and the threshold that should be met to include the point in the data set." location="left" :disabled="!elementalDataPresent">
+  <Window title="Dimensionality reduction" location="left" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
       <!-- EMBEDDING GENERATION -->
       <p class="-mb-2 font-bold">Embedding</p>
@@ -376,10 +376,10 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
           </ToggleGroupItem>
         </ToggleGroup>
         <Separator orientation="vertical" class="mx-1 h-8" />
-        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2 hover:bg-accent border-2 border-current flex items-center justify-center cursor-pointer">
+        <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2">
           <div
             for="color_dr"
-            class="size-4 aspect-square rounded-md border border-border flex items-center justify-center"
+            class="size-4 rounded-md border"
             :style="{
               'background-color': appState.selection.dimensionalityReduction.color,
             }"

@@ -4,6 +4,7 @@ import { computed, ref, toRef, watch } from "vue";
 import { WindowLocation, windowState } from "./state";
 import { snakeCase } from "change-case";
 import { appState } from "@/lib/appState";
+import { getTooltipByKey } from "@/lib/useToolTips";
 
 const role = computed(() => appState.user.role);
 
@@ -12,10 +13,6 @@ const props = defineProps<{
    * The title of the window, must be unique.
    */
   title: string;
-  /**
-   * String describing the help text for the window.
-   */
-  help: string;
   /**
    * Whether the window is disabled.
    */
@@ -45,7 +42,7 @@ if (!(id in windowState)) {
   windowState[id] = {
     id: id,
     title: props.title,
-    help: props.help ?? "Missing help text.",
+    help: getTooltipByKey("help_menu." + snakeCase(props.title)) ?? "Missing help text.",
     scrollable: !props.noScroll,
     disabled: props.disabled,
     opened: props.opened ?? false,
@@ -134,6 +131,6 @@ watch(
     <div ref="content" v-else-if="appState.workspace != undefined">
       <slot />
     </div>
-    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div>
+    <div v-else class="p-8 text-center">No workspace loaded yet.</div>
   </Teleport>
 </template>
