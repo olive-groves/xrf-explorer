@@ -32,7 +32,7 @@ const filteredWindows = computed(() => {
     <MenubarTrigger v-tooltip="'toolbar.view_menu'"> View </MenubarTrigger>
     <MenubarContent>
       <div
-        v-for="window in windowState"
+        v-for="window in filteredWindows"
         :key="window.id"
         :title="window.disabled ? getTooltipByKey('toolbar.data_missing') : getTooltipByKey('toolbar.' + window.id)"
       >

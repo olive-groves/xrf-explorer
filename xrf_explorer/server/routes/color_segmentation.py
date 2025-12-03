@@ -16,6 +16,7 @@ from xrf_explorer.server.color_segmentation.color_seg import calculate_recommend
 from xrf_explorer.server.color_segmentation import (
     get_path_to_cs_folder,
     get_clusters_using_k_means,
+    get_clusters_using_k_means_get_images,
     get_elemental_clusters_using_k_means,
     combine_bitmasks,
     convert_to_hex,
@@ -162,7 +163,7 @@ def recommend_k(data_source: str):
     if len(elements) == 1 and elements[0][0] == 0:
         # Get mask
         rgb_image_name = get_base_image_name(data_source)
-        mask = get_clusters_using_k_means(data_source, rgb_image_name, selection_mask, return_features_for_rec_clusters=True)
+        mask = get_clusters_using_k_means_get_images(data_source, rgb_image_name, selection_mask, k=0)[0]
         LOG.info("Got back complete painting mask")
     else:
         rgb_image_name = get_base_image_name(data_source)
