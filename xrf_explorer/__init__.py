@@ -7,8 +7,6 @@ from flask_cors import CORS
 from xrf_explorer.server.database.database import init_app
 from xrf_explorer.server.database.models import User  # Ensure models are imported
 from xrf_explorer.server.database.models import UserRole
-# Import and register the routes
-from xrf_explorer.server.routes import *
 
 # Create the Flask app
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
@@ -47,6 +45,9 @@ with app.app_context():
         print("Database initialized with default viewer user.")
     else:
         print("Viewer user already exists.")
+
+# Import and register the routes
+from xrf_explorer.server.routes import *
 
 # All routes not matched in the server are forwarded to the client
 @app.route('/', defaults={'path': 'index.html'})
