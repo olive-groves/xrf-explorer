@@ -20,7 +20,5 @@ export function getTooltipByKey(key: string): string {
     if (!current) return "";
   }
 
-  console.log("Tooltip " + key + " is: " + current);
-
   return current;
 }
