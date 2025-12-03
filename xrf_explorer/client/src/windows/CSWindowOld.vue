@@ -105,16 +105,6 @@ const {
           </Button>
         </div>
       </div>
-      <Button
-        variant="outline"
-        @click="addElementSelection"
-        :disabled="
-          elementsSelected.length >= selectableElementsList.length ||
-          elementsSelected.some((sel) => sel.name === 'complete')
-        "
-      >
-        Add element
-      </Button>
       <!-- RECOMMENDED CLUSTERS -->
       <div class="flex flex-col space-y-1.5 border-t border-border pt-2">
         <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
@@ -160,6 +150,16 @@ const {
           </NumberField>
         </div>
       </div>
+      <Button
+        variant="outline"
+        @click="addElementSelection"
+        :disabled="
+          elementsSelected.length >= selectableElementsList.length ||
+          elementsSelected.some((sel) => sel.name === 'complete')
+        "
+      >
+        Add element
+      </Button>
       <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->

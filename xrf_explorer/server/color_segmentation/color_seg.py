@@ -73,11 +73,9 @@ def merge_similar_colors(clusters: np.ndarray, bitmasks: np.ndarray,
 
     return clusters, bitmasks
 
-
-def get_clusters_using_k_means(data_source: str, image_name: str,
+def get_clusters_using_k_means_get_images(data_source: str, image_name: str,
                                selection_mask: np.ndarray,
-                               k: int = 30, nr_of_attempts: int = 10,
-                               return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
+                               k: int = 30) -> tuple[np.ndarray, np.ndarray]:
     """
     Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
@@ -85,10 +83,9 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     :param image_name: the name of the image to apply k-means on
     :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
     :param k: number of clusters required at end. Defaults to 30
-    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
-        Defaults to 10
     :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
     """
+    
     LOG.info(f'Computing image-wide color clusters with parameters: k={k}, data_source={data_source}')
 
     # Get registered image
@@ -102,11 +99,6 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     # set seed so results are consistent
     cv2.setRNGSeed(0)
 
-    # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
-    # iterations.)
-    # At most 50 iterations and at least 1.0 accuracy
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
-
     # Apply selection bitmask to image
     masked_image: np.ndarray = image[selection_mask]
     masked_image = reshape_image(masked_image)
@@ -114,15 +106,36 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     # masked_image: np.ndarray = reshape_image(image)
     # Transform image to LAB format
     masked_image = image_to_lab(masked_image)
+    
+    # Return masked image for recommended cluster calculation
+    return masked_image, image
+    
 
+def get_clusters_using_k_means(data_source: str, image_name: str,
+                               selection_mask: np.ndarray,
+                               k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
+    """
+    Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
+
+    :param data_source: the name of the data source
+    :param image_name: the name of the image to apply k-means on
+    :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
+    :param k: number of clusters required at end. Defaults to 30
+    :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
+        Defaults to 10
+    :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
+    """
+    masked_image, image = get_cluster_using_k_means_get_images(data_source, image_name, selection_mask, k)
+    
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
-    
-    # When calculating the recommended number of clusters, this masked_image is required.
-    if return_features_for_rec_clusters:
-        return masked_image
+
+    # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
+    # iterations.)
+    # At most 50 iterations and at least 1.0 accuracy
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
     # apply kmeans
     colors: np.ndarray
@@ -147,6 +160,9 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
     return colors, bitmasks
 
+def get_features_for_rec_clusters(data_source: str, image_name: str,
+                               selection_mask: np.ndarray) -> np.ndarray:
+    return get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k=0)[0]
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
