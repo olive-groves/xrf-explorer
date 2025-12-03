@@ -10,7 +10,7 @@ from flask_login import login_required
 from markupsafe import escape
 
 from xrf_explorer import app
-from xrf_explorer.server.database.authnew import admin_required, editor_required
+from xrf_explorer.server.database.auth import admin_required, editor_required
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.sources import get_data_sources_names, get_data_source_files
 from xrf_explorer.server.file_system.workspace import update_workspace, get_path_to_workspace

@@ -1,38 +1,49 @@
-# # xrf_explorer/server/auth.py
-# from flask_httpauth import HTTPTokenAuth
-# from xrf_explorer.server.database.models import User
-
-# # Create the global HTTPTokenAuth instance
-# auth = HTTPTokenAuth(scheme='Bearer')
+from functools import wraps
+from flask import current_app, jsonify
+from flask_login import current_user, LoginManager
+from xrf_explorer.server.database.models import User
 
 
-# @auth.verify_token
-# def verify_token(token):
-#     """
-#     Verify the provided Bearer token and return the associated User.
-#     Return None if verification fails (unauthorized).
-#     """
-#     if not token:
-#         return None
-
-#     user = User.verify_auth_token(token)
-#     return user  # Returning None means authentication failed
+login_manager = LoginManager()
 
 
-# @auth.get_user_roles
-# def get_user_roles(user):
-#     """
-#     Return a list of role names for the authenticated user.
-#     This enables role-based route protection.
-#     """
-#     if not user:
-#         return []
-#     return [user.role.name]
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if current_app.config.get("LOGIN_DISABLED"):
+            pass
+        elif not current_user.isAdmin():
+            return current_app.login_manager.unauthorized()
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return decorated_view
+
+def editor_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if current_app.config.get("LOGIN_DISABLED"):
+            pass
+        elif not (current_user.isEditor()):
+            return current_app.login_manager.unauthorized()
+        # flask 1.x compatibility
+        # current_app.ensure_sync is only available in Flask >= 2.0
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return decorated_view
 
 
-# def provide_auth() -> HTTPTokenAuth:
-#     """
-#     Provides the singleton HTTPTokenAuth instance.
-#     (Optional helper function — not strictly required.)
-#     """
-#     return auth
+
