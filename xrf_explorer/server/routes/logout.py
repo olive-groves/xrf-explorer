@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import jsonify
 from flask_login import login_required, logout_user
 from xrf_explorer import app
 

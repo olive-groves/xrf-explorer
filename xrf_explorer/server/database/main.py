@@ -1,4 +1,3 @@
-
 from flask import Flask
 from database import init_app
 from models import User  # Ensure models are imported

@@ -3,9 +3,17 @@ import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Eye, EyeOff } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
-import { ref} from "vue";
+import { ref } from "vue";
 import { toast } from "vue-sonner";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import axios from "axios";
 
 // Define emits
@@ -18,6 +26,9 @@ const role = ref("");
 
 const passwordType = ref("password");
 
+/**
+ * Toggle the password mode between password and text.
+ */
 function toggleText() {
   passwordType.value = passwordType.value === "password" ? "text" : "password";
 }
@@ -28,7 +39,9 @@ interface CreateAccountResponse {
   message?: string;
 }
 
-// Function to create account
+/**
+ * Create an account.
+ */
 async function createAccount() {
   // Check if all fields are filled
   if (!username.value || !password.value || !role.value) {
@@ -43,10 +56,10 @@ async function createAccount() {
 
   // Make API call to create account
   try {
-    const response = await axios.post<CreateAccountResponse>('/api/create_account', {
+    const response = await axios.post<CreateAccountResponse>("/api/create_account", {
       username: username.value,
       password: password.value,
-      role: role.value.toUpperCase()  // Ensure role is uppercase to match backend enum
+      role: role.value.toUpperCase(), // Ensure role is uppercase to match backend enum
     });
 
     // On success, notify user and reset fields, else give error message
@@ -57,73 +70,79 @@ async function createAccount() {
     } else {
       toast.error(response.data.message || "Account creation failed");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     toast.error("Account creation failed");
   }
 }
 
-// Function to reset input fields
+/**
+ * Reset the input fields.
+ */
 function resetFields() {
-    username.value = "";
-    password.value = "";
-    role.value = "";
+  username.value = "";
+  password.value = "";
+  role.value = "";
 }
 defineExpose({ resetFields });
 
+/**
+ * Check if the user entered a valid password.
+ * @param password The password entered by the user.
+ * @returns Returns whether the password is valid or not.
+ */
 function validPassword(password: string): boolean {
-    // Password must be between 12 and 32 characters
-    const lengthValid = password.length >= 12 && password.length <= 32;
+  // Password must be between 12 and 32 characters
+  const lengthValid = password.length >= 12 && password.length <= 32;
 
-    // Passwords include at least one numeric character [0, 9]
-    const numberValid = /[0-9]/.test(password);
+  // Passwords include at least one numeric character [0, 9]
+  const numberValid = /[0-9]/.test(password);
 
-    // Password must include at least one special character [!@#$%^&*]
-    const specialCharValid = /[!@#$%^&*]/.test(password);
+  // Password must include at least one special character [!@#$%^&*]
+  const specialCharValid = /[!@#$%^&*]/.test(password);
 
-    return lengthValid && numberValid && specialCharValid;
+  return lengthValid && numberValid && specialCharValid;
 }
-
-
 </script>
 
 <template>
   <DialogContent ref="dialog">
     <DialogTitle class="mb-2 font-bold"> Create Account </DialogTitle>
     <!-- Input fields for Username and Password -->
-    <div class="text">Username</div>
+    <div class="text-base">Username</div>
     <Input placeholder="Username" v-model:model-value="username" />
-    <div class="text">Password</div>
+    <div class="text-base">Password</div>
     <div class="flex items-center">
-    <Input @keydown.space.prevent placeholder="Password" :type="passwordType" v-model:model-value="password" />
-      <Button
-        @click="toggleText"
-        variant="ghost"
-        class="size-8 p-2"
-        title="Toggle visibility"
-      >
+      <Input @keydown.space.prevent placeholder="Password" :type="passwordType" v-model:model-value="password" />
+      <Button @click="toggleText" variant="ghost" class="size-8 p-2" title="Toggle visibility">
         <Eye v-if="passwordType === 'password'" />
         <EyeOff v-else />
       </Button>
     </div>
-    <div v-if="!(password.length >= 12 && password.length <= 32)"class="text-muted-foreground">*Password must be between 12 and 32 characters</div>
-    <div v-if="!/[0-9]/.test(password)" class="text-muted-foreground">*Password must include at least one number (0-9)</div>
-    <div v-if="!/[!@#$%^&*]/.test(password)" class="text-muted-foreground">*Password must include at least one special character (!@#$%^&*)</div>
-    <Select v-model="role" class="w-full mb-4">
-        <!-- Dropdown menu to select role from Admin, Editor, and Viewer-->
-          <SelectTrigger>
-            <SelectValue placeholder="Select a user role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Roles</SelectLabel>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="editor">Editor</SelectItem>
-              <SelectItem value="viewer">Viewer</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+    <div v-if="!(password.length >= 12 && password.length <= 32)" class="text-muted-foreground">
+      *Password must be between 12 and 32 characters
+    </div>
+    <div v-if="!/[0-9]/.test(password)" class="text-muted-foreground">
+      *Password must include at least one number (0-9)
+    </div>
+    <div v-if="!/[!@#$%^&*]/.test(password)" class="text-muted-foreground">
+      *Password must include at least one special character (!@#$%^&*)
+    </div>
+    <Select v-model="role" class="mb-4 w-full">
+      <!-- Dropdown menu to select role from Admin, Editor, and Viewer-->
+      <SelectTrigger>
+        <SelectValue placeholder="Select a user role" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Roles</SelectLabel>
+          <SelectItem value="admin">Admin</SelectItem>
+          <SelectItem value="editor">Editor</SelectItem>
+          <SelectItem value="viewer">Viewer</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
     <div class="flex items-center justify-between">
-      <Button @click="createAccount" :disabled="(username == '') || !validPassword(password) || role == ''">
+      <Button @click="createAccount" :disabled="username == '' || !validPassword(password) || role == ''">
         Create Account
       </Button>
     </div>

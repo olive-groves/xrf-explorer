@@ -13,7 +13,7 @@ const props = defineProps<{
    */
   title: string;
   /**
-   * string describing the help text for the window.
+   * String describing the help text for the window.
    */
   help: string;
   /**
@@ -56,14 +56,17 @@ if (!(id in windowState)) {
 
 watch(role, disableWindows);
 
+/**
+ * Keep windows enabled if the user has a role (Admin or Editor), otherwise disable windows.
+ */
 function disableWindows() {
   for (const window of Object.values(windowState)) {
-    if (role.value != '') {
+    if (role.value != "") {
       // Admins and Editors can access all windows
       window.disabled = false;
     } else {
-        window.disabled = true;
-        window.opened = false;
+      window.disabled = true;
+      window.opened = false;
     }
   }
 }
@@ -122,17 +125,15 @@ watch(
 
 <template>
   <Teleport :to="`#window-${state.id}`" v-if="state.portalMounted">
-  <div ref="content" v-if="appState.workspace?.stitchingMode === 'partial'">
+    <div ref="content" v-if="appState.workspace?.stitchingMode === 'partial'">
       <div v-if="state.id == 'stitching'">
         <slot />
       </div>
-      <div v-else class="p-8 text-center text-muted-foreground">Stitching is in-process
-      </div>
+      <div v-else class="p-8 text-center text-muted-foreground">Stitching is in-process</div>
     </div>
     <div ref="content" v-else-if="appState.workspace != undefined">
       <slot />
     </div>
-    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div> 
+    <div v-else class="p-8 text-center text-muted-foreground">No workspace loaded yet.</div>
   </Teleport>
 </template>
-

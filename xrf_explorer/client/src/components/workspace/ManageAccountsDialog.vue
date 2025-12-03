@@ -9,9 +9,16 @@ import axios from "axios";
 
 // Define emits
 const emit = defineEmits<{
-    (e: 'close'): void, // Close the dialog
-    (e: 'createAccount'): void, // Open Create Account dialog
-    (e: 'manageUser', account: {original_username: string, username: string; role: string}): void // Manage specific user and pass data
+  (e: "close"): void; // Close the dialog
+  (e: "createAccount"): void; // Open Create Account dialog
+  (
+    e: "manageUser",
+    account: {
+      original_username: string;
+      username: string;
+      role: string;
+    },
+  ): void; // Manage specific user and pass data
 }>();
 
 // Search query for filtering accounts
@@ -29,7 +36,7 @@ const storedAccounts = ref<Account[]>([]);
 // Fetch accounts on component mount
 onMounted(async () => {
   try {
-    const response = await axios.get<Account[]>('/api/accounts');
+    const response = await axios.get<Account[]>("/api/accounts");
     storedAccounts.value = response.data;
   } catch (error) {
     console.error("Failed to fetch accounts", error);
@@ -41,55 +48,51 @@ const filteredAccounts = computed(() => {
   const query = searchQuery.value.toLowerCase().trim();
   if (!query) return storedAccounts.value;
   return storedAccounts.value.filter(
-    (a) =>
-      a.username.toLowerCase().includes(query) ||
-      a.role.toLowerCase().includes(query)
+    (a) => a.username.toLowerCase().includes(query) || a.role.toLowerCase().includes(query),
   );
 });
 
-// Emit manage user event with relevant data
+/**
+ * Emit manage user event with relevant data.
+ * @param original_username The original username of the user, as stored in the database.
+ * @param username The current username value, which can be edited in the UI.
+ * @param role The current role of the user.
+ */
 function manageUser(original_username: string, username: string, role: string) {
-    emit("manageUser", {original_username, username, role});
+  emit("manageUser", { original_username, username, role });
 }
-
-
 </script>
 
 <template>
   <DialogContent ref="dialog" class="p-4">
     <DialogTitle class="mb-2 font-bold"> Manage Accounts </DialogTitle>
-        <div>
-            <Button @click="$emit('createAccount')" >
-                Create Account
-            </Button>
-        </div>
-         <!-- Search bar -->
-        <div>
-            <Input
-                v-model="searchQuery"
-                placeholder="Search by username or role..."
-            />
-        </div>
-        <div>
-          <!-- Scrollbar -->
-            <ScrollArea class="border h-[70vh]">
-              <!-- Table of user data from the database -->
-            <table class="w-full text-center border-collapse">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Role</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(account, accountIndex) in filteredAccounts" :key="accountIndex" style="text-align: center;">
-                        <td>{{ account.username }}</td>
-                        <td>{{ account.role }}</td>
-                        <td> <Button @click="manageUser(account.username, account.username, account.role)"> Manage </Button></td>
-                    </tr>
-                    </tbody>
-                </table>
-            </ScrollArea>
-        </div>
+    <div>
+      <Button @click="$emit('createAccount')"> Create Account </Button>
+    </div>
+    <!-- Search bar -->
+    <div>
+      <Input v-model="searchQuery" placeholder="Search by username or role..." />
+    </div>
+    <div>
+      <!-- Scrollbar -->
+      <ScrollArea class="h-[70vh] border">
+        <!-- Table of user data from the database -->
+        <table class="w-full border-collapse text-center">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(account, accountIndex) in filteredAccounts" :key="accountIndex" style="text-align: center">
+              <td>{{ account.username }}</td>
+              <td>{{ account.role }}</td>
+              <td><Button @click="manageUser(account.username, account.username, account.role)"> Manage </Button></td>
+            </tr>
+          </tbody>
+        </table>
+      </ScrollArea>
+    </div>
   </DialogContent>
 </template>

@@ -4,7 +4,6 @@ from xrf_explorer.server.database.database import db
 from enum import Enum
 from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.types import JSON
-# from database import db
 
 class UserRole(Enum):
     ADMIN = 0
