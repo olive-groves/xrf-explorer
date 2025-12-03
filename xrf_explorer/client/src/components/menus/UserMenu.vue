@@ -51,7 +51,7 @@ function manageUser(account: { original_username: string; username: string; role
 <template>
   <Dialog v-model:open="dialogOpen" @update:open="reset">
     <MenubarMenu>
-      <MenubarTrigger> {{ appState.user.role != "" ? appState.user.username : "Log in" }} </MenubarTrigger>
+      <MenubarTrigger class="flex whitespace-nowrap"> {{ appState.user.role != "" ? appState.user.username : "Log in" }} </MenubarTrigger>
       <MenubarContent>
         <!-- Display login/logout depending on login status and Manage Accounts if the current user is an Admin -->
         <DialogTrigger v-if="appState.user.role == ''" class="w-full" @click="window = 'login'">
