@@ -125,7 +125,7 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
         Defaults to 10
     :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
     """
-    masked_image, image = get_cluster_using_k_means_get_images(data_source, image_name, selection_mask, k)
+    masked_image, image = get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k)
     
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
