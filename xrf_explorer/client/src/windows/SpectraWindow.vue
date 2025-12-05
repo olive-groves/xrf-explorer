@@ -79,7 +79,7 @@ async function setup() {
     ready = binned.value;
     binningData.value = !ready;
     if (globalData.length == 0) {
-      getAverageSpectrum();
+      void getAverageSpectrum();
     }
   });
   offset = await getOffset();
@@ -102,9 +102,6 @@ async function getOffset() {
   }
 }
 
-/**
- * Set up the axis and plot the data.
- */
 /**
  * Set up the axis and plot the data.
  */
@@ -269,14 +266,7 @@ async function getElementSpectrum(element: string, excitation: number) {
 
     // Valid response
     const data = await response.json();
-
-    if (Array.isArray(data) && data.length >= 2) {
-      elementData = data[0];
-      elementPeaks = data[1];
-      drawChart();
-    } else {
-      throw new Error("Invalid data format received from API");
-    }
+    handleResponse(data);
   } catch (e) {
     console.error("Error getting element theoretical spectrum:", e);
     toast.error("Something went wrong while loading theoretical spectrum data. " + e);
@@ -286,10 +276,24 @@ async function getElementSpectrum(element: string, excitation: number) {
 }
 
 /**
+ * Extracts element data and draws a chart.
+ * @param data The array containing element data.
+ */
+function handleResponse(data: string) {
+  if (Array.isArray(data) && data.length >= 2) {
+    elementData = data[0];
+    elementPeaks = data[1];
+    drawChart();
+  } else {
+    throw new Error("Invalid data format received from API");
+  }
+}
+
+/**
  * Plots element spectrum when an element is selected in the dropdown.
  */
 function updateElementSpectrum() {
-  getElementSpectrum(selectedElement.value, excitation.value);
+  void getElementSpectrum(selectedElement.value, excitation.value);
 }
 
 watch(popupVisible, async () => {

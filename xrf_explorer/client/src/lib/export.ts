@@ -26,7 +26,7 @@ export function exportElement(name: string, element: HTMLElement) {
   const baseSize = 1200;
   const scale = baseSize / Math.min(element.clientWidth, element.clientHeight);
 
-  toBlob(element, {
+  void toBlob(element, {
     style: {
       border: "none",
       backgroundColor: "hsl(var(--background))",

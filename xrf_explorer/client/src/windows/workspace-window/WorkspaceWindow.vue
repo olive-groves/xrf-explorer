@@ -8,7 +8,6 @@ import { computed, inject, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { ChannelSetupDialog, FileSetupDialog } from "@/components/workspace";
 import { deepClone } from "@/lib/utils";
-import { WorkspaceConfig } from "@/lib/workspace";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
@@ -35,9 +34,9 @@ const deletionDialog = ref(false);
  * Open file dialog with fresh workspace data.
  */
 function openFileDialog() {
-  console.log('openFileDialog called, workspace.value:', workspace.value);
+  console.log("openFileDialog called, workspace.value:", workspace.value);
   if (!workspace.value) {
-    console.error('Cannot open file dialog: workspace is undefined');
+    console.error("Cannot open file dialog: workspace is undefined");
     return;
   }
   const cloned = deepClone(workspace.value);
@@ -45,7 +44,7 @@ function openFileDialog() {
   if (!cloned.partialSpectralCubes) cloned.partialSpectralCubes = [];
   if (!cloned.partialElementalCubes) cloned.partialElementalCubes = [];
   localWorkspace.value = cloned;
-  console.log('localWorkspace after sync:', localWorkspace.value);
+  console.log("localWorkspace after sync:", localWorkspace.value);
   fileDialog.value = true;
 }
 
@@ -94,9 +93,6 @@ function updateWorkspace() {
 
 // Check if the user is an admin
 const isAdmin = computed(() => appState.user.role === "ADMIN");
-
-// Check if the user is an editor
-const isEditor = computed(() => appState.user.role === "EDITOR");
 </script>
 
 <template>

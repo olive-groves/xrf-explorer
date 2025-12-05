@@ -90,7 +90,7 @@ export type Grayscale = {
    */
   sourceCubeName?: string;
   /**
-   * Optional: the type of cube that generated this grayscale image: 'elemental' | 'spectral'
+   * Optional: the type of cube that generated this grayscale image: 'elemental' | 'spectral'.
    */
   sourceCubeType?: "elemental" | "spectral";
 };
