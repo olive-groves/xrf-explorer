@@ -56,18 +56,27 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  // Dispose GL layers
   try {
     const baseId = appState.workspace?.baseImage
       ? `base_${snakeCase(appState.workspace.baseImage.name)}`
       : null;
     if (baseId) {
-      const b = layers.value.find((l) => l.id === baseId);
-      if (b) disposeLayer(b);
+      const idx = layers.value.findIndex(l => l.id === baseId);
+      if (idx >= 0) {
+        disposeLayer(layers.value[idx]);
+        layers.value.splice(idx, 1); // remove from array
+      }
+      // also reset the group reference
+      if (layerGroups.value.base?.layers.some(l => l.id === baseId)) {
+        if (layerGroups.value.base?.layers.some(l => l.id === baseId)) {
+          layerGroups.value.base.layers = [];
+        }
+      }
     }
   } catch (e) {
     console.warn("Error disposing layers", e);
   }
+
   if (animationFrame != null) {
     cancelAnimationFrame(animationFrame);
     animationFrame = null;
@@ -100,6 +109,8 @@ function createOrUpdateBaseLayer() {
       brightness: [0.0],
     } as any;
     updateLayerGroupLayers(layerGroups.value.base as any);
+  } else {
+    existing.mesh && scene.scene.add(existing.mesh);
   }
 }
 
