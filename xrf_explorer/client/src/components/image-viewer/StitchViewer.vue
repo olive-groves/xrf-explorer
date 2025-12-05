@@ -25,7 +25,6 @@ export default {
         <ToggleGroupItem
           value="preview"
           variant="outline"
-          :disabled="!canPreview"
         >
           Preview
         </ToggleGroupItem>

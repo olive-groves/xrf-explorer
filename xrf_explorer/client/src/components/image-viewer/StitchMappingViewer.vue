@@ -112,7 +112,7 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
                 class="border p-1 w-20 pointer-events-auto"
                 v-model.number="editBase[id].x"
                 @change="updateBase(id)"
-                :placeholder="points[id]?.base?.x != null ? String(points[id].base.x) : '--'"
+                :placeholder="points[id]?.base?.x != null ? String(points[id]?.base?.x) : '--'"
               />
             </label>
             <label class="flex flex-col items-center text-xs">
@@ -122,7 +122,7 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
                 class="border p-1 w-20 pointer-events-auto"
                 v-model.number="editBase[id].y"
                 @change="updateBase(id)"
-                :placeholder="points[id]?.base?.y != null ? String(points[id].base.y) : '--'"
+                :placeholder="points[id]?.base?.y != null ? String(points[id]?.base?.y) : '--'"
               />
             </label>
           </div>
