@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Import the necessary functions and components
 import { MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem } from "@/components/ui/menubar";
-import { datasource } from "@/lib/appState";
+import { appState, datasource } from "@/lib/appState";
 import { exportElement, exportScene, exportableElements } from "@/lib/export";
 import { getTooltipByKey } from "@/lib/useToolTips";
 // Makes usage of the change-case library
@@ -9,7 +9,7 @@ import { sentenceCase, snakeCase } from "change-case";
 </script>
 
 <template>
-  <MenubarMenu>
+  <MenubarMenu v-if="appState.user.role !== ''">
     <MenubarTrigger v-if="datasource" :title="getTooltipByKey('toolbar.export')"> Export </MenubarTrigger>
     <MenubarTrigger
       v-else

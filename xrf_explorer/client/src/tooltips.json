@@ -22,7 +22,8 @@
         "export_spectral": "Export spectrum graph as image",
         "export_elements": "Export elemental charts as image",
         "export_embedding": "Export dimensionality reduction embedding as image",
-        "export_missing": "Nothing selected to export"
+        "export_missing": "Nothing selected to export",
+        "workspace_not_loaded": "No workspace loaded"
     },
     "help_menu": {
         "color_segmentation_help_menu": "Generate color clusters based on the selected elements. Select the elements and thresholds for each element to generate the clusters and select the number of clusters. The clusters are displayed in the main view, decrease the opacity of the rgb image in the layers component to make them more apparent.",

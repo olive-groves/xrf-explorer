@@ -69,7 +69,7 @@ function loadWorkspace(source: string) {
 
 <template>
   <Dialog v-model:open="dialogOpen">
-    <MenubarMenu>
+    <MenubarMenu v-if="appState.user.role !== ''">
       <MenubarTrigger @click="() => request.execute()" v-tooltip="'toolbar.file_menu'"> File </MenubarTrigger>
       <MenubarContent>
         <!-- Only show new project button for admins and editors -->

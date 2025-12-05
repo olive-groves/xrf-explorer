@@ -22,18 +22,22 @@ function reset() {
     <MenubarMenu>
       <MenubarTrigger
         v-tooltip="'toolbar.workspace'"
+        v-if="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace"
+      >
+        Workspace
+      </MenubarTrigger>
+      <MenubarTrigger
+        class="w-full cursor-not-allowed opacity-50"
+        v-tooltip="'toolbar.workspace_not_loaded'"
         v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
       >
         Workspace
       </MenubarTrigger>
-      <MenubarTrigger v-else class="pointer-events-none w-full cursor-not-allowed opacity-50">
-        Workspace
-      </MenubarTrigger>
-      <MenubarContent>
+      <MenubarContent v-if="appState.workspace">
         <!-- Display setup workspace dialog and setup elemental channels dialog -->
         <DialogTrigger
           v-tooltip="'toolbar.setup_workspace'"
-          v-if="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined"
+          v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
           class="w-full"
           @click="
             window = 'workspace';
@@ -42,21 +46,15 @@ function reset() {
         >
           <MenubarItem> Setup Workspace </MenubarItem>
         </DialogTrigger>
-        <DialogTrigger v-else class="pointer-events-none w-full cursor-not-allowed opacity-50">
-          <MenubarItem> Setup Workspace </MenubarItem>
-        </DialogTrigger>
         <DialogTrigger
           v-tooltip="'toolbar.setup_elemental_channels'"
-          v-if="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && appState.workspace != undefined"
+          v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
           class="w-full"
           @click="
             window = 'elementalChannels';
             dialogOpen = true;
           "
         >
-          <MenubarItem> Setup Elemental Channels </MenubarItem>
-        </DialogTrigger>
-        <DialogTrigger v-else class="pointer-events-none w-full cursor-not-allowed opacity-50">
           <MenubarItem> Setup Elemental Channels </MenubarItem>
         </DialogTrigger>
       </MenubarContent>

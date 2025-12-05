@@ -7,6 +7,7 @@ import {
   MenubarSeparator,
 } from "@/components/ui/menubar";
 import { windowState } from "@/components/ui/window/state";
+import { appState } from "@/lib/appState";
 import { getTooltipByKey } from "@/lib/useToolTips";
 import { computed, useSlots } from "vue";
 
@@ -28,9 +29,12 @@ const filteredWindows = computed(() => {
 </script>
 
 <template>
-  <MenubarMenu>
-    <MenubarTrigger v-tooltip="'toolbar.view_menu'"> View </MenubarTrigger>
-    <MenubarContent>
+  <MenubarMenu v-if="appState.user.role !== ''">
+    <MenubarTrigger v-if="appState.workspace" class="w-full" v-tooltip="'toolbar.view_menu'"> View </MenubarTrigger>
+    <MenubarTrigger v-else class="w-full cursor-not-allowed opacity-50" v-tooltip="'toolbar.workspace_not_loaded'">
+      View
+    </MenubarTrigger>
+    <MenubarContent v-if="appState.workspace">
       <div
         v-for="window in filteredWindows"
         :key="window.id"

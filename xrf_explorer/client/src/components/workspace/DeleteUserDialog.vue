@@ -64,6 +64,9 @@ function isErrorWithMessage(error: unknown): error is { response?: { data?: { me
       <div class="text-muted-foreground">
         Are you sure you want to delete the following account: <b>{{ user }}</b> ?
       </div>
+    </div>
+    <div class="flex items-center justify-end">
+      <Button @click="emit('close')" class="mr-2"> Cancel </Button>
       <Button @click="deleteUser" variant="destructive"> Delete </Button>
     </div>
   </DialogContent>
