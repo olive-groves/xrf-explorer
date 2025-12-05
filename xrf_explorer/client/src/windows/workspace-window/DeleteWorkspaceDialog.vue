@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Checkbox } from "@/components/ui/checkbox";
-import { DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { FrontendConfig } from "@/lib/config";
 import { resetWindow } from "@/lib/utils";
@@ -9,6 +10,16 @@ import { toast } from "vue-sonner";
 
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
+
+const dialogOpen = ref(false);
+
+/**
+ * Updates the state of the dialog.
+ * @param open - The new state the dialog is requested to have.
+ */
+function dialogUpdate(open: boolean) {
+  dialogOpen.value = open;
+}
 
 const props = defineProps<{
   /**
@@ -49,24 +60,29 @@ async function deleteWorkspace() {
 </script>
 
 <template>
-  <DialogContent>
-    <DialogTitle>Delete project</DialogTitle>
-    <div>
-      By default only the XRF-Explorer configuration will be removed when deleting a project. By checking the checkbox
-      all associated data files will also be removed, make sure that this is not the only copy of the data files before
-      deleting. Deletion can not be undone. Non deleted files can be reused by recreating a project with the name '{{
-        name
-      }}'.
-    </div>
-    <div class="flex items-center justify-between">
-      <div class="flex space-x-2">
-        <Checkbox v-model:checked="deleteFiles" id="delete_files" />
-        <Label for="delete_files">Also delete all associated files</Label>
+  <Dialog v-model:open="dialogOpen" @update="dialogUpdate">
+    <DialogTrigger>
+      <Button variant="destructive">Delete Project</Button>
+    </DialogTrigger>
+    <DialogContent>
+      <DialogTitle>Delete project</DialogTitle>
+      <div>
+        By default only the XRF-Explorer configuration will be removed when deleting a project. By checking the checkbox
+        all associated data files will also be removed, make sure that this is not the only copy of the data files
+        deleting. Deletion can not be undone. Non deleted files can be reused by recreating a project with the name '{{
+          name
+        }}'.
       </div>
-      <div class="flex space-x-2">
-        <Button @click="deleteWorkspace" variant="destructive">Delete</Button>
-        <Button @click="emit('close')">Cancel</Button>
+      <div class="flex items-center justify-between">
+        <div class="flex space-x-2">
+          <Checkbox v-model:checked="deleteFiles" id="delete_files" />
+          <Label for="delete_files">Also delete all associated files</Label>
+        </div>
+        <div class="flex space-x-2">
+          <Button @click="deleteWorkspace" variant="destructive">Delete</Button>
+          <Button @click="emit('close')">Cancel</Button>
+        </div>
       </div>
-    </div>
-  </DialogContent>
+    </DialogContent>
+  </Dialog>
 </template>

@@ -7,6 +7,7 @@ import { computed } from "vue";
 import { TriangleAlert } from "lucide-vue-next";
 import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
+import { DeleteWorkspaceDialog } from "@/windows/workspace-window/";
 
 // Define the workspace model
 const model = defineModel<WorkspaceConfig>({ required: true });
@@ -46,6 +47,7 @@ async function save() {
           <div class="text-muted-foreground" v-text="modelValidity[1]" />
         </div>
         <div class="space-x-2">
+          <DeleteWorkspaceDialog :name="model.name" />
           <AdditionalSettingsDialog v-model="model" />
           <Button :disabled="!modelValidity[0]" @click="save" :title="modelValidity[1]">Save</Button>
         </div>
