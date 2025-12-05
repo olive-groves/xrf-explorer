@@ -29,7 +29,7 @@ function reset() {
       <MenubarTrigger
         class="w-full cursor-not-allowed opacity-50"
         v-tooltip="'toolbar.workspace_not_loaded'"
-        v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
+        v-if="(appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR') && !appState.workspace"
       >
         Workspace
       </MenubarTrigger>
