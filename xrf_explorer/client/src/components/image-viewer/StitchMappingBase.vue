@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount, watch, CSSProperties } from "vue";
+import { ref, computed, inject, onMounted, onBeforeUnmount, watch} from "vue";
 import { StitchTool, StitchState } from "./types";
 import { FrontendConfig } from "@/lib/config";
 import { toast } from "vue-sonner";
@@ -50,30 +50,17 @@ const height = canvasSize.height;
 let zoomLimitReached = false;
 
 const baseReady = ref(false);
-const baseOpacity = ref(1.0);
-const basePadding = 20;
 
 const dragging = ref(false);
 const draggingIndex = ref<number | null>(null);
 
 // Points selection
 import {
-  grayscalePoints,
   selectedPointId,
   selectedGrayscaleIndex,
-  updateBasePoint,
-  selectPoint,
-  deselect,
   setSelectedGrayscaleIndex
 } from "./stitchPoints";
 
-// Points for the currently selected grayscale
-const currentPoints = computed(() => {
-  const idx = selectedGrayscaleIndex.value ?? null;
-  if (idx === null) return [];
-  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
-  return grayscalePoints.value[idx];
-});
 
 // GL Setup
 onMounted(async () => {
@@ -82,24 +69,31 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  // Dispose GL layers
   try {
     const g = appState.workspace?.grayscale ?? [];
     g.forEach((entry: any) => {
       const id = `stitch_gray_${snakeCase(entry.name)}`;
-      const layer = layers.value.find((l) => l.id === id);
-      if (layer) disposeLayer(layer);
+      const idx = layers.value.findIndex(l => l.id === id);
+      if (idx >= 0) {
+        disposeLayer(layers.value[idx]);
+        layers.value.splice(idx, 1); 
+      }
     });
+
     const baseId = appState.workspace?.baseImage
       ? `base_${snakeCase(appState.workspace.baseImage.name)}`
       : null;
     if (baseId) {
-      const b = layers.value.find((l) => l.id === baseId);
-      if (b) disposeLayer(b);
+      const idx = layers.value.findIndex(l => l.id === baseId);
+      if (idx >= 0) {
+        disposeLayer(layers.value[idx]);
+        layers.value.splice(idx, 1);
+      }
     }
   } catch (e) {
     console.warn("Error disposing layers", e);
   }
+
   if (animationFrame != null) {
     cancelAnimationFrame(animationFrame);
     animationFrame = null;
@@ -306,7 +300,6 @@ function onMouseMove(event: MouseEvent) {
   const mouseY = event.clientY - canvasSize.top.value;
 
   // Map mouse coordinates to [0,width] and [0,height],
-  // reversing y-axis to have (0,0) at top left
   const normalizedX = (width.value * mouseX) / rect.width;
   const normalizedY = height.value * (1 - mouseY / rect.height);
 
@@ -334,12 +327,6 @@ watch(selectedGrayscaleIndex, () => {
   selectedPointId.value = null;
 });
 
-
-
-
-
-
-
 function stopInteractions() {
   draggingIndex.value = null;
 }
@@ -365,9 +352,6 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
   >
     <!-- WebGL canvas -->
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" style="z-index: 0;" />
-
-
-
 
   </div>
 </template>
