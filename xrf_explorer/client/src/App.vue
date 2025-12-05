@@ -39,7 +39,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <WorkspaceWindow />
-  <StitchWindow v-if="appState.workspace?.stitchingMode === 'partial'"/>
+        <StitchWindow v-if="appState.workspace?.stitchingMode === 'partial'"/>
       </BaseContextMenu>
     </WindowContainer>
   </div>
