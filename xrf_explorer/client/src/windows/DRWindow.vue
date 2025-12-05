@@ -12,27 +12,27 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { toast } from "vue-sonner";
-import { exportableElements } from "@/lib/export";
-import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
-import { SelectionArea } from "@/components/ui/selection-area";
-import { Separator } from "@/components/ui/separator";
-import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
-import { 
-  remToPx, 
-  deepClone, 
-  flipSelectionAreaSelection,
-  hasActiveSelection,
-  areSelectionAreaSelectionsEqual } from "@/lib/utils";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
+  Separator,
+  ToggleGroup,
+  ToggleGroupItem,
   NumberField,
   NumberFieldContent,
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-} from "@/components/ui/number-field";
+  SelectionArea,
+} from "@/components/ui";
+import { toast } from "vue-sonner";
+import { exportableElements } from "@/lib/export";
+import { updateMiddleImage } from "@/components/image-viewer/drSelectionHelper";
+import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import {
+  remToPx,
+  deepClone,
+  flipSelectionAreaSelection,
+  hasActiveSelection,
+  areSelectionAreaSelectionsEqual,
+} from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 
 //    Setup for selection tracking
@@ -60,7 +60,6 @@ const currentAreaSelection: DimensionalityReductionAreaSelection = {
 
 // Watchers
 watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
-
 
 // Setup output for export
 const output = ref<HTMLElement>();
@@ -198,18 +197,21 @@ async function updateEmbedding() {
 
   try {
     // Make API call
-    const response = await fetch(`${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(request_body),
-    });
+    const response = await fetch(
+      `${config.api.endpoint}/${datasource.value}/dr/embedding/${selectedElement.value}/${threshold.value}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(request_body),
+      },
+    );
     const data = await response.text();
 
     if (response.ok && data != null) {
       if (data == "downsampled") {
         toast.warning("Downsampled data points", {
-          description:
-            "The total number of data points for the embedding has been downsampled to prevent excessive waiting times.",
+          description: `The total number of data points for the embedding 
+            has been downsampled to prevent excessive waiting times.`,
         });
       }
 
@@ -218,7 +220,6 @@ async function updateEmbedding() {
       await fetchDRImage();
       return;
     }
-
   } catch (e) {
     console.error("API call failed", e);
   }
@@ -269,7 +270,6 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
     ],
   };
 }
-
 </script>
 
 <template>
@@ -313,7 +313,7 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
         </div>
       </div>
       <div class="mt-1 flex items-center">
-        <Checkbox id="selectionCheck" v-model:checked="selectionChecked"/>
+        <Checkbox id="selectionCheck" v-model:checked="selectionChecked" />
         <label class="ml-1" for="selectionCheck">Selection area only</label>
       </div>
       <Button class="w-full" @click="updateEmbedding">Generate embedding</Button>
