@@ -398,7 +398,7 @@ class DatacubeStitcher:
 
         if self.base_cube.is_spectral():
             # Handle Spectral Data (Format: .raw + .rpl)
-            # Step 1: Transpose all input files to (C, H, W)
+            # Transpose all input files to (C, H, W)
             print("\n=== Transposing input files to (C, H, W) format ===")
             transposed_fragments = []
             for frag in self.fragments:
@@ -410,7 +410,7 @@ class DatacubeStitcher:
             original_fragments = self.fragments
             self.fragments = transposed_fragments
 
-            # Step 2: Perform stitching in (C, H, W) format
+            # Perform stitching in (C, H, W) format
             datacube_file_temp = "stitched_spectral_temp.raw"
             datacube_file = "stitched_spectral.raw"
             rpl_file = "stitched_spectral.rpl"
@@ -435,7 +435,7 @@ class DatacubeStitcher:
             output_map.flush()
             del output_map
 
-            # Step 3: Transpose output back to (H, W, C)
+            # Transpose output back to (H, W, C)
             print("\n=== Transposing output back to (H, W, C) format ===")
             transpose_spectral_datacube(
                 datacube_file_temp,
