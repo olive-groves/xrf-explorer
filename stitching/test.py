@@ -1,7 +1,9 @@
+import time
+
 from transformer import *
 import matplotlib.pyplot as plt
 
-rgb = cv.imread("RGB.jpg", cv.IMREAD_GRAYSCALE)
+rgb = cv.imread("RGB_resized.jpg", cv.IMREAD_GRAYSCALE)
 if(rgb is None):
     raise FileNotFoundError("RGB image not found.")
 rgb_height, rgb_width = rgb.shape
@@ -46,8 +48,20 @@ elemental_fragments = [
 
 intensity_scales = [0.96, 0.85, 1.0, 0.9]
 
-stitcher = DatacubeStitcher(spectral_fragments, intensity_scales, points, Dimensions(rgb_width, rgb_height), 0.6)
+
+
+SCALAR = 0.1
+SCALAR = ScalarOptimizer(points).find_best_scalar()[0]
+print("Scalar: ", SCALAR)
+
+stitcher = DatacubeStitcher(spectral_fragments, intensity_scales, points, Dimensions(rgb_width, rgb_height), SCALAR)
+
+start_time = time.time()
+
 el = stitcher.stitch_datacubes()
+
+end_time = time.time()
+print(f"Stitching finished in {end_time - start_time}")
 
 # reshape the spectral datacubes spectral1.reshaped
 # projection = el.create_greyscale_projection()
