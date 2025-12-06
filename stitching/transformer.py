@@ -43,6 +43,76 @@ def split_range(start: int, end: int, parts: int) -> list[tuple[int, int]]:
     return result
 
 
+def transpose_spectral_datacube(
+    input_path: str,
+    output_path: str,
+    input_shape: tuple[int, int, int],
+    output_shape: tuple[int, int, int],
+    dtype: str,
+    chunk_size: int = 100,
+) -> None:
+    """
+    Transposes a spectral datacube file using memory mapping to maintain low RAM usage.
+    Supports both (H, W, C) -> (C, H, W) and (C, H, W) -> (H, W, C).
+
+    Args:
+        input_path: Path to input file
+        output_path: Path to output file
+        input_shape: Shape of input data
+        output_shape: Shape of output data
+        dtype: NumPy dtype string
+        chunk_size: Number of rows/channels to process at once
+    """
+    input_mmap = np.memmap(input_path, dtype=dtype, mode="r", shape=input_shape)
+    output_mmap = np.memmap(output_path, dtype=dtype, mode="w+", shape=output_shape)
+
+    print(f"Transposing: {input_shape} -> {output_shape}")
+    print(f"File size: {input_mmap.nbytes / 1e9:.2f} GB")
+
+    dim0, dim1, dim2 = input_shape
+
+    # Case 1: (H, W, C) -> (C, H, W) - Chunk along height
+    if input_shape[2] == output_shape[0]:
+        for i in range(0, dim0, chunk_size):
+            end_i = min(i + chunk_size, dim0)
+            print(f"Processing rows {i} to {end_i} of {dim0}")
+
+            # Read chunk: (chunk_h, W, C)
+            chunk_data = input_mmap[i:end_i, :, :]
+
+            # Transpose to: (C, chunk_h, W)
+            chunk_transposed = chunk_data.transpose(2, 0, 1)
+
+            # Write: all channels, specific height slice, all width
+            output_mmap[:, i:end_i, :] = chunk_transposed
+
+            if i % (chunk_size * 5) == 0:
+                output_mmap.flush()
+
+    # Case 2: (C, H, W) -> (H, W, C) - Chunk along channels
+    elif input_shape[0] == output_shape[2]:
+        for i in range(0, dim0, chunk_size):
+            end_i = min(i + chunk_size, dim0)
+            print(f"Processing channels {i} to {end_i} of {dim0}")
+
+            # Read chunk: (chunk_c, H, W)
+            chunk_data = input_mmap[i:end_i, :, :]
+
+            # Transpose to: (H, W, chunk_c)
+            chunk_transposed = chunk_data.transpose(1, 2, 0)
+
+            # Write: all height, all width, specific channel slice
+            output_mmap[:, :, i:end_i] = chunk_transposed
+
+            if i % (chunk_size * 5) == 0:
+                output_mmap.flush()
+    else:
+        raise ValueError(f"Unsupported transpose from {input_shape} to {output_shape}")
+
+    output_mmap.flush()
+    print("Transpose complete.\n")
+
+
 class ScalarOptimizer:
     """
     Optimizes the scaling factor between two images based on user-selected
@@ -136,10 +206,7 @@ class DatacubeStitcher:
             raise ValueError("No fragments provided")
         elif len(fragments) > 32:
             raise ValueError("Too many fragments provided, maximum is 32")
-        elif (
-            len(intensity_scales) != len(fragments)
-            or len(points) != len(fragments)
-        ):
+        elif len(intensity_scales) != len(fragments) or len(points) != len(fragments):
             raise ValueError(
                 "Number of intensity scales, fragments, and point sets must match."
             )
@@ -152,6 +219,9 @@ class DatacubeStitcher:
 
         # Calculate the transformation matrices
         self.perspective_matrices = self.get_perspective_matrices()
+
+        # Track transposed files for cleanup
+        self.transposed_files: list[str] = []
 
     def stitch_greyscales(self, images: list[np.ndarray]):
         """
@@ -248,14 +318,8 @@ class DatacubeStitcher:
             layer = np.zeros((self.scaled_height, self.scaled_width), dtype=np.float32)
 
             for i, input_map in enumerate(input_maps):
-                if is_spectral:
-                    # Spectral
-                    layer_fragment = input_map[:, :, channel].astype(
-                        np.float32, copy=False
-                    )
-                else:
-                    # Elemental
-                    layer_fragment = input_map[channel, :, :]
+                # Both spectral and elemental now use (C, H, W) format
+                layer_fragment = input_map[channel, :, :].astype(np.float32, copy=False)
 
                 # Apply intensity normalization (if brightness differs between scans)
                 scale = self.intensity_scales[i]
@@ -286,14 +350,12 @@ class DatacubeStitcher:
                 layer[mask] = warp_buffers[i][mask]
 
             # Write the completed stitched layer to the output memory map
-            if is_spectral:
-                # Spectral
-                output_map[:, :, channel] = np.clip(layer, 0, 255).astype(
-                    output_map.dtype
-                )
-            else:
-                # Elemental
-                output_map[channel, :, :] = layer
+            # Output is always in (C, H, W) format during stitching
+            output_map[channel, :, :] = (
+                np.clip(layer, 0, 255).astype(output_map.dtype)
+                if is_spectral
+                else layer
+            )
 
     def fill_layers(self, output_map: np.memmap) -> None:
         """
@@ -336,26 +398,75 @@ class DatacubeStitcher:
 
         if self.base_cube.is_spectral():
             # Handle Spectral Data (Format: .raw + .rpl)
+            # Step 1: Transpose all input files to (C, H, W)
+            print("\n=== Transposing input files to (C, H, W) format ===")
+            transposed_fragments = []
+            for frag in self.fragments:
+                transposed_frag = frag.create_transposed_version()
+                transposed_fragments.append(transposed_frag)
+                self.transposed_files.append(transposed_frag.datacube_file)
+
+            # Replace fragments with transposed versions
+            original_fragments = self.fragments
+            self.fragments = transposed_fragments
+
+            # Step 2: Perform stitching in (C, H, W) format
+            datacube_file_temp = "stitched_spectral_temp.raw"
             datacube_file = "stitched_spectral.raw"
             rpl_file = "stitched_spectral.rpl"
+
             print(
-                "Estimated file size is:",
+                "\n=== Stitching in (C, H, W) format ===\nEstimated file size is:",
                 (self.scaled_width * self.scaled_height * self.base_cube.channels)
                 / (1024**3),
                 "GB",
-                f"with dimentions: {self.scaled_width} * {self.scaled_height} * {self.base_cube.channels}",
+                f"with dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}",
             )
-            # Create file and callback to fill it
-            return SpectralDatacubeFragment.write_file(
+
+            # Create temporary output in (C, H, W) format
+            output_map = np.memmap(
+                datacube_file_temp,
+                dtype=self.base_cube.data_type,
+                offset=0,
+                mode="w+",
+                shape=(self.base_cube.channels, self.scaled_height, self.scaled_width),
+            )
+            self.fill_layers(output_map)
+            output_map.flush()
+            del output_map
+
+            # Step 3: Transpose output back to (H, W, C)
+            print("\n=== Transposing output back to (H, W, C) format ===")
+            transpose_spectral_datacube(
+                datacube_file_temp,
                 datacube_file,
+                (self.base_cube.channels, self.scaled_height, self.scaled_width),
+                (self.scaled_height, self.scaled_width, self.base_cube.channels),
+                self.base_cube.data_type,
+            )
+
+            # Write RPL file
+            SpectralDatacubeFragment.write_rpl_file(
                 rpl_file,
                 self.base_cube.rpl_meta,
-                self.base_cube.data_type,
                 self.scaled_width,
                 self.scaled_height,
-                self.base_cube.channels,
-                lambda output_map: self.fill_layers(output_map),
             )
+
+            # Cleanup temporary files
+            print("\n=== Cleaning up temporary files ===")
+            for temp_file in self.transposed_files:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    print(f"Removed: {temp_file}")
+            if os.path.exists(datacube_file_temp):
+                os.remove(datacube_file_temp)
+                print(f"Removed: {datacube_file_temp}")
+
+            # Restore original fragments
+            self.fragments = original_fragments
+
+            return SpectralDatacubeFragment.from_file(datacube_file, rpl_file)
         else:
             # Handle Elemental Data (Format: .dms)
             datacube_file = "stitched_elemental.dms"
@@ -487,14 +598,16 @@ class DatacubeFragment(ABC):
         out = np.zeros((self.height, self.width), dtype=np.float32)
 
         if self.is_spectral():
-            # Spectral: Iterate over rows (Y-axis) and average the channels (Z-axis)
-            for y0 in range(0, self.height, chunk_size):
-                y1 = min(y0 + chunk_size, self.height)
-                print("Reducing chunk rows", y0, "to", y1, "of", self.height)
-                chunk = memmap[y0:y1, :, :]
-                out[y0:y1, :] = chunk.mean(axis=2).astype(np.float32)
-                # Flush to manage memory pressure
+            # Spectral data is now in (C, H, W) format after transpose
+            # Iterate over channels and average them
+            acc = np.zeros((self.height, self.width), dtype=np.float32)
+            for c0 in range(0, self.channels, chunk_size):
+                c1 = min(c0 + chunk_size, self.channels)
+                print("Reducing chunk channels", c0, "to", c1, "of", self.channels)
+                chunk_data = memmap[c0:c1, :, :]
+                acc += chunk_data.sum(axis=0)
                 memmap.flush()
+            out[:, :] = (acc / self.channels).astype(np.float32)
         else:
             # Elemental: Iterate over channels (C-axis) and sum them up
             acc = np.zeros((self.height, self.width), dtype=np.float32)
@@ -619,7 +732,8 @@ class ElementalDatacubeFragment(DatacubeFragment):
 class SpectralDatacubeFragment(DatacubeFragment):
     """
     Handles Spectral datacubes.
-    Layout: (Height, Width, Channels) - Pixel-vector layout.
+    Original Layout: (Height, Width, Channels) - Pixel-vector layout.
+    Transposed Layout: (Channels, Height, Width) - Channel-planar layout for efficient access.
     Format:
        1. .raw file: Pure binary data.
        2. .rpl file: ASCII Metadata.
@@ -635,16 +749,17 @@ class SpectralDatacubeFragment(DatacubeFragment):
         data_type,
         rotation: int,
         rpl_meta: dict,
+        is_transposed: bool = False,
     ):
         super().__init__(datacube_file, width, height, channels, rotation)
         self.offset = offset
         self.data_type = data_type  # Numpy dtype string
         self.rpl_meta = rpl_meta  # Raw dictionary of the RPL file
+        self.is_transposed = is_transposed  # Track if file is in (C, H, W) format
 
     @classmethod
     def from_file(cls, datacube_file: str, rpl_file: str, rotation: int = 0):
         """Parses the .rpl sidecar file to configure the reader."""
-        is_reshaped = datacube_file.endswith(".reshaped")
         meta = cls.parse_rpl_file(rpl_file)
 
         width = meta.get("width", 0)
@@ -664,7 +779,7 @@ class SpectralDatacubeFragment(DatacubeFragment):
         dtype = f"{dtype_order}{dtype_signed}{data_len}"  # e.g., '<u2'
 
         return cls(
-            datacube_file, width, height, channels, offset, dtype, rotation, meta
+            datacube_file, width, height, channels, offset, dtype, rotation, meta, False
         )
 
     @classmethod
@@ -687,16 +802,60 @@ class SpectralDatacubeFragment(DatacubeFragment):
         return True
 
     def load_datacube(self):
-        """Loads data with shape (H, W, C)."""
+        """Loads data with appropriate shape based on transpose state."""
         print("Loading spectral datacube:", self.datacube_file)
+        if self.is_transposed:
+            # Transposed format: (C, H, W)
+            shape = (self.channels, self.height, self.width)
+        else:
+            # Original format: (H, W, C)
+            shape = (self.height, self.width, self.channels)
+
         memmap: np.memmap = np.memmap(
             self.datacube_file,
             dtype=self.data_type,
             mode="r",
             offset=self.offset,
-            shape=(self.height, self.width, self.channels),
+            shape=shape,
         )
         return memmap
+
+    def create_transposed_version(self) -> SpectralDatacubeFragment:
+        """
+        Creates a transposed version of this datacube: (H, W, C) -> (C, H, W).
+        Returns a new SpectralDatacubeFragment pointing to the transposed file.
+        """
+        if self.is_transposed:
+            # Already transposed, return self
+            return self
+
+        # Generate transposed filename
+        base_name = os.path.splitext(self.datacube_file)[0]
+        transposed_file = f"{base_name}_transposed.raw"
+
+        print(f"\nTransposing {self.datacube_file} -> {transposed_file}")
+
+        # Perform transpose
+        transpose_spectral_datacube(
+            self.datacube_file,
+            transposed_file,
+            (self.height, self.width, self.channels),
+            (self.channels, self.height, self.width),
+            self.data_type,
+        )
+
+        # Create new fragment pointing to transposed file
+        return SpectralDatacubeFragment(
+            transposed_file,
+            self.width,
+            self.height,
+            self.channels,
+            0,  # No offset for transposed files
+            self.data_type,
+            self.rotation,
+            self.rpl_meta,
+            is_transposed=True,
+        )
 
     def are_compatible(self, datacube) -> bool:
         if not isinstance(datacube, SpectralDatacubeFragment):
@@ -718,14 +877,14 @@ class SpectralDatacubeFragment(DatacubeFragment):
 
     @staticmethod
     def write_file(
-        datacube_file: str,
-        rpl_file: str,
-        rpl_meta: dict,
-        data_type: str,
-        width: int,
-        height: int,
-        channels: int,
-        content_write_function: Callable[[np.memmap]],
+            datacube_file: str,
+            rpl_file: str,
+            rpl_meta: dict,
+            data_type: str,
+            width: int,
+            height: int,
+            channels: int,
+            content_write_function: Callable[[np.memmap]],
     ) -> SpectralDatacubeFragment:
         """Creates .raw and .rpl files and fills them via callback."""
         output_map = np.memmap(
