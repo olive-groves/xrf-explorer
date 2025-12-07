@@ -116,7 +116,7 @@ class ScalarOptimizer:
         We want the derived scale factor between the warped source and destination
         to be exactly 1.0. Any deviation is 'cost'.
         """
-        total_cost = 0
+        total_cost = 0.0
         for src, dst in self.points:
             scale = self.get_scale_factor(src, dst, scalar)
             total_cost += (scale - 1) ** 2  # Least squares error
@@ -225,3 +225,25 @@ def transpose_spectral_datacube(
 
     output_mmap.flush()
     print("Transpose complete.\n")
+
+
+def rotate_cv(img, rotation):
+    """Standardizes rotation handling using OpenCV constants."""
+    if rotation == 0:
+        return img
+    elif rotation == 90:
+        return cv.rotate(img, cv.ROTATE_90_COUNTERCLOCKWISE)
+    elif rotation == 180:
+        return cv.rotate(img, cv.ROTATE_180)
+    elif rotation == 270:
+        return cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
+    else:
+        raise ValueError("Rotation must be 0, 90, 180, or 270")
+
+def normalize_data_image(data):
+    # Normalize data
+    p1, p99 = np.percentile(data, (1, 99))
+    min, max = np.min(data), np.max(data)
+    out = np.clip((data - p1) / (p99 - p1) * 255, 0, 255).astype(np.uint8)
+
+    return out

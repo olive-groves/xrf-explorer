@@ -4,10 +4,12 @@ import cv2 as cv
 from typing import Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
+from os.path import join
 
 from xrf_explorer.server.stitcher.cube_fragments import DatacubeFragment, ElementalDatacubeFragment, \
     SpectralDatacubeFragment
-from xrf_explorer.server.stitcher.helper import WarpSelection, Dimensions, split_range, transpose_spectral_datacube
+from xrf_explorer.server.stitcher.helper import WarpSelection, Dimensions, split_range, transpose_spectral_datacube, \
+    rotate_cv
 
 
 class DatacubeStitcher:
@@ -23,12 +25,14 @@ class DatacubeStitcher:
         points: list[tuple[WarpSelection, WarpSelection]],
         frame: Dimensions,
         scalar: float = 1.0,
+        outputdir: str = None,
     ):
         self.fragments = fragments
         self.frame = frame  # Output canvas dimensions
         self.points = points  # Alignment points for creating perspective matrices
         self.intensity_scales = intensity_scales  # Brightness normalization factors
         self.scalar = scalar  # Global scaling factor
+        self.outputdir = outputdir
 
         # Calculate final canvas size
         self.scaled_height = int(frame.height * self.scalar)
@@ -63,7 +67,7 @@ class DatacubeStitcher:
         """
         if len(images) != len(self.points):
             raise ValueError("Number of images must match number of point sets.")
-        canvas = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.float32)
+        canvas = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.uint8)
 
         for i, image in enumerate(images):
             img = image.astype(np.float32)
@@ -83,19 +87,6 @@ class DatacubeStitcher:
         display_img[display_img == -1] = 0
         return display_img
 
-    def rotate_cv(self, img, rotation):
-        """Standardizes rotation handling using OpenCV constants."""
-        if rotation == 0:
-            return img
-        elif rotation == 90:
-            return cv.rotate(img, cv.ROTATE_90_COUNTERCLOCKWISE)
-        elif rotation == 180:
-            return cv.rotate(img, cv.ROTATE_180)
-        elif rotation == 270:
-            return cv.rotate(img, cv.ROTATE_90_CLOCKWISE)
-        else:
-            raise ValueError("Rotation must be 0, 90, 180, or 270")
-
     def _precalculate_masks(self) -> list[np.ndarray]:
         """
         Pre-calculates the boolean masks for each fragment.
@@ -106,7 +97,7 @@ class DatacubeStitcher:
         for i, frag in enumerate(self.fragments):
             # Create a dummy image with the dimensions of the fragment and rotate accordingly
             src_mask = np.full((frag.height, frag.width), 255, dtype=np.uint8)
-            src_mask = self.rotate_cv(src_mask, frag.rotation)
+            src_mask = rotate_cv(src_mask, frag.rotation)
 
             # Warp the square mask into the perspective shape
             warped_mask = cv.warpPerspective(
@@ -162,7 +153,7 @@ class DatacubeStitcher:
                     )
 
                 # Rotate data if the scan was rotated relative to the others
-                layer_fragment = self.rotate_cv(
+                layer_fragment = rotate_cv(
                     layer_fragment, self.fragments[i].rotation
                 )
 
@@ -244,9 +235,9 @@ class DatacubeStitcher:
             self.fragments = transposed_fragments
 
             # Perform stitching in (C, H, W) format
-            datacube_file_temp = "stitched_spectral_temp.raw"
-            datacube_file = "stitched_spectral.raw"
-            rpl_file = "stitched_spectral.rpl"
+            datacube_file_temp = join(self.outputdir, "stitched_spectral_temp.raw")
+            datacube_file = join(self.outputdir, "stitched_spectral.raw")
+            rpl_file = join(self.outputdir, "stitched_spectral.rpl")
 
             print(
                 "\n=== Stitching in (C, H, W) format ===\nEstimated file size is:",
@@ -301,8 +292,9 @@ class DatacubeStitcher:
 
             return SpectralDatacubeFragment.from_file(datacube_file, rpl_file)
         else:
+            print(f"dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}",)
             # Handle Elemental Data (Format: .dms)
-            datacube_file = "stitched_elemental.dms"
+            datacube_file = join(self.outputdir, "stitched_elemental.dms")
             return ElementalDatacubeFragment.write_file(
                 datacube_file,
                 self.scaled_width,

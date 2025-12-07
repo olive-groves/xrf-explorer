@@ -7,7 +7,7 @@ from typing import Callable
 import numpy as np
 from matplotlib import pyplot as plt
 
-from xrf_explorer.server.stitcher.helper import transpose_spectral_datacube
+from xrf_explorer.server.stitcher.helper import transpose_spectral_datacube, rotate_cv
 
 
 class DatacubeFragment(ABC):
@@ -60,29 +60,21 @@ class DatacubeFragment(ABC):
         Used for visualization/alignment references.
         """
         memmap = self.load_datacube()
-        out = np.zeros((self.height, self.width), dtype=np.float32)
 
         if self.is_spectral():
-            # Spectral data is now in (C, H, W) format after transpose
-            # Iterate over channels and average them
-            acc = np.zeros((self.height, self.width), dtype=np.float32)
-            for c0 in range(0, self.channels, chunk_size):
-                c1 = min(c0 + chunk_size, self.channels)
-                print("Reducing chunk channels", c0, "to", c1, "of", self.channels)
-                chunk_data = memmap[c0:c1, :, :]
-                acc += chunk_data.sum(axis=0)
-                memmap.flush()
-            out[:, :] = (acc / self.channels).astype(np.float32)
+            data = np.mean(memmap, axis=2)
+
         else:
-            # Elemental: Iterate over channels (C-axis) and sum them up
-            acc = np.zeros((self.height, self.width), dtype=np.float32)
-            for c0 in range(0, self.channels, chunk_size):
-                c1 = min(c0 + chunk_size, self.channels)
-                print("Reducing chunk channels", c0, "to", c1, "of", self.channels)
-                chunk_data = memmap[c0:c1, :, :]
-                acc += chunk_data.sum(axis=0)
-            out[:, :] = (acc / self.channels).astype(np.float32)
-        return out
+            # Elemental
+            data = np.sum(memmap, axis=0)
+
+        # Normalize data
+        min, max = np.min(data), np.max(data)
+        out = np.clip((data - min) / (max - min) * 255, 0, 255).astype(np.uint8)
+
+        rotated = rotate_cv(out, self.rotation)
+
+        return rotated
 
 
 class ElementalDatacubeFragment(DatacubeFragment):
