@@ -4,8 +4,6 @@ from os.path import isdir, join
 
 import numpy as np
 
-from umap import UMAP
-
 from xrf_explorer.server.dim_reduction.general import (
     valid_element,
     get_path_to_dr_folder,
@@ -16,6 +14,14 @@ from xrf_explorer.server.file_system.cubes import normalize_ndarray_to_grayscale
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
+_UMAP = None
+
+def _get_umap():
+    global _UMAP
+    if _UMAP is None:
+        from umap import UMAP
+        _UMAP = UMAP
+    return _UMAP
 
 def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components: int,
                metric: str) -> np.ndarray | None:
@@ -32,15 +38,14 @@ def apply_umap(data: np.ndarray, n_neighbors: int, min_dist: float, n_components
     :return: np.ndarray, shape (n_samples, n_components) containing the result of UMAP applied to given data with the
         given parameters. If UMAP fails, None is returned
     """
-
+    umap = _get_umap()
     try:
-        embedding: np.ndarray = UMAP(
+        embedding: np.ndarray = umap(
             n_neighbors=n_neighbors,
             min_dist=min_dist,
             n_components=n_components,
             metric=metric
         ).fit_transform(data)
-
         return embedding
     except:
         return None
