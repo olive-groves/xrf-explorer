@@ -67,7 +67,7 @@ class DatacubeStitcher:
         """
         if len(images) != len(self.points):
             raise ValueError("Number of images must match number of point sets.")
-        canvas = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.uint8)
+        canvas = np.full((self.scaled_height, self.scaled_width), 0, dtype=np.float32)
 
         for i, image in enumerate(images):
             img = image.astype(np.float32)

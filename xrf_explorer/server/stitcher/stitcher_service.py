@@ -24,8 +24,8 @@ from xrf_explorer.server.stitcher.cube_fragments import (
 )
 from xrf_explorer.server.stitcher.helper import (
     Dimensions,
-    ScalarOptimizer, 
-    WarpSelection,
+    ScalarOptimizer,
+    WarpSelection, normalize_image,
 )
 from xrf_explorer.server.stitcher.stitcher import DatacubeStitcher
 
@@ -173,6 +173,7 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
         # Preview mode: only stitch greyscale projections
         preview_images = [frag.create_greyscale_projection() for frag in fragments]
         result_image = stitcher.stitch_greyscales(preview_images)
+        result_image = normalize_image(result_image)
         
         # Save preview image
         output_dir = _build_path(join("generated", "stitching"),data_source)
@@ -201,6 +202,7 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
         # projection = speccube.create_greyscale_projection()
 
         projection = result_fragment.create_greyscale_projection()
+        projection = normalize_image(projection)
         
         # save projection image
         output_dir = _build_path(join("generated", "stitching"),data_source)

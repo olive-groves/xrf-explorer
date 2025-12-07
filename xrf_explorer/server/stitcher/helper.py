@@ -240,10 +240,18 @@ def rotate_cv(img, rotation):
     else:
         raise ValueError("Rotation must be 0, 90, 180, or 270")
 
-def normalize_data_image(data):
-    # Normalize data
-    p1, p99 = np.percentile(data, (1, 99))
+def normalize_image(data: np.ndarray) -> np.ndarray:
+    """
+    Normalizes data in the image to range 0-255
+
+    Args:
+        data: numpy array to be normalized
+
+    Returns:
+        Normalized numpy array
+
+    """
     min, max = np.min(data), np.max(data)
-    out = np.clip((data - p1) / (p99 - p1) * 255, 0, 255).astype(np.uint8)
+    out = np.clip((data - min) / (max - min) * 255, 0, 255).astype(np.uint8)
 
     return out

@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from typing import Callable
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from xrf_explorer.server.stitcher.helper import transpose_spectral_datacube, rotate_cv
 
@@ -42,18 +41,6 @@ class DatacubeFragment(ABC):
         """Returns True if the data is Spectral, False if Elemental."""
         pass
 
-    def export_projection(self, file: str) -> None:
-        """Saves a summed/averaged 2D projection of the datacube as a JPG."""
-        picture = self.create_greyscale_projection()
-        plt.imsave(
-            file,
-            picture,
-            cmap="gray",
-            format="jpg",
-            vmin=picture.min(),
-            vmax=picture.max(),
-        )
-
     def create_greyscale_projection(self, chunk_size: int = 256) -> np.ndarray:
         """
         Collapses the multidimensional cube into a 2D image.
@@ -63,16 +50,10 @@ class DatacubeFragment(ABC):
 
         if self.is_spectral():
             data = np.mean(memmap, axis=2)
-
-        else:
-            # Elemental
+        else: # Elemental
             data = np.sum(memmap, axis=0)
 
-        # Normalize data
-        min, max = np.min(data), np.max(data)
-        out = np.clip((data - min) / (max - min) * 255, 0, 255).astype(np.uint8)
-
-        rotated = rotate_cv(out, self.rotation)
+        rotated = rotate_cv(data, self.rotation)
 
         return rotated
 
