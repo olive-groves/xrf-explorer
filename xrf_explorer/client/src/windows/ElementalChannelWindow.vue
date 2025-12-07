@@ -75,7 +75,8 @@ function resetSliders() {
               v-if="channel.selected"
               title="Select color"
               :for="`color_${channel.channel}`"
-              class="size-8 rounded-md p-2"
+              class="flex size-8 cursor-pointer items-center justify-center rounded-md border-2 border-current
+                hover:bg-accent"
             >
               <div
                 :for="`color_${channel.channel}`"
