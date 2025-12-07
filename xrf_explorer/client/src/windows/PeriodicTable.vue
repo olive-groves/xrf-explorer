@@ -13,7 +13,7 @@ onMounted(() => {
     appState.workspace &&
     (!appState.workspace.elementalChannels || appState.workspace.elementalChannels.length === 0)
   ) {
-    initializeChannels(appState.workspace);
+    void initializeChannels(appState.workspace);
   }
 });
 
@@ -59,6 +59,14 @@ const periodicTableLayout = [
  * @param elementIndex Index of the element that got selected.
  */
 function handleSelect(elementIndex: number) {
+  const oldSymbol = props.modelValue;
+  if (oldSymbol === ELEMENT_SYMBOLS[elementIndex - 1]) {
+    // Unselect if the same element is clicked again
+    emit("update:modelValue", "No element");
+    emit("select", "No element");
+    open.value = false;
+    return;
+  }
   const symbol = ELEMENT_SYMBOLS[elementIndex - 1];
   emit("update:modelValue", symbol);
   emit("select", symbol);
@@ -70,8 +78,8 @@ function handleSelect(elementIndex: number) {
   <Popover v-model:open="open">
     <PopoverTrigger as-child>
       <button
-        class="inline-flex h-9 w-fit items-center justify-between rounded-md border border-input bg-background px-3 py-2
-          text-sm shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        class="inline-flex h-9 w-fit items-center justify-between rounded-md border bg-background px-3 py-2 text-sm
+          shadow-sm hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       >
         <span>{{ props.modelValue }}</span>
         <svg
