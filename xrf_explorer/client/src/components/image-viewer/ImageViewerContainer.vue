@@ -4,6 +4,7 @@ import { reactive, ref } from "vue";
 import { pinnedGroups } from "@/lib/appState";
 import { ImageViewer } from ".";
 import { PinnedLayerCard } from "@/components/ui/slider";
+import { setLayerGroupProperty } from "./state";
 
 // State to track dragging
 const draggingCard = ref<null | {
@@ -75,6 +76,7 @@ function onUnpin(groupName: string) {
   const group = pinnedGroups.value.find((g) => g.name === groupName);
   if (group) {
     group.pinned = false;
+    setLayerGroupProperty(group, "pinnedProperty");
   }
   movedCards.delete(groupName);
   // debug log: show the item in movedCards after deletion
@@ -99,7 +101,7 @@ function onUnpin(groupName: string) {
         :key="group.name"
         :group="group"
         :data-group-name="group.name"
-        @unpin="onUnpin(group.name)"
+        @unpin="() => onUnpin(group.name)"
         @mousedown="(event: MouseEvent) => onMouseDownCard(event, group.name)"
       />
     </div>
@@ -111,7 +113,7 @@ function onUnpin(groupName: string) {
         :key="group.name + '-floating'"
         :group="group"
         :data-group-name="group.name"
-        @unpin="onUnpin(group.name)"
+        @unpin="() => onUnpin(group.name)"
         @mousedown="(e: MouseEvent) => onMouseDownCard(e, group.name)"
       />
     </div>
