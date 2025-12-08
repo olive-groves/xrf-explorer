@@ -12,6 +12,7 @@ import { getTargetSize } from "./api";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
+import {Dots} from "../ui/dots";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -39,6 +40,13 @@ const viewbox = ref<{
   y: 0,
   w: 0,
   h: 0,
+});
+
+const StitchPointsNew = ref<{
+  val: [number, number][];
+
+}>({
+  val: []
 });
 
 watch(datasource, resetViewport);
@@ -142,6 +150,12 @@ function onClick(event: MouseEvent) {
     // Prevent opening of context menu.
     event.preventDefault();
   }
+
+  if (appState.stitching && StitchPointsNew.value.val.length < 4) {
+    const pointObj = getBaseImageCoords(event);
+    StitchPointsNew.value.val.push([pointObj.x, pointObj.y]);
+
+  }
 }
 
 /**
@@ -213,6 +227,7 @@ function onMouseMove(event: MouseEvent) {
  */
 function onWheel(event: WheelEvent) {
   viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
+  console.log(viewport.zoom)
 
   // Clamp zoom to a reasonable range
   if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
@@ -227,11 +242,34 @@ function onWheel(event: WheelEvent) {
   }
 }
 
+function getBaseImageCoords(event: MouseEvent) {
+  const rect = glcanvas.value!.getBoundingClientRect();
+
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+
+  const zoomScale = Math.exp(viewport.zoom);
+
+  const halfW = width.value / 2;
+  const halfH = height.value / 2;
+
+  // Convert screen pixel → world space
+  const worldX = viewport.center.x + (px - halfW) * zoomScale;
+  const worldY = viewport.center.y - (py - halfH) * zoomScale;
+  
+  // Base image = world coordinates
+  return { x: worldX, y: worldY };
+}
+
+
 /**
  * Determines the current cursor that should be used in the image viewer.
  */
 const cursor = computed(() => {
-  if (toolState.value.tool == Tool.Lens) {
+  if (appState.stitching) {
+    return "crosshair"
+  }
+  else if (toolState.value.tool == Tool.Lens) {
     return "crosshair";
   } else {
     return dragging.value ? "grabbing" : "grab";
@@ -256,6 +294,17 @@ const cursor = computed(() => {
     @wheel="onWheel"
   >
     <canvas ref="glcanvas" />
+    
+    <Dots
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+      :zoom="viewport.zoom"
+      :sp="StitchPointsNew.val"
+    />
+    
+    
     <SelectionArea
       v-model="appState.selection.imageViewer"
       :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
@@ -264,6 +313,6 @@ const cursor = computed(() => {
       :w="viewbox.w"
       :h="viewbox.h"
     />
-    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
+    <Toolbar v-if="!appState.stitching" v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
   </div>
 </template>
