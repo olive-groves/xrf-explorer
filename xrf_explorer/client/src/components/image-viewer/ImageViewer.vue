@@ -296,6 +296,7 @@ const cursor = computed(() => {
     <canvas ref="glcanvas" />
     
     <Dots
+      v-if="appState.stitching"
       :x="viewbox.x"
       :y="viewbox.y"
       :w="viewbox.w"
