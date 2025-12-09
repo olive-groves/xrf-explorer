@@ -51,7 +51,7 @@ class DatacubeFragment(ABC):
         if self.is_spectral():
             data = np.mean(memmap, axis=2)
         else: # Elemental
-            data = np.sum(memmap, axis=0)
+            data = np.mean(memmap, axis=0)
 
         rotated = rotate_cv(data, self.rotation)
 
