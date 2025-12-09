@@ -15,13 +15,12 @@ from xrf_explorer.server.stitcher.helper import WarpSelection, Dimensions, split
 class DatacubeStitcher:
     """
     Main controller for stitching multiple DatacubeFragments into a single large datacube.
-    Handles memory mapping, multithreading, perspective warping, and intensity normalization.
+    Handles memory mapping, multithreading, perspective warping.
     """
 
     def __init__(
         self,
         fragments: Sequence[DatacubeFragment],
-        intensity_scales: list[float],
         points: list[tuple[WarpSelection, WarpSelection]],
         frame: Dimensions,
         scalar: float = 1.0,
@@ -30,7 +29,6 @@ class DatacubeStitcher:
         self.fragments = fragments
         self.frame = frame  # Output canvas dimensions
         self.points = points  # Alignment points for creating perspective matrices
-        self.intensity_scales = intensity_scales  # Brightness normalization factors
         self.scalar = scalar  # Global scaling factor
         self.outputdir = outputdir
 
@@ -43,10 +41,6 @@ class DatacubeStitcher:
             raise ValueError("No fragments provided")
         elif len(fragments) > 32:
             raise ValueError("Too many fragments provided, maximum is 32")
-        elif len(intensity_scales) != len(fragments) or len(points) != len(fragments):
-            raise ValueError(
-                "Number of intensity scales, fragments, and point sets must match."
-            )
         else:
             self.base_cube = fragments[0]
             # Ensure all fragments have compatible data types/channels before starting
@@ -81,7 +75,7 @@ class DatacubeStitcher:
             )
             # Overlay non-border pixels
             mask = warped_image != -1
-            canvas[mask] = warped_image[mask] * self.intensity_scales[i]
+            canvas[mask] = warped_image[mask]
 
         display_img = canvas.copy()
         display_img[display_img == -1] = 0
@@ -144,13 +138,6 @@ class DatacubeStitcher:
             for i, input_map in enumerate(input_maps):
                 # Both spectral and elemental now use (C, H, W) format
                 layer_fragment = input_map[channel, :, :].astype(np.float32, copy=False)
-
-                # Apply intensity normalization (if brightness differs between scans)
-                scale = self.intensity_scales[i]
-                if scale != 1.0:
-                    layer_fragment = np.multiply(
-                        layer_fragment, scale, dtype=np.float32
-                    )
 
                 # Rotate data if the scan was rotated relative to the others
                 layer_fragment = rotate_cv(

@@ -7,7 +7,7 @@ from __future__ import annotations
 from logging import getLogger, Logger
 
 import os
-from os.path import isfile, join, exists
+from os.path import join, exists
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -122,6 +122,37 @@ def load_datacube_fragments(
 
     return fragments
 
+def get_stitch_info(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
+    # Load contextual image
+    _, dimensions = load_contextual_image(
+        str(data.get("contextual_image")), data_source
+    )
+
+    # Load fragments
+    fragments = load_datacube_fragments(data, data_source)
+
+    # Parse warp points
+    points = parse_warp_points(data)
+
+    for i, points in enumerate(points):
+        local_points, target_points = points
+        fragment = fragments[0]
+        if not local_points.are_within(fragment.width, fragment.height):
+            raise ValueError(f"Fragment {i} local points are out of bounds.") # we should make errors json
+        elif not target_points.are_within(dimensions.width, dimensions.height):
+            raise ValueError(f"Fragment {i} target points are out of bounds.")
+
+    if (dimensions.width == 0 or dimensions.height == 0):
+        raise  ValueError("Contextual image has invalid dimensions.")
+
+    optimizer = ScalarOptimizer(points)
+    optimal_scalar, _ = optimizer.find_best_scalar()
+    reference_file_size = fragments[0].channels * dimensions.width * dimensions.height
+    return {
+        "optimal_scalar": optimal_scalar,
+        "full_size": reference_file_size
+    }
+
 def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
     """
     Performs datacube stitching based on the request data.
@@ -138,7 +169,7 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
         ValueError: If datacubes are incompatible or parameters are invalid.
     """
     # Load contextual image
-    contextual_image, dimensions = load_contextual_image(
+    _, dimensions = load_contextual_image(
         str(data.get("contextual_image")), data_source
     )
 
@@ -148,24 +179,25 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
     # Parse warp points
     points = parse_warp_points(data)
 
-    # Intensity scales
-    intensity_scales = [1.0] * len(fragments)
+    for i, points in enumerate(points):
+        local_points, target_points = points
+        fragment = fragments[0]
+        if not local_points.are_within(fragment.width, fragment.height):
+            raise ValueError(f"Fragment {i} local points are out of bounds.") # we should make errors json
+        elif not target_points.are_within(dimensions.width, dimensions.height):
+            raise ValueError(f"Fragment {i} target points are out of bounds.")
 
-    # Calculate optimal scalar
-    down_scaling = data.get("down_scaling", 1.0)
-    scalar = down_scaling
-    
-    # Optionally optimize scalar if not in preview mode
-    if not data.get("preview", False):
-        optimizer = ScalarOptimizer(points)
-        optimal_scalar, _ = optimizer.find_best_scalar()
-        scalar = optimal_scalar * down_scaling
+    if (dimensions.width == 0 or dimensions.height == 0):
+        raise  ValueError("Contextual image has invalid dimensions.")
+
+    # Get scaling factor
+    scalar = data.get("scalar", 1.0)
 
     outputdir = _build_path("", data_source)
 
     # Create stitcher
     stitcher = DatacubeStitcher(
-        fragments, intensity_scales, points, dimensions, scalar, outputdir
+        fragments, points, dimensions, scalar, outputdir
     )
 
     # Perform stitching
@@ -194,6 +226,11 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
     else:
         # Full stitching mode
         result_fragment = stitcher.stitch_datacubes()
+        rpl_file = result_fragment.rpl_file if result_fragment.is_spectral else None
+        if (result_fragment.is_spectral):
+            recipe_path = result_fragment.create_recipe_file(_build_path("", "stitched_spectral_recipe.csv"))
+        else: 
+            recipe_path = result_fragment.create_recipe_file(_build_path("", "stitched_elemental_recipe.csv"))
 
         # raw = _build_path("stitched_spectral.raw",data_source)
         # rpl = _build_path("stitched_spectral.rpl",data_source)
@@ -205,7 +242,7 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
         projection = normalize_image(projection)
         
         # save projection image
-        output_dir = _build_path(join("generated", "stitching"),data_source)
+        output_dir = _build_path(join("generated", "stitching"), data_source)
         os.makedirs(output_dir, exist_ok=True)
         projection_path = join(output_dir, "stitched_projection.png")
         cv.imwrite(projection_path, projection.astype(np.uint8))
@@ -214,13 +251,15 @@ def stitch_service(data: Dict[str, Any], data_source: str) -> Dict[str, Any]:
             "status": "success",
             "preview": False,
             "output_file": result_fragment.datacube_file,
+            "type": "spectral" if result_fragment.is_spectral else "elemental",
+            "rpl_file": rpl_file,
+            "recipe_file": recipe_path,
             "dimensions": {
                 "width": result_fragment.width,
                 "height": result_fragment.height,
                 "channels": result_fragment.channels
             }
         }
-
 
 def validate_stitching_request(data: dict) -> tuple[bool, str]:
     """

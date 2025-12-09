@@ -50,6 +50,12 @@ class WarpSelection:
                 dtype=np.float32,
             )
 
+    def are_within(self, width, height) -> bool:
+        """Checks if all points are within the given width and height."""
+        for point in [self.top_left, self.top_right, self.bottom_left, self.bottom_right]:
+            if not (0 <= point[0] <= width and 0 <= point[1] <= height):
+                return False
+        return True
 
 class Dimensions:
     """Simple struct to hold width and height."""
