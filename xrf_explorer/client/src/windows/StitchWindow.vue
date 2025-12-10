@@ -55,7 +55,7 @@ function onModeChanged(e: Event | CustomEvent) {
 }
 
 function updatePartialScan(prop: keyof GreyscaleState, val: number[]) {
-
+return prop + val
 }
 
 // Function to adjust the X-offset by a pixel delta (+1 or -1)

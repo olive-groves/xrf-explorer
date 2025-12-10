@@ -1,8 +1,5 @@
 <script lang="ts" setup>
 import { computed, reactive, watch } from "vue";
-import StitchMappingBase from "./StitchMappingBase.vue";
-import StitchMappingGreyscale from "./StitchMappingGreyscale.vue";
-import ImageViewer from "./ImageViewer.vue"
 import {
   grayscalePoints,
   selectedGrayscaleIndex,
@@ -11,6 +8,8 @@ import {
   maxPoints,
   createGrayPoint
 } from "./stitchPoints";
+import StitchMappingBase from "./StitchMappingBase.vue";
+import StitchMappingGreyscale from "./StitchMappingGreyscale.vue";
 
 // --- Selected grayscale and points ---
 const selectedIndex = computed(() => selectedGrayscaleIndex.value);
@@ -61,12 +60,14 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
   <div class="flex flex-col w-full h-full">
     <!-- Image viewers grow to fill available space -->
     <div class="flex w-full flex-grow border-b border-black">
+      <!-- Left = greyscale -->
       <div class="w-1/2 border-r border-black">
-        <!-- <ImageViewer class="w-full h-full" />  -->
-        <!-- <StitchMappingGreyscale class="w-full h-full" /> -->
+        <StitchMappingGreyscale class="w-full h-full" />
       </div>
+
+      <!-- Right = base -->
       <div class="w-1/2">
-        <ImageViewer class="w-full h-full" />
+        <StitchMappingBase class="w-full h-full" />
       </div>
     </div>
 

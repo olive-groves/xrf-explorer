@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Toolbar } from "@/components/image-viewer";
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onMounted, ref, watch, reactive } from "vue";
 import { Tool, ToolState } from "./types";
 import { useElementBounding } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
@@ -12,20 +12,25 @@ import { getTargetSize } from "./api";
 import { toast } from "vue-sonner";
 import { SelectionArea } from "../ui/selection-area";
 import { SelectionAreaType } from "@/lib/selection";
-import {Dots} from "../ui/dots";
 
 const config = inject<FrontendConfig>("config")!;
+
+// Emit base-image coordinates on left-click so wrappers can use them
+const emit = defineEmits<{
+  (e: "click-base", coords: { x: number; y: number }): void;
+}>();
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
-const viewport: {
+// Viewport in image-space coordinates
+const viewport = reactive<{
   center: { x: number; y: number };
   zoom: number;
-} = {
+}>({
   center: { x: 0, y: 0 },
   zoom: 0,
-};
+});
 
 /**
  * The viewbox of the image viewer as calculated from the viewport in render().
@@ -42,13 +47,6 @@ const viewbox = ref<{
   h: 0,
 });
 
-const StitchPointsNew = ref<{
-  val: [number, number][];
-
-}>({
-  val: []
-});
-
 watch(datasource, resetViewport);
 
 const toolState = ref<ToolState>({
@@ -59,7 +57,9 @@ const toolState = ref<ToolState>({
 });
 
 const selectionToolActive = computed(() =>
-  Object.values(SelectionAreaType as { [key: string]: string }).includes(toolState.value.tool as string),
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(
+    toolState.value.tool as string,
+  ),
 );
 
 let camera: THREE.OrthographicCamera;
@@ -104,7 +104,10 @@ function render() {
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
   viewbox.value = { x: x, y: y, w: w, h: h };
-  const lensSize = toolState.value.tool == Tool.Lens ? toolState.value.lensSize[0] : Number.MAX_VALUE;
+  const lensSize =
+    toolState.value.tool == Tool.Lens
+      ? toolState.value.lensSize[0]
+      : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
@@ -125,7 +128,10 @@ async function resetViewport() {
   const fill = 0.9;
   viewport.center.x = size.width / 2;
   viewport.center.y = size.height / 2;
-  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
+  viewport.zoom = Math.max(
+    Math.log((size.width / width.value) / fill),
+    Math.log((size.height / height.value) / fill),
+  );
 }
 
 /**
@@ -149,12 +155,12 @@ function onClick(event: MouseEvent) {
   if (event.button == 2) {
     // Prevent opening of context menu.
     event.preventDefault();
+    return;
   }
 
-  if (appState.stitching && StitchPointsNew.value.val.length < 4) {
+  if (event.button === 0) {
     const pointObj = getBaseImageCoords(event);
-    StitchPointsNew.value.val.push([pointObj.x, pointObj.y]);
-
+    emit("click-base", pointObj);
   }
 }
 
@@ -226,12 +232,18 @@ function onMouseMove(event: MouseEvent) {
  * @param event The wheel event containing the amount that was scrolled.
  */
 function onWheel(event: WheelEvent) {
-  viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
-  console.log(viewport.zoom)
+  viewport.zoom +=
+    (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
 
   // Clamp zoom to a reasonable range
-  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
-    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
+  if (
+    viewport.zoom >= config.imageViewer.zoomLimit ||
+    viewport.zoom <= -config.imageViewer.zoomLimit
+  ) {
+    viewport.zoom = Math.min(
+      config.imageViewer.zoomLimit,
+      Math.max(-config.imageViewer.zoomLimit, viewport.zoom),
+    );
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
       // Prevent the toast from being shown multiple times
@@ -242,6 +254,9 @@ function onWheel(event: WheelEvent) {
   }
 }
 
+/**
+ * Convert a mouse event (screen coords) to base-image coordinates.
+ */
 function getBaseImageCoords(event: MouseEvent) {
   const rect = glcanvas.value!.getBoundingClientRect();
 
@@ -256,24 +271,26 @@ function getBaseImageCoords(event: MouseEvent) {
   // Convert screen pixel → world space
   const worldX = viewport.center.x + (px - halfW) * zoomScale;
   const worldY = viewport.center.y - (py - halfH) * zoomScale;
-  
+
   // Base image = world coordinates
   return { x: worldX, y: worldY };
 }
-
 
 /**
  * Determines the current cursor that should be used in the image viewer.
  */
 const cursor = computed(() => {
-  if (appState.stitching) {
-    return "crosshair"
-  }
-  else if (toolState.value.tool == Tool.Lens) {
+  if (toolState.value.tool == Tool.Lens) {
     return "crosshair";
   } else {
     return dragging.value ? "grabbing" : "grab";
   }
+});
+
+// Expose viewbox + viewport so parents (mapping viewers) can use them
+defineExpose({
+  viewbox,
+  viewport,
 });
 </script>
 
@@ -294,26 +311,24 @@ const cursor = computed(() => {
     @wheel="onWheel"
   >
     <canvas ref="glcanvas" />
-    
-    <Dots
-      v-if="appState.stitching"
-      :x="viewbox.x"
-      :y="viewbox.y"
-      :w="viewbox.w"
-      :h="viewbox.h"
-      :zoom="viewport.zoom"
-      :sp="StitchPointsNew.val"
-    />
-    
-    
+
     <SelectionArea
       v-model="appState.selection.imageViewer"
-      :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
+      :type="
+        selectionToolActive
+          ? (toolState.tool as string as SelectionAreaType)
+          : undefined
+      "
       :x="viewbox.x"
       :y="viewbox.y"
       :w="viewbox.w"
       :h="viewbox.h"
     />
-    <Toolbar v-if="!appState.stitching" v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
+
+    <Toolbar
+      v-model:state="toolState"
+      @reset-viewport="resetViewport"
+      @clear-selection="clearSelection"
+    />
   </div>
 </template>

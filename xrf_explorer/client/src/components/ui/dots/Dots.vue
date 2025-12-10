@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { appState } from '@/lib/appState';
-import { Sphere } from 'three';
-import { number } from 'mathjs';
-const glcontainer = ref<HTMLDivElement | null>(null);
-const glcanvas = ref<HTMLCanvasElement | null>(null);
+import { computed} from 'vue'
 
 const props = defineProps<{
   /**
