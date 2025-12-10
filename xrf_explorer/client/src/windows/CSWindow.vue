@@ -3,7 +3,8 @@ import { elementalDataPresent } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
 import { LoaderPinwheel, Trash2 } from "lucide-vue-next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   NumberField,
   NumberFieldContent,
@@ -23,14 +24,13 @@ const {
   colors,
   useSelectionChecked,
   status,
+  segmentationMode,
   elementsSelected,
   selectableElementsList,
   disabledElements,
-  showConfirmDialog,
   recommendedClusters,
 
   // Methods
-  handleConfirm,
   generateColors,
   toggleCluster,
   enableAllClusters,
@@ -45,76 +45,94 @@ const {
 <template>
   <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
+      <!-- MODE TOGGLE -->
+      <div class="flex w-full rounded-md bg-muted p-1">
+        <Button
+          class="flex-1"
+          size="sm"
+          :variant="segmentationMode === 'complete' ? 'default' : 'ghost'"
+          @click="segmentationMode = 'complete'"
+        >
+          Complete Painting
+        </Button>
+        <Button
+          class="flex-1"
+          size="sm"
+          :variant="segmentationMode === 'elements' ? 'default' : 'ghost'"
+          @click="segmentationMode = 'elements'"
+        >
+          Elements
+        </Button>
+      </div>
+
       <!-- USE SELECTION AREA CHECKBOX -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 pt-2">
         <Checkbox id="use_selection_area" class="align-bottom" v-model:checked="useSelectionChecked" />
         <Label for="use_selection_area" class="align-middle">Use only selection area</Label>
       </div>
-      <!-- ELEMENT SELECTION -->
-      <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key="elementSel.id">
-        <div class="max-w-36 grow space-y-1">
-          <Label for="element">Element</Label>
-          <Select v-model="elementSel.name" class="w-full">
-            <SelectTrigger>
-              <SelectValue placeholder="Select element" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="complete" :disabled="elementsSelected.some((sel) => sel.name === 'complete')">
-                Complete painting
-              </SelectItem>
-              <SelectItem
-                v-for="element in selectableElementsList"
-                :key="element.name"
-                :value="element.name"
-                :disabled="disabledElements.includes(element.name) && elementSel.name !== element.name"
-              >
-                {{ element.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+
+      <!-- ELEMENT SELECTION (Only shown in Elements mode) -->
+      <div v-if="segmentationMode === 'elements'" class="mt-2 space-y-2 border-t pt-2">
+        <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key="elementSel.id">
+          <div class="max-w-36 grow space-y-1">
+            <Label for="element">Element</Label>
+            <Select v-model="elementSel.name" class="w-full">
+              <SelectTrigger>
+                <SelectValue placeholder="Select element" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="element in selectableElementsList"
+                  :key="element.name"
+                  :value="element.name"
+                  :disabled="disabledElements.includes(element.name) && elementSel.name !== element.name"
+                >
+                  {{ element.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="flex-1 space-y-1">
+            <Label for="elemental_threshold">Threshold (%)</Label>
+            <NumberField
+              v-model="elementSel.threshold"
+              :min="0"
+              :max="100"
+              :step="1"
+              id="elemental_threshold"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
+            >
+              <NumberFieldContent>
+                <NumberFieldDecrement />
+                <NumberFieldInput />
+                <NumberFieldIncrement />
+              </NumberFieldContent>
+            </NumberField>
+          </div>
+          <div>
+            <Button
+              variant="destructive"
+              class="mt-6 p-2"
+              @click="removeElement(index)"
+              :disabled="elementsSelected.length === 1"
+              title="Remove element"
+            >
+              <Trash2 class="size-4" />
+            </Button>
+          </div>
         </div>
-        <div class="flex-1 space-y-1">
-          <Label for="elemental_threshold">Threshold (%)</Label>
-          <NumberField
-            v-model="elementSel.threshold"
-            :min="0"
-            :max="100"
-            :step="1"
-            id="elemental_threshold"
-            :format-options="{
-              minimumIntegerDigits: 1,
-              maximumFractionDigits: 0,
-            }"
-          >
-            <NumberFieldContent>
-              <NumberFieldDecrement />
-              <NumberFieldInput />
-              <NumberFieldIncrement />
-            </NumberFieldContent>
-          </NumberField>
-        </div>
-        <div>
-          <Button
-            variant="destructive"
-            class="mt-6 p-2"
-            @click="removeElement(index)"
-            :disabled="elementsSelected.length === 1"
-            title="Remove element"
-          >
-            <Trash2 class="size-4" />
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          @click="addElementSelection"
+          :disabled="elementsSelected.length >= selectableElementsList.length"
+        >
+          Add element
+        </Button>
       </div>
-      <Button
-        variant="outline"
-        @click="addElementSelection"
-        :disabled="
-          elementsSelected.length >= selectableElementsList.length ||
-          elementsSelected.some((sel) => sel.name === 'complete')
-        "
-      >
-        Add element
-      </Button>
+
       <!-- RECOMMENDED CLUSTERS -->
       <div class="flex flex-col space-y-1.5 border-t border-border pt-2">
         <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
@@ -136,6 +154,7 @@ const {
           </div>
         </div>
       </div>
+
       <!-- COLOR CLUSTER GENERATION -->
       <div class="flex space-x-2">
         <!-- CLUSTER NUMBER SELECTION -->
@@ -175,7 +194,7 @@ const {
       </div>
 
       <!-- COLOR PALETTE -->
-      <div v-if="elementsSelected[0] && status == Status.SUCCESS" class="flex flex-wrap gap-2">
+      <div v-if="status == Status.SUCCESS" class="flex flex-wrap gap-2">
         <div
           v-for="(color, colorIndex) in colors"
           :key="color"
@@ -192,19 +211,5 @@ const {
         <Button class="basis-1/2" variant="outline" @click="disableAllClusters">Deselect All</Button>
       </div>
     </div>
-    <Dialog v-model:open="showConfirmDialog">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirm Selection</DialogTitle>
-          <DialogDescription>
-            <div class="mt-3">Selecting 'Complete painting' will remove all other selected elements. Continue?</div>
-          </DialogDescription>
-        </DialogHeader>
-        <div class="mt-1 flex justify-end space-x-2">
-          <Button variant="outline" @click="handleConfirm(false)">Cancel</Button>
-          <Button @click="handleConfirm(true)">Confirm</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   </Window>
 </template>

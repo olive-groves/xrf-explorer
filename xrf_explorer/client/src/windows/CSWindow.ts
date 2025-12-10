@@ -50,6 +50,11 @@ export type ColorSegmentationRequestBody = {
 };
 
 /**
+ * Type for segmentation mode.
+ */
+export type SegmentationMode = "complete" | "elements";
+
+/**
  * Composable function for managing color segmentation window state and behavior.
  * @returns An object containing reactive state and methods for color segmentation.
  */
@@ -63,38 +68,14 @@ export function useCSWindow() {
   const colors = ref<string[]>([""]);
   const useSelectionChecked = ref<boolean>(false);
   const status = ref(Status.WAITING);
+  const segmentationMode = ref<SegmentationMode>("complete");
 
   const elementsSelected = ref([{ id: 1, name: "", threshold: 20 }]);
   const selectableElementsList = computed(() => elements.value);
   const disabledElements = computed(() => {
-    // Collect all currently selected names (except empty and 'complete')
-    return elementsSelected.value.map((e) => e.name).filter((name) => name && name !== "complete");
+    // Collect all currently selected names (except empty)
+    return elementsSelected.value.map((e) => e.name).filter((name) => name);
   });
-
-  // Dialog visibility ref for confirmation
-  const showConfirmDialog = ref(false);
-  let pendingElementsSelected: typeof elementsSelected.value | null = null;
-
-  /**
-   * Function to handle the user's choice in the confirmation dialog.
-   * @param choice User's choice: true for confirm, false for cancel.
-   */
-  function handleConfirm(choice: boolean) {
-    if (choice) {
-      elementsSelected.value = [{ id: 1, name: "complete", threshold: elementsSelected.value[0].threshold }];
-    } else {
-      if (pendingElementsSelected) {
-        const firstNonComplete = pendingElementsSelected.find((sel) => sel.name && sel.name !== "complete");
-        if (firstNonComplete) {
-          elementsSelected.value = [firstNonComplete];
-        } else {
-          elementsSelected.value = pendingElementsSelected.map((e) => (e.name === "complete" ? { ...e, name: "" } : e));
-        }
-      }
-    }
-    pendingElementsSelected = null;
-    showConfirmDialog.value = false;
-  }
 
   // Computed properties
   const areaSelection: ComputedRef<SelectionAreaSelection> = computed(() => appState.selection.imageViewer);
@@ -114,32 +95,33 @@ export function useCSWindow() {
   // Watchers
   watch(areaSelection, updateAreaSelection, { deep: true, immediate: true });
 
-  // Watch for selection of "complete" with other elements, and confirm with user
-  watch(
-    elementsSelected,
-    (newVal) => {
-      const hasComplete = newVal.some((sel) => sel.name === "complete");
-      const hasOtherElements = newVal.some((sel) => sel.name && sel.name !== "" && sel.name !== "complete");
-
-      if (hasComplete && hasOtherElements) {
-        // Open dialog instead of window.confirm
-        pendingElementsSelected = [...newVal];
-        showConfirmDialog.value = true;
-      }
-    },
-    { deep: true },
-  );
-
   /**
    * Fetch the hexadecimal colors' data.
    * @returns True if the colors were fetched successfully, false otherwise.
    */
   async function fetchColors() {
     status.value = Status.LOADING;
-    if (elementsSelected.value[0] == null) {
-      currentError.value = "Please select an element";
-      status.value = Status.ERROR;
-      return;
+    const selectedElements: [number, number][] = [];
+
+    // Validate and Build Payload based on Mode
+    if (segmentationMode.value === "elements") {
+      // Validation: Must have at least one element selected
+      if (elementsSelected.value.length === 0 || !elementsSelected.value[0].name) {
+        currentError.value = "Please select at least one element";
+        status.value = Status.ERROR;
+        return false;
+      }
+
+      // Build payload for specific elements
+      for (let i = 0; i < elementsSelected.value.length; i++) {
+        if (elementsSelected.value[i].name) {
+          selectedElements.push([getElementIndex(elementsSelected.value[i].name), elementsSelected.value[i].threshold]);
+        }
+      }
+    } else {
+      // Complete Painting Mode: Send index 0 (Complete)
+      // Threshold doesn't matter for complete painting, sending 0
+      selectedElements.push([0, 0]);
     }
 
     //Read the selection for the payload
@@ -148,12 +130,6 @@ export function useCSWindow() {
       activeSelection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
     } else {
       activeSelection = await getFullImageSelection();
-    }
-
-    //Read the elements for the payload
-    const selectedElements: [number, number][] = [];
-    for (let i = 0; i < elementsSelected.value.length; i++) {
-      selectedElements.push([getElementIndex(elementsSelected.value[i].name), elementsSelected.value[i].threshold]);
     }
 
     //Create payload json
@@ -214,9 +190,18 @@ export function useCSWindow() {
       // Update selection
       selection.value.elements = [] as number[];
       selection.value.thresholds = [] as number[];
-      for (let i = 0; i < elementsSelected.value.length; i++) {
-        selection.value.elements.push(getElementIndex(elementsSelected.value[i].name));
-        selection.value.thresholds.push(elementsSelected.value[i].threshold);
+
+      if (segmentationMode.value === "elements") {
+        for (let i = 0; i < elementsSelected.value.length; i++) {
+          if (elementsSelected.value[i].name) {
+            selection.value.elements.push(getElementIndex(elementsSelected.value[i].name));
+            selection.value.thresholds.push(elementsSelected.value[i].threshold);
+          }
+        }
+      } else {
+        // Complete painting logic
+        selection.value.elements.push(0);
+        selection.value.thresholds.push(0);
       }
 
       selection.value.enabled = Array(colors.value.length).fill(false);
@@ -287,12 +272,8 @@ export function useCSWindow() {
       return 0;
     }
     // Get index of new channel
-    if (elementName == "complete") {
-      return 0;
-    } else {
-      const index = elements.value.findIndex((element) => element.name === elementName);
-      return elements.value[index].channel + 1;
-    }
+    const index = elements.value.findIndex((element) => element.name === elementName);
+    return elements.value[index].channel + 1;
   }
 
   /**
@@ -341,12 +322,26 @@ export function useCSWindow() {
    */
   async function calculateRecommendedClusters() {
     try {
-      // Catch when the user hasn't selected an element.
-      for (const sel of elementsSelected.value) {
-        if (!sel || !sel.name || sel.threshold === undefined) {
-          toast.error("Invalid element selection");
-          return;
+      const selectedElements: [number, number][] = [];
+
+      // Build payload based on mode
+      if (segmentationMode.value === "elements") {
+        // Validation
+        for (const sel of elementsSelected.value) {
+          if (!sel || !sel.name || sel.threshold === undefined) {
+            toast.error("Invalid element selection");
+            return;
+          }
         }
+        // Build payload for specific elements
+        for (const sel of elementsSelected.value) {
+          if (sel.name) {
+            selectedElements.push([getElementIndex(sel.name), sel.threshold]);
+          }
+        }
+      } else {
+        // Complete Painting Mode
+        selectedElements.push([0, 0]);
       }
 
       recommendedStatus.value = Status.LOADING;
@@ -356,7 +351,7 @@ export function useCSWindow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           selection: flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height),
-          elements: elementsSelected.value.map((sel) => [getElementIndex(sel.name), sel.threshold]),
+          elements: selectedElements,
         }),
       });
       // Handle response
@@ -389,21 +384,19 @@ export function useCSWindow() {
   return {
     // Constants and injected values
     recommendedStatus,
-    // config,
     selection,
     number_clusters,
     currentError,
     colors,
     useSelectionChecked,
     status,
+    segmentationMode,
     elementsSelected,
     selectableElementsList,
     disabledElements,
-    showConfirmDialog,
     recommendedClusters,
 
     // Methods
-    handleConfirm,
     generateColors,
     toggleCluster,
     enableAllClusters,
