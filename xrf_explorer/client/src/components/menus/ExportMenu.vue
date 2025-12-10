@@ -19,7 +19,7 @@ import { sentenceCase, snakeCase } from "change-case";
     >
       Export
     </MenubarTrigger>
-    <MenubarContent>
+    <MenubarContent v-if="datasource">
       <MenubarItem
         v-if="datasource"
         @click="() => exportScene()"
