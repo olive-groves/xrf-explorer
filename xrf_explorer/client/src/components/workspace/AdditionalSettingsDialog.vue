@@ -28,6 +28,7 @@ function dialogUpdate(open: boolean) {
 const low = ref(model.value.spectralParams.low);
 const high = ref(model.value.spectralParams.high);
 const binSize = ref(model.value.spectralParams.binSize);
+const offset = ref(model.value.spectralParams.offset); // Corrected variable name from mode.value to model.value
 const correctSpectraParams = ref(true);
 
 /**
@@ -55,6 +56,7 @@ function save() {
   model.value.spectralParams.low = low.value;
   model.value.spectralParams.high = high.value;
   model.value.spectralParams.binSize = binSize.value;
+  model.value.spectralParams.offset = offset.value;
   dialogOpen.value = false;
 }
 </script>
@@ -66,53 +68,71 @@ function save() {
     </DialogTrigger>
     <DialogContent>
       <div class="space-y-4">
-        <!-- HEADER -->
         <DialogTitle class="font-bold">Additional settings</DialogTitle>
 
-        <!-- Spectra parameters -->
         <p class="font-bold">Spectral datacube parameters</p>
         <Label>{{ constraints }}</Label>
-        <div class="space-x-2">
-          <Label for="low-input">Lower energy boundary (channels)</Label>
-          <Input
-            ref="inputComponent"
-            type="number"
-            :min="MIN_ENERGY"
-            :max="MAX_ENERGY"
-            step="1"
-            v-model="low"
-            id="low-input"
-            @change="updateCorrectParams"
-          />
-        </div>
-        <div class="space-x-2">
-          <Label for="high-input">Higher energy boundary (channels)</Label>
-          <Input
-            ref="inputComponent"
-            type="number"
-            step="1"
-            :min="MIN_ENERGY"
-            :max="MAX_ENERGY"
-            v-model="high"
-            id="high-input"
-            @change="updateCorrectParams"
-          />
-        </div>
-        <div class="space-x-2">
-          <Label for="bin-size-input">Bin size (channels)</Label>
-          <Input
-            ref="inputComponent"
-            type="number"
-            min="0"
-            :max="MAX_ENERGY"
-            step="1"
-            v-model="binSize"
-            id="bin-size-input"
-            @change="updateCorrectParams"
-          />
+
+        <div class="flex space-x-4">
+          <div class="space-y-2 flex-1">
+            <Label for="low-input">Lower energy boundary (channels)</Label>
+            <Input
+              ref="inputComponent"
+              type="number"
+              :min="MIN_ENERGY"
+              :max="MAX_ENERGY"
+              step="1"
+              v-model="low"
+              id="low-input"
+              @change="updateCorrectParams"
+            />
+          </div>
+
+          <div class="space-y-2 flex-1">
+            <Label for="high-input">Higher energy boundary (channels)</Label>
+            <Input
+              ref="inputComponent"
+              type="number"
+              step="1"
+              :min="MIN_ENERGY"
+              :max="MAX_ENERGY"
+              v-model="high"
+              id="high-input"
+              @change="updateCorrectParams"
+            />
+          </div>
         </div>
 
-        <!--Footer-->
+        <div class="flex space-x-4">
+          <div class="space-y-2 flex-1">
+            <Label for="bin-size-input">Bin size (channels)</Label>
+            <Input
+              ref="inputComponent"
+              type="number"
+              min="0"
+              :max="MAX_ENERGY"
+              step="1"
+              v-model="binSize"
+              id="bin-size-input"
+              @change="updateCorrectParams"
+            />
+          </div>
+
+          <div class="space-y-2 flex-1">
+            <Label for="offset-input">Offset (KeV)</Label>
+            <Input
+              ref="inputComponent"
+              type="number"
+              step="1"
+              min="0"
+              :max="MAX_ENERGY"
+              v-model="offset"
+              id="offset-input"
+              @change="updateCorrectParams"
+            />
+          </div>
+        </div>
+
         <Button :disabled="!correctSpectraParams" @click="save" title="save-params">Save</Button>
         <Label style="color: red" v-show="!correctSpectraParams"> Parameters do not meet constraints</Label>
       </div>

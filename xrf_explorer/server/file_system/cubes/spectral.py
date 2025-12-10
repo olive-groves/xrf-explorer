@@ -274,23 +274,20 @@ def update_bin_params(data_source: str):
     # get dimensions from rpl file
     info = parse_rpl(path_to_rpl)
 
-    try:
-        offset: int = int(info['depthscaleorigin'])
-    except:
-        offset: int = 0
-    
     workspace_dict: dict | None = get_workspace_dict(data_source)
 
     if workspace_dict is not None:
         low: float = workspace_dict["spectralParams"]["low"]
         high: float = workspace_dict["spectralParams"]["high"]
         bin_size: float = workspace_dict["spectralParams"]["binSize"]
+        offset: float = workspace_dict["spectralParams"]["offset"]
         
         increment: float = (40 - offset) / 4096
         workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
         workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
         workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
-    
+        workspace_dict["spectralParams"]["offset"] = ceil(bin_size / increment)
+
     workspace_path = get_path_to_workspace(data_source)
 
     with open(workspace_path, 'w') as f:
