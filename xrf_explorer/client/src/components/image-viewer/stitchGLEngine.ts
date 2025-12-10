@@ -11,14 +11,7 @@ export interface StitchEngine {
   renderer: THREE.WebGLRenderer;
   camera: THREE.OrthographicCamera;
   layers: Layer[];
-  /**
-   * Viewport in the same coordinates as the main viewer:
-   * center in image space, zoom as log scale.
-   */
-  viewport: {
-    center: { x: number; y: number };
-    zoom: number;
-  };
+
   /**
    * Create an image layer
    * Returns the created Layer when the texture is loaded.
@@ -41,10 +34,6 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   camera.lookAt(0, 0, 0);
   const layers: Layer[] = [];
 
-  const viewport = {
-    center: { x: 0, y: 0 },
-    zoom: 0,
-  };
 
   async function createImageLayer(id: string, imageUrl: string): Promise<Layer> {
     console.debug("[stitch] Creating layer", id, imageUrl);
@@ -94,7 +83,6 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
     renderer,
     camera,
     layers,
-    viewport,
     createImageLayer,
     dispose,
   };

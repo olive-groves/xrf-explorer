@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch, reactive } from "vue";
 import { useElementBounding } from "@vueuse/core";
 import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
+import { createGrayPoint, grayscalePoints, selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
+import Dots from "./Dots.vue";
 
 // GL engine instance
 let engine: StitchEngine | null = null;
@@ -38,6 +39,27 @@ const grayscaleUrl = computed(() => {
     grayscale.value.imageLocation,
     appState.workspace!.name
   );
+});
+
+const viewbox = ref<{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}>({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+});
+
+// Viewport in image-space coordinates
+const viewport = reactive<{
+  center: { x: number; y: number };
+  zoom: number;
+}>({
+  center: { x: 0, y: 0 },
+  zoom: 0,
 });
 
 // Track the GL layer currently displayed
@@ -76,9 +98,9 @@ async function resetViewport() {
   const size = await getTargetSize();
   const fill = 0.9;
 
-  engine.viewport.center.x = size.width / 2;
-  engine.viewport.center.y = size.height / 2;
-  engine.viewport.zoom = Math.max(
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(
     Math.log(size.width / width.value / fill),
     Math.log(size.height / height.value / fill)
   );
@@ -91,13 +113,14 @@ function startLoop() {
   function tick() {
     if (!engine) return;
 
-    const vp = engine.viewport;
+    // const vp = viewport;
 
-    const w = width.value * Math.exp(vp.zoom);
-    const h = height.value * Math.exp(vp.zoom);
+    const w = width.value * Math.exp(viewport.zoom);
+    const h = height.value * Math.exp(viewport.zoom);
 
-    const x = vp.center.x - w / 2;
-    const y = vp.center.y - h / 2;
+    const x = viewport.center.x - w / 2;
+    const y = viewport.center.y - h / 2;
+    viewbox.value = { x: x, y: y, w: w, h: h };
 
     // update viewport uniform for all layers
     engine.layers.forEach((layer) =>
@@ -137,15 +160,48 @@ function onMouseLeave() {
 
 function onMouseMove(ev: MouseEvent) {
   if (!engine || !dragging.value) return;
-  const scale = Math.exp(engine.viewport.zoom);
-  engine.viewport.center.x -= ev.movementX * scale;
-  engine.viewport.center.y += ev.movementY * scale;
+  const scale = Math.exp(viewport.zoom);
+  viewport.center.x -= ev.movementX * scale;
+  viewport.center.y += ev.movementY * scale;
 }
 
 function onWheel(ev: WheelEvent) {
   if (!engine) return;
-  engine.viewport.zoom += ev.deltaY / 450;
+  viewport.zoom += ev.deltaY / 450;
 }
+
+function onClick(event: MouseEvent) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
+    event.preventDefault();
+
+    if (appState.stitching) {
+      const pointObj = getBaseImageCoords(event);
+      createGrayPoint(pointObj.x, pointObj.y)
+  
+    }
+  }
+}
+
+function getBaseImageCoords(event: MouseEvent) {
+  const rect = glcanvas.value!.getBoundingClientRect();
+
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+
+  const zoomScale = Math.exp(viewport.zoom);
+
+  const halfW = width.value / 2;
+  const halfH = height.value / 2;
+
+  // Convert screen pixel → world space
+  const worldX = viewport.center.x + (px - halfW) * zoomScale;
+  const worldY = viewport.center.y - (py - halfH) * zoomScale;
+  
+  // Base image = world coordinates
+  return { x: worldX, y: worldY };
+}
+
 
 // Lifecycle
 onMounted(async () => {
@@ -172,13 +228,23 @@ onBeforeUnmount(() => {
   <div
     ref="container"
     class="relative w-full h-full"
-    style="cursor: grab"
+    style="cursor: crosshair"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
     @mouseleave="onMouseLeave"
     @mousemove="onMouseMove"
     @wheel="onWheel"
+    @click="onClick"
+    @contextmenu="onClick"
   >
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
+
+    <Dots
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+      :zoom="viewport.zoom"
+      />
   </div>
 </template>

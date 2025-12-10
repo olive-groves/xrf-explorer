@@ -25,10 +25,11 @@ export function setSelectedGrayscaleIndex(i: number | null) {
   selectedPointId.value = null; 
 }
 
-function getPointsForGray(idx: number): StitchPoint[] {
+export function getPointsForGray(idx: any): StitchPoint[] {
   if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
   return grayscalePoints.value[idx];
 }
+
 
 export function createGrayPoint(x: number, y: number) {
   if (selectedGrayscaleIndex.value === null) return;
@@ -79,6 +80,25 @@ export function setRotation(idx: number, rot: number) {
   window.dispatchEvent(new CustomEvent("stitch:grayscale-prop-changed", {
     detail: { index: idx, prop: "rotation", value: clamped }
   }));
+}
+
+
+export function getFlatMap<T>(
+  mapper: (p: StitchPoint, grayIndex: number) => T | T[]
+): T[] {
+  const result: T[] = [];
+
+  for (const [idxStr, points] of Object.entries(grayscalePoints.value)) {
+    const idx = Number(idxStr);
+
+    for (const p of points) {
+      const mapped = mapper(p, idx);
+      if (Array.isArray(mapped)) result.push(...mapped);
+      else result.push(mapped);
+    }
+  }
+
+  return result;
 }
 
 /**

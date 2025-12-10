@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, inject, onMounted, onBeforeUnmount, reactive } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import { useElementBounding } from "@vueuse/core";
 import { appState } from "@/lib/appState";
@@ -9,13 +9,14 @@ import { createStitchEngine, StitchEngine } from "./stitchGLEngine";
 import { StitchTool, StitchState } from "./types";
 import { SelectionAreaType } from "@/lib/selection";
 import { toast } from "vue-sonner";
-
+import Dots from "../ui/dots/Dots.vue";
 // stitchPoints
 import {
   selectedPointId,
   selectedGrayscaleIndex,
   updateBasePoint,
 } from "./stitchPoints";
+
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -38,6 +39,27 @@ const selectionToolActive = computed(() =>
     stitchState.value.tool as string,
   ),
 );
+
+const viewbox = ref<{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}>({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
+});
+
+// Viewport in image-space coordinates
+const viewport = reactive<{
+  center: { x: number; y: number };
+  zoom: number;
+}>({
+  center: { x: 0, y: 0 },
+  zoom: 0,
+});
 
 const dragging = ref(false);
 const lensLocked = ref(false);
@@ -79,9 +101,9 @@ async function resetViewport() {
   if (!engine) return;
   const size = await getTargetSize();
   const fill = 0.9;
-  engine.viewport.center.x = size.width / 2;
-  engine.viewport.center.y = size.height / 2;
-  engine.viewport.zoom = Math.max(
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(
     Math.log((size.width / width.value) / fill),
     Math.log((size.height / height.value) / fill),
   );
@@ -93,11 +115,11 @@ function startRenderLoop() {
   const render = () => {
     if (!engine) return;
 
-    const w = width.value * Math.exp(engine.viewport.zoom);
-    const h = height.value * Math.exp(engine.viewport.zoom);
-    const x = engine.viewport.center.x - w / 2;
-    const y = engine.viewport.center.y - h / 2;
-
+    const w = width.value * Math.exp(viewport.zoom);
+    const h = height.value * Math.exp(viewport.zoom);
+    const x = viewport.center.x - w / 2;
+    const y = viewport.center.y - h / 2;
+    viewbox.value = { x: x, y: y, w: w, h: h };
     engine.layers.forEach((layer: { uniform: { iViewport: { value: { set: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }; }; uRadius: { value: number; }; }; }) => {
       layer.uniform.iViewport.value.set(x, y, w, h);
 
@@ -154,9 +176,9 @@ function onMouseMove(event: MouseEvent) {
   if (!engine) return;
 
   if (dragging.value) {
-    const scale = Math.exp(engine.viewport.zoom) * stitchState.value.movementSpeed[0];
-    engine.viewport.center.x -= event.movementX * scale;
-    engine.viewport.center.y += event.movementY * scale;
+    const scale = Math.exp(viewport.zoom) * stitchState.value.movementSpeed[0];
+    viewport.center.x -= event.movementX * scale;
+    viewport.center.y += event.movementY * scale;
   }
 
   const rect = glcanvas.value!.getBoundingClientRect();
@@ -176,16 +198,16 @@ function onMouseMove(event: MouseEvent) {
 function onWheel(event: WheelEvent) {
   if (!engine) return;
 
-  engine.viewport.zoom +=
+  viewport.zoom +=
     (event.deltaY / 500.0) * stitchState.value.scrollSpeed[0];
 
   if (
-    engine.viewport.zoom >= config.imageViewer.zoomLimit ||
-    engine.viewport.zoom <= -config.imageViewer.zoomLimit
+    viewport.zoom >= config.imageViewer.zoomLimit ||
+    viewport.zoom <= -config.imageViewer.zoomLimit
   ) {
-    engine.viewport.zoom = Math.min(
+    viewport.zoom = Math.min(
       config.imageViewer.zoomLimit,
-      Math.max(-config.imageViewer.zoomLimit, engine.viewport.zoom),
+      Math.max(-config.imageViewer.zoomLimit, viewport.zoom),
     );
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
@@ -204,13 +226,13 @@ function getBaseImageCoords(event: MouseEvent) {
   const px = event.clientX - rect.left;
   const py = event.clientY - rect.top;
 
-  const zoomScale = Math.exp(engine.viewport.zoom);
+  const zoomScale = Math.exp(viewport.zoom);
 
   const halfW = width.value / 2;
   const halfH = height.value / 2;
 
-  const worldX = engine.viewport.center.x + (px - halfW) * zoomScale;
-  const worldY = engine.viewport.center.y - (py - halfH) * zoomScale;
+  const worldX = viewport.center.x + (px - halfW) * zoomScale;
+  const worldY = viewport.center.y - (py - halfH) * zoomScale;
 
   return { x: worldX, y: worldY };
 }
@@ -247,5 +269,9 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     @wheel="onWheel"
   >
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
+
+
+    
+
   </div>
 </template>
