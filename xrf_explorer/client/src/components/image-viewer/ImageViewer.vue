@@ -152,7 +152,7 @@ const lensLocked = ref(false);
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (event.button == 2) {
+  if (event.button == 2 ) {
     // Prevent opening of context menu.
     event.preventDefault();
     return;
@@ -162,6 +162,8 @@ function onClick(event: MouseEvent) {
     const pointObj = getBaseImageCoords(event);
     emit("click-base", pointObj);
   }
+
+
 }
 
 /**
