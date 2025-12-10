@@ -24,6 +24,7 @@ async function attemptLogout() {
       appState.user.username = "";
       appState.user.role = "";
       appState.user.projects = [];
+      location.reload(); // To unload the current data. Sorry for any future developers.
       emit("close");
     }
   } catch (error: unknown) {
