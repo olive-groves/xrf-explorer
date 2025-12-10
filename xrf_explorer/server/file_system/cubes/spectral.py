@@ -286,7 +286,7 @@ def update_bin_params(data_source: str):
         workspace_dict["spectralParams"]["low"] = floor((low - offset) / increment)
         workspace_dict["spectralParams"]["high"] = ceil((high - offset) / increment)
         workspace_dict["spectralParams"]["binSize"] = ceil(bin_size / increment)
-        workspace_dict["spectralParams"]["offset"] = ceil(bin_size / increment)
+        workspace_dict["spectralParams"]["offset"] = offset
 
     workspace_path = get_path_to_workspace(data_source)
 

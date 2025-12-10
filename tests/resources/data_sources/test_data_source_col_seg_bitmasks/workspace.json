@@ -49,6 +49,7 @@
         "low": 0,
         "high": 16,
         "binSize": 1,
-        "binned": true
+        "binned": true,
+        "offset": 0
     }
 }
