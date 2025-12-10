@@ -5,7 +5,7 @@ import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { selectedGrayscaleIndex } from "./stitchPoints";
+import { selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 
@@ -25,6 +25,11 @@ const grayscale = computed(() => {
   const idx = selectedGrayscaleIndex.value;
   if (idx == null) return null;
   return appState.workspace?.grayscale?.[idx] ?? null;
+});
+
+window.addEventListener("stitch:selected-grayscale", (e: Event) => {
+  const i = (e as CustomEvent).detail as number;
+  setSelectedGrayscaleIndex(i);
 });
 
 const grayscaleUrl = computed(() => {
@@ -166,7 +171,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="container"
-    class="relative w-full h-full bg-black"
+    class="relative w-full h-full"
     style="cursor: grab"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"

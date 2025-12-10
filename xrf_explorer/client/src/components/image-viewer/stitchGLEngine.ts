@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { getTargetSize } from "./api";
 import fragment from "./fragment.glsl?raw";
 import vertex from "./vertex.glsl?raw";
 import { Layer, LayerType, LayerVisibility } from "./types";
@@ -133,13 +132,15 @@ async function loadLayerIntoEngine(
   const geometry = new THREE.ShapeGeometry(shape);
 
   // Scale the square to targetSize
-  const size = await getTargetSize();
+  const imageWidth = texture.image.width;
+  const imageHeight = texture.image.height;
+
   const mat = new THREE.Matrix4();
   mat.set(
-    size.width, 0,          0, 0,
-    0,          size.height,0, 0,
-    0,          0,          1, 0,
-    0,          0,          0, 1,
+    imageWidth, 0,           0, 0,
+    0,          imageHeight, 0, 0,
+    0,          0,           1, 0,
+    0,          0,           0, 1,
   );
   geometry.applyMatrix4(mat);
 

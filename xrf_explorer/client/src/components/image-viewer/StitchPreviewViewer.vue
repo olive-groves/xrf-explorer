@@ -162,10 +162,18 @@ onMounted(async () => {
   if (!glcanvas.value) return;
 
   engine = createStitchEngine(glcanvas.value);
-
-  // Make sure camera actually sees the plane
   engine.camera.position.set(0, 0, 10);
   engine.camera.lookAt(0, 0, 0);
+
+  const ws = appState.workspace;
+  if (!ws?.baseImage) return;
+
+  const loc = ws.baseImage.imageLocation?.includes("/")
+    ? ws.baseImage.imageLocation
+    : ws.baseImage.name;
+  const url = getWorkspaceImageUrl(loc, ws.name);
+
+  await engine.createImageLayer("stitch_base", url);
 
   await loadGrayscaleLayer();
   await resetViewport();
@@ -193,7 +201,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="container"
-    class="relative w-full h-full bg-black"
+    class="relative w-full h-full"
     :style="{ cursor: dragging ? 'grabbing' : 'grab' }"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
