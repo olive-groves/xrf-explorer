@@ -111,6 +111,57 @@ def get_clusters_using_k_means_get_images(data_source: str, image_name: str,
     return masked_image, image
     
 
+
+
+def get_elemental_clusters_using_k_means_get_images(
+        data_source: str,
+        image_name: str,
+        elemental_channel: np.ndarray[int],
+        selection_mask: np.ndarray,
+        elem_threshold: np.ndarray[float]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Prepare the LAB pixel features, registered image, and combined elemental mask used for
+    element-wise color clustering.
+
+    :param data_source: the name of the data source
+    :param image_name: the name of the image to apply k-means on
+    :param elemental_channel: array of channels of the element to compute the color clusters of
+    :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
+    :param elem_threshold: array of minimum concentrations needed for the respective element to be present in the pixel
+    :return: the LAB pixels restricted to the selection/elemental mask, the LAB image, and the boolean mask
+    """
+
+    # Get the elemental data cube
+    data_cube: np.ndarray = get_elemental_data_cube(data_source)
+
+    # Normalize the elemental data cube
+    data_cube = normalize_elemental_cube_per_layer(data_cube)
+
+    # Get registered image
+    registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
+    if registered_image is None:
+        LOG.error("Image could not be registered to data cube")
+        return np.empty(0), np.empty(0), np.empty(0)
+
+    image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
+
+    # Transform image to lab
+    image = image_to_lab(image)
+
+    # set seed so results are consistent
+    cv2.setRNGSeed(0)
+
+    # Get bitmasks of pixels with high element concentration and get respective pixels in the image
+    combined_mask = np.array(selection_mask, copy=True)
+    for i in range(len(elemental_channel)):
+        curElementMask = (np.array(data_cube[elemental_channel[i]]) >= elem_threshold[i])
+        combined_mask = combined_mask & curElementMask
+
+    masked_image: np.ndarray = image[combined_mask]
+    masked_image = reshape_image(masked_image)
+
+    return masked_image, image, combined_mask
+
 def get_clusters_using_k_means(data_source: str, image_name: str,
                                selection_mask: np.ndarray,
                                k: int = 30, nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
@@ -160,15 +211,10 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
 
     return colors, bitmasks
 
-def get_features_for_rec_clusters(data_source: str, image_name: str,
-                               selection_mask: np.ndarray) -> np.ndarray:
-    return get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k=0)[0]
-
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
                                          elem_threshold: np.ndarray[float] = [0.1], k: int = 30,
-                                         nr_of_attempts: int = 10,
-                                         return_features_for_rec_clusters=False) -> tuple[np.ndarray, list[np.ndarray]]:
+                                         nr_of_attempts: int = 10) -> tuple[np.ndarray, list[np.ndarray]]:
     """
     Extract the color clusters of the RGB image per element using the k-means clustering method in OpenCV
 
@@ -188,63 +234,27 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         f'k={k}, data_source={data_source}, elemental_channels={elemental_channel} with thresholds={elem_threshold}'
     )
 
-    # Get the elemental data cube
-    data_cube: np.ndarray = get_elemental_data_cube(data_source)
-    if data_cube.size == 0:
-        LOG.error("Elemental data cube not found")
+    masked_image, image, combined_mask = get_elemental_clusters_using_k_means_get_images(
+        data_source,
+        image_name,
+        elemental_channel,
+        selection_mask,
+        elem_threshold
+    )
+
+    if masked_image.size == 0:
         return np.empty(0), []
-
-    # Normalize the elemental data cube
-    data_cube: np.ndarray = normalize_elemental_cube_per_layer(data_cube)
-
-    # check if element channels are valid
-    for i in range(len(elemental_channel)):
-        if elemental_channel[i] > len(data_cube):
-            LOG.error(f'elemental_channel={elemental_channel[i]} is not valid for this data cube')
-            return np.empty(0), []
-
-    for i in range(len(elem_threshold)):
-        if elem_threshold[i] < 0 or elem_threshold[i] > 255:
-            LOG.error(f'invalid threshold {elem_threshold[i]}')
-            return np.empty(0), []
-
-    # Get registered image
-    registered_image: MatLike | None = get_image_registered_to_data_cube(data_source, image_name)
-    if registered_image is None:
-        LOG.error("Image could not be registered to data cube")
-        return np.empty(0), []
-
-    image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
-
-    # Transform image to lab
-    image = image_to_lab(image)
-
-    # set seed so results are consistent
-    cv2.setRNGSeed(0)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
     # At most 50 iterations and at least 1.0 accuracy
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 50, 1.0)
 
-    # Get bitmasks of pixels with high element concentration and get respective pixels in the image
-    combined_mask = selection_mask
-    for i in range(len(elemental_channel)):
-        curElementMask = (np.array(data_cube[elemental_channel[i]]) >= elem_threshold[i])
-        combined_mask = combined_mask & curElementMask
-
-    masked_image: np.ndarray = image[combined_mask]
-    masked_image = reshape_image(masked_image)
-
     # If empty image, continue (elem. not present)
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
                   f"{masked_image.size} is not enough elements for a clustering with {k} clusters.")
         return np.empty(0), []
-    
-    # When calculating the recommended number of clusters, this masked_image is required.
-    if return_features_for_rec_clusters:
-        return masked_image
 
     # k cannot be bigger than number of pixels w/element present
     labels: np.ndarray

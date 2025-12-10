@@ -17,6 +17,7 @@ from xrf_explorer.server.color_segmentation import (
     get_path_to_cs_folder,
     get_clusters_using_k_means,
     get_clusters_using_k_means_get_images,
+    get_elemental_clusters_using_k_means_get_images,
     get_elemental_clusters_using_k_means,
     combine_bitmasks,
     convert_to_hex,
@@ -175,9 +176,9 @@ def recommend_k(data_source: str):
                 elementList.append(elements[i][0] - 1)
                 thresholdList.append(int(255 * elements[i][1] / 100))
 
-        mask = get_elemental_clusters_using_k_means(
-            data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), return_features_for_rec_clusters=True
-            )
+        mask, _, _ = get_elemental_clusters_using_k_means_get_images(
+            data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList)
+        )
         LOG.info("Got back element mask")
     
     # Code took too long so downsize
