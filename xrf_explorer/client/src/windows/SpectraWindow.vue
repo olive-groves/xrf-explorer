@@ -47,6 +47,7 @@ const low = computed(() => appState.workspace?.spectralParams?.low ?? 0);
 const high = computed(() => appState.workspace?.spectralParams?.high ?? 4096);
 const binSize = computed(() => appState.workspace?.spectralParams?.binSize ?? 1);
 const binned = computed(() => appState.workspace?.spectralParams?.binned ?? false);
+const offset = computed(() => appState.workspace?.spectralParams?.offset ?? 0);
 
 let abortController = new AbortController();
 
@@ -66,8 +67,6 @@ let selectionData: number[] = [];
 let elementData: number[] = [];
 // Coordinates of the theoretical element peaks
 let elementPeaks: number[] = [];
-// X-axis offset
-let offset: number = 0;
 
 /**
  * Set up the svg and axis of the graph.
@@ -82,24 +81,8 @@ async function setup() {
       void getAverageSpectrum();
     }
   });
-  offset = await getOffset();
   await getAverageSpectrum();
   drawChart();
-}
-
-/**
- * Fetches the x-axis offset of the spectra.
- * @returns - The offset.
- */
-async function getOffset() {
-  try {
-    //make api call
-    const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_offset`);
-    return await response.json();
-  } catch (e) {
-    console.error("Error getting energy offset", e);
-    return 0;
-  }
 }
 
 /**
@@ -121,7 +104,7 @@ function drawChart() {
       low: low.value,
       high: high.value,
       binSize: binSize.value,
-      offset: offset,
+      offset: offset.value,
     },
     {
       globalChecked: globalChecked.value,

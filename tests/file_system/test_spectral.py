@@ -101,7 +101,8 @@ class TestSpectral:
             workspace_dict["spectralParams"]["high"] = 40
             workspace_dict["spectralParams"]["binSize"] = 40 / 4096
             workspace_dict["spectralParams"]["binned"] = True
-        
+            workspace_dict["spectralParams"]["offset"] = 0
+
         workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
 
         with open(workspace_path, 'w') as f:
@@ -119,7 +120,8 @@ class TestSpectral:
             workspace_dict["spectralParams"]["high"] = 20
             workspace_dict["spectralParams"]["binSize"] = 0.05
             workspace_dict["spectralParams"]["binned"] = True
-        
+            workspace_dict["spectralParams"]["offset"] = 0
+
         workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
 
         with open(workspace_path, 'w') as f:
@@ -137,6 +139,7 @@ class TestSpectral:
             workspace_dict["spectralParams"]["high"] = 20
             workspace_dict["spectralParams"]["binSize"] = 0.05
             workspace_dict["spectralParams"]["binned"] = True
+            workspace_dict["spectralParams"]["offset"] = 0
         
         workspace_path = get_path_to_workspace(self.NO_OFFSET_NAME)
 

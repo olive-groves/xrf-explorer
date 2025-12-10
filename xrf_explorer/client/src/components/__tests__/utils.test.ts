@@ -263,7 +263,7 @@ describe("validateWorkspace Test", () => {
     partialElementalCubes: [],
     grayscale: [],
     elementalChannels: [],
-    spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+    spectralParams: { low: 0, high: 100, binSize: 10, binned: false, offset: 0 },
   };
 
   const emptyWorkspace: WorkspaceConfig = {
@@ -276,7 +276,7 @@ describe("validateWorkspace Test", () => {
     partialElementalCubes: [],
     grayscale: [],
     elementalChannels: [],
-    spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+    spectralParams: { low: 0, high: 100, binSize: 10, binned: false, offset: 0 },
   };
 
   test("random workspace", () => {
@@ -386,7 +386,7 @@ describe("validateWorkspace Test", () => {
       partialElementalCubes: [],
       grayscale: [],
       elementalChannels: [],
-      spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+      spectralParams: { low: 0, high: 100, binSize: 10, binned: false, offset: 0 },
     };
 
     const [isValid, errorMessage] = validateWorkspace(workspace);
