@@ -146,16 +146,17 @@ const lensLocked = ref(false);
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (event.button == 2) {
+  if (event.button == 2 ) {
     // Prevent opening of context menu.
     event.preventDefault();
-  }
-
-  if (appState.stitching && StitchPointsNew.value.val.length < 4) {
+    if (appState.stitching && StitchPointsNew.value.val.length < 4) {
     const pointObj = getBaseImageCoords(event);
     StitchPointsNew.value.val.push([pointObj.x, pointObj.y]);
 
+    }
   }
+
+
 }
 
 /**
