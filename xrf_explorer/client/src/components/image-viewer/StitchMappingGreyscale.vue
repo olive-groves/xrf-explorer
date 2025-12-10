@@ -20,7 +20,6 @@ const bounds = useElementBounding(container);
 const width = bounds.width;
 const height = bounds.height;
 
-// ---------------------------
 // Resolve selected grayscale
 const grayscale = computed(() => {
   const idx = selectedGrayscaleIndex.value;
@@ -39,9 +38,7 @@ const grayscaleUrl = computed(() => {
 // Track the GL layer currently displayed
 let currentLayerId: string | null = null;
 
-// ---------------------------
 // Layer loading
-// ---------------------------
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
@@ -68,9 +65,7 @@ async function loadGrayscaleLayer() {
   await engine.createImageLayer(id, grayscaleUrl.value);
 }
 
-// ---------------------------
 // Viewport reset
-// ---------------------------
 async function resetViewport() {
   if (!engine) return;
   const size = await getTargetSize();
@@ -84,9 +79,7 @@ async function resetViewport() {
   );
 }
 
-// ---------------------------
 // Independent render loop
-// ---------------------------
 function startLoop() {
   if (!engine) return;
 
@@ -124,9 +117,7 @@ function startLoop() {
   requestAnimationFrame(tick);
 }
 
-// ---------------------------
 // Mouse controls
-// ---------------------------
 const dragging = ref(false);
 
 function onMouseDown(ev: MouseEvent) {
@@ -151,9 +142,7 @@ function onWheel(ev: WheelEvent) {
   engine.viewport.zoom += ev.deltaY / 450;
 }
 
-// ---------------------------
 // Lifecycle
-// ---------------------------
 onMounted(async () => {
   engine = createStitchEngine(glcanvas.value!);
 
