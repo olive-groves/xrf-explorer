@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { elementalDataPresent } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
-import { LoaderPinwheel, Trash2 } from "lucide-vue-next";
+import { LoaderPinwheel, Trash2, Calculator } from "lucide-vue-next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,6 @@ const {
       <div class="flex w-full rounded-md bg-muted p-1">
         <Button
           class="flex-1"
-          size="sm"
           :variant="segmentationMode === 'complete' ? 'default' : 'ghost'"
           @click="segmentationMode = 'complete'"
         >
@@ -57,7 +56,6 @@ const {
         </Button>
         <Button
           class="flex-1"
-          size="sm"
           :variant="segmentationMode === 'elements' ? 'default' : 'ghost'"
           @click="segmentationMode = 'elements'"
         >
@@ -75,7 +73,7 @@ const {
       <div v-if="segmentationMode === 'elements'" class="mt-2 space-y-2 border-t pt-2">
         <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key="elementSel.id">
           <div class="max-w-36 grow space-y-1">
-            <Label for="element">Element</Label>
+            <Label v-if="index === 0" for="element">Element</Label>
             <Select v-model="elementSel.name" class="w-full">
               <SelectTrigger>
                 <SelectValue placeholder="Select element" />
@@ -93,7 +91,7 @@ const {
             </Select>
           </div>
           <div class="flex-1 space-y-1">
-            <Label for="elemental_threshold">Threshold (%)</Label>
+            <Label v-if="index === 0" for="elemental_threshold">Threshold (%)</Label>
             <NumberField
               v-model="elementSel.threshold"
               :min="0"
@@ -115,7 +113,7 @@ const {
           <div>
             <Button
               variant="destructive"
-              class="mt-6 p-2"
+              :class="index === 0 ? 'mt-6 p-2' : 'p-2'"
               @click="removeElement(index)"
               :disabled="elementsSelected.length === 1"
               title="Remove element"
@@ -134,51 +132,42 @@ const {
       </div>
 
       <!-- RECOMMENDED CLUSTERS -->
-      <div class="flex flex-col space-y-1.5 border-t border-border pt-2">
-        <Label for="recommendClusters">Recommended Amount of Clusters:</Label>
+      <div class="border-t border-border pt-2">
+        <Label for="recommendClusters" class="block pb-2">Recommended Amount of Clusters:</Label>
         <div class="flex w-full flex-nowrap space-x-2">
-          <div class="min-w-0 basis-2/5 p-1">
-            <Button class="size-full whitespace-normal text-center" @click="calculateRecommendedClusters">
-              Calculate
-            </Button>
-          </div>
-          <div class="min-w-0 basis-3/5 p-1">
-            <Button
-              class="size-full whitespace-normal text-center"
-              :disabled="recommendedStatus !== Status.SUCCESS"
-              @click="setRecommendedClusters"
+          <div class="w-auto space-y-1">
+            <NumberField
+              v-model="number_clusters"
+              :min="1"
+              :max="50"
+              :step="1"
+              id="number_clusters"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
             >
-              <template v-if="recommendedStatus === Status.LOADING"> Loading... </template>
-              <template v-else> Use recommended ({{ recommendedClusters || "" }}) </template>
-            </Button>
+              <NumberFieldContent>
+                <NumberFieldDecrement />
+                <NumberFieldInput />
+                <NumberFieldIncrement />
+              </NumberFieldContent>
+            </NumberField>
           </div>
+          <Button @click="calculateRecommendedClusters">
+            <Calculator class="size-4" />
+          </Button>
+          <Button
+            :disabled="recommendedStatus !== Status.SUCCESS"
+            @click="setRecommendedClusters"
+          >
+            <template v-if="recommendedStatus === Status.LOADING"> Loading... </template>
+            <template v-else> Use ({{ recommendedClusters || "-" }}) </template>
+          </Button>
         </div>
       </div>
 
       <!-- COLOR CLUSTER GENERATION -->
-      <div class="flex space-x-2">
-        <!-- CLUSTER NUMBER SELECTION -->
-        <div class="w-auto space-y-1">
-          <Label for="number_clusters">Number of clusters (1-50)</Label>
-          <NumberField
-            v-model="number_clusters"
-            :min="1"
-            :max="50"
-            :step="1"
-            id="number_clusters"
-            :format-options="{
-              minimumIntegerDigits: 1,
-              maximumFractionDigits: 0,
-            }"
-          >
-            <NumberFieldContent>
-              <NumberFieldDecrement />
-              <NumberFieldInput />
-              <NumberFieldIncrement />
-            </NumberFieldContent>
-          </NumberField>
-        </div>
-      </div>
       <Button class="w-full" @click="generateColors">Generate color clusters</Button>
 
       <!-- LOADING/ERROR MESSAGES -->
