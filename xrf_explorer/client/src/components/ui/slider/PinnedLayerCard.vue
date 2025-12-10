@@ -8,7 +8,7 @@ import {
   setLayerGroupVisibility,
   setLayerGroupProperty,
 } from "@/components/image-viewer/state";
-import { LayerGroup } from "@/components/image-viewer/types";
+import { LayerGroup, LayerVisibility } from "@/components/image-viewer/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
 
@@ -139,6 +139,31 @@ function togglePin() {
     emit("unpin", group);
   }
 }
+
+/**
+ * Toggle lens in a layer.
+ * @param group The LayerGroup to toggle the lens of.
+ */
+function toggleLens(group: LayerGroup) {
+  checkedOutsideLens(group);
+}
+
+/**
+ * Updates the visibility of the layer group outside the lens.
+ * @param group - The group to toggle and update.
+ */
+function checkedOutsideLens(group: LayerGroup) {
+  if (group.visibility == LayerVisibility.Invisible) {
+    group.visibility = LayerVisibility.OutsideLens;
+  } else if (group.visibility == LayerVisibility.Visible) {
+    group.visibility = LayerVisibility.InsideLens;
+  } else if (group.visibility == LayerVisibility.InsideLens) {
+    group.visibility = LayerVisibility.Visible;
+  } else if (group.visibility == LayerVisibility.OutsideLens) {
+    group.visibility = LayerVisibility.Invisible;
+  }
+  setLayerGroupVisibility(group);
+}
 </script>
 
 <template>
@@ -158,6 +183,14 @@ function togglePin() {
           <Pin :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" class="size-5" />
         </Button>
         <!-- SLIDERS POPOVER -->
+        <Popover v-if="group.visible">
+          <PopoverTrigger>
+            <Button variant="ghost" class="size-8 p-2" title="Only visible inside lens" @click="toggleLens(group)">
+              <SearchX v-if="group.visibility == LayerVisibility.InsideLens" />
+              <Search v-else />
+            </Button>
+          </PopoverTrigger>
+        </Popover>
         <Popover v-if="group.visible">
           <PopoverTrigger>
             <Button variant="ghost" class="size-8 p-2" title="Additional sliders">
