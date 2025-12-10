@@ -49,7 +49,6 @@ const {
       <div class="flex w-full rounded-md bg-muted p-1">
         <Button
           class="flex-1"
-          size="sm"
           :variant="segmentationMode === 'complete' ? 'default' : 'ghost'"
           @click="segmentationMode = 'complete'"
         >
@@ -57,7 +56,6 @@ const {
         </Button>
         <Button
           class="flex-1"
-          size="sm"
           :variant="segmentationMode === 'elements' ? 'default' : 'ghost'"
           @click="segmentationMode = 'elements'"
         >
@@ -75,7 +73,7 @@ const {
       <div v-if="segmentationMode === 'elements'" class="mt-2 space-y-2 border-t pt-2">
         <div class="flex items-center space-x-4" v-for="(elementSel, index) in elementsSelected" :key="elementSel.id">
           <div class="max-w-36 grow space-y-1">
-            <Label for="element">Element</Label>
+            <Label v-if="index === 0" for="element">Element</Label>
             <Select v-model="elementSel.name" class="w-full">
               <SelectTrigger>
                 <SelectValue placeholder="Select element" />
@@ -93,7 +91,7 @@ const {
             </Select>
           </div>
           <div class="flex-1 space-y-1">
-            <Label for="elemental_threshold">Threshold (%)</Label>
+            <Label v-if="index === 0" for="elemental_threshold">Threshold (%)</Label>
             <NumberField
               v-model="elementSel.threshold"
               :min="0"
@@ -115,7 +113,7 @@ const {
           <div>
             <Button
               variant="destructive"
-              class="mt-6 p-2"
+              :class="index === 0 ? 'mt-6 p-2' : 'p-2'"
               @click="removeElement(index)"
               :disabled="elementsSelected.length === 1"
               title="Remove element"
