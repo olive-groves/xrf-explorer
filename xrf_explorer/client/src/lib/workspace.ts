@@ -134,6 +134,10 @@ export type SpectralParams = {
    */
   binSize: number;
   /**
+   * The offset mapping the channels to the right eV.
+   */
+  offset: number;
+  /**
    * Indicating whether the data has already been binned.
    */
   binned: boolean;

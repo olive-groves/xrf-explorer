@@ -39,6 +39,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
       low: 0,
       high: 40,
       binSize: 40 / 4096,
+      offset: 0,
       binned: false,
     },
   };
