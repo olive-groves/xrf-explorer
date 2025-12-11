@@ -11,7 +11,14 @@ from xrf_explorer.server.database.models import UserRole
 # Create the Flask app
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 
-with open("xrf_explorer\\secret_key.txt", 'r') as file:
+if not Path("xrf_explorer/secret_key.txt").exists():
+    # Generate a new secret key and save it to the file
+    import os
+    secret_key = os.urandom(24)
+    with open("xrf_explorer/secret_key.txt", 'wb') as file:
+        file.write(secret_key)
+
+with open("xrf_explorer/secret_key.txt", 'r') as file:
     app.secret_key = file.read()
 
 login_manager.init_app(app)
