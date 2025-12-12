@@ -30,6 +30,13 @@ from xrf_explorer.server.routes.helper import validate_config, encode_selection
 
 LOG: Logger = getLogger(__name__)
 
+def create_elementlist_and_thresholdlist(elements):
+    elementList = []
+    thresholdList = []
+    for i in range (len(elements)):
+        if elements[i][0] != 0: #ignore whole painting channel
+            elementList.append(elements[i][0] - 1)
+            thresholdList.append(int(255 * elements[i][1] / 100))
 
 @app.route('/api/<data_source>/cs/clusters/<int:k>/<uses_selection>', methods=['POST'])
 def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
@@ -107,12 +114,7 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
             return selection_mask[0], selection_mask[1]
 
         # Create the correct lists to send to the color segmentation function
-        elementList = []
-        thresholdList = []
-        for i in range (len(elements)):
-            if elements[i][0] != 0: #ignore whole painting channel
-                elementList.append(elements[i][0] - 1)
-                thresholdList.append(int(255 * elements[i][1] / 100))
+        elementList, thresholdList = create_elementlist_and_thresholdlist(elements)
 
         colors, bitmasks = get_elemental_clusters_using_k_means(
             data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList), k
@@ -169,12 +171,7 @@ def recommend_k(data_source: str):
     else:
         rgb_image_name = get_base_image_name(data_source)
         # Create the correct lists to send to the color segmentation function
-        elementList = []
-        thresholdList = []
-        for i in range (len(elements)):
-            if elements[i][0] != 0: #ignore whole painting channel
-                elementList.append(elements[i][0] - 1)
-                thresholdList.append(int(255 * elements[i][1] / 100))
+        elementList, thresholdList = create_elementlist_and_thresholdlist(elements)
 
         mask, _, _ = get_elemental_clusters_using_k_means_get_images(
             data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList)

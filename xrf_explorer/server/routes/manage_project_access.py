@@ -5,6 +5,23 @@ from xrf_explorer.server.database.authnew import admin_required
 from xrf_explorer.server.database.models import User
 from sqlalchemy.orm.attributes import flag_modified
 
+def get_username_and_project_from_json_request(request):
+    data = request.json
+    username = data.get('username')
+    project = data.get('project')
+    
+    return username, project
+
+def filter_users_by_username(username: str):
+    user = User.query.filter_by(username=username).first()
+    
+    return user
+    
+def check_if_username_and_project_are_provided(username, project):
+    if not username or not project:
+        return jsonify({"success": False, "message": "Missing username or project"}), 400
+    
+
 @app.route('/api/grant_project_access', methods=['POST'])
 @login_required
 @admin_required
@@ -15,15 +32,12 @@ def grant_project_access():
     """
     
     # Get the username and project from the request
-    data = request.json
-    username = data.get('username')
-    project = data.get('project')
+    username, project = get_username_and_project_from_json_request(request)
 
     # Check if the username and project are provided
-    if not username or not project:
-        return jsonify({"success": False, "message": "Missing username or project"}), 400
+    check_if_username_and_project_are_provided(username, project)
     
-    user = User.query.filter_by(username=username).first()
+    user = filter_users_by_username(username)
 
     # Check if the user already has access to the project
     if user and user.checkProjectAccess(project):
@@ -44,19 +58,18 @@ def revoke_project_access():
     """
     
     # Get the username and project from the request
-    data = request.json
-    username = data.get('username')
-    project = data.get('project')
+    username, project = get_username_and_project_from_json_request(request)
 
     # Check if the username and project are provided
-    if not username or not project:
-        return jsonify({"success": False, "message": "Missing username or project"}), 400
+    check_if_username_and_project_are_provided(username, project)
 
-    user = User.query.filter_by(username=username).first()
+    user = filter_users_by_username(username)
+    
     # Check if the user has access to the project
     if user and not user.checkProjectAccess(project):
         return jsonify({"success": False, "message": "User does not have access to this project"}), 409
 
+    # Update the user's projects
     user.revokeProjectAccess(project)
 
 

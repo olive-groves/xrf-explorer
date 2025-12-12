@@ -168,13 +168,10 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     """
     Extract the color clusters of the RGB image using the k-means clustering method in OpenCV
 
-    :param data_source: the name of the data source
-    :param image_name: the name of the image to apply k-means on
-    :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
-    :param k: number of clusters required at end. Defaults to 30
+    Same params as get_clusters_using_k_means_get_images plus:
     :param nr_of_attempts: the number of times the algorithm is executed using different initial labellings.
         Defaults to 10
-    :return: an array of labels of the clusters, the array of colors of clusters, and the array of bitmasks
+    :return: Same as get_clusters_using_k_means_get_images
     """
     masked_image, image = get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k)
     

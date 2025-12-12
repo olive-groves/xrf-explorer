@@ -112,15 +112,20 @@ class TestSpectral:
         
         params: dict = get_spectra_params(self.WRONG_SIZE_NAME)
         assert params == {'low': 0, 'high': 4096, 'binSize': 1, 'binned': True}
+    
+    def get_workspace_dict_and_set_workspace_dict_values(self, workspace_dict: dict | None):
+        workspace_dict["spectralParams"]["low"] = 0.5
+        workspace_dict["spectralParams"]["high"] = 20
+        workspace_dict["spectralParams"]["binSize"] = 0.05
+        workspace_dict["spectralParams"]["binned"] = True
+        workspace_dict["spectralParams"]["offset"] = 0
         
+        return workspace_dict
+       
     def test_update_bin_params(self):
         workspace_dict: dict | None = get_workspace_dict(self.WRONG_SIZE_NAME)
         if workspace_dict is not None:
-            workspace_dict["spectralParams"]["low"] = 0.5
-            workspace_dict["spectralParams"]["high"] = 20
-            workspace_dict["spectralParams"]["binSize"] = 0.05
-            workspace_dict["spectralParams"]["binned"] = True
-            workspace_dict["spectralParams"]["offset"] = 0
+            workspace_dict = self.get_workspace_dict_and_set_workspace_dict_values(workspace_dict)
 
         workspace_path = get_path_to_workspace(self.WRONG_SIZE_NAME)
 
@@ -135,11 +140,7 @@ class TestSpectral:
     def test_update_bin_params_no_offset(self):
         workspace_dict: dict | None = get_workspace_dict(self.NO_OFFSET_NAME)
         if workspace_dict is not None:
-            workspace_dict["spectralParams"]["low"] = 0.5
-            workspace_dict["spectralParams"]["high"] = 20
-            workspace_dict["spectralParams"]["binSize"] = 0.05
-            workspace_dict["spectralParams"]["binned"] = True
-            workspace_dict["spectralParams"]["offset"] = 0
+            workspace_dict = self.get_workspace_dict_and_set_workspace_dict_values(workspace_dict)
         
         workspace_path = get_path_to_workspace(self.NO_OFFSET_NAME)
 

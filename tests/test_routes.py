@@ -112,14 +112,28 @@ class TestRoutes:
         # verify
         assert response.status_code == 200
     
-    def test_create_data_source_dir(self, client: FlaskClient):
-        # setup
-        completely_new_data_source: str = "completely_new_data_source"
-        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
-
-        # Ensure folder does not exist, happens in case previous test failed.
+    def get_string_for_new_data_source(self) -> str:
+        return "completely_new_data_source"
+    
+    def get_folder_path_for_new_data_source(self, completely_new_data_source: str) -> str:
+        return join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
+    
+    def check_folder_does_not_exist(self, folder_path: str):
         if exists(folder_path):
             rmtree(folder_path)
+            
+    def setup_method(self):
+        completely_new_data_source: str = self.get_string_for_new_data_source()
+        folder_path: str = self.get_folder_path_for_new_data_source(completely_new_data_source)
+
+        # Ensure folder does not exist, happens in case previous test failed.
+        self.check_folder_does_not_exist(folder_path)
+        
+        return completely_new_data_source, folder_path
+    
+    def test_create_data_source_dir(self, client: FlaskClient):
+        # setup
+        completely_new_data_source, folder_path = self.setup_method()
 
         # execute
         response: TestResponse = client.post(f"/api/{completely_new_data_source}/create")
@@ -153,20 +167,18 @@ class TestRoutes:
         assert response.text == error_msg 
         assert error_msg in caplog.text
     
+    def write_empty_workspace_file(self, folder_path: str):
+        with open(join(folder_path, "workspace.json"), "w") as f:
+            f.write("{}")
+    
     def test_remove_data_source(self, client: FlaskClient):
         # setup
-        completely_new_data_source: str = "completely_new_data_source"
-        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
-
-        # Ensure folder does not exist, happens in case previous test failed.
-        if exists(folder_path):
-            rmtree(folder_path)
+        completely_new_data_source, folder_path = self.setup_method()
 
         # setup - create data source with workspace and generated folder
         makedirs(folder_path)
         makedirs(join(folder_path, "generated"))
-        with open(join(folder_path, "workspace.json"), "w") as f:
-            f.write("{}")
+        self.write_empty_workspace_file(folder_path)
 
         # execute
         response: TestResponse = client.post(f"/api/{completely_new_data_source}/remove")
@@ -191,18 +203,12 @@ class TestRoutes:
 
     def test_delete_data_source(self, client: FlaskClient):
         # setup
-        completely_new_data_source: str = "completely_new_data_source"
-        folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
-
-        # Ensure folder does not exist, happens in case previous test failed.
-        if exists(folder_path):
-            rmtree(folder_path)
+        completely_new_data_source, folder_path = self.setup_method()
 
         # setup - create data source with workspace and generated folder
         makedirs(folder_path)
         makedirs(join(folder_path, "generated"))
-        with open(join(folder_path, "workspace.json"), "w") as f:
-            f.write("{}")
+        self.write_empty_workspace_file(folder_path)
 
         # execute
         response = client.delete(f"/api/{completely_new_data_source}/delete")
@@ -358,6 +364,12 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.text == "Error occurred while getting selection type or points from request body"
     
+    def get_special_points(self):
+        return [
+            {"x": 0, "y": 0},
+            {"x": 1, "y": 1}
+        ]
+    
     def test_element_averages_selection_invalid_type(self, client: FlaskClient):
         # setup
         selection_type: str = "invalid_type"
@@ -365,10 +377,7 @@ class TestRoutes:
         # execute
         response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
             "type": selection_type,
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
+            "points": self.get_special_points()
         })
 
         # verify
@@ -390,10 +399,7 @@ class TestRoutes:
         # execute
         response: str = client.post(f"/api/{self.DATA_SOURCE}/element_averages_selection", json={
             "type": "rectangle",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
+            "points": self.get_special_points()
         }).text
 
         # verify
@@ -544,10 +550,7 @@ class TestRoutes:
         selection_type: str = "invalid_type"
         selection: dict = {
             "type": selection_type,
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
+            "points": self.get_special_points()
         }
 
         # execute
@@ -559,10 +562,7 @@ class TestRoutes:
     
     def test_get_selection_spectra_no_selection_type(self, client: FlaskClient):
         selection: dict = {
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
+            "points": self.get_special_points()
         }
 
         # execute
@@ -585,14 +585,14 @@ class TestRoutes:
         assert response.status_code == 400
         assert response.text == f"Error parsing points: expected a list of points, got {type('string')}"
 
-    def test_get_selection_spectra(self, client: FlaskClient):
-        selection: dict = {
+    def get_special_selection(self):
+        return {
             "type": "rectangle",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
+            "points": self.get_special_points()
         }
+    
+    def test_get_selection_spectra(self, client: FlaskClient):
+        selection: dict = self.get_special_selection()
 
         # execute
         response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/get_selection_spectrum", json=selection)
@@ -601,18 +601,20 @@ class TestRoutes:
         assert response.status_code == 200
         assert len(json.loads(response.text)) == 16
 
+    def get_payload_for_color_clusters_with_full_selection(self, elements: list) -> dict:
+        return {
+            "selection": self.FULL_SELECTION,
+            "elements": elements
+        }
+    
     def test_get_color_clusters_whole_cube(self, client: FlaskClient):
         # setup JSON
         elements = [[0, 100]]
         
-        PAY_LOAD: dict = {
-            "selection": self.FULL_SELECTION,
-            "elements": elements
-        }
+        PAY_LOAD: dict = self.get_payload_for_color_clusters_with_full_selection(elements)
 
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/false",
-                                             json=PAY_LOAD)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/false", json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -625,10 +627,7 @@ class TestRoutes:
         # setup JSON
         elements = [[1,0]]
         
-        PAY_LOAD: dict = {
-            "selection": self.FULL_SELECTION,
-            "elements": elements
-        }
+        PAY_LOAD: dict = self.get_payload_for_color_clusters_with_full_selection(elements)
 
         # execute
         response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/false",
@@ -645,13 +644,7 @@ class TestRoutes:
         # setup JSON
         elements = [[0, 100]] 
  
-        selection: dict = {
-            "type": "rectangle",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
-        }
+        selection: dict = self.get_special_selection()
         
         PAY_LOAD: dict = {
             "selection": selection,
@@ -659,8 +652,7 @@ class TestRoutes:
         }
 
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true",
-                                             json=PAY_LOAD)
+        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
 
         # verify
         assert response.status_code == 200
@@ -673,13 +665,7 @@ class TestRoutes:
         # setup JSON
         elements = [[1,0]] 
 
-        selection: dict = {
-            "type": "rectangle",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
-        }
+        selection: dict = self.get_special_selection()
 
         PAY_LOAD: dict = {
             "selection": selection,
@@ -704,10 +690,7 @@ class TestRoutes:
         # setup JSON
         elements = [[1, 0]]
         
-        PAY_LOAD: dict = {
-            "selection": self.FULL_SELECTION,
-            "elements": elements
-        }
+        PAY_LOAD: dict = self.get_payload_for_color_clusters_with_full_selection(elements)
 
         # execute
         response1: TestResponse = client.post(url, json=PAY_LOAD)
@@ -818,25 +801,24 @@ class TestRoutes:
         assert response.get_data(as_text=True) == "Failed to create DR embedding image"
         assert "Failed to create DR embedding image" in caplog.text
 
+    def send_test_response(self, client: FlaskClient, selection: dict, elements: list) -> TestResponse:
+        payload = {
+            "selection": selection,
+            "elements": elements
+        }
+        return client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=payload)
+    
     def test_get_color_clusters_invalid_selection_type(self, client: FlaskClient):
         # setup JSON
         elements = [[0, 100]]
 
         selection: dict = {
             "type": "invalid_type",
-            "points": [
-                {"x": 0, "y": 0},
-                {"x": 1, "y": 1}
-            ]
-        }
-
-        PAY_LOAD: dict = {
-            "selection": selection,
-            "elements": elements
+            "points": self.get_special_points()
         }
 
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+        response: TestResponse = self.send_test_response(client, selection, elements)
 
         # verify
         assert response.status_code == 400
@@ -848,13 +830,8 @@ class TestRoutes:
 
         selection: dict = {"something": "invalid"}
 
-        PAY_LOAD: dict = {
-            "selection": selection,
-            "elements": elements
-        }
-
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+        response: TestResponse = self.send_test_response(client, selection, elements)
 
         # verify
         assert response.status_code == 400
@@ -869,13 +846,8 @@ class TestRoutes:
             "points": "not a list"
         }
 
-        PAY_LOAD: dict = {
-            "selection": selection,
-            "elements": elements
-        }
-
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+        response: TestResponse = self.send_test_response(client, selection, elements)
 
         # verify
         assert response.status_code == 400
@@ -884,13 +856,8 @@ class TestRoutes:
     def test_get_color_clusters_invalid_elements(self, client: FlaskClient):
         elements = [[10000, 10]]
 
-        PAY_LOAD: dict = {
-            "selection": self.FULL_SELECTION,
-            "elements": elements
-        }
-
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+        response: TestResponse = self.send_test_response(client, self.FULL_SELECTION, elements)
 
         # verify
         assert response.status_code == 400
@@ -899,13 +866,8 @@ class TestRoutes:
     def test_get_color_clusters_invalid_elements(self, client: FlaskClient):
         elements = [[1, 1500]]
 
-        PAY_LOAD: dict = {
-            "selection": self.FULL_SELECTION,
-            "elements": elements
-        }
-
         # execute
-        response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/cs/clusters/1/true", json=PAY_LOAD)
+        response: TestResponse = self.send_test_response(client, self.FULL_SELECTION, elements)
 
         # verify
         assert response.status_code == 400

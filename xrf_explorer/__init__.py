@@ -29,6 +29,10 @@ CORS(app)
 # Initialize the database
 db = init_app(app)
 
+def add_and_commit_user(user: User):
+    db.session.add(user)
+    db.session.commit()
+
 # Create the database tables and a default admin user if none exist
 with app.app_context():
     db.create_all()  # Create database tables for our data models
@@ -37,8 +41,7 @@ with app.app_context():
     if not User.query.filter_by(role=UserRole.ADMIN).first():
         admin_user = User(username='admin', role=UserRole.ADMIN)
         admin_user.set_password('testpassword')  # Set a default password; should be changed after first login
-        db.session.add(admin_user)
-        db.session.commit()
+        add_and_commit_user(admin_user)
         print("Database initialized with default admin user.")
     else:
         print("Admin user already exists.")
@@ -47,8 +50,7 @@ with app.app_context():
     if not User.query.filter_by(role=UserRole.VIEWER).first():
         viewer_user = User(username='viewer', role=UserRole.VIEWER)
         viewer_user.set_password('viewerpassword')
-        db.session.add(viewer_user)
-        db.session.commit()
+        add_and_commit_user(viewer_user)
         print("Database initialized with default viewer user.")
     else:
         print("Viewer user already exists.")
