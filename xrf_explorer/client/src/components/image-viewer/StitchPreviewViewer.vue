@@ -71,6 +71,16 @@ function applyGrayNudge(dx: number, dy: number) {
   grayViewportOffset.y -= dy * scale;
 }
 
+function resetGreyscaleOffset() {
+  grayViewportOffset.x = 0;
+  grayViewportOffset.y = 0;
+
+  // Optional: notify the preview viewer if you want
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-nudge", { detail: { dx: 0, dy: 0 } })
+  );
+}
+
 // GL setup
 async function loadGrayscaleLayer() {
   if (!engine) return;
@@ -213,6 +223,7 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-opacity-changed", onGrayOpacityChanged);
   window.addEventListener("stitch:gray-nudge", onGrayNudge);
   window.addEventListener("keydown", onKeyDown, { capture: true });
+  window.addEventListener("stitch:reset-offset", resetGreyscaleOffset);
 
   if (!glcanvas.value) return;
 
@@ -243,6 +254,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("stitch:gray-opacity-changed", onGrayOpacityChanged);
   window.removeEventListener("stitch:gray-nudge", onGrayNudge);
   window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("stitch:reset-offset", resetGreyscaleOffset);
 
   if (animationFrame != null) cancelAnimationFrame(animationFrame);
   if (engine) engine.dispose();

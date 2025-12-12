@@ -16,6 +16,7 @@ interface GreyscaleState {
     yOffset: number[];
 }
 
+const scalingFactor = ref([1.0])
 
 const baseImageOpacity = ref([1.0]);
 
@@ -88,6 +89,12 @@ function updateGreyscaleOpacity(val: number[]) {
   );
 }
 
+function resetGreyscaleOffset() {
+  window.dispatchEvent(
+    new CustomEvent("stitch:reset-offset")
+  );
+}
+
 
 onMounted(() => {
   window.addEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
@@ -155,15 +162,32 @@ const originalSize = ref(20.0); // GB placeholder
               <Button size="sm" @click="nudgeY(1)">Down</Button>
           </div>
       </div>
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <Button size="sm" @click="resetGreyscaleOffset">
+            Reset offset
+          </Button>
+        </div>
+      </div>
 
       <LabeledSlider
         label="Scaling Factor"
-        :modelValue="baseImageOpacity"
+        :modelValue="scalingFactor"
         :min="0.25"
-        :max="1"
+        :max="2"
         :step="0.01"
-        @update:modelValue="updateSliderBase"
       />
+
+      <div class="space-y-1">
+        <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          Reset to recommended scaling factor
+        </label>
+        <div class="flex items-center space-x-2">
+          <Button size="sm" @click="resetGreyscaleOffset">
+            Reset scaling
+          </Button>
+        </div>
+      </div>
 
       <div class="space-y-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md mt-2 text-sm">
         <div>
