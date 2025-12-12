@@ -5,7 +5,7 @@ import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { createGrayPoint, grayscalePoints, selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
+import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import Dots from "./Dots.vue";

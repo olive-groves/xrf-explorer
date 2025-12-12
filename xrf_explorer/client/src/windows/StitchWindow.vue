@@ -54,27 +54,23 @@ function onModeChanged(e: Event | CustomEvent) {
   mode.value = newMode;
 }
 
-function updatePartialScan(prop: keyof GreyscaleState, val: number[]) {
-return prop + val
-}
-
 // Function to adjust the X-offset by a pixel delta (+1 or -1)
 function nudgeX(delta: number) {
-  const cur = GreyscaleMapping.value.xOffset ?? [0];
-  const next = [ (cur[0] ?? 0) + delta ];
-  updatePartialScan('xOffset', next);
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-nudge", { detail: { dx: delta, dy: 0 } })
+  );
 }
 
 // Function to adjust the Y-offset by a pixel delta (+1 or -1)
 function nudgeY(delta: number) {
-  const cur = GreyscaleMapping.value.yOffset ?? [0];
-  const next = [ (cur[0] ?? 0) + delta ];
-  updatePartialScan('yOffset', next);
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-nudge", { detail: { dx: 0, dy: delta } })
+  );
 }
 
 function updateSliderBase(val: number[]) {
   baseImageOpacity.value = val;
-  // Notify other components (e.g. StitchViewer) about the base opacity change
+  // Notify preview viwer about the base opacity change
   try {
     const v = Array.isArray(val) ? val[0] : val;
     window.dispatchEvent(new CustomEvent('stitch:base-opacity-changed', { detail: v }));
@@ -83,29 +79,21 @@ function updateSliderBase(val: number[]) {
   }
 }
 
-function onGrayscalePosChanged(e: Event | CustomEvent) {
-  try {
-    const d = (e as CustomEvent).detail;
-    if (!d) return;
-    const { x, y } = d as { x: number; y: number };
-    // update local display state but do not re-dispatch (viewer is authoritative while dragging)
-    if (GreyscaleMapping.value) {
-      GreyscaleMapping.value.xOffset = [Number(x)];
-      GreyscaleMapping.value.yOffset = [Number(y)];
-    }
-  } catch (err) {
-    console.warn('Error handling grayscale pos changed', err);
-  }
+function updateGreyscaleOpacity(val: number[]) {
+  GreyscaleMapping.value.opacity = val;
+
+  const opacity = val[0];
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-opacity-changed", { detail: opacity })
+  );
 }
 
 
 onMounted(() => {
-  window.addEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
   window.addEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('stitch:grayscale-pos-changed', onGrayscalePosChanged as EventListener);
   window.removeEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
 });
 
@@ -145,6 +133,7 @@ const originalSize = ref(20.0); // GB placeholder
         :min="0"
         :max="1"
         :step="0.01"
+        @update:modelValue="val => updateGreyscaleOpacity(val)"
       />
 
       <div class="space-y-1">
@@ -168,7 +157,7 @@ const originalSize = ref(20.0); // GB placeholder
       </div>
 
       <LabeledSlider
-        label="Mapped Data Scaling Factor"
+        label="Scaling Factor"
         :modelValue="baseImageOpacity"
         :min="0.25"
         :max="1"

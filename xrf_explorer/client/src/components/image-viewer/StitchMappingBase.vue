@@ -9,7 +9,7 @@ import { createStitchEngine, StitchEngine } from "./stitchGLEngine";
 import { StitchTool, StitchState } from "./types";
 import { SelectionAreaType } from "@/lib/selection";
 import { toast } from "vue-sonner";
-import Dots from "../ui/dots/Dots.vue";
+
 // stitchPoints
 import {
   selectedPointId,

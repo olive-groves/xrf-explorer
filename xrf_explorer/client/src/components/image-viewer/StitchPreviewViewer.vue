@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch, reactive } from "vue";
 import { useElementBounding } from "@vueuse/core";
 import * as THREE from "three";
 import { snakeCase } from "change-case";
@@ -8,9 +8,12 @@ import { appState } from "@/lib/appState";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
+import { Layer } from "./types";
 
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
+let baseLayer: Layer | null = null;
+let grayLayer: Layer | null = null;
 
 const bounds = useElementBounding(container);
 const width = bounds.width;
@@ -19,12 +22,19 @@ const height = bounds.height;
 let engine: StitchEngine | null = null;
 let animationFrame: number | null = null;
 
-// current grayscale layer id in this engine
+// Viewport in image-space coordinates
+const viewport = reactive({
+  center: { x: 0, y: 0 },
+  zoom: 0,
+});
+
 let grayLayerId: string | null = null;
 
 const tempGreysclaleInx = 0;
 
-// greyscale url
+// grayscale offset used for viewport shifting
+const grayViewportOffset = { x: 0, y: 0 };
+
 const selectedGrayscale = computed(() => {
   const idx = tempGreysclaleInx;
   if (idx == null) return null;
@@ -37,14 +47,34 @@ const grayscaleUrl = computed(() => {
   return getWorkspaceImageUrl(gs.imageLocation, appState.workspace!.name);
 });
 
-// small reactive tick so overlays recompute when viewport moves
-const overlayTick = ref(0);
+function onBaseOpacityChanged(e: Event) {
+  if (!baseLayer) return;
+  baseLayer.uniform.uOpacity.value = (e as CustomEvent<number>).detail;
+}
+
+function onGrayOpacityChanged(e: Event) {
+  if (!grayLayer) return;
+  grayLayer.uniform.uOpacity.value = (e as CustomEvent<number>).detail;
+}
+
+function onGrayNudge(e: Event) {
+  const { dx, dy } = (e as CustomEvent<{ dx: number; dy: number }>).detail;
+  applyGrayNudge(dx, dy);
+}
+
+// nudging updates viewport offset
+function applyGrayNudge(dx: number, dy: number) {
+  const scale = Math.exp(viewport.zoom);
+
+  // move by image pixels scaled by zoom
+  grayViewportOffset.x += dx * scale;
+  grayViewportOffset.y -= dy * scale;
+}
 
 // GL setup
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
-  // remove old layer if any
   if (grayLayerId) {
     const idx = engine.layers.findIndex((l) => l.id === grayLayerId);
     if (idx >= 0) {
@@ -57,19 +87,16 @@ async function loadGrayscaleLayer() {
       engine.layers.splice(idx, 1);
     }
     grayLayerId = null;
+    grayLayer = null;
   }
 
   if (!selectedGrayscale.value || !grayscaleUrl.value) return;
 
-  const id = `stitch_gray_${snakeCase(selectedGrayscale.value.name)}`;
-  grayLayerId = id;
-
-  const layer = await engine.createImageLayer(id, grayscaleUrl.value);
-
-  layer.uniform.iIndex.value = 0;
-  if (layer.mesh) {
-    layer.mesh.renderOrder = 0;
-  }
+  grayLayerId = `stitch_gray_${snakeCase(selectedGrayscale.value.name)}`;
+  grayLayer = await engine.createImageLayer(grayLayerId, grayscaleUrl.value);
+  grayLayer.uniform.iIndex.value = 0;
+  grayViewportOffset.x = 0; // reset offset
+  grayViewportOffset.y = 0;
 }
 
 async function resetViewport() {
@@ -77,11 +104,11 @@ async function resetViewport() {
   const size = await getTargetSize();
   const fill = 0.9;
 
-  engine.viewport.center.x = size.width / 2;
-  engine.viewport.center.y = size.height / 2;
-  engine.viewport.zoom = Math.max(
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(
     Math.log(size.width / width.value / fill),
-    Math.log(size.height / height.value / fill),
+    Math.log(size.height / height.value / fill)
   );
 }
 
@@ -98,16 +125,25 @@ function startRenderLoop() {
       return;
     }
 
-    const vp = engine.viewport;
+    const vp = viewport;
     const zoomScale = Math.exp(vp.zoom);
     const vw = W * zoomScale;
     const vh = H * zoomScale;
     const vx = vp.center.x - vw / 2;
     const vy = vp.center.y - vh / 2;
 
-    // update viewport uniform on all layer
     engine.layers.forEach((layer) => {
-      layer.uniform.iViewport.value.set(vx, vy, vw, vh);
+      const v = layer.uniform.iViewport.value;
+      if (layer === grayLayer) {
+        v.set(
+          vx - grayViewportOffset.x,
+          vy - grayViewportOffset.y,
+          vw,
+          vh
+        );
+      } else {
+        v.set(vx, vy, vw, vh);
+      }
     });
 
     // camera & renderer
@@ -119,9 +155,6 @@ function startRenderLoop() {
     engine.camera.updateProjectionMatrix();
 
     engine.renderer.render(engine.scene, engine.camera);
-
-    // bump overlay tick so overlay positions recompute
-    overlayTick.value++;
 
     animationFrame = requestAnimationFrame(render);
   };
@@ -135,35 +168,55 @@ const dragging = ref(false);
 function onMouseDown(ev: MouseEvent) {
   if (ev.button === 0) dragging.value = true;
 }
-
 function onMouseUp() {
   dragging.value = false;
 }
-
 function onMouseLeave() {
   dragging.value = false;
 }
-
 function onMouseMove(ev: MouseEvent) {
   if (!engine || !dragging.value) return;
-  const vp = engine.viewport;
-  const scale = Math.exp(vp.zoom);
-  vp.center.x -= ev.movementX * scale;
-  vp.center.y += ev.movementY * scale;
+  const scale = Math.exp(viewport.zoom);
+  viewport.center.x -= ev.movementX * scale;
+  viewport.center.y += ev.movementY * scale;
+}
+function onWheel(ev: WheelEvent) {
+  viewport.zoom += ev.deltaY / 500;
 }
 
-function onWheel(ev: WheelEvent) {
-  if (!engine) return;
-  engine.viewport.zoom += ev.deltaY / 500;
+function onKeyDown(ev: KeyboardEvent) {
+  // Intercept arrow keys globally
+  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) {
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    ev.stopPropagation();
+  } else {
+    return;
+  }
+
+  if (!grayLayer) return;
+
+  let dx = 0;
+  let dy = 0;
+
+  if (ev.key === "ArrowLeft") dx = -1;
+  else if (ev.key === "ArrowRight") dx = 1;
+  else if (ev.key === "ArrowUp") dy = -1;
+  else if (ev.key === "ArrowDown") dy = 1;
+
+  applyGrayNudge(dx, dy);
 }
 
 // lifecycle
 onMounted(async () => {
+  window.addEventListener("stitch:base-opacity-changed", onBaseOpacityChanged);
+  window.addEventListener("stitch:gray-opacity-changed", onGrayOpacityChanged);
+  window.addEventListener("stitch:gray-nudge", onGrayNudge);
+  window.addEventListener("keydown", onKeyDown, { capture: true });
+
   if (!glcanvas.value) return;
 
   engine = createStitchEngine(glcanvas.value);
-  engine.camera.position.set(0, 0, 10);
-  engine.camera.lookAt(0, 0, 0);
 
   const ws = appState.workspace;
   if (!ws?.baseImage) return;
@@ -171,9 +224,8 @@ onMounted(async () => {
   const loc = ws.baseImage.imageLocation?.includes("/")
     ? ws.baseImage.imageLocation
     : ws.baseImage.name;
-  const url = getWorkspaceImageUrl(loc, ws.name);
 
-  await engine.createImageLayer("stitch_base", url);
+  baseLayer = await engine.createImageLayer("stitch_base", getWorkspaceImageUrl(loc, ws.name));
 
   await loadGrayscaleLayer();
   await resetViewport();
@@ -187,14 +239,13 @@ watch(grayscaleUrl, async () => {
 });
 
 onBeforeUnmount(() => {
-  if (animationFrame != null) {
-    cancelAnimationFrame(animationFrame);
-    animationFrame = null;
-  }
-  if (engine) {
-    engine.dispose();
-    engine = null;
-  }
+  window.removeEventListener("stitch:base-opacity-changed", onBaseOpacityChanged);
+  window.removeEventListener("stitch:gray-opacity-changed", onGrayOpacityChanged);
+  window.removeEventListener("stitch:gray-nudge", onGrayNudge);
+  window.removeEventListener("keydown", onKeyDown);
+
+  if (animationFrame != null) cancelAnimationFrame(animationFrame);
+  if (engine) engine.dispose();
 });
 </script>
 
