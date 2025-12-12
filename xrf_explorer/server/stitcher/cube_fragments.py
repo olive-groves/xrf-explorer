@@ -6,7 +6,11 @@ from typing import Callable
 
 import numpy as np
 
-from xrf_explorer.server.stitcher.helper import transpose_spectral_datacube, rotate_cv
+from xrf_explorer.server.stitcher.helper import (
+    transpose_spectral_datacube,
+    rotate_cv,
+    Dimensions,
+)
 
 
 class DatacubeFragment(ABC):
@@ -41,9 +45,11 @@ class DatacubeFragment(ABC):
         """Returns True if the data is Spectral, False if Elemental."""
         pass
 
-    def create_recipe_file(self, recipe_file: str, datacube_dimensions: tuple[int, int], contextual_image_dimensions: tuple[int, int]) -> str:
-        from_height, from_width = datacube_dimensions
-        to_height, to_width = contextual_image_dimensions
+    def create_recipe_file(self, recipe_file: str, datacube_dimensions: Dimensions, contextual_image_dimensions: Dimensions) -> str:
+        from_height = datacube_dimensions.height
+        from_width = datacube_dimensions.width
+        to_height = contextual_image_dimensions.height
+        to_width = contextual_image_dimensions.width
 
         with open(recipe_file, "w", encoding="utf-8") as f:
             f.write("Butterfly Registrator\n")

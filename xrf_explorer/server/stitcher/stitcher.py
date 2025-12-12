@@ -205,6 +205,7 @@ class DatacubeStitcher:
         Returns the new DatacubeFragment representing the stitched result.
         """
         if len(self.fragments) != len(self.points):
+            print(f"Number of points {len(self.points)} does not match number of fragments {len(self.fragments)}")
             raise ValueError("Number of images must match number of point sets.")
 
         if self.base_cube.is_spectral():
@@ -213,7 +214,7 @@ class DatacubeStitcher:
             print("\n=== Transposing input files to (C, H, W) format ===")
             transposed_fragments = []
             for frag in self.fragments:
-                transposed_frag = frag.create_transposed_version()
+                transposed_frag: SpectralDatacubeFragment = frag.create_transposed_version()
                 transposed_fragments.append(transposed_frag)
                 self.transposed_files.append(transposed_frag.datacube_file)
 
