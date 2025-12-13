@@ -35,5 +35,11 @@
         "workspace_help_menu": "Choose which data to import and use in the workspace by adding the images and data cubes corresponding to the painting.",
         "reset_client_help_menu": "Reset the entire UI to default settings, the settings when you open the program for the first time",
         "error": "No help text provided"
+    },
+    "tools": {
+        "bottom_left_x": "Bottom left x coordinate",
+        "bottom_left_y": "Bottom left y coordinate",
+        "top_right_x": "Top right x coordinate",
+        "top_right_y": "Top right y coordinate"
     }
 }

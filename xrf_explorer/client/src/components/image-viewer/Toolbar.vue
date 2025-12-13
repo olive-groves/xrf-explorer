@@ -79,81 +79,82 @@ function handleDblClick() {
           </ToggleGroupItem>
         </PopoverAnchor>
         <PopoverContent class="m-2 space-y-2">
-          <Label>Coordinates</Label>
-            <div class="grid grid-cols-2 gap-2">
-              <!-- Top-left X -->
-              <NumberField
-                v-model="points[0].x"
-                @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, x: Number(v.target.value)} : p)"
-                :min="0"
-                :max="99999"
-                :step="1"
-                title="Top left x coordinate"
-                id="tlx"
-                :format-options="{
-                  minimumIntegerDigits: 1,
-                  maximumFractionDigits: 0,
-                }"
-              >
-                <NumberFieldContent class="h-8 px-1.5">
-                  <NumberFieldInput/>
-                </NumberFieldContent>
-              </NumberField>
+          <Label>Bottom left coordinate</Label>
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Top-left X -->
+            <NumberField
+              v-model="points[0].x"
+              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, x: Number(v.target.value)} : p)"
+              :min="0"
+              :max="99999"
+              :step="1"
+              id="tlx"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
+            >
+              <NumberFieldContent class="h-8 px-1.5">
+                <NumberFieldInput v-tooltip="'tools.bottom_left_x'"/>
+              </NumberFieldContent>
+            </NumberField>
 
-              <!-- Top-left Y -->
-              <NumberField
-                v-model="points[0].y"
-                @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, y: Number(v.target.value)} : p)"
-                :min="0"
-                :max="99999"
-                :step="1"
-                id="tly"
-                :format-options="{
-                  minimumIntegerDigits: 1,
-                  maximumFractionDigits: 0,
-                }"
-              >
-                <NumberFieldContent class="h-8 px-1.5">
-                  <NumberFieldInput/>
-                </NumberFieldContent>
-              </NumberField>
+            <!-- Top-left Y -->
+            <NumberField
+              v-model="points[0].y"
+              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, y: Number(v.target.value)} : p)"
+              :min="0"
+              :max="99999"
+              :step="1"
+              id="tly"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
+            >
+              <NumberFieldContent class="h-8 px-1.5">
+                <NumberFieldInput v-tooltip="'tools.bottom_left_y'"/>
+              </NumberFieldContent>
+            </NumberField>
+          </div>
+          <Label>Top right coordinate</Label>
+          <div class="grid grid-cols-2 gap-2">
+            <!-- Bottom-right X -->
+            <NumberField
+              v-model="points[1].x"
+              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, x: Number(v.target.value)} : p)"
+              :min="0"
+              :max="99999"
+              :step="1"
+              id="brx"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
+            >
+              <NumberFieldContent class="h-8 px-1.5">
+                <NumberFieldInput v-tooltip="'tools.top_right_x'"/>
+              </NumberFieldContent>
+            </NumberField>
 
-              <!-- Bottom-right X -->
-              <NumberField
-                v-model="points[1].x"
-                @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, x: Number(v.target.value)} : p)"
-                :min="0"
-                :max="99999"
-                :step="1"
-                id="brx"
-                :format-options="{
-                  minimumIntegerDigits: 1,
-                  maximumFractionDigits: 0,
-                }"
-              >
-                <NumberFieldContent class="h-8 px-1.5">
-                  <NumberFieldInput/>
-                </NumberFieldContent>
-              </NumberField>
-
-              <!-- Bottom-right Y -->
-              <NumberField
-                v-model="points[1].y"
-                @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, y: Number(v.target.value)} : p)"
-                :min="0"
-                :max="99999"
-                :step="1"
-                id="bry"
-                :format-options="{
-                  minimumIntegerDigits: 1,
-                  maximumFractionDigits: 0,
-                }"
-              >
-                <NumberFieldContent class="h-8 px-1.5">
-                  <NumberFieldInput/>
-                </NumberFieldContent>
-              </NumberField>
-            </div>
+            <!-- Bottom-right Y -->
+            <NumberField
+              v-model="points[1].y"
+              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, y: Number(v.target.value)} : p)"
+              :min="0"
+              :max="99999"
+              :step="1"
+              id="bry"
+              :format-options="{
+                minimumIntegerDigits: 1,
+                maximumFractionDigits: 0,
+              }"
+            >
+              <NumberFieldContent class="h-8 px-1.5">
+                <NumberFieldInput v-tooltip="'tools.top_right_y'"/>
+              </NumberFieldContent>
+            </NumberField>
+          </div>
         </PopoverContent>
       </Popover>
       <ToggleGroupItem :value="Tool.Polygon" class="size-8 p-2" title="Polygon selection">
