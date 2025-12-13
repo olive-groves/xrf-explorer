@@ -1,7 +1,9 @@
 from __future__ import annotations
+
+from logging import getLogger, Logger
 import numpy as np
 import cv2 as cv
-from typing import Sequence
+from typing import Sequence, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from os.path import join
@@ -10,7 +12,9 @@ from xrf_explorer.server.stitcher.cube_fragments import DatacubeFragment, Elemen
     SpectralDatacubeFragment
 from xrf_explorer.server.stitcher.helper import WarpSelection, Dimensions, split_range, transpose_spectral_datacube, \
     rotate_cv
+from xrf_explorer.server.stitcher.transpose_state import TransposeStateManager, TransposeState
 
+LOG: Logger = getLogger(__name__)
 
 class DatacubeStitcher:
     """
@@ -25,12 +29,14 @@ class DatacubeStitcher:
         frame: Dimensions,
         scalar: float = 1.0,
         outputdir: str = None,
+        data_source: Optional[str] = None,
     ):
         self.fragments = fragments
         self.frame = frame  # Output canvas dimensions
         self.points = points  # Alignment points for creating perspective matrices
         self.scalar = scalar  # Global scaling factor
         self.outputdir = outputdir
+        self.data_source = data_source  # Used for pre-transpose state tracking
 
         # Calculate final canvas size
         self.scaled_height = int(frame.height * self.scalar)
@@ -86,7 +92,6 @@ class DatacubeStitcher:
         Pre-calculates the boolean masks for each fragment.
         This prevents recalculating geometry for every single channel.
         """
-        print("Pre-calculating geometry masks...")
         masks = []
         for i, frag in enumerate(self.fragments):
             # Create a dummy image with the dimensions of the fragment and rotate accordingly
@@ -122,11 +127,10 @@ class DatacubeStitcher:
             masks: Pre-calculated boolean masks for placement.
             channel_start/end: The range of channels this thread is responsible for.
         """
-        # Pre-allocate reuseable buffers for this thread to prevent memory churn
-        warp_buffers = [
-            np.empty((self.scaled_height, self.scaled_width), dtype=np.float32)
-            for _ in input_maps
-        ]
+        # Pre-allocate single reusable buffer for this thread
+        warp_buffer = np.empty(
+            (self.scaled_height, self.scaled_width), dtype=np.float32
+        )
 
         # Determine data layout
         is_spectral = self.base_cube.is_spectral()
@@ -138,6 +142,7 @@ class DatacubeStitcher:
             for i, input_map in enumerate(input_maps):
                 # Both spectral and elemental now use (C, H, W) format
                 layer_fragment = input_map[channel, :, :].astype(np.float32, copy=False)
+                layer_fragment = rotate_cv(layer_fragment, self.fragments[i].rotation)
 
                 # Rotate data if the scan was rotated relative to the others
                 layer_fragment = rotate_cv(
@@ -149,16 +154,15 @@ class DatacubeStitcher:
                     layer_fragment,
                     self.perspective_matrices[i],
                     (self.scaled_width, self.scaled_height),
-                    flags=cv.INTER_NEAREST,  # No interpolation to preserve data integrity
+                    flags=cv.INTER_NEAREST,
                     borderValue=0,
-                    dst=warp_buffers[i],  # Write directly to pre-allocated buffer
+                    dst=warp_buffer,  # Reuse single buffer
                 )
 
                 # Compose using pre-calculated mask
                 # Accessing the specific mask for this fragment
                 mask = masks[i]
-                # Write warped data onto the layer only where the mask is valid
-                layer[mask] = warp_buffers[i][mask]
+                layer[mask] = warp_buffer[mask]
 
             # Write the completed stitched layer to the output memory map
             # Output is always in (C, H, W) format during stitching
@@ -182,7 +186,7 @@ class DatacubeStitcher:
         # Determine thread count.
         workers = os.cpu_count() if self.base_cube.is_spectral() else 1
 
-        print(f"Starting stitching with {workers} workers...")
+        LOG.info(f"Starting stitching with {workers} workers...")
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
             # Create work items (futures) based on channel ranges
@@ -197,23 +201,70 @@ class DatacubeStitcher:
             completed = 0
             for _ in as_completed(futures):
                 completed += 1
-                print(f"Worker chunk {completed}/{len(futures)} finished.")
+                LOG.info(f"Worker chunk {completed}/{len(futures)} finished.")
 
     def stitch_datacubes(self) -> DatacubeFragment:
         """
         Entry point for stitching. Creates the output file and starts filling it.
         Returns the new DatacubeFragment representing the stitched result.
+        
+        For spectral datacubes, this method will:
+        1. Check if pre-transpose was initiated for each cube
+        2. Wait for any in-progress transposes to complete (blocking)
+        3. Use pre-transposed files if available, or transpose synchronously if not
+        4. Clean up transpose state after stitching completes
         """
         if len(self.fragments) != len(self.points):
-            print(f"Number of points {len(self.points)} does not match number of fragments {len(self.fragments)}")
+            LOG.error(f"Number of points {len(self.points)} does not match number of fragments {len(self.fragments)}")
             raise ValueError("Number of images must match number of point sets.")
 
         if self.base_cube.is_spectral():
             # Handle Spectral Data (Format: .raw + .rpl)
+            # Get transpose state manager
+            state_manager = TransposeStateManager.get_instance()
+            
             # Transpose all input files to (C, H, W)
-            print("\n=== Transposing input files to (C, H, W) format ===")
+            # This will use pre-transposed files if available
             transposed_fragments = []
+            
             for frag in self.fragments:
+                # Get the cube filename for state tracking
+                cube_file = os.path.basename(frag.datacube_file)
+                
+                # Check if there's a pre-transpose queued, in progress, or completed
+                if self.data_source:
+                    status = state_manager.get_status(self.data_source, cube_file)
+                    
+                    if status.status in (TransposeState.QUEUED, TransposeState.IN_PROGRESS):
+                        LOG.info(f"Stitching: Waiting for pre-transpose to complete (status: {status.status.value}): {cube_file}")
+                        # Wait for the pre-transpose to finish (blocking)
+                        status = state_manager.wait_for_completion(
+                            self.data_source,
+                            cube_file,
+                            timeout=None  # Wait indefinitely
+                        )
+                    
+                    if status.status == TransposeState.COMPLETED and status.transposed_path:
+                        # Use the pre-transposed file
+                        LOG.info(f"Stitching: Using pre-transposed file: {status.transposed_path}")
+                        transposed_frag = SpectralDatacubeFragment(
+                            status.transposed_path,
+                            frag.width,
+                            frag.height,
+                            frag.channels,
+                            0,  # No offset
+                            frag.data_type,
+                            frag.rotation,
+                            frag.rpl_meta,
+                            is_transposed=True
+                        )
+                        transposed_fragments.append(transposed_frag)
+                        self.transposed_files.append(transposed_frag.datacube_file)
+                        continue
+                    elif status.status == TransposeState.FAILED:
+                        LOG.error(f"Pre-transpose failed for {cube_file}, transposing now: {status.error}")
+                
+                # Fall through: transpose now (either no pre-transpose, failed, or no data_source)
                 transposed_frag: SpectralDatacubeFragment = frag.create_transposed_version()
                 transposed_fragments.append(transposed_frag)
                 self.transposed_files.append(transposed_frag.datacube_file)
@@ -227,12 +278,9 @@ class DatacubeStitcher:
             datacube_file = join(self.outputdir, "stitched_spectral.raw")
             rpl_file = join(self.outputdir, "stitched_spectral.rpl")
 
-            print(
-                "\n=== Stitching in (C, H, W) format ===\nEstimated file size is:",
-                (self.scaled_width * self.scaled_height * self.base_cube.channels)
-                / (1024**3),
-                "GB",
-                f"with dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}",
+            LOG.info(
+                f"\nStitching spectral datacube. \nEstimated file size is: {(self.scaled_width * self.scaled_height * self.base_cube.channels) / (1024**3):.2f} GB "
+                f"with dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}"
             )
 
             # Create temporary output in (C, H, W) format
@@ -248,7 +296,7 @@ class DatacubeStitcher:
             del output_map
 
             # Transpose output back to (H, W, C)
-            print("\n=== Transposing output back to (H, W, C) format ===")
+            LOG.info("\nTransposing output back to (H, W, C) format")
             transpose_spectral_datacube(
                 datacube_file_temp,
                 datacube_file,
@@ -266,21 +314,24 @@ class DatacubeStitcher:
             )
 
             # Cleanup temporary files
-            print("\n=== Cleaning up temporary files ===")
+            LOG.info("Cleaning up temporary files")
             for temp_file in self.transposed_files:
                 if os.path.exists(temp_file):
                     os.remove(temp_file)
-                    print(f"Removed: {temp_file}")
             if os.path.exists(datacube_file_temp):
                 os.remove(datacube_file_temp)
-                print(f"Removed: {datacube_file_temp}")
+
+            # Clean up transpose state for this data source
+            if self.data_source:
+                state_manager.cleanup(self.data_source)
 
             # Restore original fragments
             self.fragments = original_fragments
 
             return SpectralDatacubeFragment.from_file(datacube_file, rpl_file)
         else:
-            print(f"dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}",)
+            LOG.info(f"Stitching Elemental datacube. \n"
+                     f"Dimensions: {self.base_cube.channels} * {self.scaled_height} * {self.scaled_width}",)
             # Handle Elemental Data (Format: .dms)
             datacube_file = join(self.outputdir, "stitched_elemental.dms")
             return ElementalDatacubeFragment.write_file(

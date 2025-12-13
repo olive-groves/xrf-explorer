@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from logging import getLogger, Logger
+
 import os
 from abc import ABC, abstractmethod
 from typing import Callable
@@ -11,6 +13,8 @@ from xrf_explorer.server.stitcher.helper import (
     rotate_cv,
     Dimensions,
 )
+
+LOG: Logger = getLogger(__name__)
 
 
 class DatacubeFragment(ABC):
@@ -131,7 +135,6 @@ class ElementalDatacubeFragment(DatacubeFragment):
 
     def load_datacube(self) -> np.memmap:
         """Loads data with shape (C, H, W)."""
-        print("Loading elemental datacube:", self.datacube_file)
         memmap = np.memmap(
             self.datacube_file,
             dtype=np.float32,
@@ -272,7 +275,6 @@ class SpectralDatacubeFragment(DatacubeFragment):
 
     def load_datacube(self):
         """Loads data with appropriate shape based on transpose state."""
-        print("Loading spectral datacube:", self.datacube_file)
         if self.is_transposed:
             # Transposed format: (C, H, W)
             shape = (self.channels, self.height, self.width)
@@ -289,10 +291,17 @@ class SpectralDatacubeFragment(DatacubeFragment):
         )
         return memmap
 
-    def create_transposed_version(self) -> SpectralDatacubeFragment:
+    def create_transposed_version(self, check_existing: bool = True) -> SpectralDatacubeFragment:
         """
         Creates a transposed version of this datacube: (H, W, C) -> (C, H, W).
         Returns a new SpectralDatacubeFragment pointing to the transposed file.
+        
+        Args:
+            check_existing: If True, checks if a transposed file already exists
+                           and returns it without re-transposing. Default True.
+        
+        Returns:
+            SpectralDatacubeFragment pointing to the transposed file.
         """
         if self.is_transposed:
             # Already transposed, return self
@@ -302,7 +311,28 @@ class SpectralDatacubeFragment(DatacubeFragment):
         base_name = os.path.splitext(self.datacube_file)[0]
         transposed_file = f"{base_name}_transposed.raw"
 
-        print(f"\nTransposing {self.datacube_file} -> {transposed_file}")
+        # Check if transposed file already exists
+        if check_existing and os.path.exists(transposed_file):
+            # Verify file size matches expected size
+            expected_size = self.height * self.width * self.channels * np.dtype(self.data_type).itemsize
+            actual_size = os.path.getsize(transposed_file)
+            
+            if actual_size == expected_size:
+                return SpectralDatacubeFragment(
+                    transposed_file,
+                    self.width,
+                    self.height,
+                    self.channels,
+                    0,  # No offset for transposed files
+                    self.data_type,
+                    self.rotation,
+                    self.rpl_meta,
+                    is_transposed=True,
+                )
+            else:
+                LOG.error(f"\nExisting transposed file for {self.datacube_file} has wrong size ({actual_size} vs {expected_size}), re-transposing")
+
+        LOG.info(f"Transposing {self.datacube_file} -> {transposed_file}")
 
         # Perform transpose
         transpose_spectral_datacube(
@@ -325,6 +355,20 @@ class SpectralDatacubeFragment(DatacubeFragment):
             self.rpl_meta,
             is_transposed=True,
         )
+    
+    @staticmethod
+    def get_transposed_path(datacube_file: str) -> str:
+        """
+        Returns the expected path for a transposed version of a datacube file.
+        
+        Args:
+            datacube_file: Path to the original datacube file.
+            
+        Returns:
+            Path to where the transposed file would be stored.
+        """
+        base_name = os.path.splitext(datacube_file)[0]
+        return f"{base_name}_transposed.raw"
 
     def are_compatible(self, datacube) -> bool:
         if not isinstance(datacube, SpectralDatacubeFragment):

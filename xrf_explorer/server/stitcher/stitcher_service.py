@@ -9,6 +9,7 @@ from logging import getLogger, Logger
 import os
 from os.path import join, exists
 from pathlib import Path
+from threading import Thread
 from typing import Dict, Any, List
 
 import cv2 as cv
@@ -28,6 +29,10 @@ from xrf_explorer.server.stitcher.helper import (
     WarpSelection, normalize_image,
 )
 from xrf_explorer.server.stitcher.stitcher import DatacubeStitcher
+from xrf_explorer.server.stitcher.transpose_state import (
+    TransposeStateManager,
+    TransposeState,
+)
 
 LOG: Logger = getLogger(__name__)
 
@@ -87,7 +92,6 @@ class FragmentData:
 
         # RPL File & Fragment
         if self.cube_type == "spectral":
-            print("spectral datacube fragment", self.cube_type)
             self.rpl_file = _build_path(frag_data.get("rpl_file"), data_source)
 
             self.fragment = SpectralDatacubeFragment.from_file(
@@ -95,7 +99,6 @@ class FragmentData:
             )
 
         else:  # elemental
-            print("elemental datacube fragment", self.cube_type)
             self.rpl_file = None
             self.fragment = ElementalDatacubeFragment.from_file(self.datacube_path, self.rotation)
 
@@ -245,7 +248,14 @@ class StitchData:
         scalar = optimal_scalar * self.scaling
 
         # Create and return stitcher.
-        return DatacubeStitcher(self.get_fragments(), self.points, self.contextual_image_dimensions, scalar, output_dir)
+        return DatacubeStitcher(
+            self.get_fragments(),
+            self.points,
+            self.contextual_image_dimensions,
+            scalar,
+            output_dir,
+            data_source=self.data_source  # Pass data source for pre-transpose tracking
+        )
 
 
 
@@ -480,8 +490,6 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     # Full stitching
     result_fragment: DatacubeFragment = stitcher.stitch_datacubes()
 
-    print("type", type(result_fragment), result_fragment.is_spectral())
-
     # Handle Spectral vs Elemental specific logic
     rpl_file = "stitched_spectral.rpl" if result_fragment.is_spectral else None
 
@@ -575,3 +583,143 @@ def validate_stitching_data(data: dict) -> tuple[bool, str]:
                         return False, f"fragments[{i}].{pts_key}.{corner} must be [x, y] with integers"
 
     return True, ""
+
+def _transpose_cube_worker(
+    fragment: SpectralDatacubeFragment,
+    data_source: str,
+    cube_file: str,
+    state_manager: TransposeStateManager
+) -> None:
+    """
+    Worker function that performs the actual transpose operation in a background thread.
+    
+    Args:
+        fragment: The spectral datacube fragment to transpose.
+        data_source: Name of the data source.
+        cube_file: Name of the cube file (for state tracking).
+        state_manager: The TransposeStateManager instance.
+    """
+    try:
+        # Perform the transpose - this creates a new transposed file
+        transposed_fragment = fragment.create_transposed_version()
+        
+        # Mark as completed with the path to the transposed file
+        state_manager.complete_transpose(
+            data_source,
+            cube_file,
+            transposed_path=transposed_fragment.datacube_file
+        )
+
+    except Exception as e:
+        LOG.error(f"Background transpose failed for {data_source}/{cube_file}: {e}")
+        state_manager.complete_transpose(
+            data_source,
+            cube_file,
+            error=str(e)
+        )
+
+
+def pre_transpose_cubes(data: StitchData) -> Dict[str, Any]:
+    """
+    Queues transpose operations for all spectral datacubes.
+    
+    This function adds transpose jobs to a queue for sequential processing.
+    Only one transpose operation runs at a time to avoid overwhelming system resources.
+    
+    Args:
+        data: The StitchData object containing fragment information.
+        
+    Returns:
+        Dictionary containing:
+            - status: "queued" or "no_action_needed"
+            - message: Description of what was queued
+            - cubes: List of cube files and their initial status
+    """
+    state_manager = TransposeStateManager.get_instance()
+    
+    cubes_queued = []
+    cubes_skipped = []
+    
+    for fragment_data in data.fragment_data:
+        cube_file = fragment_data.datacube_filename
+        fragment = fragment_data.fragment
+        
+        # Only process spectral fragments
+        if not isinstance(fragment, SpectralDatacubeFragment):
+            LOG.info(f"Skipping non-spectral fragment: {cube_file}")
+            cubes_skipped.append({
+                "cube_file": cube_file,
+                "reason": "not a spectral datacube"
+            })
+            continue
+        
+        # Check if already transposed (file exists)
+        if fragment.is_transposed:
+            LOG.info(f"Fragment already transposed: {cube_file}")
+            cubes_skipped.append({
+                "cube_file": cube_file,
+                "reason": "already transposed"
+            })
+            continue
+        
+        # Create worker function for this specific fragment
+        def create_worker(frag, ds, cf):
+            """Closure to capture fragment, data_source, cube_file"""
+            def worker():
+                _transpose_cube_worker(frag, ds, cf, state_manager)
+            return worker
+        
+        worker = create_worker(fragment, data.data_source, cube_file)
+        
+        # Try to enqueue transpose for this cube
+        if state_manager.enqueue_transpose(data.data_source, cube_file, worker):
+            cubes_queued.append({
+                "cube_file": cube_file,
+                "status": "queued"
+            })
+        else:
+            # Already queued, in progress, or completed
+            status = state_manager.get_status(data.data_source, cube_file)
+            cubes_skipped.append({
+                "cube_file": cube_file,
+                "reason": f"already {status.status.value}"
+            })
+    
+    return {
+        "status": "queued" if cubes_queued else "no_action_needed",
+        "message": f"Queued transpose for {len(cubes_queued)} cube(s), skipped {len(cubes_skipped)} cube(s)",
+        "cubes_queued": cubes_queued,
+        "cubes_skipped": cubes_skipped,
+        "data_source": data.data_source
+    }
+
+
+def get_transpose_status(data_source: str) -> Dict[str, Any]:
+    """
+    Gets the current transpose status for all cubes in a data source.
+    
+    Args:
+        data_source: Name of the data source.
+        
+    Returns:
+        Dictionary containing:
+            - data_source: The data source name
+            - any_in_progress: Boolean indicating if any transposes are running
+            - cubes: Dictionary mapping cube filenames to their status info
+    """
+    state_manager = TransposeStateManager.get_instance()
+    
+    statuses = state_manager.get_all_statuses(data_source)
+    any_in_progress = state_manager.is_any_in_progress(data_source)
+    
+    # Convert TransposeInfo objects to dictionaries
+    cubes_status = {
+        cube_file: info.to_dict()
+        for cube_file, info in statuses.items()
+    }
+    
+    return {
+        "data_source": data_source,
+        "any_in_progress": any_in_progress,
+        "cubes": cubes_status
+    }

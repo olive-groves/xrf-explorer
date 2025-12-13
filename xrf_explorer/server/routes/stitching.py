@@ -5,7 +5,16 @@ from flask import request, jsonify
 from logging import Logger, getLogger
 
 from xrf_explorer import app
-from xrf_explorer.server.stitcher.stitcher_service import stitch_greyscales, generate_all_partial_greyscales, stitch, get_stitch_info, validate_stitching_data, StitchData
+from xrf_explorer.server.stitcher.stitcher_service import (
+    stitch_greyscales,
+    generate_all_partial_greyscales,
+    stitch,
+    get_stitch_info,
+    validate_stitching_data,
+    StitchData,
+    pre_transpose_cubes,
+    get_transpose_status,
+)
 
 LOG: Logger = getLogger(__name__)
 
@@ -138,12 +147,8 @@ def stitching(data_source: str):
     if not is_valid:
         return jsonify({"error": error_msg}), 400
 
-    print(len(data["fragments"]))
-
     # Parse stitch data
     stitch_configuration = StitchData(data, data_source)
-
-    print(len(stitch_configuration.points))
 
     try:
         result = stitch(stitch_configuration)
@@ -157,3 +162,93 @@ def stitching(data_source: str):
     except Exception as e:
         LOG.error(traceback.format_exc())
         return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
+
+
+@app.route("/api/<data_source>/stitch_datacubes/pre_transpose_cubes", methods=["POST"])
+def pre_transpose_cubes_endpoint(data_source: str):
+    """
+    Pre-transposes spectral datacubes in the background to speed up later stitching.
+
+    This endpoint starts background transpose operations for all spectral datacubes
+    specified in the request. The transpose operation converts cubes from (H, W, C)
+    to (C, H, W) format which is required for efficient stitching.
+
+    The endpoint returns immediately with status 202 Accepted. Use the
+    transpose_status endpoint to check progress.
+
+    Args:
+        data_source (str): Identifier for the data source.
+
+    JSON Payload:
+        type (str): Must be 'spectral' (elemental cubes don't need transposing).
+        preview (bool): Not used for pre-transpose, but required for validation.
+        contextual_image (str): Path to contextual image for frame dimensions.
+        down_scaling (float): Scaling factor (not used for transpose, but required).
+        fragments (list[dict]): List of fragments containing:
+            - datacube_file (str): Path to datacube file
+            - rpl_file (str): Path to RPL file
+            - rotation (int): Rotation in degrees (0, 90, 180, 270)
+            - local_points (dict): Points in fragment coordinates
+            - target_points (dict): Points in target frame coordinates
+
+    Returns:
+        JSON response with:
+            - status: "started" if transpose operations were initiated
+            - message: Description of what was started
+            - cubes: List of cube files being transposed
+    """
+    data = request.get_json()
+
+    # Validate request - must be spectral type
+    is_valid, error_msg = validate_stitching_data(data)
+    if not is_valid:
+        return jsonify({"error": error_msg}), 400
+    if data.get("type") != "spectral":
+        return jsonify({"error": "Pre-transpose only supports spectral datacubes. type must be 'spectral'"}), 400
+    
+    # Parse stitch data
+    stitch_configuration = StitchData(data, data_source)
+    
+    try:
+        result = pre_transpose_cubes(stitch_configuration)
+        return jsonify(result), 202  # 202 Accepted - processing started
+    except FileNotFoundError as e:
+        LOG.error(traceback.format_exc())
+        return jsonify({"error": f"File not found: {str(e)}"}), 404
+    except ValueError as e:
+        LOG.error(traceback.format_exc())
+        return jsonify({"error": f"Validation error: {str(e)}"}), 400
+    except Exception as e:
+        LOG.error(traceback.format_exc())
+        return jsonify({"error": f"Pre-transpose failed: {str(e)}"}), 500
+
+
+@app.route("/api/<data_source>/stitch_datacubes/transpose_status", methods=["GET"])
+def transpose_status_endpoint(data_source: str):
+    """
+    Returns the current status of pre-transpose operations for a data source.
+    
+    This endpoint allows clients to check whether pre-transpose operations
+    are still in progress, completed, or have not been started.
+    
+    Args:
+        data_source (str): Identifier for the data source.
+    
+    Returns:
+        JSON response with:
+            - data_source: The data source name
+            - any_in_progress: Boolean indicating if any transposes are running
+            - cubes: Dictionary mapping cube filenames to their status objects
+                Each status object contains:
+                    - status: "not_started", "in_progress", "completed", or "failed"
+                    - transposed_path: Path to transposed file (if completed)
+                    - error: Error message (if failed)
+                    - started_at: Timestamp when transpose started
+                    - completed_at: Timestamp when transpose completed
+    """
+    try:
+        result = get_transpose_status(data_source)
+        return jsonify(result), 200
+    except Exception as e:
+        LOG.error(traceback.format_exc())
+        return jsonify({"error": f"Failed to get transpose status: {str(e)}"}), 500

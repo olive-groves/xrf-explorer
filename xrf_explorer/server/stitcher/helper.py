@@ -186,16 +186,12 @@ def transpose_spectral_datacube(
     input_mmap = np.memmap(input_path, dtype=dtype, mode="r", shape=input_shape)
     output_mmap = np.memmap(output_path, dtype=dtype, mode="w+", shape=output_shape)
 
-    print(f"Transposing: {input_shape} -> {output_shape}")
-    print(f"File size: {input_mmap.nbytes / 1e9:.2f} GB")
-
     dim0, dim1, dim2 = input_shape
 
     # Case 1: (H, W, C) -> (C, H, W) - Chunk along height
     if input_shape[2] == output_shape[0]:
         for i in range(0, dim0, chunk_size):
             end_i = min(i + chunk_size, dim0)
-            print(f"Processing rows {i} to {end_i} of {dim0}")
 
             # Read chunk: (chunk_h, W, C)
             chunk_data = input_mmap[i:end_i, :, :]
@@ -213,7 +209,6 @@ def transpose_spectral_datacube(
     elif input_shape[0] == output_shape[2]:
         for i in range(0, dim0, chunk_size):
             end_i = min(i + chunk_size, dim0)
-            print(f"Processing channels {i} to {end_i} of {dim0}")
 
             # Read chunk: (chunk_c, H, W)
             chunk_data = input_mmap[i:end_i, :, :]
@@ -226,11 +221,11 @@ def transpose_spectral_datacube(
 
             if i % (chunk_size * 5) == 0:
                 output_mmap.flush()
+
     else:
         raise ValueError(f"Unsupported transpose from {input_shape} to {output_shape}")
 
     output_mmap.flush()
-    print("Transpose complete.\n")
 
 
 def rotate_cv(img, rotation):

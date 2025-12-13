@@ -16,11 +16,7 @@ import {FrontendConfig} from "@/lib/config.ts";
 
 const config = inject<FrontendConfig>("config")!;
 
-/**
- *
- */
-async function sendStitchingRequest() {
-  const json1 = {
+const json1 = {
     type: "elemental",
     preview: false,
     contextual_image: "RGB_resized.jpg",
@@ -101,7 +97,7 @@ async function sendStitchingRequest() {
     type: "spectral",
     preview: false,
     contextual_image: "RGB_resized.jpg",
-    down_scaling: 1,
+    down_scaling: 0.1,
     fragments: [
       {
         datacube_file: "spectral1.raw",
@@ -173,12 +169,29 @@ async function sendStitchingRequest() {
       },
     ],
   };
-  const response = await fetch(`${config.api.endpoint}/Stitch/stitch_datacubes/generate_partial_greyscales`, {
+/**
+ *
+ */
+async function sendStitchingRequest() {
+
+  const response = await fetch(`${config.api.endpoint}/Stitch/stitch_datacubes/stitch`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(json1),
+    body: JSON.stringify(json2),
+  });
+
+  console.log(await response.text())
+}
+
+async function sendTransposeRequest() {
+  const response = await fetch(`${config.api.endpoint}/Stitch/stitch_datacubes/pre_transpose_cubes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(json2),
   });
 
   console.log(await response.text())
@@ -194,6 +207,10 @@ async function sendStitchingRequest() {
       <MenubarMenu>
         <MenubarTrigger @click="sendStitchingRequest"> Stitch </MenubarTrigger>
       </MenubarMenu>
+      <MenubarMenu>
+        <MenubarTrigger @click="sendTransposeRequest"> Transpose </MenubarTrigger>
+      </MenubarMenu>
+
     </div>
     <div>
       <ExportMenu />
