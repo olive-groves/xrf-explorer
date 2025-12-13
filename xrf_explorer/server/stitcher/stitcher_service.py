@@ -363,7 +363,8 @@ def generate_all_partial_greyscales(data: StitchData) -> bool:
     all_conversions_successful = True
 
     for fragment_data in data.fragment_data:
-        export_path = join(datasource_dir, f"{fragment_data.datacube_filename}.png")
+        fragment_name = base_name = os.path.splitext(fragment_data.datacube_filename)[0]
+        export_path = join(datasource_dir, f"{fragment_name}.png")
 
         # Generate greyscale if it does not exist yet
         if not exists(export_path):
@@ -392,7 +393,8 @@ def get_fragment_greyscales(data: StitchData) -> List[np.ndarray]:
     datasource_dir = _build_path(join("generated", "stitching"), data.data_source)
 
     for fragment_data in data.fragment_data:
-        export_path = join(datasource_dir, f"{fragment_data.datacube_filename}.png")
+        fragment_name = base_name = os.path.splitext(fragment_data.datacube_filename)[0]
+        export_path = join(datasource_dir, f"{fragment_name}.png")
 
         # Generate greyscale if it does not exist yet
         if not exists(export_path):

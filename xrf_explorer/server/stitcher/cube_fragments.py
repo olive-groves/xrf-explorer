@@ -76,7 +76,7 @@ class DatacubeFragment(ABC):
         return recipe_file
 
 
-    def create_greyscale_projection(self, chunk_size: int = 256) -> np.ndarray:
+    def create_greyscale_projection(self) -> np.ndarray:
         """
         Collapses the multidimensional cube into a 2D image.
         Used for visualization/alignment references.
