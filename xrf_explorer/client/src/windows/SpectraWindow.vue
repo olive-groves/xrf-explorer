@@ -304,7 +304,7 @@ function resetZoom() {
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="drawChart" />
+          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="getSelectionSpectrum(areaSelection)" />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
