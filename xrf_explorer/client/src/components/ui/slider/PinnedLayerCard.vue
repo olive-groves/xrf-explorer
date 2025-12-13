@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PinnedSlider } from ".";
-import { Eye, EyeOff, SlidersHorizontal, Pin } from "lucide-vue-next";
+import { Eye, EyeOff, SlidersHorizontal, Pin, Search, SearchX } from "lucide-vue-next";
 import { computed, ref, watch, WritableComputedRef } from "vue";
 import {
   layerGroups,

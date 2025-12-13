@@ -379,7 +379,8 @@ async function getFullImageSelection(): Promise<SelectionAreaSelection> {
         <Label title="Selection color" for="color_dr" class="size-8 rounded-md p-2">
           <div
             for="color_dr"
-            class="size-4 rounded-md border"
+            class="flex size-4 cursor-pointer items-center justify-center rounded-md border-2 border-foreground
+              hover:bg-accent"
             :style="{
               'background-color': appState.selection.dimensionalityReduction.color,
             }"

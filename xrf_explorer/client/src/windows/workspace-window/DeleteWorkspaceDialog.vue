@@ -80,7 +80,13 @@ async function deleteWorkspace() {
         </div>
         <div class="flex space-x-2">
           <Button @click="deleteWorkspace" variant="destructive">Delete</Button>
-          <Button @click="emit('close')">Cancel</Button>
+          <Button
+            @click="
+              emit('close');
+              dialogOpen = false;
+            "
+            >Cancel</Button
+          >
         </div>
       </div>
     </DialogContent>

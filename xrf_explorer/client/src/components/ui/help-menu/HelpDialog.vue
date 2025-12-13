@@ -43,7 +43,7 @@ watch(isEnabled, (enabled) => {
     <Dialog v-if="isEnabled" v-model:open="open">
       <DialogContent class="max-w-md">
         <DialogTitle>{{ props.title || "Help" }}</DialogTitle>
-        <p class="mt-2 text-sm text-gray-600">
+        <p class="mt-2 text-sm text-foreground">
           {{ getTooltipByKey("help_menu." + snakeCase(props.title || "error")) }}
         </p>
         <Button
