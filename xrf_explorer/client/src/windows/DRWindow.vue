@@ -34,6 +34,7 @@ import {
   areSelectionAreaSelectionsEqual,
 } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
+import { returnRequestBodyRectangle } from "./duplicates.ts";
 
 //    Setup for selection tracking
 // Custom type for keeping track of what selection to use
@@ -262,13 +263,8 @@ function updateAreaSelection(newSelection: SelectionAreaSelection) {
  */
 async function getFullImageSelection(): Promise<SelectionAreaSelection> {
   const size = await getTargetSize();
-  return {
-    type: SelectionAreaType.Rectangle,
-    points: [
-      { x: 0, y: 0 },
-      { x: size.width, y: size.height },
-    ],
-  };
+  const request_body: SelectionAreaSelection = returnRequestBodyRectangle(size.width, size.height);
+  return request_body;
 }
 </script>
 

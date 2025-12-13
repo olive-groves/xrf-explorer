@@ -3,6 +3,16 @@ import { WorkspaceConfig } from "./workspace";
 import { Selection } from "./selection";
 import { layerGroups } from "@/components/image-viewer/state";
 
+type AreaSelection = {
+  type: undefined;
+  points: [];
+};
+
+const createAreaSelection = (): AreaSelection => ({
+  type: undefined,
+  points: [],
+});
+
 /**
  * Reactive value that contains the current appstate.
  * Use computed() in components to read properties of this state.
@@ -21,10 +31,7 @@ export const appState = reactive<AppState>({
       k: 20,
       thresholds: Array(1).fill(0),
       useAreaSelection: false,
-      areaSelection: {
-        type: undefined,
-        points: [],
-      },
+      areaSelection: createAreaSelection(),
       lastCompleteSelectionTimestamp: 0,
       lastColorSegmentationRun: 0,
     },
@@ -38,10 +45,7 @@ export const appState = reactive<AppState>({
     dimensionalityReductionPainting: {
       element: 0,
       useAreaSelection: false,
-      areaSelection: {
-        type: undefined,
-        points: [],
-      },
+      areaSelection: createAreaSelection(),
       lastCompleteSelectionTimestamp: 0,
     },
   },

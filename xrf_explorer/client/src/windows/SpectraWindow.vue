@@ -3,7 +3,7 @@ import { computed, ComputedRef, inject, nextTick, ref, watch } from "vue";
 import { FrontendConfig } from "@/lib/config";
 import * as d3 from "d3";
 import { appState, datasource, spectralDataPresent } from "@/lib/appState";
-import { SelectionAreaSelection, SelectionAreaType } from "@/lib/selection";
+import { SelectionAreaSelection } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
 import {
   NumberField,
@@ -20,6 +20,7 @@ import { makeSpectraChart } from "./charts";
 import { toast } from "vue-sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PeriodicTable from "./PeriodicTable.vue";
+import { returnRequestBodyRectangle } from "./duplicates";
 
 const spectraChart = ref<HTMLElement>();
 const popupSpectraChart = ref<HTMLElement>();
@@ -140,13 +141,8 @@ async function getAverageSpectrum() {
     loadingGlobal.value = true;
     try {
       const size = await getTargetSize();
-      const request_body: SelectionAreaSelection = {
-        type: SelectionAreaType.Rectangle,
-        points: [
-          { x: 0, y: 0 },
-          { x: size.width, y: size.height },
-        ],
-      };
+      const request_body: SelectionAreaSelection = returnRequestBodyRectangle(size.width, size.height);
+
       //make api call
       const response = await fetch(`${config.api.endpoint}/${datasource.value}/get_selection_spectrum`, {
         method: "POST",

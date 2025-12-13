@@ -71,20 +71,7 @@ export type ContextualImage = {
 /**
  * Represent a grayscale image.
  */
-export type Grayscale = {
-  /**
-   * The name of the grayscale image.
-   */
-  name: string;
-  /**
-   * The location of the image file, used by the backend.
-   */
-  imageLocation: string;
-  /**
-   * The location of the registering recipe, used by the backend.
-   * Empty string indicates that the image should not be registered.
-   */
-  recipeLocation: string;
+export type Grayscale = ContextualImage & {
   /**
    * Optional: the name of the cube that generated this grayscale image.
    */
