@@ -5,7 +5,18 @@ import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex } from "./stitchPoints";
+import { 
+  createGrayPoint,
+  selectedGrayscaleIndex,
+  setSelectedGrayscaleIndex,
+  grayscalePoints,
+  checkSelectPoint,
+  deselect,
+  selectPoint,
+  selectedPointId,
+  updateGrayPoint
+
+ } from "./stitchPoints";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import Dots from "./Dots.vue";
@@ -40,6 +51,15 @@ const grayscaleUrl = computed(() => {
     appState.workspace!.name
   );
 });
+
+// hmm
+const currentPoints = computed(() => {
+  const idx = selectedGrayscaleIndex.value ?? null;
+  if (idx === null) return [];
+  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
+  return grayscalePoints.value[idx];
+});
+
 
 const viewbox = ref<{
   x: number;
@@ -177,8 +197,24 @@ function onClick(event: MouseEvent) {
 
     if (appState.stitching) {
       const pointObj = getBaseImageCoords(event);
+      for (const p of currentPoints.value) {
+        const dx = p.gray.x - pointObj.x;
+        const dy = p.gray.y - pointObj.y;
+        if (dx * dx + dy * dy < 20 * 20) {
+          if (checkSelectPoint(p.id)) {
+            deselect();
+            return;
+          }
+          selectPoint(p.id);
+          return;
+        }
+
+      }
+      if (selectedPointId.value !== null) {
+        updateGrayPoint(selectedPointId.value, pointObj.x, pointObj.y);
+        return;
+      }
       createGrayPoint(pointObj.x, pointObj.y)
-  
     }
   }
 }
@@ -245,6 +281,7 @@ onBeforeUnmount(() => {
       :w="viewbox.w"
       :h="viewbox.h"
       :zoom="viewport.zoom"
+      :grayMapping="true"
       />
   </div>
 </template>

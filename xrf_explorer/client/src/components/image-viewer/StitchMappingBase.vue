@@ -9,13 +9,19 @@ import { createStitchEngine, StitchEngine } from "./stitchGLEngine";
 import { StitchTool, StitchState } from "./types";
 import { SelectionAreaType } from "@/lib/selection";
 import { toast } from "vue-sonner";
-
-// stitchPoints
-import {
-  selectedPointId,
+import Dots from "./Dots.vue";
+import { 
+  checkSelectPoint,
+  deselect,
+  grayscalePoints,
   selectedGrayscaleIndex,
+  selectedPointId,
+  selectPoint,
   updateBasePoint,
-} from "./stitchPoints";
+  hasBase
+      } from "./stitchPoints";
+
+
 
 
 const config = inject<FrontendConfig>("config")!;
@@ -39,6 +45,9 @@ const selectionToolActive = computed(() =>
     stitchState.value.tool as string,
   ),
 );
+
+
+
 
 const viewbox = ref<{
   x: number;
@@ -236,31 +245,53 @@ function getBaseImageCoords(event: MouseEvent) {
 
   return { x: worldX, y: worldY };
 }
+// hmm
+const currentPoints = computed(() => {
+  const idx = selectedGrayscaleIndex.value ?? null;
+  if (idx === null) return [];
+  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
+  return grayscalePoints.value[idx];
+});
 
 function onClick(event: MouseEvent) {
-  if (event.button === 2) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
     event.preventDefault();
-    return;
+
+    if (appState.stitching) {
+      const pointObj = getBaseImageCoords(event);
+        for (const p of currentPoints.value.filter(hasBase)) {
+          const dx = p.base.x - pointObj.x;
+          const dy = p.base.y - pointObj.y;
+          if (dx * dx + dy * dy < 20 * 20) {
+            if (checkSelectPoint(p.id)) {
+              deselect();
+              return;
+            }
+            selectPoint(p.id);
+            return;
+          }
+
+        }
+        if (selectedPointId.value !== null) {
+          updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
+          return;
+      }
+
+  
+    }
   }
-
-  if (event.button !== 0) return;
-  if (selectedGrayscaleIndex.value == null) return;
-  if (selectedPointId.value == null) return;
-
-  const pos = getBaseImageCoords(event);
-  updateBasePoint(selectedPointId.value, pos.x, pos.y);
 }
 
-const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
 </script>
 
 <template>
   <div
     ref="glcontainer"
     class="relative w-full h-full"
-    :style="{ cursor }"
+    style="cursor: crosshair"
     @click="onClick"
-    @contextmenu.prevent
+    @contextmenu="onClick"
     @dblclick="resetViewport"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
@@ -269,7 +300,14 @@ const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
     @wheel="onWheel"
   >
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
-
+    <Dots
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+      :zoom="viewport.zoom"
+      :grayMapping="false"
+    />
 
     
 

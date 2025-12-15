@@ -42,14 +42,14 @@ export function createGrayPoint(x: number, y: number) {
   selectedPointId.value = id;
 }
 
-export function updateGrayPoint(id: number, x: number, y: number) {
+export function updateGrayPoint(id: number | null, x: number, y: number) {
   if (selectedGrayscaleIndex.value === null) return;
   const points = getPointsForGray(selectedGrayscaleIndex.value);
   const p = points.find(p => p.id === id);
   if (p) p.gray = { x, y };
 }
 
-export function updateBasePoint(id: number, x: number, y: number) {
+export function updateBasePoint(id: number | null, x: number, y: number) {
   if (selectedGrayscaleIndex.value === null) return;
   const points = getPointsForGray(selectedGrayscaleIndex.value);
   const p = points.find(p => p.id === id);
@@ -100,6 +100,12 @@ export function getFlatMap<T>(
 
   return result;
 }
+
+
+export function hasBase(p: StitchPoint): p is StitchPoint & { base: { x: number; y: number } } {
+  return p.base !== undefined;
+}
+
 
 /**
  * Returns true if all grayscale images have all points mapped (gray + base).

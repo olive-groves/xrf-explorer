@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { computed} from 'vue'
-import { StitchPoint } from './stitchPoints';
+import { checkSelectPoint, StitchPoint } from './stitchPoints';
 import {
-  grayscalePoints,
   selectedGrayscaleIndex,
   getPointsForGray,
-  updateGrayPoint,
-  updateBasePoint,
-  maxPoints,
-  createGrayPoint
+  hasBase
 } from "./stitchPoints";
 
 const props = defineProps<{
@@ -32,6 +28,8 @@ const props = defineProps<{
 
   zoom: number;
 
+  grayMapping: boolean;
+
 
 
 }>();
@@ -48,9 +46,10 @@ type Cross = {
   x2: number;
   y2: number;
   strokeWidth: number;
+  id: number;
 };
 
-function createCross(cx: number, cy: number) {
+function createCross(cx: number, cy: number, id: number) {
   const size = Math.min(100 * Math.exp(props.zoom), 200)
   const strokeWidth = Math.min(5 * Math.exp(props.zoom), 10)
   return [
@@ -60,7 +59,8 @@ function createCross(cx: number, cy: number) {
       y1: cy,
       x2: cx + size / 2,
       y2: cy,
-      strokeWidth
+      strokeWidth,
+      id
     },
     // vertical line
     {
@@ -68,7 +68,8 @@ function createCross(cx: number, cy: number) {
       y1: cy - size / 2,
       x2: cx,
       y2: cy + size / 2,
-      strokeWidth
+      strokeWidth,
+      id
     }
   ] satisfies Cross[];
 }
@@ -78,13 +79,25 @@ function createCross(cx: number, cy: number) {
   
 //   return grayscalePoints.getFlatMap(([x, y]) => createCross(x, y));
 // });
+
 const crosses = computed(() => {
   const idx = selectedGrayscaleIndex.value;
   if (idx == null) return [];
 
   const points = getPointsForGray(idx);
 
-  return points.flatMap(p => createCross(p.gray.x, p.gray.y));
+  if(props.grayMapping) {
+    return points.flatMap(p => createCross(p.gray.x, p.gray.y, p.id));
+  }
+  else {
+    // return points.flatMap(p => createCross(p.base.x, p.base.y));
+    return points
+    .filter(hasBase)
+    .flatMap(p => createCross(p.base.x, p.base.y, p.id));
+  }
+
+  
+
 });
 
 
@@ -111,8 +124,9 @@ const crosses = computed(() => {
             :y1="c.y1"
             :x2="c.x2"
             :y2="c.y2"
-            stroke="red"
+            :stroke="checkSelectPoint(c.id) ? 'green' : 'red'"
             :stroke-width="c.strokeWidth"
+            
         />
 
 
