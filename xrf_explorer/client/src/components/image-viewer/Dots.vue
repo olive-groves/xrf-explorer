@@ -108,7 +108,7 @@ const crosses = computed(() => {
     >
         <svg
         ref="element"
-        class="size-full -scale-y-100 overflow-visible"
+        class="size-full -scale-y-100"
         :viewBox="`${x} ${y} ${w} ${h}`"
         preserveAspectRatio="none"
         fill="none"
