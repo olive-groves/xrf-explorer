@@ -381,6 +381,19 @@ export function useCSWindow() {
   }
 
   /**
+   * reset all settings in the window to defaults.
+   */
+  function resetSettings() {
+    recommendedStatus.value = Status.WAITING;
+    recommendedClusters.value = null;
+    number_clusters.value = 10;
+    colors.value = [""];
+    useSelectionChecked.value = false;
+    status.value = Status.WAITING;
+    elementsSelected.value = [{id: 1, name: "", threshold: 20}];
+  }
+
+  /**
    * Update number of clusters variable to match the calculated recommended number of clusters.
    */
   async function setRecommendedClusters() {
@@ -414,5 +427,6 @@ export function useCSWindow() {
     removeElement,
     calculateRecommendedClusters,
     setRecommendedClusters,
+    resetSettings,
   };
 }

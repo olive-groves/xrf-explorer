@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { elementalDataPresent } from "@/lib/appState";
 import { Window } from "@/components/ui/window";
-import { LoaderPinwheel, Trash2 } from "lucide-vue-next";
+import { LoaderPinwheel, Trash2, ListRestart } from "lucide-vue-next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -39,12 +39,17 @@ const {
   removeElement,
   calculateRecommendedClusters,
   setRecommendedClusters,
+  resetSettings,
 } = useCSWindow();
 </script>
 
 <template>
   <Window title="Color segmentation" location="right" :disabled="!elementalDataPresent">
     <div class="space-y-2 p-2">
+      <!-- reset button -->
+      <Button class="basis-1/2" variant="outline" @click="resetSettings()" title="Reset layer settings"
+        ><ListRestart class="size-4" />
+      </Button>
       <!-- MODE TOGGLE -->
       <div class="flex w-full rounded-md bg-muted p-1">
         <Button

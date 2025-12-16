@@ -32,7 +32,6 @@ const isOpen = ref(false);
 const points = computed({
   get() {
     // Ensure the container exists
-    console.log("HEREGET");
     if (!appState.selection.imageViewer) {
       appState.selection.imageViewer = { type: SelectionAreaType.Rectangle, points: [] };
     }
