@@ -2,21 +2,16 @@
 // Import the necessary components
 import {
   Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
   MenubarMenu,
-  MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { ExportMenu, FileMenu, MainMenu, WindowMenu } from ".";
-import { windowState } from "@/components/ui/window/state.ts";
-import { appState, datasource } from "@/lib/appState.ts";
 import {inject} from "vue";
 import {FrontendConfig} from "@/lib/config.ts";
 
 const config = inject<FrontendConfig>("config")!;
 
-const json1 = {
+/*const json1 = {
     type: "elemental",
     preview: false,
     contextual_image: "RGB_resized.jpg",
@@ -91,7 +86,7 @@ const json1 = {
         },
       },
     ],
-  };
+  }; */
 
   const json2 = {
     type: "spectral",
