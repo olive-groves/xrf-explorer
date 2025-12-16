@@ -1,6 +1,8 @@
 import logging
 
 from os import path, makedirs
+from math import ceil
+from time import time_ns
 
 import cv2
 import numpy as np
@@ -120,7 +122,7 @@ def get_elemental_clusters_using_k_means_get_images(
         selection_mask: np.ndarray,
         elem_threshold: np.ndarray[float]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Prepare the LAB pixel features, registered image, and combined elemental mask used for
+    Prepare the RGB pixel features, registered image, and combined elemental mask used for
     element-wise color clustering.
 
     :param data_source: the name of the data source
@@ -128,7 +130,7 @@ def get_elemental_clusters_using_k_means_get_images(
     :param elemental_channel: array of channels of the element to compute the color clusters of
     :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
     :param elem_threshold: array of minimum concentrations needed for the respective element to be present in the pixel
-    :return: the LAB pixels restricted to the selection/elemental mask, the LAB image, and the boolean mask
+    :return: the LAB pixels restricted to the selection/elemental mask, the RGB image, and the boolean mask
     """
 
     # Get the elemental data cube
@@ -144,12 +146,6 @@ def get_elemental_clusters_using_k_means_get_images(
         return np.empty(0), np.empty(0), np.empty(0)
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
-
-    # Transform image to lab
-    image = image_to_lab(image)
-
-    # set seed so results are consistent
-    cv2.setRNGSeed(0)
 
     # Get bitmasks of pixels with high element concentration and get respective pixels in the image
     combined_mask = np.array(selection_mask, copy=True)
@@ -174,6 +170,12 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     :return: Same as get_clusters_using_k_means_get_images
     """
     masked_image, image = get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k)
+
+    # Transform image to lab
+    image = image_to_lab(image)
+
+    # set seed so results are consistent
+    cv2.setRNGSeed(0)
     
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
@@ -241,6 +243,12 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     if masked_image.size == 0:
         return np.empty(0), []
+    
+    # Transform image to lab
+    image = image_to_lab(image)
+
+    # set seed so results are consistent
+    cv2.setRNGSeed(0)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
@@ -278,79 +286,35 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
     center = np.array([lab_to_rgb(c) for c in center])
     return center, cluster_masks
 
-def calculate_recommended_cluster_number(X, k_range=range(2, 11), n_init=3, random_state=42):
+def calculate_recommended_cluster_number(pixels):
     """
-    Calculates the recommended number of clusters by evaluating multiple clustering
-    quality metrics over a range of k values.
+    Calculates the recommended number of clusters by categorizing all pixels in bins
+    and counting the number of bins above a arbitrary threshold.
 
-    For each k in the provided range, the function performs k-means clustering and
-    computes the following metrics:
-      - Silhouette Score (higher is better)
-        - Measures how similar each pixel is to its own cluster vs other clusters.
-        - Good when clusters have intuitive boundaries.
-      - Calinski–Harabasz Index (higher is better)
-        - Measures the ratio of between-cluster variance to within-cluster variance.
-      - Davies–Bouldin Index (lower is better)
-        - Measures average similarity ratio of each cluster with its most similar cluster.
-
-    These metrics are normalized and combined into a single aggregated score to
-    determine the most stable and well-separated clustering configuration.
-
-    :param X: A 2D numpy array (N, 3) containing LAB pixel features extracted
+    :param pixels: A 2D numpy array (N, 3) containing LAB pixel features extracted
               from the selected region. Each row corresponds to a pixel.
-    :param k_range: Range or list of integers specifying which cluster counts
-                    to evaluate. Defaults to range(2, 11).
-    :param n_init: Number of k-means initializations per k. Higher values yield
-                   more stable clustering but increase computation time.
-                   Default is set to 3.
-    :param random_state: Seed used to ensure reproducibility of results.
-                         Default is set to 42.
 
-    :return: A dictionary containing:
-             - "k_values": list of evaluated k values
-             - "silhouette": list of silhouette scores
-             - "calinski_harabasz": list of Calinski–Harabasz scores
-             - "davies_bouldin": list of Davies–Bouldin scores
-             - "combined_score": normalized aggregated metric scores
-             - "recommended_k": the best k according to the combined score
+    :return: an integer the recommended number of clusters
     """
-    silhouette_scores = []
-    ch_scores = []
-    db_scores = []
 
-    # Evaluate clustering for each k
-    for k in k_range:
-        kmeans = KMeans(n_clusters=k, n_init=n_init, random_state=random_state)
-        labels = kmeans.fit_predict(X)
+    #Determine number of bins per rgb channel and total number of bins
+    BINS_PER_CHANNEL = 8
 
-        silhouette_scores.append(silhouette_score(X, labels, sample_size=min(1000, len(X))))
-        ch_scores.append(calinski_harabasz_score(X, labels))
-        db_scores.append(davies_bouldin_score(X, labels))
+    #Threshold value when to count bin to k, 0.025 is just arbitrary, can be changed for better results
+    threshold = len(pixels) * 0.025
+    LOG.info(f"Threshold: {threshold} on {len(pixels)} pixels")
 
-    # Convert lists to numpy arrays for easier manipulation
-    silhouette_scores = np.array(silhouette_scores)
-    ch_scores = np.array(ch_scores)
-    db_scores = np.array(db_scores)
+    #Reserve number of bins
+    hist, edges = np.histogramdd(
+        pixels,
+        bins = (BINS_PER_CHANNEL, BINS_PER_CHANNEL, BINS_PER_CHANNEL),
+    )
 
-    # Normalize scores to comparable scale for combined ranking
-    sil_norm = (silhouette_scores - np.min(silhouette_scores)) / (np.max(silhouette_scores) - np.min(silhouette_scores))
-    ch_norm = (ch_scores - np.min(ch_scores)) / (np.max(ch_scores) - np.min(ch_scores))
-    db_norm = 1 - ((db_scores - np.min(db_scores)) / (np.max(db_scores) - np.min(db_scores)))  # Lower is better
+    #Count the number of bins above the threshold value
+    k = np.count_nonzero(hist > threshold)
 
-    # Combine normalized scores (equal weighting)
-    combined_score = (sil_norm + ch_norm + db_norm) / 3
-    best_k = k_range[np.argmax(combined_score)]
+    return k
 
-    # print debug info
-    print(f"Recommended k (based on combined score): {best_k}")
-    return {
-        "k_values": list(k_range),
-        "silhouette": silhouette_scores,
-        "calinski_harabasz": ch_scores,
-        "davies_bouldin": db_scores,
-        "combined_score": combined_score.tolist(),
-        "recommended_k": best_k
-    }
 
 def combine_bitmasks(bitmasks: list[np.ndarray]) -> np.ndarray:
     """
@@ -508,3 +472,19 @@ def convert_to_hex(clusters: np.ndarray) -> np.ndarray:
     for col in clusters:
         hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
     return hex_clusters
+
+def create_elementlist_and_thresholdlist(elements):
+    """
+    Create convert list of [element, threshold] to seperate list of elements and thresholds
+
+    param elements: list with elements [int int]
+    return: two list of ints
+    """
+    elementList = []
+    thresholdList = []
+    for i in range (len(elements)):
+        if elements[i][0] != 0: #ignore whole painting channel
+            elementList.append(elements[i][0] - 1)
+            thresholdList.append(int(255 * elements[i][1] / 100))
+
+    return elementList, thresholdList

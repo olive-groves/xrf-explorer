@@ -11,7 +11,6 @@ import numpy as np
 from flask import send_file, request
 
 from xrf_explorer import app
-from xrf_explorer.server.color_segmentation.color_seg import calculate_recommended_cluster_number
 
 from xrf_explorer.server.color_segmentation import (
     get_path_to_cs_folder,
@@ -21,7 +20,9 @@ from xrf_explorer.server.color_segmentation import (
     get_elemental_clusters_using_k_means,
     combine_bitmasks,
     convert_to_hex,
-    save_bitmask_as_png
+    save_bitmask_as_png,
+    calculate_recommended_cluster_number,
+    create_elementlist_and_thresholdlist,
 )
 from xrf_explorer.server.image_to_cube_selection import CubeType
 from xrf_explorer.server.file_system import get_config
@@ -29,14 +30,6 @@ from xrf_explorer.server.file_system.workspace import get_base_image_name
 from xrf_explorer.server.routes.helper import validate_config, encode_selection
 
 LOG: Logger = getLogger(__name__)
-
-def create_elementlist_and_thresholdlist(elements):
-    elementList = []
-    thresholdList = []
-    for i in range (len(elements)):
-        if elements[i][0] != 0: #ignore whole painting channel
-            elementList.append(elements[i][0] - 1)
-            thresholdList.append(int(255 * elements[i][1] / 100))
 
 @app.route('/api/<data_source>/cs/clusters/<int:k>/<uses_selection>', methods=['POST'])
 def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
@@ -177,20 +170,13 @@ def recommend_k(data_source: str):
             data_source, rgb_image_name, np.array(elementList), selection_mask, np.array(thresholdList)
         )
         LOG.info("Got back element mask")
-    
-    # Code took too long so downsize
-    max_points = 5000
-    if mask.shape[0] > max_points:
-        idmask = np.random.choice(mask.shape[0], max_points, replace=False)
-        mask = mask[idmask]
 
     LOG.info("Computing recommended k")
-    max_k = min(50, len(mask))
 
     # Call the new helper function
-    result = calculate_recommended_cluster_number(mask, k_range=range(2, max_k))
+    result = calculate_recommended_cluster_number(mask)
 
-    return json.dumps({"recommended_k": result["recommended_k"]})
+    return json.dumps({"recommended_k": result})
 
 @app.route('/api/<data_source>/cs/bitmask', methods=['GET'])
 def get_color_cluster_bitmask(data_source: str):
