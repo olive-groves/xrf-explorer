@@ -87,7 +87,7 @@ def generate_partial_greyscales(data_source: str):
         stitch_configuration = StitchData(data, data_source)
     except (ValueError, KeyError) as e:
         LOG.error(e)
-        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
 
     try:
         result = generate_all_partial_greyscales(stitch_configuration)
@@ -151,7 +151,7 @@ def stitching(data_source: str):
         stitch_configuration = StitchData(data, data_source)
     except (ValueError, KeyError) as e:
         LOG.error(e)
-        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
 
     try:
         result = stitch(stitch_configuration)
@@ -207,7 +207,7 @@ def pre_transpose_cubes_endpoint(data_source: str):
         stitch_configuration = StitchData(data, data_source)
     except (ValueError, KeyError) as e:
         LOG.error(e)
-        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
     
     try:
         result = pre_transpose_cubes(stitch_configuration)
