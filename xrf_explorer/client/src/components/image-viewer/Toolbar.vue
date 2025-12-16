@@ -3,11 +3,7 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LabeledSlider } from "@/components/ui/slider";
-import {
-  NumberField,
-  NumberFieldContent,
-  NumberFieldInput,
-} from "@/components/ui/number-field";
+import { NumberField, NumberFieldContent, NumberFieldInput } from "@/components/ui/number-field";
 // Import the necessary icons
 import { Hand, Search, SquareMousePointer, Settings, LassoSelect, Fullscreen, SquareX } from "lucide-vue-next";
 import { Tool, ToolState } from "./types";
@@ -16,8 +12,6 @@ import { inject } from "vue";
 import Label from "../ui/label/Label.vue";
 import { appState } from "@/lib/appState";
 import { computed, ref } from "vue";
-import { Point2D } from "@/lib/utils";
-import { getSystemErrorMap } from "util";
 import { SelectionAreaType } from "@/lib/selection";
 
 // Inject the configuration
@@ -49,15 +43,17 @@ const points = computed({
 
   set(v) {
     appState.selection.imageViewer = { type: SelectionAreaType.Rectangle, points: v };
-  }
+  },
 });
 
+/**
+ * Handle double-click on the rectangle selection tool to open the popover.
+ */
 function handleDblClick() {
   isOpen.value = true;
 
   console.log(isOpen.value);
 }
-
 </script>
 
 <template>
@@ -74,7 +70,12 @@ function handleDblClick() {
       </ToggleGroupItem>
       <Popover v-model:open="isOpen">
         <PopoverAnchor>
-          <ToggleGroupItem :value="Tool.Rectangle" class="size-8 p-2" title="Rectangle selection" @dblclick.stop="handleDblClick">
+          <ToggleGroupItem
+            :value="Tool.Rectangle"
+            class="size-8 p-2"
+            title="Rectangle selection"
+            @dblclick.stop="handleDblClick"
+          >
             <SquareMousePointer />
           </ToggleGroupItem>
         </PopoverAnchor>
@@ -84,7 +85,10 @@ function handleDblClick() {
             <!-- Top-left X -->
             <NumberField
               v-model="points[0].x"
-              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, x: Number(v.target.value)} : p)"
+              @input="
+                (v: { target: { value: any } }) =>
+                  (points = points.map((p, i) => (i === 0 ? { ...p, x: Number(v.target.value) } : p)))
+              "
               :min="0"
               :max="99999"
               :step="1"
@@ -95,14 +99,17 @@ function handleDblClick() {
               }"
             >
               <NumberFieldContent class="h-8 px-1.5">
-                <NumberFieldInput v-tooltip="'tools.bottom_left_x'"/>
+                <NumberFieldInput v-tooltip="'tools.bottom_left_x'" />
               </NumberFieldContent>
             </NumberField>
 
             <!-- Top-left Y -->
             <NumberField
               v-model="points[0].y"
-              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 0 ? {...p, y: Number(v.target.value)} : p)"
+              @input="
+                (v: { target: { value: any } }) =>
+                  (points = points.map((p, i) => (i === 0 ? { ...p, y: Number(v.target.value) } : p)))
+              "
               :min="0"
               :max="99999"
               :step="1"
@@ -113,7 +120,7 @@ function handleDblClick() {
               }"
             >
               <NumberFieldContent class="h-8 px-1.5">
-                <NumberFieldInput v-tooltip="'tools.bottom_left_y'"/>
+                <NumberFieldInput v-tooltip="'tools.bottom_left_y'" />
               </NumberFieldContent>
             </NumberField>
           </div>
@@ -122,7 +129,10 @@ function handleDblClick() {
             <!-- Bottom-right X -->
             <NumberField
               v-model="points[1].x"
-              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, x: Number(v.target.value)} : p)"
+              @input="
+                (v: { target: { value: any } }) =>
+                  (points = points.map((p, i) => (i === 1 ? { ...p, x: Number(v.target.value) } : p)))
+              "
               :min="0"
               :max="99999"
               :step="1"
@@ -133,14 +143,17 @@ function handleDblClick() {
               }"
             >
               <NumberFieldContent class="h-8 px-1.5">
-                <NumberFieldInput v-tooltip="'tools.top_right_x'"/>
+                <NumberFieldInput v-tooltip="'tools.top_right_x'" />
               </NumberFieldContent>
             </NumberField>
 
             <!-- Bottom-right Y -->
             <NumberField
               v-model="points[1].y"
-              @input="(v: { target: { value: any; }; }) => points = points.map((p, i) => i === 1 ? {...p, y: Number(v.target.value)} : p)"
+              @input="
+                (v: { target: { value: any } }) =>
+                  (points = points.map((p, i) => (i === 1 ? { ...p, y: Number(v.target.value) } : p)))
+              "
               :min="0"
               :max="99999"
               :step="1"
@@ -151,7 +164,7 @@ function handleDblClick() {
               }"
             >
               <NumberFieldContent class="h-8 px-1.5">
-                <NumberFieldInput v-tooltip="'tools.top_right_y'"/>
+                <NumberFieldInput v-tooltip="'tools.top_right_y'" />
               </NumberFieldContent>
             </NumberField>
           </div>

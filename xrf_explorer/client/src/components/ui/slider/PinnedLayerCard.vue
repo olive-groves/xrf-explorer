@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PinnedSlider } from ".";
 import { Eye, EyeOff, SlidersHorizontal, Pin, Search, SearchX } from "lucide-vue-next";
-import { computed, ref, watch, WritableComputedRef } from "vue";
+import { computed, ref, WritableComputedRef } from "vue";
 import {
   layerGroups,
   setLayerGroupIndex,
@@ -10,7 +10,15 @@ import {
 } from "@/components/image-viewer/state";
 import { LayerGroup, LayerVisibility } from "@/components/image-viewer/types";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { LabeledSlider } from "@/components/ui/slider";
+import {
+  LabeledSlider,
+  togglePin,
+  checkedOutsideLens,
+  mainProperties,
+  properties,
+  watchers,
+} from "@/components/ui/slider";
+import type { Property } from "@/components/ui/slider";
 
 const props = defineProps<{
   /**
@@ -33,52 +41,9 @@ const numberOfPinnedLayers = computed(() => groups.value.filter((g) => g.pinned)
 
 const groupNames = computed(() => Object.keys(layerGroups.value));
 
-/**
- * Loads the layer groups into the LayerSystem.
- */
-watch(
-  groupNames,
-  (newGroups) => {
-    groups.value = newGroups.map((name) => layerGroups.value[name]).sort((a, b) => a.index - b.index);
-  },
-  { immediate: true },
-);
-
-/**
- * Updates the indices of the layers when the layers get reordered.
- */
-watch(
-  groups,
-  (newOrder) => {
-    newOrder.forEach((layer, index) => {
-      layer.index = index;
-      setLayerGroupIndex(layer);
-    });
-  },
-  { immediate: true },
-);
-
-// Used for generalizing the code.
-interface Property {
-  name: string;
-  min: number;
-  max: number;
-  default: number;
-  propertyName: string;
-  nameRef: keyof LayerGroup;
-}
-
-// Adjustable properties of each layer group.
-// Main properties are always directly visible in the Layer System,
-// all other properties are placed in a separate popover.
-const mainProperties = ["Opacity"];
-const properties: Property[] = [
-  { name: "Opacity", min: 0, max: 1, default: 1, propertyName: "opacityProperty", nameRef: "opacity" },
-  { name: "Contrast", min: 0, max: 5, default: 1, propertyName: "contrastProperty", nameRef: "contrast" },
-  { name: "Saturation", min: 0, max: 5, default: 1, propertyName: "saturationProperty", nameRef: "saturation" },
-  { name: "Gamma", min: 0, max: 5, default: 1, propertyName: "gammaProperty", nameRef: "gamma" },
-  { name: "Brightness", min: -1, max: 1, default: 0, propertyName: "brightnessProperty", nameRef: "brightness" },
-];
+// Loads the layer groups into the LayerSystem.
+// Updates the indices of the layers when the layers get reordered.
+watchers(groupNames, layerGroups, groups, setLayerGroupIndex);
 
 // Computed proxies for easier access
 const visible = computed({
@@ -120,22 +85,11 @@ const propertyProxies: Record<string, WritableComputedRef<number[]>> = Object.fr
 /**
  * Toggles the pinned state of a layer group.
  */
-function togglePin() {
+function SetTogglePin() {
   const group = props.group;
-
+  group.pinned = togglePin(group, numberOfPinnedLayers.value);
+  setLayerGroupProperty(group, "pinnedProperty");
   if (!group.pinned) {
-    // Trying to pin
-    if (numberOfPinnedLayers.value >= 3) {
-      alert("You can only pin up to 3 layers.");
-      return;
-    }
-    // Pinning
-    group.pinned = true;
-    setLayerGroupProperty(group, "pinnedProperty");
-  } else {
-    // Unpinning
-    group.pinned = false;
-    setLayerGroupProperty(group, "pinnedProperty");
     emit("unpin", group);
   }
 }
@@ -145,23 +99,15 @@ function togglePin() {
  * @param group The LayerGroup to toggle the lens of.
  */
 function toggleLens(group: LayerGroup) {
-  checkedOutsideLens(group);
+  setCheckedOutsideLens(group);
 }
 
 /**
  * Updates the visibility of the layer group outside the lens.
  * @param group - The group to toggle and update.
  */
-function checkedOutsideLens(group: LayerGroup) {
-  if (group.visibility == LayerVisibility.Invisible) {
-    group.visibility = LayerVisibility.OutsideLens;
-  } else if (group.visibility == LayerVisibility.Visible) {
-    group.visibility = LayerVisibility.InsideLens;
-  } else if (group.visibility == LayerVisibility.InsideLens) {
-    group.visibility = LayerVisibility.Visible;
-  } else if (group.visibility == LayerVisibility.OutsideLens) {
-    group.visibility = LayerVisibility.Invisible;
-  }
+function setCheckedOutsideLens(group: LayerGroup) {
+  checkedOutsideLens(group);
   setLayerGroupVisibility(group);
 }
 </script>
@@ -177,7 +123,7 @@ function checkedOutsideLens(group: LayerGroup) {
           variant="ghost"
           class="size-8 p-2"
           title="Unpin layer"
-          @click="togglePin"
+          @click="SetTogglePin"
           :disabled="!group.pinned && numberOfPinnedLayers >= 3"
         >
           <Pin :class="group.pinned ? 'text-primary' : 'text-muted-foreground'" class="size-5" />
