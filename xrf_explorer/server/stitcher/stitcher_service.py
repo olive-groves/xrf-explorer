@@ -57,14 +57,15 @@ class FragmentData:
     """
     data_source: str
     cube_type: str
-    rotation: int
     datacube_filename: str
     datacube_path: str
+
+    rotation: int | None
     rpl_file: str | None
-    fragment: DatacubeFragment
-    local_points: WarpSelection
-    target_points: WarpSelection
-    points: tuple[WarpSelection, WarpSelection]
+    fragment: DatacubeFragment | None
+    local_points: WarpSelection | None
+    target_points: WarpSelection | None
+    points: tuple[WarpSelection, WarpSelection] | None
 
     def __init__(self, frag_data: Dict[str, Any], data_source: str, cube_type:str, target_dimensions: Dimensions):
         """
@@ -83,52 +84,72 @@ class FragmentData:
             ValueError: If local points are out of the fragment boundaries, or if target points
                 fall outside the defined target dimensions.
         """
-        # Assuming data is verified.
         self.data_source = data_source
         self.cube_type = cube_type
-        self.rotation = frag_data["rotation"]
+
+        # Verify datacube file and rpl file (Mandatory)
+        is_spectral = cube_type == "spectral"
+
+        for key in ("datacube_file", "rpl_file") if is_spectral else ["datacube_file"]:
+            if not isinstance(frag_data.get(key), str):
+                raise ValueError(f"fragments[].{key} must be string")
+
         self.datacube_filename = frag_data["datacube_file"]
-        self.datacube_path = _build_path(frag_data.get("datacube_file"), data_source)
+        self.datacube_path = _build_path(frag_data["datacube_file"], data_source)
+        self.rpl_file = frag_data["rpl_file"] if is_spectral else None
 
-        # RPL File & Fragment
-        if self.cube_type == "spectral":
-            self.rpl_file = _build_path(frag_data.get("rpl_file"), data_source)
-
-            self.fragment = SpectralDatacubeFragment.from_file(
-                self.datacube_path, self.rpl_file, self.rotation
-            )
+        # Fragment
+        if is_spectral:
+            self.fragment = SpectralDatacubeFragment.from_file(self.datacube_path, self.rpl_file, self.rotation)
 
         else:  # elemental
-            self.rpl_file = None
             self.fragment = ElementalDatacubeFragment.from_file(self.datacube_path, self.rotation)
 
-        # Local & Target points
-        local_pts = frag_data["local_points"]
-        target_pts = frag_data["target_points"]
+        # Rotation
+        rotation = frag_data.get("rotation", 0)
 
-        self.local_points = WarpSelection(
-            top_left = local_pts["top_left"],
-            top_right = local_pts["top_right"],
-            bottom_left = local_pts["bottom_left"],
-            bottom_right = local_pts["bottom_right"],
-        )
+        if rotation not in {0, 90, 180, 270} and not rotation:
+            raise ValueError(f"fragment {self.datacube_filename}, rotation must be one of: 0,90,180,270")
 
-        self.target_points = WarpSelection(
-            top_left = target_pts["top_left"],
-            top_right = target_pts["top_right"],
-            bottom_left = target_pts["bottom_left"],
-            bottom_right = target_pts["bottom_right"],
-        )
+        self.rotation = rotation
 
-        if not self.local_points.are_within(self.fragment.width, self.fragment.height):
-            raise ValueError(f"Fragment '{self.datacube_path}' local points are out of bounds.")
-        elif not self.target_points.are_within(target_dimensions.width, target_dimensions.height):
-            raise ValueError(
-                f"Fragment '{self.datacube_path}' target points are out of bounds."
-            )
+        # Points validation
+        for pts_key in ("local_points", "target_points"):
+            pts = frag_data.get(pts_key)
+            if not isinstance(pts, dict | None):
+                raise ValueError(f"fragment {self.datacube_filename}, {pts_key} must be dictionary")
+
+            # If one of the points is not present, set variables to None and stop validating.
+            if pts is None:
+                self.local_points = None
+                self.target_points = None
+                break
+
+            for corner in ("top_left", "top_right", "bottom_left", "bottom_right"):
+                corner_val = pts.get(corner)
+                if not isinstance(corner_val, (list, tuple)):
+                    raise ValueError(f"fragment {self.datacube_filename}, {pts_key}.{corner} must be [x,y] array")
+
+                # If it's a list/tuple, validate it has 2 integers
+                if isinstance(corner_val, (list, tuple)):
+                    if len(corner_val) != 2 or not all(isinstance(v, int) for v in corner_val):
+                        raise ValueError(f"fragment {self.datacube_filename}, {pts_key}.{corner} must be [x, y] with integers")
+            # Setting validated points
+            if pts_key == "local_points":
+                self.local_points = WarpSelection(pts["top_left"], pts["top_right"], pts["bottom_left"], pts["bottom_right"])
+            else:
+                self.target_points = WarpSelection(pts["top_left"], pts["top_right"], pts["bottom_left"], pts["bottom_right"])
+
+        # Verify points are within boundries
+        if self.local_points and self.target_points:
+            if not self.local_points.are_within(self.fragment.width, self.fragment.height):
+                raise ValueError(f"Fragment '{self.datacube_path}' local points are out of bounds.")
+            elif not self.target_points.are_within(target_dimensions.width, target_dimensions.height):
+                raise ValueError(
+                    f"Fragment '{self.datacube_path}' target points are out of bounds."
+                )
 
         self.points = (self.local_points, self.target_points)
-
 
 class StitchData:
     """
@@ -151,12 +172,13 @@ class StitchData:
     """
     data_source: str
     cube_type: str
-    preview: bool
-    scaling: int
-    contextual_image_name: str
-    contextual_image_dimensions: Dimensions
-    points: list[tuple[WarpSelection, WarpSelection]]
     fragment_data: list[FragmentData]
+
+    preview: bool | None
+    scaling: int | None
+    contextual_image_name: str | None
+    contextual_image_dimensions: Dimensions | None
+    points: list[tuple[WarpSelection, WarpSelection]] | None
 
     # Init
     def __init__(self, data: Dict[str, Any], data_source: str):
@@ -175,20 +197,77 @@ class StitchData:
             KeyError: If the required keys are missing in the input data dictionary.
 
         """
-        # Assuming data is verified.
         self.data_source = data_source
+
+        # Verifiy data
+        if data is None:
+            raise ValueError("Invalid or missing JSON")
+
+        # Cubetype
+        if data.get("type") not in ("elemental", "spectral"):
+            raise ValueError("type must be 'elemental' or 'spectral'")
+
         self.cube_type = data["type"]
-        self.preview = data["preview"]
-        self.scaling = data["down_scaling"]
-        self.contextual_image_name = data["contextual_image"]
+
+        # Preview
+        if not isinstance(data.get("preview"), bool | None):
+            raise ValueError("preview must be boolean")
+
+        self.preview = data.get("preview")
+
+        # Contextual image name
+        if not isinstance(data.get("contextual_image"), str | None):
+            raise ValueError("contextual_image must be string")
+
+        self.contextual_image_name = data.get("contextual_image")
+
+        # Down scaling factor
+        down_scaling = data.get("down_scaling")
+        if not (isinstance(down_scaling, (int, float)) and 0 < down_scaling):
+            raise ValueError("down_scaling must be a number larger than 0")
+
+        self.down_scaling = down_scaling
+
+        # Fragments
+        fragments = data.get("fragments")
+        if not fragments or not isinstance(fragments, list):
+            raise ValueError("fragments must be a non-empty list")
+
+        self.fragments = []
+
+        for i, frag in enumerate(fragments):
+            if not isinstance(frag, dict):
+                raise ValueError(f"fragments[{i}] must be an object")
+
+            fragments.append(FragmentData(frag, data_source, self.cube_type, self.contextual_image_dimensions))
+        # Mandatory attributes
+        try:
+            self.data_source = data_source
+            self.cube_type = data["type"]
+        except KeyError as e:
+            LOG.error(f"Missing key in input data: {e}")
+            raise
+
+        # Optional attributes
+        self.preview = data.get("preview", None)
+        self.scaling = data.get("down_scaling", None)
+        self.contextual_image_name = data.get("contextual_image", None)
 
         # Get contextual image dimensions
-        self.get_contextual_image_dimensions()
+        if self.contextual_image_name:
+            self.get_contextual_image_dimensions()
+        else:
+            self.contextual_image_dimensions = None
 
-        # Fragment data
-        self.fragment_data = []
-        for frag_data in data.get("fragments", []):
-            self.fragment_data.append(FragmentData(frag_data, self.data_source, self.cube_type, self.contextual_image_dimensions))
+        # Fragment data (Mandatory)
+        try:
+            self.fragment_data = []
+            for frag_data in data.get("fragments", []):
+                self.fragment_data.append(
+                    FragmentData(frag_data, self.data_source, self.cube_type, self.contextual_image_dimensions))
+        except KeyError as e:
+            LOG.error(f"Missing fragments in input data: {e}")
+            raise
 
         # Gather point tuples from all fragments
 
@@ -256,8 +335,6 @@ class StitchData:
             output_dir,
             data_source=self.data_source  # Pass data source for pre-transpose tracking
         )
-
-
 
 def _build_path(path_value: str, data_source: str) -> str:
     """
