@@ -23,3 +23,4 @@ from .project import (
     upload_chunk
 )
 from .spectral_cube import bin_raw_data, get_offset, get_average_data, get_element_spectra, get_selection_spectra
+from .stitching import stitch
