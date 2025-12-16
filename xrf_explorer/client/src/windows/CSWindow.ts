@@ -345,12 +345,21 @@ export function useCSWindow() {
       }
 
       recommendedStatus.value = Status.LOADING;
+
+      //Read the selection for the payload
+      let activeSelection: SelectionAreaSelection;
+      if (useSelectionChecked.value) {
+        activeSelection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+      } else {
+        activeSelection = await getFullImageSelection();
+      }
+
       // Prepare request
       const response = await fetch(`${config.api.endpoint}/${datasource.value}/cs/recommend-k`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          selection: flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height),
+          selection: activeSelection,
           elements: selectedElements,
         }),
       });

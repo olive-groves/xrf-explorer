@@ -98,9 +98,6 @@ def get_clusters_using_k_means_get_images(data_source: str, image_name: str,
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
 
-    # set seed so results are consistent
-    cv2.setRNGSeed(0)
-
     # Apply selection bitmask to image
     masked_image: np.ndarray = image[selection_mask]
     masked_image = reshape_image(masked_image)
@@ -111,9 +108,6 @@ def get_clusters_using_k_means_get_images(data_source: str, image_name: str,
     
     # Return masked image for recommended cluster calculation
     return masked_image, image
-    
-
-
 
 def get_elemental_clusters_using_k_means_get_images(
         data_source: str,
@@ -122,7 +116,7 @@ def get_elemental_clusters_using_k_means_get_images(
         selection_mask: np.ndarray,
         elem_threshold: np.ndarray[float]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Prepare the RGB pixel features, registered image, and combined elemental mask used for
+    Prepare the LAB pixel features, registered image, and combined elemental mask used for
     element-wise color clustering.
 
     :param data_source: the name of the data source
@@ -130,7 +124,7 @@ def get_elemental_clusters_using_k_means_get_images(
     :param elemental_channel: array of channels of the element to compute the color clusters of
     :param selection_mask: bitmask representing the selection of pixels that will be used for clustering
     :param elem_threshold: array of minimum concentrations needed for the respective element to be present in the pixel
-    :return: the LAB pixels restricted to the selection/elemental mask, the RGB image, and the boolean mask
+    :return: the LAB pixels restricted to the selection/elemental mask, the LAB image, and the boolean mask
     """
 
     # Get the elemental data cube
@@ -146,6 +140,12 @@ def get_elemental_clusters_using_k_means_get_images(
         return np.empty(0), np.empty(0), np.empty(0)
 
     image: np.ndarray = cv2.cvtColor(registered_image, cv2.COLOR_BGR2RGB)
+
+    # Transform image to lab
+    image = image_to_lab(image)
+
+    # set seed so results are consistent
+    cv2.setRNGSeed(0)
 
     # Get bitmasks of pixels with high element concentration and get respective pixels in the image
     combined_mask = np.array(selection_mask, copy=True)
@@ -170,12 +170,6 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
     :return: Same as get_clusters_using_k_means_get_images
     """
     masked_image, image = get_clusters_using_k_means_get_images(data_source, image_name, selection_mask, k)
-
-    # Transform image to lab
-    image = image_to_lab(image)
-
-    # set seed so results are consistent
-    cv2.setRNGSeed(0)
     
     if masked_image.size < k:
         LOG.error(f"Two few elements for clustering. "
@@ -245,12 +239,6 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
 
     if masked_image.size == 0:
         return np.empty(0), []
-    
-    # Transform image to lab
-    image = image_to_lab(image)
-
-    # set seed so results are consistent
-    cv2.setRNGSeed(0)
 
     # criteria for stopping (stop the algorithm iteration if specified accuracy, eps, is reached or after max_iter
     # iterations.)
@@ -264,31 +252,36 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         return np.empty(0), []
 
     # k cannot be bigger than number of pixels w/element present
+    colors: np.ndarray
     labels: np.ndarray
-    center: np.ndarray
-    _, labels, center = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
+    _, labels, colors = cv2.kmeans(masked_image, k, np.empty(0), criteria, nr_of_attempts, cv2.KMEANS_PP_CENTERS)
 
     labels = labels.flatten()
     subset_indices: tuple[np.ndarray, ...] = np.nonzero(combined_mask)
 
-    cluster_masks: list[np.ndarray] = []
+    bitmasks: list[np.ndarray] = []
     # Bitmasks for each cluster
     for i in range(k):
         # Indices for cluster "i"
         cluster_indices: np.ndarray = np.array(labels == i)
         # Initialize empty mask
-        cluster_mask: np.ndarray = np.zeros(image.shape[:2])
+        mask: np.ndarray = np.zeros(image.shape[:2])
         # Set values to true
-        cluster_mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
+        mask[subset_indices[0][cluster_indices], subset_indices[1][cluster_indices]] = True
         # Convert mask to boolean
-        cluster_mask = cluster_mask.astype(bool)
-        cluster_masks.append(cluster_mask)
+        mask = mask.astype(bool)
+        bitmasks.append(mask)
 
-    sorted_centers, sorted_cluster_masks = sort_colors(center, cluster_masks)
+    LOG.info(colors)
+    LOG.info(lab_to_rgb(colors[0]))
+
+    sorted_colors, sorted_bitmasks = sort_colors(colors, bitmasks)
 
     # Transform back to rgb
-    sorted_centers = np.array([lab_to_rgb(c) for c in sorted_centers])
-    return sorted_centers, sorted_cluster_masks
+    sorted_colors = np.array([lab_to_rgb(c) for c in sorted_colors])
+    LOG.info("Initial color clusters extracted successfully.")
+
+    return sorted_colors, sorted_bitmasks
 
 def calculate_recommended_cluster_number(pixels):
     """
@@ -301,16 +294,18 @@ def calculate_recommended_cluster_number(pixels):
     :return: an integer the recommended number of clusters
     """
 
+    rgb_pixels = color.lab2rgb(pixels)
+
     #Determine number of bins per rgb channel and total number of bins
     BINS_PER_CHANNEL = 8
 
     #Threshold value when to count bin to k, 0.025 is just arbitrary, can be changed for better results
-    threshold = len(pixels) * 0.025
-    LOG.info(f"Threshold: {threshold} on {len(pixels)} pixels")
+    threshold = len(rgb_pixels) * 0.025
+    LOG.info(f"Threshold: {threshold} on {len(rgb_pixels)} pixels")
 
     #Reserve number of bins
     hist, edges = np.histogramdd(
-        pixels,
+        rgb_pixels,
         bins = (BINS_PER_CHANNEL, BINS_PER_CHANNEL, BINS_PER_CHANNEL),
     )
 
