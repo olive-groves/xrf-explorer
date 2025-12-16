@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed} from 'vue'
-import { checkSelectPoint, StitchPoint } from './stitchPoints';
+import { checkSelectPoint} from './stitchPoints';
 import {
   selectedGrayscaleIndex,
   getPointsForGray,
