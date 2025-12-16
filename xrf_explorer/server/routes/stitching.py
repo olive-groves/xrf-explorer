@@ -1,19 +1,20 @@
 import traceback
+from os.path import abspath
 
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 
 from logging import Logger, getLogger
 
 from xrf_explorer import app
-from xrf_explorer.server.stitcher.stitcher_service import (
+from xrf_explorer.server.stitcher import (
     stitch_greyscales,
     generate_all_partial_greyscales,
     stitch,
     get_stitch_info,
-    validate_stitching_data,
     StitchData,
     pre_transpose_cubes,
     get_transpose_status,
+    get_greyscale_path
 )
 
 LOG: Logger = getLogger(__name__)
@@ -42,13 +43,12 @@ def get_stitching_info(data_source: str):
     """
     data = request.get_json()
 
-    # Validate request
-    is_valid, error_msg = validate_stitching_data(data)
-    if not is_valid:
-        return jsonify({"error": error_msg}), 400
-
-    # Parse stitch data
-    stitch_configuration = StitchData(data, data_source)
+    # Parse request data
+    try:
+        stitch_configuration = StitchData(data, data_source)
+    except (ValueError, KeyError) as e:
+        LOG.error(e)
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
 
     try:
         result = get_stitch_info(stitch_configuration)
@@ -63,9 +63,7 @@ def get_stitching_info(data_source: str):
         LOG.error(e)
         return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
 
-@app.route(
-    "/api/<data_source>/stitch_datacubes/generate_partial_greyscales", methods=["POST"]
-)
+@app.route("/api/<data_source>/stitch_datacubes/generate_partial_greyscales", methods=["POST"])
 def generate_partial_greyscales(data_source: str):
     """
     Stitches datacube fragments or greyscale images based on the provided JSON configuration.
@@ -84,13 +82,12 @@ def generate_partial_greyscales(data_source: str):
     """
     data = request.get_json()
 
-    # Validate request
-    is_valid, error_msg = validate_stitching_data(data)
-    if not is_valid:
-        return jsonify({"error": error_msg}), 400
-
-    # Parse stitch data
-    stitch_configuration = StitchData(data, data_source)
+    # Parse request data
+    try:
+        stitch_configuration = StitchData(data, data_source)
+    except (ValueError, KeyError) as e:
+        LOG.error(e)
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
 
     try:
         result = generate_all_partial_greyscales(stitch_configuration)
@@ -105,6 +102,22 @@ def generate_partial_greyscales(data_source: str):
         LOG.error(e)
         return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
 
+@app.route("/api/<data_source>/stitch_datacubes/greyscale_image/<fragment_name>", methods=["GET"])
+def get_partial_greyscale(data_source: str, fragment_name: str):
+    """
+    Retrieves and serves a partial fragment greyscale image as a response. The image
+    is located in the generated/stitching folder of the provided datasource.
+
+    Args:
+        data_source (str): Name of the data source the greyscale belongs to.
+        fragment_name (str): Name of the fragment to get the greyscale image from.
+
+    Returns:
+        Response: A Flask response object containing the greyscale image
+        file with the mimetype set as 'image/png'.
+    """
+    path = get_greyscale_path(fragment_name, data_source)
+    return send_file(abspath(path), mimetype='image/png')
 
 
 @app.route("/api/<data_source>/stitch_datacubes/stitch", methods=["POST"])
@@ -133,13 +146,12 @@ def stitching(data_source: str):
     """
     data = request.get_json()
 
-    # Validate request
-    is_valid, error_msg = validate_stitching_data(data)
-    if not is_valid:
-        return jsonify({"error": error_msg}), 400
-
-    # Parse stitch data
-    stitch_configuration = StitchData(data, data_source)
+    # Parse request data
+    try:
+        stitch_configuration = StitchData(data, data_source)
+    except (ValueError, KeyError) as e:
+        LOG.error(e)
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
 
     try:
         result = stitch(stitch_configuration)
@@ -190,15 +202,12 @@ def pre_transpose_cubes_endpoint(data_source: str):
     """
     data = request.get_json()
 
-    # Validate request - must be spectral type
-    is_valid, error_msg = validate_stitching_data(data)
-    if not is_valid:
-        return jsonify({"error": error_msg}), 400
-    if data.get("type") != "spectral":
-        return jsonify({"error": "Pre-transpose only supports spectral datacubes. type must be 'spectral'"}), 400
-    
-    # Parse stitch data
-    stitch_configuration = StitchData(data, data_source)
+    # Parse request data
+    try:
+        stitch_configuration = StitchData(data, data_source)
+    except (ValueError, KeyError) as e:
+        LOG.error(e)
+        return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 404
     
     try:
         result = pre_transpose_cubes(stitch_configuration)

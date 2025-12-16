@@ -12,6 +12,7 @@ from xrf_explorer.server.stitcher.helper import (
     transpose_spectral_datacube,
     rotate_cv,
     Dimensions,
+    normalize_image,
 )
 
 LOG: Logger = getLogger(__name__)
@@ -88,9 +89,10 @@ class DatacubeFragment(ABC):
         else: # Elemental
             data = np.mean(memmap, axis=0)
 
-        rotated = rotate_cv(data, self.rotation)
+        data = rotate_cv(data, self.rotation)
+        data = normalize_image(data)
 
-        return rotated
+        return data
 
 
 class ElementalDatacubeFragment(DatacubeFragment):
