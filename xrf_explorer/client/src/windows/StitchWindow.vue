@@ -205,7 +205,7 @@ const originalSize = ref(20.0); // GB placeholder
       </div>
       
       <Button
-        variant="outline"
+        variant="destructive"
         class="row-span-3 size-full p-2"
         @click="showConfirmation = true"
       >

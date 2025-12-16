@@ -5,18 +5,7 @@ import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { 
-  createGrayPoint,
-  selectedGrayscaleIndex,
-  setSelectedGrayscaleIndex,
-  grayscalePoints,
-  checkSelectPoint,
-  deselect,
-  selectPoint,
-  selectedPointId,
-  updateGrayPoint
-
- } from "./stitchPoints";
+import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex, getRotation, grayscalePoints, checkSelectPoint, deselect, selectedPointId, selectPoint, updateGrayPoint } from "./stitchPoints";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import Dots from "./Dots.vue";
@@ -110,8 +99,47 @@ async function loadGrayscaleLayer() {
   currentLayerId = id;
 
   await engine.createImageLayer(id, grayscaleUrl.value);
+
+  const rot = getRotation(selectedGrayscaleIndex.value!);
+  applyGrayRotation(rot);
 }
 
+function onGrayPropChanged(e: Event) {
+  const { index, prop, value } = (e as CustomEvent).detail;
+  if (prop === "rotation" && index === selectedGrayscaleIndex.value) {
+    applyGrayRotation(value);
+  }
+}
+
+function applyGrayRotation(deg: number) {
+  if (!engine) return;
+  const layer = engine.layers.find(l => l.id === currentLayerId);
+  if (!layer) return;
+
+  const tex = layer.uniform.tImage?.value as THREE.Texture;
+  const img = tex?.image as HTMLImageElement;
+  if (!img) return;
+
+  const W = img.width;
+  const H = img.height;
+
+  // world-space pivot (because geometry is scaled)
+  const cx = W / 2;
+  const cy = H / 2;
+
+  const rad = (deg * Math.PI) / 180;
+  const c = Math.cos(rad);
+  const s = Math.sin(rad);
+
+  const m = layer.uniform.mRegister.value as THREE.Matrix3;
+
+  // Build world-space rotation around image center
+  m.set(
+     c, -s,  cx - c*cx + s*cy,
+     s,  c,  cy - s*cx - c*cy,
+     0,  0,  1
+  );
+}
 // Viewport reset
 async function resetViewport() {
   if (!engine) return;
@@ -135,12 +163,27 @@ function startLoop() {
 
     // const vp = viewport;
 
-    const w = width.value * Math.exp(viewport.zoom);
-    const h = height.value * Math.exp(viewport.zoom);
+    let w = width.value * Math.exp(viewport.zoom);
+    let h = height.value * Math.exp(viewport.zoom);
+
+    const rot = getRotation(selectedGrayscaleIndex.value ?? 0);
+    if (rot !== 0) {
+      const a = (rot * Math.PI) / 180;
+      const absCos = Math.abs(Math.cos(a));
+      const absSin = Math.abs(Math.sin(a));
+
+      // rotated bounding box of the viewport rectangle
+      const newW = w * absCos + h * absSin;
+      const newH = w * absSin + h * absCos;
+
+      w = newW;
+      h = newH;
+    }
 
     const x = viewport.center.x - w / 2;
     const y = viewport.center.y - h / 2;
-    viewbox.value = { x: x, y: y, w: w, h: h };
+
+    viewbox.value = { x, y, w, h };
 
     // update viewport uniform for all layers
     engine.layers.forEach((layer) =>
@@ -241,6 +284,10 @@ function getBaseImageCoords(event: MouseEvent) {
 
 // Lifecycle
 onMounted(async () => {
+  window.addEventListener(
+  "stitch:grayscale-prop-changed",
+  onGrayPropChanged as EventListener
+  );
   engine = createStitchEngine(glcanvas.value!);
 
   await loadGrayscaleLayer();
@@ -255,6 +302,10 @@ watch(grayscaleUrl, async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener(
+  "stitch:grayscale-prop-changed",
+  onGrayPropChanged as EventListener
+  );
   engine?.dispose();
   engine = null;
 });

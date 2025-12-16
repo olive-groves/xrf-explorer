@@ -45,7 +45,7 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
         iIndex: { value: 0 },
         iLayerType: { value: LayerType.Image },
         iViewport: { value: new THREE.Vector4() },
-        mRegister: { value: new THREE.Matrix3() },
+        mRegister: { value: new THREE.Matrix3().identity() },
         iShowLayer: { value: LayerVisibility.Visible },
         uOpacity: { value: 1 },
         uContrast: { value: 1 },
@@ -150,6 +150,7 @@ async function loadLayerIntoEngine(
   });
 
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.matrixAutoUpdate = true;
 
   // initial render order like main system
   mesh.renderOrder = -layer.uniform.iIndex.value;
