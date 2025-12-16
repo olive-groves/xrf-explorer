@@ -204,11 +204,13 @@ def get_clusters_using_k_means(data_source: str, image_name: str,
         mask: np.ndarray = np.array(full_labels == i)
         bitmasks.append(mask)
 
+    sorted_colors, sorted_bitmasks = sort_colors(colors, bitmasks)
+
     # Transform back to rgb
-    colors = np.array([lab_to_rgb(c) for c in colors])
+    sorted_colors = np.array([lab_to_rgb(c) for c in sorted_colors])
     LOG.info("Initial color clusters extracted successfully.")
 
-    return colors, bitmasks
+    return sorted_colors, sorted_bitmasks
 
 def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elemental_channel: np.ndarray[int],
                                          selection_mask: np.ndarray,
@@ -282,9 +284,11 @@ def get_elemental_clusters_using_k_means(data_source: str, image_name: str, elem
         cluster_mask = cluster_mask.astype(bool)
         cluster_masks.append(cluster_mask)
 
+    sorted_centers, sorted_cluster_masks = sort_colors(center, cluster_masks)
+
     # Transform back to rgb
-    center = np.array([lab_to_rgb(c) for c in center])
-    return center, cluster_masks
+    sorted_centers = np.array([lab_to_rgb(c) for c in sorted_centers])
+    return sorted_centers, sorted_cluster_masks
 
 def calculate_recommended_cluster_number(pixels):
     """
@@ -473,7 +477,7 @@ def convert_to_hex(clusters: np.ndarray) -> np.ndarray:
         hex_clusters.append(rgb_to_hex(int(col[0]), int(col[1]), int(col[2])))
     return hex_clusters
 
-def create_elementlist_and_thresholdlist(elements):
+def create_elementlist_and_thresholdlist(elements: np.ndarray):
     """
     Create convert list of [element, threshold] to seperate list of elements and thresholds
 
@@ -488,3 +492,31 @@ def create_elementlist_and_thresholdlist(elements):
             thresholdList.append(int(255 * elements[i][1] / 100))
 
     return elementList, thresholdList
+
+def sort_colors(colors: np.ndarray, masks: np.ndarray):
+    """
+    Sort colors
+    
+    :param colors: the LAB colors to be sorted
+    :type colors: np.ndarray
+    :param masks: the bitmasks corresponding to the clusters to be sorted
+    :type masks: np.ndarray
+    :return: the sorted colors and their corresponding masks
+    :rtype: ndarray
+    """
+
+    colors_f = colors.astype(np.float32) / 255.0
+
+    L = colors_f[:, 0]
+    a = colors_f[:, 1]
+    b = colors_f[:, 2]
+
+    angle = np.arctan2(b, a)
+    angle = (angle + 2 * np.pi) % (2 * np.pi)
+    chroma = np.sqrt(a*a + b*b)
+    idx = np.lexsort((L, chroma, angle))
+
+    colors_sorted = colors[idx]
+    masks_sorted = [masks[i] for i in idx]
+
+    return colors_sorted, masks_sorted
