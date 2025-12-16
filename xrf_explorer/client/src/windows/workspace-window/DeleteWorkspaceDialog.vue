@@ -11,14 +11,14 @@ import { toast } from "vue-sonner";
 // Inject the frontend configuration
 const config = inject<FrontendConfig>("config")!;
 
-const dialogOpen = ref(false);
+const dialogOpened = ref(false);
 
 /**
  * Updates the state of the dialog.
  * @param open - The new state the dialog is requested to have.
  */
-function dialogUpdate(open: boolean) {
-  dialogOpen.value = open;
+function setDialogUpdate(open: boolean) {
+  dialogOpened.value = open;
 }
 
 const props = defineProps<{
@@ -60,7 +60,7 @@ async function deleteWorkspace() {
 </script>
 
 <template>
-  <Dialog v-model:open="dialogOpen" @update="dialogUpdate">
+  <Dialog v-model:open="dialogOpened" @update="setDialogUpdate">
     <DialogTrigger>
       <Button variant="destructive">Delete Project</Button>
     </DialogTrigger>
@@ -83,7 +83,7 @@ async function deleteWorkspace() {
           <Button
             @click="
               emit('close');
-              dialogOpen = false;
+              dialogOpened = false;
             "
             >Cancel</Button
           >

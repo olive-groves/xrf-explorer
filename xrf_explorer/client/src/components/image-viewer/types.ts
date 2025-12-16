@@ -90,13 +90,9 @@ export type LayerUniform = {
 };
 
 /**
- * Type describing the current state of the toolbar.
+ * Type describing the state properties shared between the toolbars.
  */
-export type ToolState = {
-  /**
-   * The currently active tool.
-   */
-  tool: Tool;
+type StateProps = {
   /**
    * The amount by which the panning speed is multiplied in the image viewer.
    */
@@ -112,26 +108,24 @@ export type ToolState = {
 };
 
 /**
+ * Type describing the current state of the toolbar.
+ */
+export type ToolState = StateProps & {
+  /**
+   * The currently active tool.
+   */
+  tool: Tool;
+};
+
+/**
  * Type describing the current state of the stitch toolbar.
  */
-export type StitchState = {
+export type StitchState = StateProps & {
   /**
    * The currently active tool.
    */
   tool: StitchTool;
-  /**
-   * The amount by which the panning speed is multiplied in the image viewer.
-   */
-  movementSpeed: number[];
-  /**
-   * The amount by which the zooming speed is multiplied in the image viewer.
-   */
-  scrollSpeed: number[];
-  /**
-   * The amount used to determine the lens size.
-   */
-  lensSize: number[];
-}
+};
 
 /**
  * The different tools in the image viewer.
