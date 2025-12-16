@@ -7,6 +7,7 @@ import { ref } from "vue";
 import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
 import axios from "axios";
+import { resetUsernameAndPassword, toggleText } from "./duplicates.ts";
 
 // Define emits
 const emit = defineEmits(["close"]);
@@ -17,13 +18,6 @@ const password = ref("");
 // const token = ref("");
 
 const passwordType = ref("password");
-
-/**
- * Toggle password visibility.
- */
-function toggleText() {
-  passwordType.value = passwordType.value === "password" ? "text" : "password";
-}
 
 // Interface for API response
 interface LoginResponse {
@@ -57,7 +51,7 @@ async function attemptLogin() {
       appState.user.username = response.data.username; // Set the username in appState
       appState.user.role = response.data.role; // Set the user role from the response
       appState.user.projects = response.data.projects; // Set the user projects from the response
-      resetFields();
+      [username.value, password.value] = resetUsernameAndPassword();
       emit("close");
     } else {
       toast.error("Invalid username or password");
@@ -80,14 +74,7 @@ function isErrorWithMessage(error: unknown): error is { response?: { data?: { me
   return typeof error === "object" && error !== null && "response" in error;
 }
 
-/**
- * Reset the input fields.
- */
-function resetFields() {
-  username.value = "";
-  password.value = "";
-}
-defineExpose({ resetFields });
+defineExpose({ resetUsernameAndPassword });
 </script>
 
 <template>
@@ -98,7 +85,12 @@ defineExpose({ resetFields });
     <div class="text-base">Password</div>
     <div class="flex items-center">
       <Input placeholder="Password" :type="passwordType" v-model:model-value="password" @keyup.enter="attemptLogin" />
-      <Button @click="toggleText" variant="ghost" class="size-8 p-2" title="Toggle visibility">
+      <Button
+        @click="toggleText(passwordType === 'password')"
+        variant="ghost"
+        class="size-8 p-2"
+        title="Toggle visibility"
+      >
         <Eye v-if="passwordType === 'password'" />
         <EyeOff v-else />
       </Button>

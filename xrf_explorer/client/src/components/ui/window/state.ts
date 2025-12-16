@@ -6,13 +6,9 @@ import { reactive } from "vue";
 export type WindowLocation = "left" | "right";
 
 /**
- * Contains the app-wide state of a window.
+ * Contains title and help text for a window.
  */
-export type WindowState = {
-  /**
-   * The id of the window, automatically generated from the title.
-   */
-  id: string;
+type TitleAndHelp = {
   /**
    * The title of the window.
    */
@@ -21,6 +17,16 @@ export type WindowState = {
    * String describing the help text for the window.
    */
   help: string;
+}
+
+/**
+ * Contains the app-wide state of a window.
+ */
+export type WindowState = TitleAndHelp & {
+  /**
+   * The id of the window, automatically generated from the title.
+   */
+  id: string;
   /**
    * If the content of the window should be scrollable.
    */
@@ -50,15 +56,7 @@ export const windowState = reactive<{
 /**
  * Contains the window-specific state local to one of the side panels.
  */
-export type SidepanelWindowState = {
-  /**
-   * The title of the window.
-   */
-  title: string;
-  /**
-   * String describing the help text for the window.
-   */
-  help: string;
+export type SidepanelWindowState = TitleAndHelp & {
   /**
    * The index of the window when sorted from top to bottom.
    */

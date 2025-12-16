@@ -18,6 +18,7 @@ import axios from "axios";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFetch } from "@vueuse/core";
 import { FrontendConfig } from "@/lib/config";
+import { validPassword, toggleText } from "./duplicates.ts";
 
 // Define emits
 const emit = defineEmits<{
@@ -72,13 +73,6 @@ async function refreshProjects() {
   accessedProjects.value = res.data;
 }
 
-/**
- * Toggle password visibility.
- */
-function toggleText() {
-  passwordType.value = passwordType.value === "password" ? "text" : "password";
-}
-
 // Interface for API response
 interface APIResponse {
   success: boolean;
@@ -121,27 +115,6 @@ async function updateAccount() {
  */
 function deleteAccount() {
   emit("deleteAccount", { original_username: originalUsername.value });
-}
-
-/**
- * Determine if the password is valid.
- * @param password The password that needs to be checked.
- * @returns Whether the password is valid.
- */
-function validPassword(password: string): boolean {
-  if (password === "") {
-    return true; // Allow empty password (no change)
-  }
-  // Password must be between 12 and 32 characters
-  const lengthValid = password.length >= 12 && password.length <= 32;
-
-  // Passwords include at least one numeric character [0, 9]
-  const numberValid = /[0-9]/.test(password);
-
-  // Password must include at least one special character [!@#$%^&*]
-  const specialCharValid = /[!@#$%^&*]/.test(password);
-
-  return lengthValid && numberValid && specialCharValid;
 }
 
 // Filter logic
@@ -242,7 +215,12 @@ async function removeAccessAll() {
     <div class="text-base">Password (leave empty to keep current password)</div>
     <div class="flex items-center">
       <Input placeholder="New Password" :type="passwordType" v-model:model-value="password" />
-      <Button @click="toggleText" variant="ghost" class="size-8 p-2" title="Toggle visibility">
+      <Button
+        @click="toggleText(passwordType === 'password')"
+        variant="ghost"
+        class="size-8 p-2"
+        title="Toggle visibility"
+      >
         <Eye v-if="passwordType === 'password'" />
         <EyeOff v-else />
       </Button>

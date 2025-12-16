@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
+import { validPassword, resetUsernameAndPassword, resetValue } from "./duplicates.ts";
 
 // Define emits
 const emit = defineEmits(["close"]);
@@ -65,7 +66,8 @@ async function createAccount() {
     // On success, notify user and reset fields, else give error message
     if (response.data.success) {
       toast.info("Account created successfully");
-      resetFields();
+      [username.value, password.value] = resetUsernameAndPassword();
+      role.value = resetValue();
       emit("close");
     } else {
       toast.error(response.data.message || "Account creation failed");
@@ -75,33 +77,7 @@ async function createAccount() {
   }
 }
 
-/**
- * Reset the input fields.
- */
-function resetFields() {
-  username.value = "";
-  password.value = "";
-  role.value = "";
-}
-defineExpose({ resetFields });
-
-/**
- * Check if the user entered a valid password.
- * @param password The password entered by the user.
- * @returns Returns whether the password is valid or not.
- */
-function validPassword(password: string): boolean {
-  // Password must be between 12 and 32 characters
-  const lengthValid = password.length >= 12 && password.length <= 32;
-
-  // Passwords include at least one numeric character [0, 9]
-  const numberValid = /[0-9]/.test(password);
-
-  // Password must include at least one special character [!@#$%^&*]
-  const specialCharValid = /[!@#$%^&*]/.test(password);
-
-  return lengthValid && numberValid && specialCharValid;
-}
+defineExpose({ resetUsernameAndPassword, resetValue });
 </script>
 
 <template>

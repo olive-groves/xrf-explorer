@@ -4,6 +4,7 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "vue-sonner";
 import { appState } from "@/lib/appState";
 import axios from "axios";
+import { isErrorWithMessage } from "./duplicates.ts";
 
 // Define emits
 const emit = defineEmits(["close"]);
@@ -34,15 +35,6 @@ async function attemptLogout() {
       toast.error("Logout failed");
     }
   }
-}
-
-/**
- * Check if there is an error with the message.
- * @param error The error being checked.
- * @returns Return wether the message gives an error or not.
- */
-function isErrorWithMessage(error: unknown): error is { response?: { data?: { message?: string } } } {
-  return typeof error === "object" && error !== null && "response" in error;
 }
 </script>
 

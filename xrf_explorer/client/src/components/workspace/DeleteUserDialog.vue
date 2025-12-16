@@ -4,6 +4,7 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ref } from "vue";
 import { toast } from "vue-sonner";
 import axios from "axios";
+import { isErrorWithMessage } from "./duplicates.ts";
 
 // Define emits
 const emit = defineEmits(["close"]);
@@ -46,20 +47,11 @@ async function deleteUser() {
     }
   }
 }
-
-/**
- * Check if there is an error with the message.
- * @param error The error being checked.
- * @returns Return wether the message gives an error or not.
- */
-function isErrorWithMessage(error: unknown): error is { response?: { data?: { message?: string } } } {
-  return typeof error === "object" && error !== null && "response" in error;
-}
 </script>
 
 <template>
   <DialogContent ref="dialog">
-    <DialogTitle class="mb-2 font-bold"> Log out </DialogTitle>
+    <DialogTitle class="mb-2 font-bold"> Delete User </DialogTitle>
     <div class="flex items-center justify-between">
       <div class="text-muted-foreground">
         Are you sure you want to delete the following account: <b>{{ user }}</b> ?
