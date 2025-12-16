@@ -9,12 +9,10 @@ from logging import getLogger, Logger
 import os
 from os.path import join, exists
 from pathlib import Path
-from threading import Thread
 from typing import Dict, Any, List
 
 import cv2 as cv
 import numpy as np
-from matplotlib import pyplot as plt
 
 from xrf_explorer.server.file_system import get_config
 
@@ -31,7 +29,6 @@ from xrf_explorer.server.stitcher.helper import (
 from xrf_explorer.server.stitcher.stitcher import DatacubeStitcher
 from xrf_explorer.server.stitcher.transpose_state import (
     TransposeStateManager,
-    TransposeState,
 )
 
 LOG: Logger = getLogger(__name__)
@@ -46,15 +43,15 @@ class FragmentData:
     Attributes:
         data_source (str): Name of the data source this fragment belongs to.
         cube_type (str): Specifies the type of the datacube (e.g., 'spectral', 'elemental').
-        rotation (int): Rotation of the datacube fragment.
+        _rotation (int): Rotation of the datacube fragment.
         datacube_filename (str): Name of the file storing the datacube.
         datacube_path (str): Full path to the datacube file within the data source from the project root directory.
-        rpl_file (str | None): The RPL file path for spectral datacube fragments.
-        fragment (DatacubeFragment): Object representing either a spectral or elemental
+        _rpl_file (str | None): The RPL file path for spectral datacube fragments.
+        _fragment (DatacubeFragment): Object representing either a spectral or elemental
             datacube fragment.
-        local_points (WarpSelection): Warp selection points containing coordinates on the fragment.
-        target_points (WarpSelection): Warp selection points containing coordinates on the contextual image.
-        points (tuple[WarpSelection, WarpSelection]): Tuple of local and target warp selection points.
+        _local_points (WarpSelection): Warp selection points containing coordinates on the fragment.
+        _target_points (WarpSelection): Warp selection points containing coordinates on the contextual image.
+        _points (tuple[WarpSelection, WarpSelection]): Tuple of local and target warp selection points.
     """
 
     data_source: str
@@ -166,7 +163,7 @@ class FragmentData:
                     pts["bottom_right"],
                 )
 
-        # Verify points are within boundries
+        # Verify points are within boundaries
         if self._local_points and self._target_points:
             if not self._local_points.are_within(
                 self._fragment.width, self._fragment.height
@@ -295,11 +292,11 @@ class StitchData:
     Attributes:
         data_source (str): Name of the data source this data belongs to.
         cube_type (str): The type of cube being processed ('spectral' or 'elemental').
-        preview (bool): Indicates whether the stitching should be a preview or not (stitching on greyscale images vs. real data)
-        scaling (int): User supplied factor applied to the optimal scalar for scaling contextual image that is being mapped to.
-        contextual_image_name (str): Name of the contextual image.
-        contextual_image_dimensions (Dimensions): Dimensions of the contextual image.
-        points (list[tuple[WarpSelection, WarpSelection]]): List containing local and target points for all fragments.
+        _preview (bool): Indicates whether the stitching should be a preview or not (stitching on greyscale images vs. real data)
+        _scaling (int): User supplied factor applied to the optimal scalar for scaling the contextual image that is being mapped to.
+        _contextual_image_name (str): Name of the contextual image.
+        _contextual_image_dimensions (Dimensions): Dimensions of the contextual image.
+        _points (list[tuple[WarpSelection, WarpSelection]]): List containing local and target points for all fragments.
         fragment_data (list[FragmentData]): Metadata for the individual datacube fragments.
     """
     data_source: str
@@ -331,11 +328,11 @@ class StitchData:
         """
         self.data_source = data_source
 
-        # Verifiy data
+        # Verify data
         if data is None:
             raise ValueError("Invalid or missing JSON")
 
-        # Cubetype
+        # Cube type
         if data.get("type") not in ("elemental", "spectral"):
             raise ValueError("type must be 'elemental' or 'spectral'")
 
@@ -519,7 +516,7 @@ def _build_path(path_value: str, data_source: str) -> str:
         data_source: Name of the data source.
 
     Returns:
-        Path to data source from project root.
+        Path to the data source from the project root.
     Raises:
         ValueError: If backend configuration is missing."""
 
@@ -630,10 +627,7 @@ def generate_all_partial_greyscales(data: StitchData) -> bool:
 
         # Generate greyscale if it does not exist yet
         if not exists(greyscale_path):
-            try:
-                generate_partial_greyscale(fragment_data)
-            except Exception as e:
-                all_conversions_successful = False
+            generate_partial_greyscale(fragment_data)
 
     return all_conversions_successful
 
@@ -779,10 +773,10 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     recipe_path = result_fragment.create_recipe_file(
             _build_path("stitched_recipe.csv", data.data_source),
             Dimensions(result_fragment.width, result_fragment.height),
-            data._contextual_image_dimensions
+            data.contextual_image_dimensions
         )
 
-    # Create projection for verification
+    # Create a projection for verification
     projection = result_fragment.create_greyscale_projection()
     projection = normalize_image(projection)
 
@@ -875,7 +869,7 @@ def pre_transpose_cubes(data: StitchData) -> Dict[str, Any]:
             })
             continue
         
-        # Check if already transposed (file exists)
+        # Check if already transposed (the file exists)
         if fragment.is_transposed:
             LOG.info(f"Fragment already transposed: {cube_file}")
             cubes_skipped.append({
@@ -884,12 +878,12 @@ def pre_transpose_cubes(data: StitchData) -> Dict[str, Any]:
             })
             continue
         
-        # Create worker function for this specific fragment
+        # Create a worker function for this specific fragment
         def create_worker(frag, ds, cf):
             """Closure to capture fragment, data_source, cube_file"""
-            def worker():
+            def transpose_worker():
                 _transpose_cube_worker(frag, ds, cf, state_manager)
-            return worker
+            return transpose_worker
         
         worker = create_worker(fragment, data.data_source, cube_file)
         

@@ -1,3 +1,5 @@
+"""Contains API Routes relating to stitching and greyscale generation."""
+
 import traceback
 from os.path import abspath
 
@@ -7,7 +9,6 @@ from logging import Logger, getLogger
 
 from xrf_explorer import app
 from xrf_explorer.server.stitcher import (
-    stitch_greyscales,
     generate_all_partial_greyscales,
     stitch,
     get_stitch_info,
@@ -241,7 +242,7 @@ def transpose_status_endpoint(data_source: str):
             - cubes: Dictionary mapping cube filenames to their status objects
                 Each status object contains:
                     - status: "not_started", "in_progress", "completed", or "failed"
-                    - transposed_path: Path to transposed file (if completed)
+                    - transposed_path: Path to transposed cube (if completed)
                     - error: Error message (if failed)
                     - started_at: Timestamp when transpose started
                     - completed_at: Timestamp when transpose completed

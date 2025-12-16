@@ -18,6 +18,19 @@ class WarpSelection:
         bottom_left: tuple[int, int],
         bottom_right: tuple[int, int],
     ):
+        """
+        Initializes a WarpSelection object with given corner coordinates.
+
+        Args:
+            top_left: A tuple of two integers representing the x and y coordinates
+                of the top-left corner of the rectangle.
+            top_right: A tuple of two integers representing the x and y coordinates
+                of the top-right corner of the rectangle.
+            bottom_left: A tuple of two integers representing the x and y coordinates
+                of the bottom-left corner of the rectangle.
+            bottom_right: A tuple of two integers representing the x and y coordinates
+                of the bottom-right corner of the rectangle.
+        """
         self.top_left = top_left
         self.top_right = top_right
         self.bottom_left = bottom_left
@@ -61,6 +74,13 @@ class Dimensions:
     """Simple struct to hold width and height."""
 
     def __init__(self, width: int, height: int):
+        """
+        Simple struct to hold width and height.
+
+        Args:
+            width (int): The width.
+            height (int): The height.
+        """
         self.width = width
         self.height = height
 
@@ -75,10 +95,17 @@ class ScalarOptimizer:
     """
 
     def __init__(self, points: list[tuple[WarpSelection, WarpSelection]]):
-        # List of paired regions: (Source Region, Destination/Reference Region)
+        """
+        Initialize the ScalarOptimizer with corresponding region pairs.
+
+        Args:
+            points: A list of tuples, each containing a pair of WarpSelection objects
+                    (local, target) that represent corresponding regions between
+                    two images to be aligned.
+        """
         self.points = points
 
-    def calculate_loss_percentage(self, scalar: float) -> list[int]:
+    def calculate_loss_percentage(self, scalar: float) -> list[float]:
         """Calculates the scaling error percentage for debugging/UI purposes."""
         return [
             round(self.get_scale_factor(src, dst, scalar) * 100, 1)
