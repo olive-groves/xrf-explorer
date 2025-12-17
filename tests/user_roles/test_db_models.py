@@ -40,7 +40,7 @@ class TestDBModels:
         _, db = test_app
         inspector = db.inspect(db.engine)
         columns = {column['name'] for column in inspector.get_columns('user')}
-        expected_columns = {'id', 'username', 'password_hash', 'role'}
+        expected_columns = {'id', 'username', 'password_hash', 'role', 'projects'}
         assert columns == expected_columns
 
     def test_user_creation(self, sample_users, test_app):

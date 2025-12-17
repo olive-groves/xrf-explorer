@@ -64,6 +64,8 @@ export function updateLayerGroupLayers(group: LayerGroup) {
   setLayerGroupProperty(group, "opacityProperty");
   setLayerGroupProperty(group, "contrastProperty");
   setLayerGroupProperty(group, "saturationProperty");
+  setLayerGroupProperty(group, "gammaProperty");
+  setLayerGroupProperty(group, "brightnessProperty");
 }
 
 /**
