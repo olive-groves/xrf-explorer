@@ -4,3 +4,4 @@ export { default as ElementalChannelWindow } from "./ElementalChannelWindow.vue"
 export { default as SpectraWindow } from "./SpectraWindow.vue";
 export { default as CSWindow } from "./CSWindow.vue";
 export { default as StitchWindow } from "./StitchWindow.vue";
+export { default as DeleteWorkspaceDialog } from "./DeleteWorkspaceDialog.vue";

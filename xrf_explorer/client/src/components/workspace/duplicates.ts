@@ -45,6 +45,6 @@ export function resetUsernameAndPassword(): [string, string] {
  * @param IsPassword Indicates whether the password is currently visible.
  * @returns The updated password input type.
  */
-export function toggleText(IsPassword: boolean) {
-  return IsPassword ? "text" : "password";
+export function toggleText(IsPassword: string): string {
+  return IsPassword === "password" ? "text" : "password";
 }

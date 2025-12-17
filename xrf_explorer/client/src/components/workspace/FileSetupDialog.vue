@@ -7,7 +7,7 @@ import { computed } from "vue";
 import { TriangleAlert } from "lucide-vue-next";
 import { appState } from "@/lib/appState";
 import { toast } from "vue-sonner";
-import { DeleteWorkspaceDialog } from "@/windows/workspace-window/";
+import { DeleteWorkspaceDialog } from "@/windows";
 
 // Define the workspace model
 const model = defineModel<WorkspaceConfig>({ required: true });

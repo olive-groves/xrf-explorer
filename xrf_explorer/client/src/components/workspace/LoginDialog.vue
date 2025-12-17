@@ -86,7 +86,7 @@ defineExpose({ resetUsernameAndPassword });
     <div class="flex items-center">
       <Input placeholder="Password" :type="passwordType" v-model:model-value="password" @keyup.enter="attemptLogin" />
       <Button
-        @click="toggleText(passwordType === 'password')"
+        @click="passwordType = toggleText(passwordType)"
         variant="ghost"
         class="size-8 p-2"
         title="Toggle visibility"
