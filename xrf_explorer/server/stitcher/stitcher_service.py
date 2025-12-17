@@ -455,6 +455,7 @@ class StitchData:
         """
         if not self._contextual_image_name:
             self._contextual_image_dimensions = None
+            return
 
         # Contextual image dimensions
         image_path = _build_path(self._contextual_image_name, self.data_source)
