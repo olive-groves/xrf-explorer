@@ -7,7 +7,7 @@ from __future__ import annotations
 from logging import getLogger, Logger
 
 import os
-from os.path import join, exists
+from os.path import join, exists, basename
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -770,8 +770,9 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     # Handle Spectral vs Elemental specific logic
     rpl_file = "stitched_spectral.rpl" if result_fragment.is_spectral else None
 
+    recipe_file_name = "stitched_recipe.csv"
     recipe_path = result_fragment.create_recipe_file(
-            _build_path("stitched_recipe.csv", data.data_source),
+            _build_path(recipe_file_name, data.data_source),
             Dimensions(result_fragment.width, result_fragment.height),
             data.contextual_image_dimensions
         )
@@ -787,13 +788,15 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     projection_path = join(output_dir, "stitched_projection.png")
     cv.imwrite(projection_path, projection.astype(np.uint8))
 
+    output_file_name = os.path.basename(result_fragment.datacube_file)
+
     return {
         "status": "success",
         "preview": False,
-        "output_file": result_fragment.datacube_file,
+        "output_file": output_file_name,
         "type": "spectral" if result_fragment.is_spectral else "elemental",
         "rpl_file": rpl_file,
-        "recipe_file": recipe_path,
+        "recipe_file": recipe_file_name,
         "dimensions": {
             "width": result_fragment.width,
             "height": result_fragment.height,
