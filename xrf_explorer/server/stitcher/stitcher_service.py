@@ -544,8 +544,7 @@ def get_greyscale_path(greyscale_name: str, data_source) -> str:
     generated_dir = _build_path(join("generated", "stitching"), data_source)
     os.makedirs(generated_dir, exist_ok=True)
 
-    fragment_name = os.path.splitext(greyscale_name)[0]
-    export_path = join(generated_dir, f"{fragment_name}.png")
+    export_path = join(generated_dir, f"{greyscale_name}.png")
     return export_path
 
 def get_stitch_info(data: StitchData) -> Dict[str, Any]:
