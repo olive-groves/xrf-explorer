@@ -309,6 +309,21 @@ async function handleMultiDeleteConfirmed() {
   showDeleteFileDialog.value = false;
 }
 
+// Watcher to refresh files after deletion
+watch(showDeleteFileDialog, async (newVal) => {
+  if (!newVal) {
+    await fetchFiles();
+  }
+});
+
+/**
+ * Fetch the files from the backend.
+ */
+async function fetchFiles() {
+  console.log("Fetching files...");
+  await fileFetch.execute();
+}
+
 // Computed arrays for stitching layout
 const spectralArr = computed(() =>
   UploadingPartialData.value === "partial" ? model.value.partialSpectralCubes : model.value.spectralCubes,

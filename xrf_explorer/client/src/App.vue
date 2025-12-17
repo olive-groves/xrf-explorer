@@ -8,7 +8,6 @@ import { FrontendConfig } from "./lib/config";
 
 // Import all windows
 import { LayerWindow } from "@/windows/layer-window";
-import { WorkspaceWindow } from "./windows/workspace-window";
 import FAQWindow from "@/windows/FAQWindow.vue";
 import { faqWindowOpen } from "@/lib/windowState";
 
@@ -41,7 +40,6 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <CSWindow />
         <DRWindow />
         <LayerWindow />
-        <WorkspaceWindow />
         <FAQWindow v-if="faqWindowOpen" class="absolute left-0 top-0 z-[9999] size-full bg-background"></FAQWindow>
         <StitchWindow v-if="appState.workspace?.stitchingMode === 'partial'" />
       </BaseContextMenu>

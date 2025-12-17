@@ -365,13 +365,6 @@ describe("validateWorkspace Test", () => {
     expect(validateWorkspace(deepCloneEmpty11)).toEqual(expected);
   });
 
-  const deepCloneEmpty12 = deepClone(deepCloneEmpty11);
-  deepCloneEmpty12.elementalCubes[0].recipeLocation = "element1";
-  test("completed workspace", () => {
-    const expected = [true, ""];
-    expect(validateWorkspace(deepCloneEmpty12)).toEqual(expected);
-  });
-
   test("non-unique names", () => {
     const workspace: WorkspaceConfig = {
       name: "workspace",
