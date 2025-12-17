@@ -216,7 +216,7 @@ async function removeAccessAll() {
     <div class="flex items-center">
       <Input placeholder="New Password" :type="passwordType" v-model:model-value="password" />
       <Button
-        @click="toggleText(passwordType === 'password')"
+        @click="passwordType = toggleText(passwordType)"
         variant="ghost"
         class="size-8 p-2"
         title="Toggle visibility"
