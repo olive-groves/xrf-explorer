@@ -119,3 +119,53 @@ export const canPreview = computed(() => {
     return points.length === maxPoints && points.every(p => p.base?.x != null && p.base?.y != null);
   });
 });
+
+type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
+
+function i(v: number): number {
+  return Math.round(v);
+}
+
+export function pointsToBackendDicts(points: StitchPoint[]): {
+  local_points: Record<CornerKey, [number, number]>;
+  target_points: Record<CornerKey, [number, number]>;
+} {
+  if (points.length !== maxPoints) {
+    throw new Error(`Expected ${maxPoints} points, got ${points.length}`);
+  }
+
+  if (!points.every(hasBase)) {
+    throw new Error("All stitch points must have base coordinates before preview.");
+  }
+
+  const pts = points as (StitchPoint & { base: { x: number; y: number } })[];
+
+  const sortedByBase = [...pts].sort(
+    (a, b) => (a.base.y - b.base.y) || (a.base.x - b.base.x)
+  );
+
+  const topTwo = sortedByBase.slice(0, 2).sort((a, b) => a.base.x - b.base.x);
+  const bottomTwo = sortedByBase.slice(2, 4).sort((a, b) => a.base.x - b.base.x);
+
+  const ordered: Record<CornerKey, typeof pts[number]> = {
+    top_left: topTwo[0],
+    top_right: topTwo[1],
+    bottom_left: bottomTwo[0],
+    bottom_right: bottomTwo[1],
+  };
+
+  return {
+    local_points: {
+      top_left: [i(ordered.top_left.gray.x), i(ordered.top_left.gray.y)],
+      top_right: [i(ordered.top_right.gray.x), i(ordered.top_right.gray.y)],
+      bottom_left: [i(ordered.bottom_left.gray.x), i(ordered.bottom_left.gray.y)],
+      bottom_right: [i(ordered.bottom_right.gray.x), i(ordered.bottom_right.gray.y)],
+    },
+    target_points: {
+      top_left: [i(ordered.top_left.base.x), i(ordered.top_left.base.y)],
+      top_right: [i(ordered.top_right.base.x), i(ordered.top_right.base.y)],
+      bottom_left: [i(ordered.bottom_left.base.x), i(ordered.bottom_left.base.y)],
+      bottom_right: [i(ordered.bottom_right.base.x), i(ordered.bottom_right.base.y)],
+    },
+  };
+}

@@ -2,10 +2,9 @@
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
-import { ref, computed, onMounted, onBeforeUnmount} from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 import { windowState } from "@/components/ui/window/state";
-import { getWorkspaceImageUrl } from "@/components/image-viewer/workspace";
-import { getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
+import { canPreview, getPointsForGray, getRotation, pointsToBackendDicts, setRotation } from "@/components/image-viewer/stitchPoints";
 
 const selectedGreyscale = ref<number | null>(0);
 const mode = ref<'edit' | 'preview'>('edit'); 
@@ -16,7 +15,14 @@ interface GreyscaleState {
     yOffset: number[];
 }
 
-const scalingFactor = ref([1.0])
+// Current selected scaling factor
+const scalingFactor = ref<number[]>([1.0]);
+
+// size info (current)
+const estimatedSize = ref<number | null>(null);
+
+// size info (optimal)
+const estimatedSizeOpt = ref<number | null>(null);
 
 const baseImageOpacity = ref([1.0]);
 
@@ -50,9 +56,17 @@ function confirmStitchingDialog() {
       windowState["stitching"].disabled = true;
 }
 
-function onModeChanged(e: Event | CustomEvent) {
+async function onModeChanged(e: Event | CustomEvent) {
   const newMode = (e as CustomEvent).detail as 'edit' | 'preview';
   mode.value = newMode;
+
+  if (newMode === "preview") {
+    try {
+      await fetchOptimalStitchInfo();
+    } catch (e) {
+      console.warn("Failed to fetch stitch preview info", e);
+    }
+  }
 }
 
 // Function to adjust the X-offset by a pixel delta (+1 or -1)
@@ -89,12 +103,98 @@ function updateGreyscaleOpacity(val: number[]) {
   );
 }
 
+function resetScaling() {
+  if (!estimatedSizeOpt.value) return;
+
+  scalingFactor.value = [1];
+  estimatedSize.value = estimatedSizeOpt.value;
+}
+
 function resetGreyscaleOffset() {
   window.dispatchEvent(
     new CustomEvent("stitch:reset-offset")
   );
 }
 
+function buildFragmentsForPreview() {
+  const ws = appState.workspace;
+  if (!ws) return [];
+
+  return ws.grayscale.map((gray, idx) => {
+    const points = getPointsForGray(idx);
+    const { local_points, target_points } = pointsToBackendDicts(points);
+
+    let datacube_file: string;
+    let rpl_file: string | undefined;
+
+    if (gray.sourceCubeType === "elemental") {
+      datacube_file =
+        ws.partialElementalCubes.find(c => c.name === gray.sourceCubeName)!.dataLocation;
+    } else {
+      const cube =
+        ws.partialSpectralCubes.find(c => c.name === gray.sourceCubeName)!;
+      datacube_file = cube.rawLocation;
+      rpl_file = cube.rplLocation;
+    }
+
+    return {
+      datacube_file,
+      ...(rpl_file ? { rpl_file } : {}),
+      rotation: getRotation(idx),
+      local_points,
+      target_points,
+    };
+  });
+}
+
+async function fetchOptimalStitchInfo() {
+  if (!appState.workspace) return;
+  if (!canPreview.value) return;
+  const ws = appState.workspace;
+
+  const fragments = buildFragmentsForPreview();
+  if (fragments.length === 0) return;
+
+  const type = fragments[0].rpl_file ? "spectral" : "elemental";
+
+  const payload = {
+    type,
+    contextual_image: ws.baseImage.imageLocation,
+    down_scaling: 1, 
+    fragments,
+  };
+
+  const resp = await fetch(
+    `/api/${appState.workspace.name}/stitch_datacubes/get_stitch_info`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+
+  const result = await resp.json();
+
+  scalingFactor.value = [1];
+
+  // Store optimal 
+  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 100) / 100,
+
+  // Display optimal initially
+  estimatedSize.value =  estimatedSizeOpt.value;
+}
+
+watch(
+  () => scalingFactor.value[0],
+  (factor) => {
+    if (estimatedSizeOpt.value == null) return;
+    estimatedSize.value = Math.round(estimatedSizeOpt.value * factor * factor * 100) / 100;
+  }
+);
 
 onMounted(() => {
   window.addEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
@@ -112,11 +212,6 @@ function selectGreyscale(idx: number) {
     new CustomEvent("stitch:selected-grayscale", { detail: idx })
   );
 }
-
-// Placeholders for now
-const percentagePlaceholders = ref<number[]>([80, 75, 90]); // Example
-const estimatedSize = ref(12.5); // GB placeholder
-const originalSize = ref(20.0); // GB placeholder
 
 </script>
 
@@ -152,7 +247,7 @@ const originalSize = ref(20.0); // GB placeholder
           </div>
       </div>
 
-      <!-- X offset displayed and adjustable via nudge buttons (viewer dragging will update this) -->
+      <!-- X offset displayed and adjustable via nudge buttons  -->
 
       <div class="space-y-1">
           <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Y-Offset (pixels)</label>
@@ -176,6 +271,7 @@ const originalSize = ref(20.0); // GB placeholder
         :min="0.25"
         :max="2"
         :step="0.01"
+        @update:modelValue="val => (scalingFactor = val)"
       />
 
       <div class="space-y-1">
@@ -183,7 +279,7 @@ const originalSize = ref(20.0); // GB placeholder
           Reset to recommended scaling factor
         </label>
         <div class="flex items-center space-x-2">
-          <Button size="sm" @click="resetGreyscaleOffset">
+          <Button size="sm" @click="resetScaling">
             Reset scaling
           </Button>
         </div>
@@ -191,16 +287,8 @@ const originalSize = ref(20.0); // GB placeholder
 
       <div class="space-y-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md mt-2 text-sm">
         <div>
-          <strong>Percentage remaining quality of datacubes: </strong>
-          <span>{{ percentagePlaceholders.join(', ') }}</span>
-        </div>
-        <div>
           <strong>Estimated stitched datacube size: </strong>
           <span>{{ estimatedSize }} GB</span>
-        </div>
-        <div>
-          <strong>Original file size sum with overlap: </strong>
-          <span>{{ originalSize }} GB</span>
         </div>
       </div>
       
@@ -239,7 +327,6 @@ const originalSize = ref(20.0); // GB placeholder
         >
           <div class="w-full h-32 bg-gray-100 dark:bg-black flex items-center justify-center pt-4">
             <img
-              :src="getWorkspaceImageUrl(greyscale.imageLocation, workspace?.name)"
               class="max-h-full max-w-full object-contain"
             />
           </div>
