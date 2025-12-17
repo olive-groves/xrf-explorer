@@ -84,10 +84,7 @@ function handleDblClick() {
             <!-- Top-left X -->
             <NumberField
               v-model="points[0].x"
-              @input="
-                (v: { target: { value: any } }) =>
-                  (points = points.map((p, i) => (i === 0 ? { ...p, x: Number(v.target.value) } : p)))
-              "
+              @input="points[0].x = Number(($event.target as HTMLInputElement).value)"
               :min="0"
               :max="99999"
               :step="1"
@@ -105,10 +102,7 @@ function handleDblClick() {
             <!-- Top-left Y -->
             <NumberField
               v-model="points[0].y"
-              @input="
-                (v: { target: { value: any } }) =>
-                  (points = points.map((p, i) => (i === 0 ? { ...p, y: Number(v.target.value) } : p)))
-              "
+              @input="points[0].y = Number(($event.target as HTMLInputElement).value)"
               :min="0"
               :max="99999"
               :step="1"
@@ -128,10 +122,7 @@ function handleDblClick() {
             <!-- Bottom-right X -->
             <NumberField
               v-model="points[1].x"
-              @input="
-                (v: { target: { value: any } }) =>
-                  (points = points.map((p, i) => (i === 1 ? { ...p, x: Number(v.target.value) } : p)))
-              "
+              @input="points[0].x = Number(($event.target as HTMLInputElement).value)"
               :min="0"
               :max="99999"
               :step="1"
@@ -149,10 +140,7 @@ function handleDblClick() {
             <!-- Bottom-right Y -->
             <NumberField
               v-model="points[1].y"
-              @input="
-                (v: { target: { value: any } }) =>
-                  (points = points.map((p, i) => (i === 1 ? { ...p, y: Number(v.target.value) } : p)))
-              "
+              @input="points[1].y = Number(($event.target as HTMLInputElement).value)"
               :min="0"
               :max="99999"
               :step="1"
