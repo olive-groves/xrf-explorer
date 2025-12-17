@@ -44,15 +44,19 @@ class WarpSelection:
         if scalar != 1.0:
             return np.array(
                 [
-                    (int(self.top_left[0] * scalar), int(self.top_left[1] * scalar)),
-                    (int(self.top_right[0] * scalar), int(self.top_right[1] * scalar)),
                     (
-                        int(self.bottom_left[0] * scalar),
-                        int(self.bottom_left[1] * scalar),
+                        float(self.top_left[0] * scalar),
+                        float(self.top_left[1] * scalar)),
+                    (
+                        float(self.top_right[0] * scalar),
+                        float(self.top_right[1] * scalar)),
+                    (
+                        float(self.bottom_left[0] * scalar),
+                        float(self.bottom_left[1] * scalar),
                     ),
                     (
-                        int(self.bottom_right[0] * scalar),
-                        int(self.bottom_right[1] * scalar),
+                        float(self.bottom_right[0] * scalar),
+                        float(self.bottom_right[1] * scalar),
                     ),
                 ],
                 dtype=np.float32,
@@ -108,7 +112,7 @@ class ScalarOptimizer:
     def calculate_loss_percentage(self, scalar: float) -> list[float]:
         """Calculates the scaling error percentage for debugging/UI purposes."""
         return [
-            round(self.get_scale_factor(src, dst, scalar) * 100, 1)
+            round(self.get_scale_factor(src, dst, scalar) * 100, 8)
             for (src, dst) in self.points
         ]
 

@@ -567,11 +567,40 @@ def get_stitch_info(data: StitchData) -> Dict[str, Any]:
     optimizer = ScalarOptimizer(data.points)
     optimal_scalar, _ = optimizer.find_best_scalar()
     reference_file_size = (
-            data.get_fragments()[0].channels
+            data.get_fragments()[0].channels + 1 # Spectral channels + 1 elemental channel
             * data.contextual_image_dimensions.width
             * data.contextual_image_dimensions.height
     )
-    return {"optimal_scalar": optimal_scalar, "full_size": reference_file_size}
+
+    losses = optimizer.calculate_loss_percentage(optimal_scalar)
+
+    return {"optimal_scalar": optimal_scalar, "full_size": reference_file_size, "losses": losses}
+
+def create_recipe_file(recipe_file: str, datacube_dimensions: Dimensions, contextual_image_dimensions: Dimensions) -> str:
+    from_height = datacube_dimensions.height
+    from_width = datacube_dimensions.width
+    to_height = contextual_image_dimensions.height
+    to_width = contextual_image_dimensions.width
+
+    with open(recipe_file, "w", encoding="utf-8") as f:
+        f.write("Butterfly Registrator\n")
+        f.write("1.0\n")
+        f.write("control points\n")
+        f.write("Assumes moving image(s) resized and padded to match target image dimensions\n")
+        f.write("target\n")
+        f.write("not_found.tif\n")
+        f.write("moving\n")
+        f.write("not_found.tif\n")
+        f.write("x|y|x|y\n")
+        # Top-left
+        f.write(f"0|0|0|0\n")
+        # Top-right
+        f.write(f"{from_width-1}|0|{to_width-1}|0\n")
+        # Bottom-left
+        f.write(f"0|{from_height-1}|0|{to_height-1}\n")
+        # Bottom-right
+        f.write(f"{from_width-1}|{from_height-1}|{to_width-1}|{to_height-1}\n")
+    return recipe_file
 
 def generate_partial_greyscale(frag_data: FragmentData) -> bool:
     """
@@ -725,6 +754,14 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
     result_image = stitcher.stitch_greyscales(preview_images)
     result_image = normalize_image(result_image)
 
+    result_width, result_height = result_image.shape[:2]
+
+    recipe_file_name = "preview_recipe.csv"
+    create_recipe_file(
+        _build_path(recipe_file_name, data.data_source),
+        Dimensions(result_width, result_height),
+        data.contextual_image_dimensions)
+
     # Prepare output directory
     output_dir = _build_path(join("generated", "stitching"), data.data_source)
     os.makedirs(output_dir, exist_ok=True)
@@ -739,6 +776,7 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
         "status": "success",
         "preview": True,
         "preview_path": preview_file_name,
+        "recipe_file": recipe_file_name,
         "dimensions": {
             "width": int(stitcher.scaled_width),
             "height": int(stitcher.scaled_height),
@@ -773,11 +811,10 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     rpl_file = "stitched_spectral.rpl" if result_fragment.is_spectral else None
 
     recipe_file_name = "stitched_recipe.csv"
-    result_fragment.create_recipe_file(
-            _build_path(recipe_file_name, data.data_source),
-            Dimensions(result_fragment.width, result_fragment.height),
-            data.contextual_image_dimensions
-        )
+    create_recipe_file(
+        _build_path(recipe_file_name, data.data_source),
+        Dimensions(result_fragment.width, result_fragment.height),
+        data.contextual_image_dimensions)
 
     # Create a projection for verification
     projection = result_fragment.create_greyscale_projection()

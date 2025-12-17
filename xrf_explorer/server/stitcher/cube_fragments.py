@@ -50,33 +50,6 @@ class DatacubeFragment(ABC):
         """Returns True if the data is Spectral, False if Elemental."""
         pass
 
-    def create_recipe_file(self, recipe_file: str, datacube_dimensions: Dimensions, contextual_image_dimensions: Dimensions) -> str:
-        from_height = datacube_dimensions.height
-        from_width = datacube_dimensions.width
-        to_height = contextual_image_dimensions.height
-        to_width = contextual_image_dimensions.width
-
-        with open(recipe_file, "w", encoding="utf-8") as f:
-            f.write("Butterfly Registrator\n")
-            f.write("1.0\n")
-            f.write("control points\n")
-            f.write("Assumes moving image(s) resized and padded to match target image dimensions\n")
-            f.write("target\n")
-            f.write("not_found.tif\n")
-            f.write("moving\n")
-            f.write("not_found.tif\n")
-            f.write("x|y|x|y\n")
-            # Top-left
-            f.write(f"0|0|0|0\n")
-            # Top-right
-            f.write(f"{from_width-1}|0|{to_width-1}|0\n")
-            # Bottom-left
-            f.write(f"0|{from_height-1}|0|{to_height-1}\n")
-            # Bottom-right
-            f.write(f"{from_width-1}|{from_height-1}|{to_width-1}|{to_height-1}\n")
-        return recipe_file
-
-
     def create_greyscale_projection(self) -> np.ndarray:
         """
         Collapses the multidimensional cube into a 2D image.
