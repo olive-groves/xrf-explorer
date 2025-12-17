@@ -120,6 +120,22 @@ def get_partial_greyscale(data_source: str, fragment_name: str):
     path = get_greyscale_path(fragment_name, data_source)
     return send_file(abspath(path), mimetype='image/png')
 
+@app.route("/api/<data_source>/stitch_datacubes/stitched_greyscale/", methods=["GET"])
+def get_stitched_greyscale(data_source: str):
+    """
+    Retrieves and serves a stitched greyscale preview image as a response. The image
+    is located in the generated/stitching folder of the provided datasource.
+
+    Args:
+        data_source (str): Name of the data source the greyscale preview belongs to.
+
+    Returns:
+        Response: A Flask response object containing the greyscale image
+        file with the mimetype set as 'image/png'.
+    """
+    path = get_greyscale_path("preview.png", data_source)
+    return send_file(abspath(path), mimetype='image/png')
+
 
 @app.route("/api/<data_source>/stitch_datacubes/stitch", methods=["POST"])
 def stitching(data_source: str):
