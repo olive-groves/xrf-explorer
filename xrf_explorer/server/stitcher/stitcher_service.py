@@ -728,14 +728,16 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
     output_dir = _build_path(join("generated", "stitching"), data.data_source)
     os.makedirs(output_dir, exist_ok=True)
 
+    preview_file_name = "preview.png"
+
     # Save preview image
-    preview_path = join(output_dir, "preview.png")
+    preview_path = join(output_dir, preview_file_name)
     cv.imwrite(preview_path, result_image.astype(np.uint8))
 
     return {
         "status": "success",
         "preview": True,
-        "preview_path": preview_path,
+        "preview_path": preview_file_name,
         "dimensions": {
             "width": int(stitcher.scaled_width),
             "height": int(stitcher.scaled_height),
@@ -770,7 +772,7 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     rpl_file = "stitched_spectral.rpl" if result_fragment.is_spectral else None
 
     recipe_file_name = "stitched_recipe.csv"
-    recipe_path = result_fragment.create_recipe_file(
+    result_fragment.create_recipe_file(
             _build_path(recipe_file_name, data.data_source),
             Dimensions(result_fragment.width, result_fragment.height),
             data.contextual_image_dimensions
