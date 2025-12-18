@@ -65,17 +65,19 @@ def contextual_image(data_source: str, name: str):
     if image is None:
         return f"Failed to open image {name} from source {data_source}", 500
 
-    LOG.info("Converting contextual image")
+    LOG.info("Converting contextual image " + path)
 
     image_io = BytesIO()
     image.save(image_io, "png")
     image_io.seek(0)
 
-    LOG.info("Serving converted contextual image")
+    LOG.info("Serving converted contextual image " + path)
 
     # Ensure that the converted images are cached by the client
     response = send_file(image_io, mimetype='image/png')
-    response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return response
 
 
