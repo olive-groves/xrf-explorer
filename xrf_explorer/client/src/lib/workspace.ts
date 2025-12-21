@@ -73,17 +73,17 @@ export type ContextualImage = {
  */
 export type Grayscale = {
   /**
-   * The name of the grayscale image.
+   * The location of the grayscale image.
    */
-  name: string;
+  imageLocation: string;
   /**
-   * Optional: the name of the cube that generated this grayscale image.
+   * The name of the cube that generated this grayscale image.
    */
-  sourceCubeName?: string;
+  sourceCubeName: string;
   /**
-   * Optional: the type of cube that generated this grayscale image: 'elemental' | 'spectral'
+   * The type of cube that generated this grayscale image: 'elemental' | 'spectral'
    */
-  sourceCubeType?: "elemental" | "spectral";
+  sourceCubeType: "elemental" | "spectral";
 };
 
 /**

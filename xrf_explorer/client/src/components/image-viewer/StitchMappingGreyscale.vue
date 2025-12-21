@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
 import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex, getRotation, grayscalePoints, checkSelectPoint, deselect, selectedPointId, selectPoint, updateGrayPoint } from "./stitchPoints";
-import { getWorkspaceImageUrl } from "./workspace";
+import { getWorkspaceGreyscaleUrl} from "./workspace";
 import { getTargetSize } from "./api";
 import Dots from "./Dots.vue";
 
@@ -35,7 +35,7 @@ window.addEventListener("stitch:selected-grayscale", (e: Event) => {
 
 const grayscaleUrl = computed(() => {
   if (!grayscale.value) return null;
-  return getWorkspaceImageUrl(
+  return getWorkspaceGreyscaleUrl(
     grayscale.value.imageLocation,
     appState.workspace!.name
   );
@@ -52,7 +52,7 @@ const currentPoints = computed(() => {
 
 const viewbox = ref<{
   x: number;
-  y: number;
+  y: number; 
   w: number;
   h: number;
 }>({
@@ -95,7 +95,7 @@ async function loadGrayscaleLayer() {
 
   if (!grayscale.value || !grayscaleUrl.value) return;
 
-  const id = `gray_${snakeCase(grayscale.value.name)}`;
+  const id = `gray_${snakeCase(grayscale.value.sourceCubeName)}`;
   currentLayerId = id;
 
   await engine.createImageLayer(id, grayscaleUrl.value);

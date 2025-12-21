@@ -2,9 +2,10 @@
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
-import { ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
+import { ref, computed, onMounted, onBeforeUnmount} from "vue";
 import { windowState } from "@/components/ui/window/state";
-import { canPreview, getPointsForGray, getRotation, pointsToBackendDicts, setRotation } from "@/components/image-viewer/stitchPoints";
+import { buildFragmentsForAPI, canPreview, getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
+import { getWorkspaceGreyscaleUrl } from '@/components/image-viewer/workspace';
 
 const selectedGreyscale = ref<number | null>(0);
 const mode = ref<'edit' | 'preview'>('edit'); 
@@ -18,11 +19,11 @@ interface GreyscaleState {
 // Current selected scaling factor
 const scalingFactor = ref<number[]>([1.0]);
 
-// size info (current)
-const estimatedSize = ref<number | null>(null);
-
 // size info (optimal)
 const estimatedSizeOpt = ref<number | null>(null);
+
+// Percatages data "lost" (optimal)
+const lossesOpt = ref<number[] | null>(null);
 
 const baseImageOpacity = ref([1.0]);
 
@@ -104,10 +105,7 @@ function updateGreyscaleOpacity(val: number[]) {
 }
 
 function resetScaling() {
-  if (!estimatedSizeOpt.value) return;
-
   scalingFactor.value = [1];
-  estimatedSize.value = estimatedSizeOpt.value;
 }
 
 function resetGreyscaleOffset() {
@@ -116,43 +114,12 @@ function resetGreyscaleOffset() {
   );
 }
 
-function buildFragmentsForPreview() {
-  const ws = appState.workspace;
-  if (!ws) return [];
-
-  return ws.grayscale.map((gray, idx) => {
-    const points = getPointsForGray(idx);
-    const { local_points, target_points } = pointsToBackendDicts(points);
-
-    let datacube_file: string;
-    let rpl_file: string | undefined;
-
-    if (gray.sourceCubeType === "elemental") {
-      datacube_file =
-        ws.partialElementalCubes.find(c => c.name === gray.sourceCubeName)!.dataLocation;
-    } else {
-      const cube =
-        ws.partialSpectralCubes.find(c => c.name === gray.sourceCubeName)!;
-      datacube_file = cube.rawLocation;
-      rpl_file = cube.rplLocation;
-    }
-
-    return {
-      datacube_file,
-      ...(rpl_file ? { rpl_file } : {}),
-      rotation: getRotation(idx),
-      local_points,
-      target_points,
-    };
-  });
-}
-
 async function fetchOptimalStitchInfo() {
   if (!appState.workspace) return;
   if (!canPreview.value) return;
   const ws = appState.workspace;
 
-  const fragments = buildFragmentsForPreview();
+  const fragments = buildFragmentsForAPI();
   if (fragments.length === 0) return;
 
   const type = fragments[0].rpl_file ? "spectral" : "elemental";
@@ -181,20 +148,29 @@ async function fetchOptimalStitchInfo() {
 
   scalingFactor.value = [1];
 
-  // Store optimal 
-  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 100) / 100,
+  // store optimal dataloss percentage
+  lossesOpt.value = result.losses ?? null;
 
-  // Display optimal initially
-  estimatedSize.value =  estimatedSizeOpt.value;
+  // Store optimal 
+  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 100) / 100;
 }
 
-watch(
-  () => scalingFactor.value[0],
-  (factor) => {
-    if (estimatedSizeOpt.value == null) return;
-    estimatedSize.value = Math.round(estimatedSizeOpt.value * factor * factor * 100) / 100;
-  }
-);
+const scaledLosses = computed(() => {
+  if (!lossesOpt.value) return null;
+
+  const factor = scalingFactor.value[0];
+
+  return lossesOpt.value.map(loss =>
+    Math.round(loss * factor * 100) / 100
+  );
+});
+
+const estimatedSize = computed(() => {
+  if (estimatedSizeOpt.value === null) return null;
+
+  const factor = scalingFactor.value[0];
+  return Math.round(estimatedSizeOpt.value * factor * factor * 100) / 100;
+});
 
 onMounted(() => {
   window.addEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
@@ -275,9 +251,6 @@ function selectGreyscale(idx: number) {
       />
 
       <div class="space-y-1">
-        <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Reset to recommended scaling factor
-        </label>
         <div class="flex items-center space-x-2">
           <Button size="sm" @click="resetScaling">
             Reset scaling
@@ -285,10 +258,28 @@ function selectGreyscale(idx: number) {
         </div>
       </div>
 
-      <div class="space-y-1 p-2 bg-gray-50 dark:bg-gray-900 rounded-md mt-2 text-sm">
+      <div class="space-y-1">
         <div>
-          <strong>Estimated stitched datacube size: </strong>
+          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          Estimated stitched datacube size:
+          </label>
           <span>{{ estimatedSize }} GB</span>
+        </div>
+      </div>
+      <div
+        v-if="scaledLosses"
+        class="mt-2 space-y-1 text-sm"
+      >
+        <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        Estimated percentage of data used per fragment:
+        </label>
+        <div
+          v-for="(loss, idx) in scaledLosses"
+          :key="idx"
+          class="flex justify-between font-mono"
+        >
+          <span>{{ workspace?.grayscale[idx]?.sourceCubeName }}</span>
+          <span>{{ loss }} %</span>
         </div>
       </div>
       
@@ -328,10 +319,14 @@ function selectGreyscale(idx: number) {
           <div class="w-full h-32 bg-gray-100 dark:bg-black flex items-center justify-center pt-4">
             <img
               class="max-h-full max-w-full object-contain"
+              :src="getWorkspaceGreyscaleUrl(
+                greyscale.imageLocation
+              )"
+              :alt="`Greyscale ${greyscale.sourceCubeName}`"
             />
           </div>
           <div class="text-center text-sm p-1 bg-gray-50 dark:bg-black dark:text-gray-200">
-            {{ greyscale.name.replace(/^grayscale_/, "") }}
+            {{ greyscale.sourceCubeName }}
           </div>
           <div class="mt-2 p-2 border rounded-md">
             <LabeledSlider

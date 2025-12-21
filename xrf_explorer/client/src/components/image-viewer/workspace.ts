@@ -136,3 +136,18 @@ export function getWorkspaceImageUrl(imageLocation: string, workspaceName?: stri
   const segments = imageLocation.split("/").map((s) => encodeURIComponent(s));
   return `${config.api.endpoint}/${ds}/image/${segments.join("/")}`;
 }
+
+/**
+ * Builds the URL to a generated partial greyscale image.
+ * @param imageLocation - Name or relative path of the greyscale in the workspace
+ * @param workspaceName - Optional workspace name
+ */
+export function getWorkspaceGreyscaleUrl(
+  imageLocation : string,
+  workspaceName?: string
+): string {
+  const ds = workspaceName ?? datasource.value;
+  return `${config.api.endpoint}/${ds}/stitch_datacubes/greyscale_image/${encodeURIComponent(
+    imageLocation
+  )}`;
+}

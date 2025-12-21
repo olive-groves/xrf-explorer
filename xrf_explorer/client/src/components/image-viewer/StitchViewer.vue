@@ -23,7 +23,7 @@ watch(mode, (newMode) => {
       <ToggleGroupItem value="edit" variant="outline">Edit</ToggleGroupItem>
 
       <div :title="!canPreview ? 'Can only preview after mapping 4 points for each greyscale' : ''">
-        <ToggleGroupItem value="preview" variant="outline">
+        <ToggleGroupItem value="preview" variant="outline" :disabled="!canPreview">
           Preview
         </ToggleGroupItem>
       </div>

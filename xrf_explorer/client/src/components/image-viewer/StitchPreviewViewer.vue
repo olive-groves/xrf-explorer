@@ -9,6 +9,7 @@ import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { Layer } from "./types";
+import { buildFragmentsForAPI } from "./stitchPoints";
 
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
@@ -40,6 +41,39 @@ const selectedGrayscale = computed(() => {
   if (idx == null) return null;
   return appState.workspace?.grayscale?.[idx] ?? null;
 });
+
+// Generate geryscale preview
+async function generatePreview() {
+  if (!appState.workspace) return;
+  const ws = appState.workspace;
+
+  const fragments = buildFragmentsForAPI();
+  if (fragments.length === 0) return;
+
+  const type = fragments[0].rpl_file ? "spectral" : "elemental";
+
+  const payload = {
+    type,
+    contextual_image: ws.baseImage.imageLocation,
+    down_scaling: 1, 
+    fragments,
+  };
+
+  const resp = await fetch(
+    `/api/${appState.workspace.name}/stitch_datacubes/generate_partial_greyscales`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+}
+
+
 
 const grayscaleUrl = computed(() => {
   const gs = selectedGrayscale.value;
@@ -102,7 +136,7 @@ async function loadGrayscaleLayer() {
 
   if (!selectedGrayscale.value || !grayscaleUrl.value) return;
 
-  grayLayerId = `stitch_gray_${snakeCase(selectedGrayscale.value.name)}`;
+  grayLayerId = `stitch_gray_${snakeCase(selectedGrayscale.value.sourceCubeName)}`;
   grayLayer = await engine.createImageLayer(grayLayerId, grayscaleUrl.value);
   grayLayer.uniform.iIndex.value = 0;
   grayViewportOffset.x = 0; // reset offset
@@ -224,6 +258,8 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-nudge", onGrayNudge);
   window.addEventListener("keydown", onKeyDown, { capture: true });
   window.addEventListener("stitch:reset-offset", resetGreyscaleOffset);
+
+  await generatePreview();
 
   if (!glcanvas.value) return;
 

@@ -259,40 +259,67 @@ async function updateWorkspace() {
       // If partial stitching mode, request server to generate grayscale images for partial cubes
       try {
         if (workspace.value.stitchingMode === "partial") {
-          const ds = workspace.value.name;
-          // Prefer partialElementalCubes, fallback to partialSpectralCubes
-          const partials = (workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0)
-            ? workspace.value.partialElementalCubes
-            : workspace.value.partialSpectralCubes || [];
-
-          for (const cube of partials) {
-            try {
-              const body = { cubeName: cube.name };
-              const resp = await fetch(`${config.api.endpoint}/${ds}/grayscale/from_elemental_cube`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-              });
-              if (resp.ok) {
-                const grayscaleEntry = await resp.json();
-                // append to local workspace and publish
-                workspace.value.grayscale = workspace.value.grayscale || [];
-                workspace.value.grayscale.push(grayscaleEntry);
-                try { appState.workspace = deepClone(workspace.value); } catch {}
-              } else {
-                console.warn("Failed to create grayscale for cube", cube.name, await resp.text());
-              }
-            } catch (err) {
-              console.warn("Error creating grayscale for cube", cube.name, err);
-            }
-          }
+          await generatePartialGreyscales();
         }
       } catch (e) {
-        console.warn("Error in grayscale generation flow", e);
+        console.warn("Error in grayscale generation", e);
       }
+      await setupWorkspace();
       resetProgress();
     }
   }
+}
+
+async function generatePartialGreyscales() {
+  const ds = workspace.value.name;
+
+  const isElemental =
+    workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0;
+
+  const fragments = isElemental
+    ? workspace.value.partialElementalCubes.map(cube => ({
+        datacube_file: cube.dataLocation,
+      }))
+    : workspace.value.partialSpectralCubes.map(cube => ({
+        datacube_file: cube.rawLocation,
+        rpl_file: cube.rplLocation,
+      }));
+
+  if (fragments.length === 0) return;
+
+  const payload = {
+    type: isElemental ? "elemental" : "spectral",
+    fragments,
+  };
+
+  const resp = await fetch(
+    `${config.api.endpoint}/${ds}/stitch_datacubes/generate_partial_greyscales`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!resp.ok) {
+    throw new Error(await resp.text());
+  }
+
+  /* Load generated greyscales in workspace */
+  const greys = isElemental
+    ? workspace.value.partialElementalCubes.map(cube => ({
+        imageLocation: cube.dataLocation,
+        sourceCubeName: cube.name,
+        sourceCubeType: "elemental" as const,
+      }))
+    : workspace.value.partialSpectralCubes.map(cube => ({
+        imageLocation: cube.rawLocation,
+        sourceCubeName: cube.name,
+        sourceCubeType: "spectral" as const,
+      }));
+
+  workspace.value.grayscale.push(...greys);
+  try { appState.workspace = deepClone(workspace.value); } catch {}
 }
 
 /**

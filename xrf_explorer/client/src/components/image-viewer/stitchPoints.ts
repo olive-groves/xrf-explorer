@@ -122,11 +122,7 @@ export const canPreview = computed(() => {
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
-function i(v: number): number {
-  return Math.round(v);
-}
-
-export function pointsToBackendDicts(points: StitchPoint[]): {
+function pointsToBackendDicts(points: StitchPoint[]): {
   local_points: Record<CornerKey, [number, number]>;
   target_points: Record<CornerKey, [number, number]>;
 } {
@@ -156,16 +152,47 @@ export function pointsToBackendDicts(points: StitchPoint[]): {
 
   return {
     local_points: {
-      top_left: [i(ordered.top_left.gray.x), i(ordered.top_left.gray.y)],
-      top_right: [i(ordered.top_right.gray.x), i(ordered.top_right.gray.y)],
-      bottom_left: [i(ordered.bottom_left.gray.x), i(ordered.bottom_left.gray.y)],
-      bottom_right: [i(ordered.bottom_right.gray.x), i(ordered.bottom_right.gray.y)],
+      top_left: [ordered.top_left.gray.x, ordered.top_left.gray.y],
+      top_right: [ordered.top_right.gray.x, ordered.top_right.gray.y],
+      bottom_left: [ordered.bottom_left.gray.x, ordered.bottom_left.gray.y],
+      bottom_right: [ordered.bottom_right.gray.x, ordered.bottom_right.gray.y],
     },
     target_points: {
-      top_left: [i(ordered.top_left.base.x), i(ordered.top_left.base.y)],
-      top_right: [i(ordered.top_right.base.x), i(ordered.top_right.base.y)],
-      bottom_left: [i(ordered.bottom_left.base.x), i(ordered.bottom_left.base.y)],
-      bottom_right: [i(ordered.bottom_right.base.x), i(ordered.bottom_right.base.y)],
+      top_left: [ordered.top_left.base.x, ordered.top_left.base.y],
+      top_right: [ordered.top_right.base.x, ordered.top_right.base.y],
+      bottom_left: [ordered.bottom_left.base.x, ordered.bottom_left.base.y],
+      bottom_right: [ordered.bottom_right.base.x, ordered.bottom_right.base.y],
     },
   };
+}
+
+export function buildFragmentsForAPI() {
+  const ws = appState.workspace;
+  if (!ws) return [];
+
+  return ws.grayscale.map((gray, idx) => {
+    const points = getPointsForGray(idx);
+    const { local_points, target_points } = pointsToBackendDicts(points);
+
+    let datacube_file: string;
+    let rpl_file: string | undefined;
+
+    if (gray.sourceCubeType === "elemental") {
+      datacube_file =
+        ws.partialElementalCubes.find(c => c.name === gray.sourceCubeName)!.dataLocation;
+    } else {
+      const cube =
+        ws.partialSpectralCubes.find(c => c.name === gray.sourceCubeName)!;
+      datacube_file = cube.rawLocation;
+      rpl_file = cube.rplLocation;
+    }
+
+    return {
+      datacube_file,
+      ...(rpl_file ? { rpl_file } : {}),
+      rotation: getRotation(idx),
+      local_points,
+      target_points,
+    };
+  });
 }
