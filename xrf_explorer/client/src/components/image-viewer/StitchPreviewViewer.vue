@@ -7,7 +7,7 @@ import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { Layer } from "./types";
-import { buildFragmentsForAPI } from "./stitchPoints";
+import { stitch } from "./stitchHelper";
 
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
@@ -37,37 +37,7 @@ function getStitchedGreyscaleUrl() {
 // grayscale offset used for viewport shifting
 const grayViewportOffset = { x: 0, y: 0 };
 
-// Generate geryscale preview
-async function generatePreview() {
-  if (!appState.workspace) return;
-  const ws = appState.workspace;
 
-  const fragments = buildFragmentsForAPI();
-  if (fragments.length === 0) return;
-
-  const type = fragments[0].rpl_file ? "spectral" : "elemental";
-
-  const payload = {
-    type,
-    preview: true,
-    contextual_image: ws.baseImage.imageLocation,
-    down_scaling: 1,
-    fragments,
-  };
-
-  const resp = await fetch(
-    `/api/${ws.name}/stitch_datacubes/stitch`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  if (!resp.ok) {
-    throw new Error(await resp.text());
-  }
-}
 
 const stitchedGreyscaleUrl = computed(() => {
   return getStitchedGreyscaleUrl();
@@ -253,14 +223,15 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-nudge", onGrayNudge);
   window.addEventListener("keydown", onKeyDown, { capture: true });
   window.addEventListener("stitch:reset-offset", resetGreyscaleOffset);
-
-  await generatePreview();
+  const ws = appState.workspace;
+  if (!ws) return;
+  await stitch(true, ws.grayscale[0].sourceCubeType);
 
   if (!glcanvas.value) return;
 
   engine = createStitchEngine(glcanvas.value);
 
-  const ws = appState.workspace;
+  
   if (!ws?.baseImage) return;
 
   const loc = ws.baseImage.imageLocation?.includes("/")

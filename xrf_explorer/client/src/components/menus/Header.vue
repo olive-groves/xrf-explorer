@@ -161,7 +161,7 @@ const json2 = {
   ],
 };
 
-const json3 = {
+/*const json3 = {
   type: "spectral",
   contextual_image: "RGB_resized.jpg",
   fragments: [
@@ -182,7 +182,7 @@ const json3 = {
       rpl_file: "spectral4.rpl",
     },
   ],
-};
+}; */
 
 const json4 = {
   type: "spectral",

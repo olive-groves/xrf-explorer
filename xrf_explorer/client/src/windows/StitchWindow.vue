@@ -4,8 +4,9 @@ import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
 import { ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 import { windowState } from "@/components/ui/window/state";
-import { buildFragmentsForAPI, canPreview, getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
+import { getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
 import { getWorkspaceGreyscaleUrl } from '@/components/image-viewer/workspace';
+import { fetchOptimalStitchInfo, stitch } from '@/components/image-viewer/stitchHelper';
 
 const selectedGreyscale = ref<number | null>(0);
 const mode = ref<'edit' | 'preview'>('edit'); 
@@ -70,10 +71,13 @@ function closeDialog() {
 function confirmStitchingDialog() {
   if (!appState.workspace) return;
 
-  const options = {
-    includeSpectral: includeSpectral.value,
-    includeElemental: includeElemental.value,
-  };
+  if (includeElemental) {
+    stitch(false, "elemental");
+  }
+  
+  if (includeSpectral) {
+    stitch (false, "spectral");
+  }
 
   appState.workspace.stitchingMode = 'full';
 
@@ -87,7 +91,12 @@ async function onModeChanged(e: Event | CustomEvent) {
 
   if (newMode === "preview") {
     try {
-      await fetchOptimalStitchInfo();
+      scalingFactor.value = [1];
+      const info = await fetchOptimalStitchInfo();
+      if (!info) return;
+
+      lossesOpt.value = info.losses;
+      estimatedSizeOpt.value = info.estimatedSize;
     } catch (e) {
       console.warn("Failed to fetch stitch preview info", e);
     }
@@ -136,47 +145,6 @@ function resetGreyscaleOffset() {
   window.dispatchEvent(
     new CustomEvent("stitch:reset-offset")
   );
-}
-
-async function fetchOptimalStitchInfo() {
-  if (!appState.workspace) return;
-  if (!canPreview.value) return;
-  const ws = appState.workspace;
-
-  const fragments = buildFragmentsForAPI();
-  if (fragments.length === 0) return;
-
-  const type = fragments[0].rpl_file ? "spectral" : "elemental";
-
-  const payload = {
-    type,
-    contextual_image: ws.baseImage.imageLocation,
-    down_scaling: 1, 
-    fragments,
-  };
-
-  const resp = await fetch(
-    `/api/${appState.workspace.name}/stitch_datacubes/get_stitch_info`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
-
-  if (!resp.ok) {
-    throw new Error(await resp.text());
-  }
-
-  const result = await resp.json();
-
-  scalingFactor.value = [1];
-
-  // store optimal dataloss percentage
-  lossesOpt.value = result.losses ?? null;
-
-  // Store optimal 
-  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 10000) / 10000;
 }
 
 const scaledLosses = computed(() => {
