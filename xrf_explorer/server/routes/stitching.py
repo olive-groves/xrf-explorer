@@ -133,7 +133,7 @@ def get_stitched_greyscale(data_source: str):
         Response: A Flask response object containing the greyscale image
         file with the mimetype set as 'image/png'.
     """
-    path = get_greyscale_path("preview.png", data_source)
+    path = get_greyscale_path("preview", data_source)
     return send_file(abspath(path), mimetype='image/png')
 
 

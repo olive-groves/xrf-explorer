@@ -2,8 +2,6 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, reactive } from "vue";
 import { useElementBounding } from "@vueuse/core";
 import * as THREE from "three";
-import { snakeCase } from "change-case";
-
 import { appState } from "@/lib/appState";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
@@ -31,16 +29,13 @@ const viewport = reactive({
 
 let grayLayerId: string | null = null;
 
-const tempGreysclaleInx = 0;
+function getStitchedGreyscaleUrl() {
+  if (!appState.workspace) return null;
+  return `/api/${appState.workspace.name}/stitch_datacubes/stitched_greyscale/`;
+}
 
 // grayscale offset used for viewport shifting
 const grayViewportOffset = { x: 0, y: 0 };
-
-const selectedGrayscale = computed(() => {
-  const idx = tempGreysclaleInx;
-  if (idx == null) return null;
-  return appState.workspace?.grayscale?.[idx] ?? null;
-});
 
 // Generate geryscale preview
 async function generatePreview() {
@@ -54,13 +49,14 @@ async function generatePreview() {
 
   const payload = {
     type,
+    preview: true,
     contextual_image: ws.baseImage.imageLocation,
-    down_scaling: 1, 
+    down_scaling: 1,
     fragments,
   };
 
   const resp = await fetch(
-    `/api/${appState.workspace.name}/stitch_datacubes/generate_partial_greyscales`,
+    `/api/${ws.name}/stitch_datacubes/stitch`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,12 +69,8 @@ async function generatePreview() {
   }
 }
 
-
-
-const grayscaleUrl = computed(() => {
-  const gs = selectedGrayscale.value;
-  if (!gs) return null;
-  return getWorkspaceImageUrl(gs.imageLocation, appState.workspace!.name);
+const stitchedGreyscaleUrl = computed(() => {
+  return getStitchedGreyscaleUrl();
 });
 
 function onBaseOpacityChanged(e: Event) {
@@ -119,6 +111,7 @@ function resetGreyscaleOffset() {
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
+  // Remove previous greyscale layer
   if (grayLayerId) {
     const idx = engine.layers.findIndex((l) => l.id === grayLayerId);
     if (idx >= 0) {
@@ -134,12 +127,14 @@ async function loadGrayscaleLayer() {
     grayLayer = null;
   }
 
-  if (!selectedGrayscale.value || !grayscaleUrl.value) return;
+  const url = stitchedGreyscaleUrl.value;
+  if (!url) return;
 
-  grayLayerId = `stitch_gray_${snakeCase(selectedGrayscale.value.sourceCubeName)}`;
-  grayLayer = await engine.createImageLayer(grayLayerId, grayscaleUrl.value);
+  grayLayerId = "stitch_preview_greyscale";
+  grayLayer = await engine.createImageLayer(grayLayerId, url);
+
   grayLayer.uniform.iIndex.value = 0;
-  grayViewportOffset.x = 0; // reset offset
+  grayViewportOffset.x = 0;
   grayViewportOffset.y = 0;
 }
 
@@ -279,7 +274,7 @@ onMounted(async () => {
   startRenderLoop();
 });
 
-watch(grayscaleUrl, async () => {
+watch(stitchedGreyscaleUrl, async () => {
   if (!engine) return;
   await loadGrayscaleLayer();
   await resetViewport();
