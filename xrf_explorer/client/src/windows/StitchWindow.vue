@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
 import { appState } from '@/lib/appState';
-import { ref, computed, onMounted, onBeforeUnmount} from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 import { windowState } from "@/components/ui/window/state";
 import { buildFragmentsForAPI, canPreview, getRotation, setRotation } from "@/components/image-viewer/stitchPoints";
 import { getWorkspaceGreyscaleUrl } from '@/components/image-viewer/workspace';
@@ -10,6 +10,8 @@ import { getWorkspaceGreyscaleUrl } from '@/components/image-viewer/workspace';
 const selectedGreyscale = ref<number | null>(0);
 const mode = ref<'edit' | 'preview'>('edit'); 
 const workspace = computed(() => appState.workspace);
+const includeSpectral = ref(true);
+const includeElemental = ref(true);
 interface GreyscaleState {
     opacity: number[];
     xOffset: number[];
@@ -35,6 +37,20 @@ const GreyscaleMapping = ref<GreyscaleState>(
     }
 );
 
+const hasSpectralData = computed(() => {
+  const ws = appState.workspace;
+  return !!(
+    ws && ws.partialSpectralCubes?.length
+  );
+});
+
+const hasElementalData = computed(() => {
+  const ws = appState.workspace;
+  return !!(
+    ws && ws.partialElementalCubes?.length
+  );
+});
+
 const showDialog = ref(false);
 const showConfirmation = ref(false);
 
@@ -52,9 +68,17 @@ function closeDialog() {
 }
 
 function confirmStitchingDialog() {
-  if (appState.workspace) appState.workspace.stitchingMode = 'full';
-      windowState["stitching"].opened = false;
-      windowState["stitching"].disabled = true;
+  if (!appState.workspace) return;
+
+  const options = {
+    includeSpectral: includeSpectral.value,
+    includeElemental: includeElemental.value,
+  };
+
+  appState.workspace.stitchingMode = 'full';
+
+  windowState["stitching"].opened = false;
+  windowState["stitching"].disabled = true;
 }
 
 async function onModeChanged(e: Event | CustomEvent) {
@@ -152,7 +176,7 @@ async function fetchOptimalStitchInfo() {
   lossesOpt.value = result.losses ?? null;
 
   // Store optimal 
-  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 100) / 100;
+  estimatedSizeOpt.value = Math.round(result.full_size / (1024 * 1024 * 1024) * 10000) / 10000;
 }
 
 const scaledLosses = computed(() => {
@@ -169,7 +193,7 @@ const estimatedSize = computed(() => {
   if (estimatedSizeOpt.value === null) return null;
 
   const factor = scalingFactor.value[0];
-  return Math.round(estimatedSizeOpt.value * factor * factor * 100) / 100;
+  return Math.round(estimatedSizeOpt.value * factor * factor * 10000) / 10000;
 });
 
 onMounted(() => {
@@ -188,6 +212,12 @@ function selectGreyscale(idx: number) {
     new CustomEvent("stitch:selected-grayscale", { detail: idx })
   );
 }
+
+watch(showConfirmation, (open) => {
+  if (!open) return;
+  includeSpectral.value = true;
+  includeElemental.value = true;
+});
 
 </script>
 
@@ -293,10 +323,60 @@ function selectGreyscale(idx: number) {
 
       <div v-if="showConfirmation" class="dialog-overlay">
         <div class="dialog-content">
-       <h3 class="dialog-title">Confirm Stitching</h3>
-       <Button @click="confirmStitchingDialog">Confirm</Button>
-       <Button @click="closeDialog">Cancel</Button>
-       </div>
+          <div class="flex flex-col space-y-3">
+            <label
+             class="text-sm font-medium leading-none"
+              >
+              Confirm stitching
+            </label>
+
+            <div class="flex flex-col space-y-2 mt-2">
+              <div
+                v-if="hasSpectralData"
+                class="flex items-center space-x-2"
+              >
+                <Checkbox
+                  id="include-spectral"
+                  v-model:checked="includeSpectral"
+                />
+                <label
+                  for="include-spectral"
+                  class="text-sm font-medium leading-none"
+                >
+                  Include spectral datacube
+                </label>
+              </div>
+
+              <div
+                v-if="hasElementalData"
+                class="flex items-center space-x-2"
+              >
+                <Checkbox
+                  id="include-elemental"
+                  v-model:checked="includeElemental"
+                />
+                <label
+                  for="include-elemental"
+                  class="text-sm font-medium leading-none"
+                >
+                  Include elemental datacube
+                </label>
+              </div>
+            </div>
+
+            <div class="flex gap-4 justify-center mt-4">
+              <Button
+                :disabled="!includeSpectral && !includeElemental"
+                @click="confirmStitchingDialog"
+              >
+                Confirm
+              </Button>
+              <Button variant="outline" @click="closeDialog">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </Window>
