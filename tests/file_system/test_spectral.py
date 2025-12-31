@@ -111,7 +111,7 @@ class TestSpectral:
         update_bin_params(self.WRONG_SIZE_NAME)
         
         params: dict = get_spectra_params(self.WRONG_SIZE_NAME)
-        assert params == {'low': 0, 'high': 4096, 'binSize': 1, 'binned': True}
+        assert params == {'low': 0, 'high': 4096, 'binSize': 1, 'binned': True, 'offset': 0}
     
     def get_workspace_dict_and_set_workspace_dict_values(self, workspace_dict: dict | None):
         workspace_dict["spectralParams"]["low"] = 0.5
@@ -135,7 +135,7 @@ class TestSpectral:
         update_bin_params(self.WRONG_SIZE_NAME)
         
         params: dict = get_spectra_params(self.WRONG_SIZE_NAME)
-        assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
+        assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True, 'offset': 0}
         
     def test_update_bin_params_no_offset(self):
         workspace_dict: dict | None = get_workspace_dict(self.NO_OFFSET_NAME)
@@ -150,7 +150,7 @@ class TestSpectral:
         update_bin_params(self.NO_OFFSET_NAME)
         
         params: dict = get_spectra_params(self.NO_OFFSET_NAME)
-        assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True}
+        assert params == {'low': 51, 'high': 2048, 'binSize': 6, 'binned': True, 'offset': 0}
 
     def test_bin_data_identity(self):
         # setup

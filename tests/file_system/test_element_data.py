@@ -189,7 +189,12 @@ class TestElementalData:
         assert 'to .dms format.' in caplog.text
 
         # cleanup
-        rmtree(path_to_temp_folder)
+        def remove_readonly(func, path, excinfo):
+            import stat, os
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+            
+        rmtree(path_to_temp_folder, onerror=remove_readonly)
 
     def test_csv_to_dms_directly(self, caplog):
         # setup

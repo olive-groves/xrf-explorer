@@ -118,8 +118,14 @@ class TestDimReduction:
         set_config(self.CUSTOM_CONFIG_PATH)
 
         # remove folder if it exists such that it has to be created
+        def remove_readonly(func, path, excinfo):
+            import stat
+            import os
+            os.chmod(path, stat.S_IWRITE)
+            func(path)        
+        
         if isdir(path_generated):
-            rmtree(path_generated)
+            rmtree(path_generated, onerror=remove_readonly)
 
         # execute
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
@@ -368,7 +374,7 @@ class TestDimReduction:
     
     def test_invalid_create_image_of_indices_no_files(self):
         # setup
-        set_config(self.CUSTOM_CONFIG_PATH)
+        set_config(self.CUSTOM_CONFIG_PATH_NO_EMBEDDING)
 
         # execute
         result: bool = create_image_of_indices_to_embedding(self.TEST_DATA_SOURCE)
