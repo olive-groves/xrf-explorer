@@ -51,7 +51,7 @@ async function deleteUser() {
 
 <template>
   <DialogContent ref="dialog">
-    <DialogTitle class="mb-2 font-bold"> Delete User </DialogTitle>
+    <DialogTitle class="mb-2 font-bold"> Delete Account </DialogTitle>
     <div class="flex items-center justify-between">
       <div class="text-muted-foreground">
         Are you sure you want to delete the following account: <b>{{ user }}</b> ?
@@ -59,7 +59,7 @@ async function deleteUser() {
     </div>
     <div class="flex items-center justify-end">
       <Button @click="emit('close')" class="mr-2"> Cancel </Button>
-      <Button @click="deleteUser" variant="destructive"> Delete </Button>
+      <Button @click="deleteUser" variant="destructive"> Delete Account </Button>
     </div>
   </DialogContent>
 </template>

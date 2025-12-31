@@ -39,6 +39,7 @@ const originalUsername = ref(props.user.original_username);
 const username = ref(props.user.username); // Selected username
 const password = ref(""); // New password (optional)
 const role = ref(props.user.role.toLowerCase()); // Selected role
+const originalRole = ref(role.value);
 
 // Search query for filtering projects
 const projectQuery = ref("");
@@ -280,7 +281,10 @@ async function removeAccessAll() {
     </div>
     <div class="flex items-center justify-between">
       <Button @click="emit('close')"> Cancel </Button>
-      <Button @click="updateAccount" :disabled="username == '' || role == '' || !validPassword(password)">
+      <Button @click="updateAccount" :disabled=
+          "username == '' || 
+          (role == '' || role == originalRole ) || 
+          (!validPassword(password) && password != '')">
         Update Account
       </Button>
       <Button @click="deleteAccount" variant="destructive"> Delete Account </Button>
