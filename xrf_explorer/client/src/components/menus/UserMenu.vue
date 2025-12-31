@@ -96,8 +96,9 @@ function manageUser(account: { original_username: string; username: string; role
       />
       <DeleteUserDialog
         v-if="window == 'delete-account'"
-        :user="originalName"
-        @close="(window = 'manage-user'), (originalName = ''), (userName = ''), (userRole = '')"
+        :user="{ original_username: originalName }"
+        @cancel="(window = 'manage-user')"
+        @deleted="(window = 'manage-accounts'), (originalName = ''), (userName = ''), (userRole = '')"
       />
     </Dialog>
   </div>

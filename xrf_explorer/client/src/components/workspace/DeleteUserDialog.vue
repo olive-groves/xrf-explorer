@@ -7,10 +7,16 @@ import axios from "axios";
 import { isErrorWithMessage } from "./duplicates.ts";
 
 // Define emits
-const emit = defineEmits(["close"]);
+const emit = defineEmits<{
+  // Close the dialog
+  (e: "deleted"): void;
+  // Delete specific user and pass (original) username
+  (e: "cancel"): void;
+}>();
+
 const props = defineProps<{
   /** The currently selected user. */
-  user: string;
+  user: { original_username: string };
 }>();
 
 // Define user to delete
@@ -30,12 +36,12 @@ async function deleteUser() {
   // Make API call to delete user
   try {
     const response = await axios.post<DeleteUserResponse>("/api/delete_account", {
-      username: user.value,
+      username: user.value.original_username,
     });
 
     if (response.data.success) {
       toast.info("User deleted successfully");
-      emit("close");
+      emit("deleted");
     } else {
       toast.error(response.data.message || "Failed to delete user");
     }
@@ -54,11 +60,11 @@ async function deleteUser() {
     <DialogTitle class="mb-2 font-bold"> Delete Account </DialogTitle>
     <div class="flex items-center justify-between">
       <div class="text-muted-foreground">
-        Are you sure you want to delete the following account: <b>{{ user }}</b> ?
+        Are you sure you want to delete the following account: <b>{{ user.original_username }}</b> ?
       </div>
     </div>
     <div class="flex items-center justify-end">
-      <Button @click="emit('close')" class="mr-2"> Cancel </Button>
+      <Button @click="emit('cancel')" class="mr-2"> Cancel </Button>
       <Button @click="deleteUser" variant="destructive"> Delete Account </Button>
     </div>
   </DialogContent>
