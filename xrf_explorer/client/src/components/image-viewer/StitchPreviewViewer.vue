@@ -18,6 +18,8 @@ const bounds = useElementBounding(container);
 const width = bounds.width;
 const height = bounds.height;
 
+const grayOptimalScale = ref(1);
+
 let engine: StitchEngine | null = null;
 let animationFrame: number | null = null;
 
@@ -26,6 +28,16 @@ const viewport = reactive({
   center: { x: 0, y: 0 },
   zoom: 0,
 });
+
+const stitchedSize = reactive({
+  width: 0,
+  height: 0,
+});
+
+function onGrayOptimalScale(e: Event) {
+  const { factor } = (e as CustomEvent<{ factor: number }>).detail;
+  grayOptimalScale.value = factor || 1;
+}
 
 let grayLayerId: string | null = null;
 
@@ -36,8 +48,6 @@ function getStitchedGreyscaleUrl() {
 
 // grayscale offset used for viewport shifting
 const grayViewportOffset = { x: 0, y: 0 };
-
-
 
 const stitchedGreyscaleUrl = computed(() => {
   return getStitchedGreyscaleUrl();
@@ -111,13 +121,18 @@ async function loadGrayscaleLayer() {
 async function resetViewport() {
   if (!engine) return;
   const size = await getTargetSize();
+  const targetSize = size;
+
+  stitchedSize.width = targetSize.width;
+  stitchedSize.height = targetSize.height;
+
   const fill = 0.9;
 
-  viewport.center.x = size.width / 2;
-  viewport.center.y = size.height / 2;
+  viewport.center.x = targetSize.width / 2;
+  viewport.center.y = targetSize.height / 2;
   viewport.zoom = Math.max(
-    Math.log(size.width / width.value / fill),
-    Math.log(size.height / height.value / fill)
+    Math.log(targetSize.width / width.value / fill),
+    Math.log(targetSize.height / height.value / fill)
   );
 }
 
@@ -143,6 +158,7 @@ function startRenderLoop() {
 
     engine.layers.forEach((layer) => {
       const v = layer.uniform.iViewport.value;
+
       if (layer === grayLayer) {
         v.set(
           vx - grayViewportOffset.x,
@@ -223,6 +239,7 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-nudge", onGrayNudge);
   window.addEventListener("keydown", onKeyDown, { capture: true });
   window.addEventListener("stitch:reset-offset", resetGreyscaleOffset);
+  window.addEventListener("stitch:gray-optimal-scale", onGrayOptimalScale);
   const ws = appState.workspace;
   if (!ws) return;
   await stitch(true, ws.grayscale[0].sourceCubeType);
@@ -257,7 +274,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("stitch:gray-nudge", onGrayNudge);
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("stitch:reset-offset", resetGreyscaleOffset);
-
+  window.removeEventListener("stitch:gray-optimal-scale", onGrayOptimalScale);
   if (animationFrame != null) cancelAnimationFrame(animationFrame);
   if (engine) engine.dispose();
 });

@@ -111,6 +111,7 @@ export async function stitch(preview: boolean, type: "elemental" | "spectral") {
 export async function fetchOptimalStitchInfo(): Promise<{
   losses: number[] | null;
   estimatedSize: number;
+  optimalScaling: number;
 } | null> {
   if (!appState.workspace) return null;
   if (!canPreview.value) return null;
@@ -148,6 +149,7 @@ export async function fetchOptimalStitchInfo(): Promise<{
       Math.round(
         (result.full_size / (1024 * 1024 * 1024)) * 10000
       ) / 10000,
+    optimalScaling: result.optimalScaling
   };
 }
 
