@@ -201,16 +201,10 @@ def pre_transpose_cubes_endpoint(data_source: str):
 
     JSON Payload:
         type (str): Must be 'spectral' (elemental cubes don't need transposing).
-        preview (bool): Not used for pre-transpose, but required for validation.
-        contextual_image (str): Path to contextual image for frame dimensions.
-        down_scaling (float): Scaling factor (not used for transpose, but required).
         fragments (list[dict]): List of fragments containing:
             - datacube_file (str): Path to datacube file
             - rpl_file (str): Path to RPL file
-            - rotation (int): Rotation in degrees (0, 90, 180, 270)
-            - local_points (dict): Points in fragment coordinates
-            - target_points (dict): Points in target frame coordinates
-
+            
     Returns:
         JSON response with:
             - status: "started" if transpose operations were initiated
