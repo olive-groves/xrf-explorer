@@ -34,6 +34,10 @@ const stitchedSize = reactive({
   height: 0,
 });
 
+let baseMesh = null;
+let baseWidth = 0;
+let baseHeight = 0;
+
 function onGrayOptimalScale(e: Event) {
   const { factor } = (e as CustomEvent<{ factor: number }>).detail;
   grayOptimalScale.value = factor || 1;
@@ -111,7 +115,14 @@ async function loadGrayscaleLayer() {
   if (!url) return;
 
   grayLayerId = "stitch_preview_greyscale";
-  grayLayer = await engine.createImageLayer(grayLayerId, url);
+  grayLayer = await engine.createImageLayer(
+    grayLayerId,
+    url,
+    {
+      width: baseWidth,
+      height: baseHeight,
+    }
+  );
 
   grayLayer.uniform.iIndex.value = 0;
   grayViewportOffset.x = 0;
@@ -256,6 +267,11 @@ onMounted(async () => {
     : ws.baseImage.name;
 
   baseLayer = await engine.createImageLayer("stitch_base", getWorkspaceImageUrl(loc, ws.name));
+
+  baseMesh = baseLayer.mesh!;
+  baseMesh.geometry.computeBoundingBox();
+  baseWidth = baseMesh.geometry.boundingBox!.max.x;
+  baseHeight = baseMesh.geometry.boundingBox!.max.y;
 
   await loadGrayscaleLayer();
   await resetViewport();

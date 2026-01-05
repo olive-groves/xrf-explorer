@@ -7,7 +7,6 @@ import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
 import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex, getRotation, grayscalePoints, checkSelectPoint, deselect, selectedPointId, selectPoint, updateGrayPoint } from "./stitchPoints";
 import { getWorkspaceGreyscaleUrl} from "./workspace";
-import { getTargetSize } from "./api";
 import Dots from "./Dots.vue";
 
 // GL engine instance
@@ -49,6 +48,11 @@ const currentPoints = computed(() => {
   return grayscalePoints.value[idx];
 });
 
+// Current origin of the greyscale image
+const grayImageOrigin = reactive({
+  x: 0,
+  y: 0,
+});
 
 const viewbox = ref<{
   x: number;
@@ -73,6 +77,19 @@ const viewport = reactive<{
 
 // Track the GL layer currently displayed
 let currentLayerId: string | null = null;
+// The current rotation baked into the layer
+const grayRotationRad = ref(0);
+
+function onGrayPropChanged(e: Event) {
+  const { index, prop } = (e as CustomEvent).detail;
+
+  if (
+    prop === "rotation" &&
+    index === selectedGrayscaleIndex.value
+  ) {
+    loadGrayscaleLayer(); // recreate layer with new rotation
+  }
+}
 
 // Layer loading
 async function loadGrayscaleLayer() {
@@ -98,59 +115,56 @@ async function loadGrayscaleLayer() {
   const id = `gray_${snakeCase(grayscale.value.sourceCubeName)}`;
   currentLayerId = id;
 
-  await engine.createImageLayer(id, grayscaleUrl.value);
+  const rotDeg = getRotation(selectedGrayscaleIndex.value!);
+  grayRotationRad.value = (rotDeg * Math.PI) / 180;
 
-  const rot = getRotation(selectedGrayscaleIndex.value!);
-  applyGrayRotation(rot);
-}
-
-function onGrayPropChanged(e: Event) {
-  const { index, prop, value } = (e as CustomEvent).detail;
-  if (prop === "rotation" && index === selectedGrayscaleIndex.value) {
-    applyGrayRotation(value);
-  }
-}
-
-function applyGrayRotation(deg: number) {
-  if (!engine) return;
-  const layer = engine.layers.find(l => l.id === currentLayerId);
-  if (!layer) return;
-
-  const tex = layer.uniform.tImage?.value as THREE.Texture;
-  const img = tex?.image as HTMLImageElement;
-  if (!img) return;
-
-  const W = img.width;
-  const H = img.height;
-
-  // world-space pivot (because geometry is scaled)
-  const cx = W / 2;
-  const cy = H / 2;
-
-  const rad = (deg * Math.PI) / 180;
-  const c = Math.cos(rad);
-  const s = Math.sin(rad);
-
-  const m = layer.uniform.mRegister.value as THREE.Matrix3;
-
-  // Build world-space rotation around image center
-  m.set(
-     c, -s,  cx - c*cx + s*cy,
-     s,  c,  cy - s*cx - c*cy,
-     0,  0,  1
+  await engine.createImageLayer(
+    id,
+    grayscaleUrl.value,
+    undefined,
+    grayRotationRad.value
   );
+  const layer = engine.layers.find(l => l.id === currentLayerId);
+  if (!layer?.mesh) return;
+
+  // Make sure bounds exist
+  layer.mesh.geometry.computeBoundingBox();
+  const bb = layer.mesh.geometry.boundingBox!;
+    
+  // Center viewport on greyscale geometry
+  viewport.center.x = (bb.min.x + bb.max.x) / 2;
+  viewport.center.y = (bb.min.y + bb.max.y) / 2;
+
+  // Update the origin
 }
+
 // Viewport reset
 async function resetViewport() {
   if (!engine) return;
-  const size = await getTargetSize();
+
+  // Find the active greyscale layer
+  const layer = engine.layers.find(l => l.id === currentLayerId);
+  if (!layer?.mesh) return;
+
+  const geom = layer.mesh.geometry;
+
+  // Ensure bounds are available
+  geom.computeBoundingBox();
+  const bb = geom.boundingBox!;
+  
+  // Center viewport on visible content
+  const contentWidth = bb.max.x - bb.min.x;
+  const contentHeight = bb.max.y - bb.min.y;
+
+  viewport.center.x = (bb.min.x + bb.max.x) / 2;
+  viewport.center.y = (bb.min.y + bb.max.y) / 2;
+
+  // Fit content into viewport
   const fill = 0.9;
 
-  viewport.center.x = size.width / 2;
-  viewport.center.y = size.height / 2;
   viewport.zoom = Math.max(
-    Math.log(size.width / width.value / fill),
-    Math.log(size.height / height.value / fill)
+    Math.log(contentWidth / width.value / fill),
+    Math.log(contentHeight / height.value / fill)
   );
 }
 
@@ -165,20 +179,6 @@ function startLoop() {
 
     let w = width.value * Math.exp(viewport.zoom);
     let h = height.value * Math.exp(viewport.zoom);
-
-    const rot = getRotation(selectedGrayscaleIndex.value ?? 0);
-    if (rot !== 0) {
-      const a = (rot * Math.PI) / 180;
-      const absCos = Math.abs(Math.cos(a));
-      const absSin = Math.abs(Math.sin(a));
-
-      // rotated bounding box of the viewport rectangle
-      const newW = w * absCos + h * absSin;
-      const newH = w * absSin + h * absCos;
-
-      w = newW;
-      h = newH;
-    }
 
     const x = viewport.center.x - w / 2;
     const y = viewport.center.y - h / 2;
@@ -269,18 +269,22 @@ function getBaseImageCoords(event: MouseEvent) {
   const py = event.clientY - rect.top;
 
   const zoomScale = Math.exp(viewport.zoom);
-
   const halfW = width.value / 2;
   const halfH = height.value / 2;
 
-  // Convert screen pixel → world space
+  // screen → world
   const worldX = viewport.center.x + (px - halfW) * zoomScale;
   const worldY = viewport.center.y - (py - halfH) * zoomScale;
-  
-  // Base image = world coordinates
-  return { x: worldX, y: worldY };
-}
 
+  const layer = engine!.layers.find(l => l.id === currentLayerId);
+  if (!layer?.mesh) return { x: 0, y: 0 };
+
+  // world → local image space
+  const inv = layer.mesh.matrixWorld.clone().invert();
+  const v = new THREE.Vector3(worldX, worldY, 0).applyMatrix4(inv);
+
+  return { x: v.x, y: v.y };
+}
 
 // Lifecycle
 onMounted(async () => {
@@ -291,7 +295,7 @@ onMounted(async () => {
   engine = createStitchEngine(glcanvas.value!);
 
   await loadGrayscaleLayer();
-  await resetViewport();
+
   startLoop();
 });
 

@@ -16,7 +16,12 @@ export interface StitchEngine {
    * Create an image layer
    * Returns the created Layer when the texture is loaded.
    */
-  createImageLayer(id: string, imageUrl: string): Promise<Layer>;
+  createImageLayer(
+    id: string,
+    imageUrl: string,
+    geometrySize?: { width: number; height: number },
+    rotation?: number,
+  ): Promise<Layer>;
   /**
    * Dispose all GPU resources used by this engine.
    */
@@ -35,12 +40,19 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   const layers: Layer[] = [];
 
 
-  async function createImageLayer(id: string, imageUrl: string): Promise<Layer> {
+  async function createImageLayer(
+      id: string,
+      imageUrl: string,
+      geometrySize?: { width: number; height: number },
+      rotation?: number,
+    ): Promise<Layer> {
     console.debug("[stitch] Creating layer", id, imageUrl);
 
     const layer: Layer = {
       id,
       image: imageUrl,
+      geometrySize,
+      rotation,
       uniform: {
         iIndex: { value: 0 },
         iLayerType: { value: LayerType.Image },
@@ -120,8 +132,11 @@ async function loadLayerIntoEngine(
   const geometry = new THREE.ShapeGeometry(shape);
 
   // Scale the square to targetSize
-  const imageWidth = texture.image.width;
-  const imageHeight = texture.image.height;
+  const imageWidth =
+    layer.geometrySize?.width ?? texture.image.width;
+
+  const imageHeight =
+    layer.geometrySize?.height ?? texture.image.height;
 
   const mat = new THREE.Matrix4();
   mat.set(
@@ -131,6 +146,25 @@ async function loadLayerIntoEngine(
     0,          0,           0, 1,
   );
   geometry.applyMatrix4(mat);
+
+  // rotate around image center if requested
+  if (layer.rotation && layer.rotation !== 0) {
+    // move to origin
+    geometry.translate(-imageWidth / 2, -imageHeight / 2, 0);
+    // rotate
+    geometry.rotateZ(layer.rotation);
+    // move back
+    geometry.translate(imageWidth / 2, imageHeight / 2, 0);
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+  }
+
+  geometry.computeBoundingBox();
+  const bb = geometry.boundingBox!;
+
+  // shift geometry so bottom-left becomes (0,0)
+  geometry.translate(-bb.min.x, -bb.min.y, 0);
+  geometry.computeBoundingBox();
 
   // Attach texture to uniforms
   (layer.uniform as any).tImage = {
