@@ -278,14 +278,14 @@ async function updateWorkspace() {
             fragments: fragments
           };
             
-          const resp1 = await fetch(
-          // await fetch(
-            `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+          // const resp1 = await fetch(
+          // // await fetch(
+          //   `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
+          //   {
+          //     method: "POST",
+          //     headers: { "Content-Type": "application/json" },
+          //     body: JSON.stringify(payload),
+          //   });
         }
       }
       catch (e) {
