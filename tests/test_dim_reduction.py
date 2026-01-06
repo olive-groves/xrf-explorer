@@ -116,16 +116,9 @@ class TestDimReduction:
         path_all_indices: str = join(path_generated, 'all_indices.npy')
         path_mapping_image: str = join(path_generated, 'image_index_to_embedding.png')
         set_config(self.CUSTOM_CONFIG_PATH)
-
-        # remove folder if it exists such that it has to be created
-        def remove_readonly(func, path, excinfo):
-            import stat
-            import os
-            os.chmod(path, stat.S_IWRITE)
-            func(path)        
         
         if isdir(path_generated):
-            rmtree(path_generated, onerror=remove_readonly)
+            rmtree(path_generated, onerror=remove)
 
         # execute
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)

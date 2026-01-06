@@ -167,5 +167,6 @@ def plot_embedding_with_overlay(embedding: np.ndarray, overlay: np.ndarray, path
     image_path = join(path, 'embedding.png')
 
     plt.savefig(image_path, bbox_inches='tight', transparent=True)
+    plt.close(fig)
 
     return image_path

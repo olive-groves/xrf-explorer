@@ -48,6 +48,9 @@ def editor_required(func):
 def userCanAccessProject(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return current_app.login_manager.unauthorized()
+        
         project = kwargs.get("data_source")
         print(project)
         if not (current_user.isAdmin() or current_user.checkProjectAccess(project)):
