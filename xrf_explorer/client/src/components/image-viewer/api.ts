@@ -18,7 +18,7 @@ export type Size = {
   height: number;
 };
 
-const sizeCache: { [key: string]: Size } = {};
+//const sizeCache: { [key: string]: Size } = {};
 
 /**
  * Gets the size of the base/target image.
