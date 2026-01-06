@@ -49,10 +49,10 @@ const currentPoints = computed(() => {
 });
 
 // Current origin of the greyscale image
-const grayImageOrigin = reactive({
-  x: 0,
-  y: 0,
-});
+// const grayImageOrigin = reactive({
+//   x: 0,
+//   y: 0,
+// });
 
 const viewbox = ref<{
   x: number;

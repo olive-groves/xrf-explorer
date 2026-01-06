@@ -267,25 +267,25 @@ async function updateWorkspace() {
 
       try {
         if (workspace.value.stitchingMode === "partial" && workspace.value.partialSpectralCubes && workspace.value.partialSpectralCubes.length > 0) {
-          const fragments = workspace.value.partialSpectralCubes.map(cube => ({
-            datacube_file: cube.rawLocation,
-            rpl_file: cube.rplLocation,
-          }));
+          // const fragments = workspace.value.partialSpectralCubes.map(cube => ({
+          //   datacube_file: cube.rawLocation,
+          //   rpl_file: cube.rplLocation,
+          // }));
 
-          const payload = {
-            type: "spectral",
-            contextual_image: workspace.value.baseImage.imageLocation,
-            fragments: fragments
-          };
+          // const payload = {
+          //   type: "spectral",
+          //   contextual_image: workspace.value.baseImage.imageLocation,
+          //   fragments: fragments
+          // };
             
-          const resp1 = await fetch(
-          // await fetch(
-            `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+          // const resp1 = await fetch(
+          // // await fetch(
+          //   `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
+          //   {
+          //     method: "POST",
+          //     headers: { "Content-Type": "application/json" },
+          //     body: JSON.stringify(payload),
+          //   });
         }
       }
       catch (e) {
