@@ -17,6 +17,7 @@ class WarpSelection:
         top_right: tuple[int, int],
         bottom_left: tuple[int, int],
         bottom_right: tuple[int, int],
+        total_height: int
     ):
         """
         Initializes a WarpSelection object with given corner coordinates.
@@ -30,11 +31,12 @@ class WarpSelection:
                 of the bottom-left corner of the rectangle.
             bottom_right: A tuple of two integers representing the x and y coordinates
                 of the bottom-right corner of the rectangle.
+            total_height: The total height of the related image. Used for converting cartesian coordinated to graphic/screen coordinates.
         """
-        self.top_left = top_left
-        self.top_right = top_right
-        self.bottom_left = bottom_left
-        self.bottom_right = bottom_right
+        self.top_left = (top_left[0], total_height - top_left[1])
+        self.top_right = (top_right[0], total_height - top_right[1])
+        self.bottom_left = (bottom_left[0], total_height - bottom_left[1])
+        self.bottom_right = (bottom_right[0], total_height - bottom_right[1])
 
     def get_points(self, scalar: float = 1.0) -> np.ndarray:
         """
@@ -73,6 +75,19 @@ class WarpSelection:
             if not (0 <= point[0] <= width and 0 <= point[1] <= height):
                 return False
         return True
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the quadrilateral points
+        based on the get_points method.
+        """
+        points = self.get_points()
+        return (
+            f"WarpSelection(\n"
+            f"  TL: {points[0]}, TR: {points[1]},\n"
+            f"  BL: {points[2]}, BR: {points[3]}\n"
+            f")"
+        )
 
 class Dimensions:
     """Simple struct to hold width and height."""

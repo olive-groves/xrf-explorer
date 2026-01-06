@@ -154,6 +154,7 @@ class FragmentData:
                     pts["top_right"],
                     pts["bottom_left"],
                     pts["bottom_right"],
+                    self.fragment.height
                 )
             else:
                 self._target_points = WarpSelection(
@@ -161,6 +162,7 @@ class FragmentData:
                     pts["top_right"],
                     pts["bottom_left"],
                     pts["bottom_right"],
+                    target_dimensions.height
                 )
 
         # Verify points are within boundaries
@@ -170,6 +172,8 @@ class FragmentData:
             ):
                 raise ValueError(
                     f"Fragment '{self.datacube_path}' local points are out of bounds."
+                    f"\n\tFragment dimensions: {self._fragment.width}x{self._fragment.height}"
+                    f"\n\tLocal points: {self._local_points}"
                 )
             elif not self._target_points.are_within(
                 target_dimensions.width, target_dimensions.height
