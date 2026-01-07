@@ -282,9 +282,9 @@ async function removeAccessAll() {
     <div class="flex items-center justify-between">
       <Button @click="emit('close')"> Cancel </Button>
       <Button @click="updateAccount" :disabled=
-          "username == '' || 
-          (role == '' || role == originalRole ) || 
-          (!validPassword(password) && password != '')">
+          " (username == '') ||
+          !((role != originalRole && password == '') || 
+          (validPassword(password)))">
         Update Account
       </Button>
       <Button @click="deleteAccount" variant="destructive"> Delete Account </Button>
