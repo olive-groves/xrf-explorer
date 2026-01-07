@@ -258,36 +258,6 @@ const json4 = {
     },
   ],
 };
-
-/**
- *
- */
-async function sendStitchingRequest() {
-  const response = await fetch(`${config.api.endpoint}/Stitch/stitch_datacubes/get_stitch_info`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(json4),
-  });
-
-  console.log(await response.text());
-}
-
-/**
- *
- */
-async function sendTransposeRequest() {
-  const response = await fetch(`${config.api.endpoint}/Stitch/stitch_datacubes/pre_transpose_cubes`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(json2),
-  });
-
-  console.log(await response.text());
-}
 </script>
 
 <template>
@@ -296,12 +266,6 @@ async function sendTransposeRequest() {
       <MainMenu />
       <FileMenu />
       <WindowMenu />
-      <MenubarMenu>
-        <MenubarTrigger @click="sendStitchingRequest"> Stitch </MenubarTrigger>
-      </MenubarMenu>
-      <MenubarMenu>
-        <MenubarTrigger @click="sendTransposeRequest"> Transpose </MenubarTrigger>
-      </MenubarMenu>
     </div>
     <div>
       <ExportMenu />
