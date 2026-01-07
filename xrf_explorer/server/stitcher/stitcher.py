@@ -145,11 +145,6 @@ class DatacubeStitcher:
                 layer_fragment = input_map[channel, :, :].astype(np.float32, copy=False)
                 layer_fragment = rotate_cv(layer_fragment, self.fragments[i].rotation)
 
-                # Rotate data if the scan was rotated relative to the others
-                layer_fragment = rotate_cv(
-                    layer_fragment, self.fragments[i].rotation
-                )
-
                 # Warp the data into position using OpenCV
                 cv.warpPerspective(
                     layer_fragment,
