@@ -1,5 +1,6 @@
 import { appState } from "@/lib/appState";
 import { canPreview, getPointsForGray, getRotation, hasBase, maxPoints, StitchPoint } from "./stitchPoints";
+import { toast } from "vue-sonner";
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
@@ -8,10 +9,17 @@ function pointsToBackendDicts(points: StitchPoint[]): {
   target_points: Record<CornerKey, [number, number]>;
 } {
   if (points.length !== maxPoints) {
+    toast.error(`Stitch error`, {
+          description: `Expected ${maxPoints} points, got ${points.length}`,
+    });
     throw new Error(`Expected ${maxPoints} points, got ${points.length}`);
+
   }
 
   if (!points.every(hasBase)) {
+    toast.error(`Stitch error`, {
+          description: "All stitch points must have base coordinates before preview.",
+    });
     throw new Error("All stitch points must have base coordinates before preview.");
   }
 
@@ -103,8 +111,13 @@ export async function stitch(preview: boolean, type: "elemental" | "spectral") {
     }
   );
 
+  const data = await resp.json();
   if (!resp.ok) {
-    throw new Error(await resp.text());
+    const message = data.error ?? JSON.stringify(data);
+    toast.error(`Stitch error`, {
+          description: message,
+    });
+    throw new Error(message);
   }
 }
 
@@ -137,8 +150,13 @@ export async function fetchOptimalStitchInfo(): Promise<{
     }
   );
 
+  const data = await resp.json();
   if (!resp.ok) {
-    throw new Error(await resp.text());
+    const message = data.error ?? JSON.stringify(data);
+    toast.error(`Stitch error`, {
+          description: message,
+    });
+    throw new Error(message);
   }
 
   const result = await resp.json();

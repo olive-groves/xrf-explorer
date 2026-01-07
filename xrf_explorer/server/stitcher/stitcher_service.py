@@ -171,15 +171,13 @@ class FragmentData:
                 self._fragment.width, self._fragment.height
             ):
                 raise ValueError(
-                    f"Fragment '{self.datacube_path}' local points are out of bounds."
-                    f"\n\tFragment dimensions: {self._fragment.width}x{self._fragment.height}"
-                    f"\n\tLocal points: {self._local_points}"
+                    f"Fragment local points are out of bounds."
                 )
             elif not self._target_points.are_within(
                 target_dimensions.width, target_dimensions.height
             ):
                 raise ValueError(
-                    f"Fragment '{self.datacube_path}' target points are out of bounds."
+                    f"Fragment target points are out of bounds."
                 )
 
         self._points = (self._local_points, self._target_points)

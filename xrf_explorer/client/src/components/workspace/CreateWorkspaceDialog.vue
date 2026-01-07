@@ -331,8 +331,13 @@ async function generatePartialGreyscales() {
     }
   );
 
+  const data = await resp.json();
   if (!resp.ok) {
-    throw new Error(await resp.text());
+    const message = data.error ?? JSON.stringify(data);
+    toast.error(`Stitch error`, {
+          description: message,
+    });
+    throw new Error(message);
   }
 
   /* Load generated greyscales in workspace */
