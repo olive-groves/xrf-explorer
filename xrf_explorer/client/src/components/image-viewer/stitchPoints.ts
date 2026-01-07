@@ -74,7 +74,7 @@ export function getRotation(idx: number): number {
 
 export function setRotation(idx: number, rot: number) {
   const snapped = Math.round(rot / 90) * 90;
-  const clamped = Math.max(-180, Math.min(180, snapped));
+  const clamped = snapped;
   grayscaleRotation.value[idx] = clamped;
 
   window.dispatchEvent(new CustomEvent("stitch:grayscale-prop-changed", {
