@@ -168,7 +168,7 @@ class FragmentData:
         # Verify points are within boundaries
         if self._local_points and self._target_points:
             if not self._local_points.are_within(
-                self._fragment.width, self._fragment.height
+                self._fragment.rotated_width, self._fragment.rotated_height
             ):
                 raise ValueError(
                     f"Fragment local points are out of bounds."

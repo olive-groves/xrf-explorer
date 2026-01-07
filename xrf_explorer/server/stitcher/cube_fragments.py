@@ -34,6 +34,13 @@ class DatacubeFragment(ABC):
         if (rotation % 90) != 0:
             raise ValueError("Rotation must be a multiple of 90 degrees")
         self.rotation = rotation % 360
+        if self.rotation in (90, 270):
+            self.rotated_width = self.height
+            self.rotated_height = self.width
+        else:  # 0 or 180
+            self.rotated_width = self.width
+            self.rotated_height = self.height
+
 
     @abstractmethod
     def are_compatible(self, datacube) -> bool:

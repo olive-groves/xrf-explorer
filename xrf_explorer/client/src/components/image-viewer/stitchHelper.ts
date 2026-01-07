@@ -79,7 +79,7 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
     return {
       datacube_file,
       ...(rpl_file ? { rpl_file } : {}),
-      rotation: getRotation(idx),
+      rotation: (getRotation(idx) + 360 ) % 360,
       local_points,
       target_points,
     };
