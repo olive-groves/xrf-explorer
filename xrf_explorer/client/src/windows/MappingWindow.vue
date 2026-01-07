@@ -62,8 +62,8 @@ onMounted(() => {
             <LabeledSlider
               label="Rotation"
               :modelValue="[getRotation(idx)]"
-              :min="0"
-              :max="270"
+              :min="-180"
+              :max="180"
               :step="90"
               @update:modelValue="(val: number[]) => setRotation(idx, val[0])"
             />
