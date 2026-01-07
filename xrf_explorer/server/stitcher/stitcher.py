@@ -71,6 +71,7 @@ class DatacubeStitcher:
 
         for i, image in enumerate(images):
             img = image.astype(np.float32)
+            img = rotate_cv(img, self.fragments[i].rotation)
             # Apply geometric warp
             warped_image = cv.warpPerspective(
                 img,

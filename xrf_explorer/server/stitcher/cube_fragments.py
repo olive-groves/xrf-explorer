@@ -69,7 +69,6 @@ class DatacubeFragment(ABC):
         else: # Elemental
             data = np.mean(memmap, axis=0)
 
-        data = rotate_cv(data, self.rotation)
         data = normalize_image(data)
 
         return data
