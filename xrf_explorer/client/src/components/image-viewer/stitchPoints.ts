@@ -25,11 +25,15 @@ export function setSelectedGrayscaleIndex(i: number | null) {
   selectedPointId.value = null; 
 }
 
+export function clearAllPoints() {
+  grayscalePoints.value = {};
+  selectedPointId.value = null;
+}
+
 export function getPointsForGray(idx: any): StitchPoint[] {
   if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
   return grayscalePoints.value[idx];
 }
-
 
 export function createGrayPoint(x: number, y: number) {
   if (selectedGrayscaleIndex.value === null) return;

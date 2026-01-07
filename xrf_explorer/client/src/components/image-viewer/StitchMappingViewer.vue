@@ -6,7 +6,8 @@ import {
   updateGrayPoint,
   updateBasePoint,
   maxPoints,
-  createGrayPoint
+  createGrayPoint,
+  clearAllPoints
 } from "./stitchPoints";
 import StitchMappingBase from "./StitchMappingBase.vue";
 import StitchMappingGreyscale from "./StitchMappingGreyscale.vue";
@@ -129,6 +130,7 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
             </label>
           </div>
         </div>
+        <Button @click="clearAllPoints">Clear points</Button>
       </div>
       <div v-else class="italic text-gray-600 text-xs">No grayscale selected.</div>
     </div>
