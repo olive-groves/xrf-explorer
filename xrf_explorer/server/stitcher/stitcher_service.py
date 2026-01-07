@@ -154,7 +154,7 @@ class FragmentData:
                     pts["top_right"],
                     pts["bottom_left"],
                     pts["bottom_right"],
-                    self.fragment.height
+                    self.fragment.rotated_height
                 )
             else:
                 self._target_points = WarpSelection(
@@ -172,6 +172,8 @@ class FragmentData:
             ):
                 raise ValueError(
                     f"Fragment local points are out of bounds."
+                    f"Fragment rotated dimensions: {self._fragment.rotated_width}x{self._fragment.rotated_height}"
+                    f"Local points: {self._local_points}"
                 )
             elif not self._target_points.are_within(
                 target_dimensions.width, target_dimensions.height

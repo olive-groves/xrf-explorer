@@ -33,10 +33,10 @@ class WarpSelection:
                 of the bottom-right corner of the rectangle.
             total_height: The total height of the related image. Used for converting cartesian coordinated to graphic/screen coordinates.
         """
-        self.top_left = (top_left[0], total_height)
-        self.top_right = (top_right[0], total_height)
-        self.bottom_left = (bottom_left[0], total_height)
-        self.bottom_right = (bottom_right[0], total_height)
+        self.top_left = (top_left[0], total_height - top_left[1])
+        self.top_right = (top_right[0], total_height - top_right[1])
+        self.bottom_left = (bottom_left[0], total_height - bottom_left[1])
+        self.bottom_right = (bottom_right[0], total_height - bottom_right[1])
 
     def get_points(self, scalar: float = 1.0) -> np.ndarray:
         """
