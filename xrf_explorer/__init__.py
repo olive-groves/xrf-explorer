@@ -40,7 +40,7 @@ with app.app_context():
     # Create a default admin user if none exist
     if not User.query.filter_by(role=UserRole.ADMIN).first():
         admin_user = User(username='admin', role=UserRole.ADMIN)
-        admin_user.set_password('testpassword')  # Set a default password; should be changed after first login
+        admin_user.set_password('admin')  # Set a default password; should be changed after first login
         add_and_commit_user(admin_user)
         print("Database initialized with default admin user.")
     else:
@@ -49,11 +49,20 @@ with app.app_context():
     # Create a default viewer user if none exist
     if not User.query.filter_by(role=UserRole.VIEWER).first():
         viewer_user = User(username='viewer', role=UserRole.VIEWER)
-        viewer_user.set_password('viewerpassword')
+        viewer_user.set_password('viewer')
         add_and_commit_user(viewer_user)
         print("Database initialized with default viewer user.")
     else:
         print("Viewer user already exists.")
+
+    # Create a default viewer user if none exist
+    if not User.query.filter_by(role=UserRole.EDITOR).first():
+        editor_user = User(username='editor', role=UserRole.EDITOR)
+        editor_user.set_password('editor')
+        add_and_commit_user(editor_user)
+        print("Database initialized with default editor user.")
+    else:
+        print("Editor user already exists.")
 
 # Import and register the routes
 from xrf_explorer.server.routes import *
