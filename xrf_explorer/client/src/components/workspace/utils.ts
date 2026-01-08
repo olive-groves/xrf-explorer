@@ -22,8 +22,12 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
     for (const cube of workspace.spectralCubes) {
       if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
       if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associated raw file"];
+
       if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associated rpl file"];
-      if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
+      if (workspace.stitchingMode === "full") {
+          if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
+      }
+      
     }
   }
 
@@ -32,8 +36,10 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
     if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];
     if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associated data file"];
     // Require recipe file only if no spectral cubes are present
-    if (workspace.spectralCubes.length === 0 && cube.recipeLocation.trim() == "") {
-      return [false, "Elemental cube must have an associated recipe file if no spectral cubes are present"];
+    if (workspace.stitchingMode === "full") {
+      if (workspace.spectralCubes.length === 0 && cube.recipeLocation.trim() == "") {
+        return [false, "Elemental cube must have an associated recipe file if no spectral cubes are present"];
+      }
     }
   }
 

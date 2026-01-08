@@ -302,7 +302,7 @@ defineExpose({
               <Trash2 />
             </Button>
             <FileSetupTableRow type="an rpl" :options="rplFiles" v-model="spectralArr[index - 1].rplLocation" />
-            <FileSetupTableRow type="a recipe" :options="recipeFiles" v-model="spectralArr[index - 1].recipeLocation" />
+            <FileSetupTableRow v-if="UploadingPartialData === 'full'" type="a recipe" :options="recipeFiles" v-model="spectralArr[index - 1].recipeLocation" />
           </div>
 
           <!-- Elemental datacube -->
@@ -321,7 +321,7 @@ defineExpose({
               v-model="elementalArr[index - 1].dataLocation"
             />
             <FileSetupTableRow
-              v-if="spectralArr.length === 0"
+              v-if="spectralArr.length === 0 && UploadingPartialData === 'full'"
               type="a recipe"
               :options="recipeFiles"
               v-model="elementalArr[index - 1].recipeLocation"
