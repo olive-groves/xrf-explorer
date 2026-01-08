@@ -1,5 +1,6 @@
 # Ignore the environment
 env/
+venv/
 **/.vscode/
 .idea/
 **/poetry.lock
