@@ -63,9 +63,6 @@ function loadWorkspace(source: string) {
         <MenubarItem v-for="source in sources" :key="source" @click="() => loadWorkspace(source)">
           {{ source }}
         </MenubarItem>
-        <MenubarItem @click="() => { if (appState.workspace) { appState.workspace.stitchingMode = appState.workspace.stitchingMode === 'partial' ? 'full' : 'partial' } }">
-          {{ "Stitch" }}
-        </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
     <CreateWorkspaceDialog @close="dialogOpen = false" />

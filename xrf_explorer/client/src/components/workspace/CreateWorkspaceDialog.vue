@@ -41,6 +41,11 @@ function createEmptyWorkspace(): WorkspaceConfig {
       binSize: 40 / 4096,
       binned: false,
     },
+    stitchingMode: "full",
+    mapping: {
+      grayscalePoints: {},
+      grayscaleRotation: {},
+    }
   };
 }
 

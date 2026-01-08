@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, reactive, watch } from "vue";
 import {
-  grayscalePoints,
   selectedGrayscaleIndex,
   updateGrayPoint,
   updateBasePoint,
@@ -11,12 +10,19 @@ import {
 } from "./stitchPoints";
 import StitchMappingBase from "./StitchMappingBase.vue";
 import StitchMappingGreyscale from "./StitchMappingGreyscale.vue";
+import { appState } from "@/lib/appState";
 
 // --- Selected grayscale and points ---
 const selectedIndex = computed(() => selectedGrayscaleIndex.value);
 
+const grayscalePoints = computed(() => {
+  const ws = appState.workspace
+  if (ws) {
+    return ws.mapping.grayscalePoints  ?? []
+  }});
+
 const points = computed(() => {
-  if (selectedIndex.value === null) return [];
+  if (selectedIndex.value === null || grayscalePoints.value === undefined) return [];
   return grayscalePoints.value[selectedIndex.value] ?? [];
 });
 
@@ -29,7 +35,7 @@ watch([points, grayscalePoints], () => {
   if (selectedIndex.value === null) return;
 
   for (let i = 0; i < maxPoints; i++) {
-    const p = points.value.find(pt => pt.id === i);
+    const p = points.value?.find(pt => pt.id === i);
     editGray[i] = { x: p?.gray.x ?? 0, y: p?.gray.y ?? 0 };
     editBase[i] = { x: p?.base?.x ?? 0, y: p?.base?.y ?? 0 };
   }
@@ -40,7 +46,7 @@ function updateGray(id: number) {
   const p = editGray[id];
   if (!p) return;
 
-  if (!points.value.find(pt => pt.id === id)) {
+  if (!points.value?.find(pt => pt.id === id)) {
     createGrayPoint(p.x, p.y);
   } else {
     updateGrayPoint(id, p.x, p.y);
@@ -72,13 +78,13 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
       </div>
     </div>
 
-    <!-- Compact Points editor -->
-    <div class="w-full p-1 bg-gray-100 text-sm flex-shrink-0 relative z-10">
+    <!-- Points editor -->
+    <div class="w-full p-1 text-sm flex-shrink-0 relative z-10">
       <div v-if="selectedIndex !== null" class="flex gap-1 items-start">
         <div
           v-for="id in editors"
           :key="id"
-          class="flex-shrink-0 p-1 border rounded bg-white shadow flex flex-col gap-1 w-48"
+          class="flex-shrink-0 p-1 border rounded shadow flex flex-col gap-1 w-48"
         >
           <div class="font-semibold text-center text-xs">Point {{ id + 1 }}</div>
 
@@ -88,7 +94,12 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
               Greyscale X
               <input
                 type="number"
-                class="border p-1 w-20 pointer-events-auto"
+                  class="
+                    border p-1 w-20 pointer-events-auto
+                    bg-white text-black
+                    dark:bg-black dark:text-white
+                    dark:border-gray-600
+                  "
                 v-model.number="editGray[id].x"
                 @change="updateGray(id)"
                 :placeholder="points[id]?.gray.x != null ? String(points[id].gray.x) : '--'"
@@ -98,7 +109,12 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
               Greyscale Y
               <input
                 type="number"
-                class="border p-1 w-20 pointer-events-auto"
+                class="
+                  border p-1 w-20 pointer-events-auto
+                  bg-white text-black
+                  dark:bg-black dark:text-white
+                  dark:border-gray-600
+                "
                 v-model.number="editGray[id].y"
                 @change="updateGray(id)"
                 :placeholder="points[id]?.gray.y != null ? String(points[id].gray.y) : '--'"
@@ -112,7 +128,12 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
               Base X
               <input
                 type="number"
-                class="border p-1 w-20 pointer-events-auto"
+                class="
+                  border p-1 w-20 pointer-events-auto
+                  bg-white text-black
+                  dark:bg-black dark:text-white
+                  dark:border-gray-600
+                "
                 v-model.number="editBase[id].x"
                 @change="updateBase(id)"
                 :placeholder="points[id]?.base?.x != null ? String(points[id]?.base?.x) : '--'"
@@ -122,7 +143,12 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
               Base Y
               <input
                 type="number"
-                class="border p-1 w-20 pointer-events-auto"
+                class="
+                  border p-1 w-20 pointer-events-auto
+                  bg-white text-black
+                  dark:bg-black dark:text-white
+                  dark:border-gray-600
+                "
                 v-model.number="editBase[id].y"
                 @change="updateBase(id)"
                 :placeholder="points[id]?.base?.y != null ? String(points[id]?.base?.y) : '--'"

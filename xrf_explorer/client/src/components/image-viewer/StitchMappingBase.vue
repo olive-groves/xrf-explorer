@@ -13,7 +13,6 @@ import Dots from "./Dots.vue";
 import { 
   checkSelectPoint,
   deselect,
-  grayscalePoints,
   selectedGrayscaleIndex,
   selectedPointId,
   selectPoint,
@@ -247,10 +246,15 @@ function getBaseImageCoords(event: MouseEvent) {
 }
 // hmm
 const currentPoints = computed(() => {
-  const idx = selectedGrayscaleIndex.value ?? null;
-  if (idx === null) return [];
-  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
-  return grayscalePoints.value[idx];
+  const ws = appState.workspace;
+  if (!ws) return [];
+  const idx = selectedGrayscaleIndex.value;
+  if (idx === null || idx === undefined) return [];
+
+  if (!ws.mapping.grayscalePoints[idx]) {
+    ws.mapping.grayscalePoints[idx] = [];
+  }
+  return ws.mapping.grayscalePoints[idx];
 });
 
 function onClick(event: MouseEvent) {
@@ -258,7 +262,7 @@ function onClick(event: MouseEvent) {
     // Prevent opening of context menu.
     event.preventDefault();
 
-    if (appState.stitching) {
+    if (appState.workspace?.stitchingMode) {
       const pointObj = getBaseImageCoords(event);
         for (const p of currentPoints.value.filter(hasBase)) {
           const dx = p.base.x - pointObj.x;

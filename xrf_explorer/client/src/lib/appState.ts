@@ -31,20 +31,6 @@ export const appState = reactive<AppState>({
 });
 
 /**
- * Deprecated compatibility helpers — prefer `workspace.stitchingMode`.
- */
-Object.defineProperty(appState, "stitching", {
-  get() {
-    return (appState.workspace?.stitchingMode ?? "full") === "partial";
-  },
-  set(v: boolean) {
-    if (!appState.workspace) return;
-    appState.workspace.stitchingMode = v ? "partial" : "full";
-  },
-  configurable: true,
-});
-
-/**
  * Some useful variables directly computed from appState.
  * Readonly, for writing you need to directly modify appState.
  */
@@ -68,9 +54,4 @@ export type AppState = {
    * The active selection.
    */
   selection: Selection;
-  /**
-   * Whether the stitching viewer is enabled
-   */
-  // deprecated: keep the property documented for older code paths. Prefer workspace.stitchingMode.
-  stitching?: boolean;
 };

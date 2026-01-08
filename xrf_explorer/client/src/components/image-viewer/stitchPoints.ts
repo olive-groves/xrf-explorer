@@ -7,14 +7,8 @@ export interface StitchPoint {
   base?: { x: number; y: number };
 }
 
-// Rotation per grayscale
-export const grayscaleRotation = ref<Record<number, number>>({});
-
 // max points per grayscale
 export const maxPoints = 4;
-
-// Points per grayscale, keyed by grayscale index
-export const grayscalePoints = ref<Record<number, StitchPoint[]>>({});
 
 // Selected point per grayscale
 export const selectedPointId = ref<number | null>(null);
@@ -26,38 +20,62 @@ export function setSelectedGrayscaleIndex(i: number | null) {
 }
 
 export function clearAllPoints() {
-  grayscalePoints.value = {};
+  const ws = appState.workspace;
+  if (!ws) return;
+  for (const k of Object.keys(ws.mapping.grayscalePoints)) {
+    delete ws.mapping.grayscalePoints[Number(k)];
+  }
   selectedPointId.value = null;
 }
 
-export function getPointsForGray(idx: any): StitchPoint[] {
-  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
-  return grayscalePoints.value[idx];
+export function getPointsForGray(idx: number): StitchPoint[] {
+  const ws = appState.workspace;
+  if (!ws) return [];
+  if (!ws.mapping.grayscalePoints[idx]) {
+    ws.mapping.grayscalePoints[idx] = [];
+  }
+  return ws.mapping.grayscalePoints[idx];
 }
 
 export function createGrayPoint(x: number, y: number) {
-  if (selectedGrayscaleIndex.value === null) return;
+  const ws = appState.workspace;
   const idx = selectedGrayscaleIndex.value;
+
+  if (!ws || idx == null) return;
   const points = getPointsForGray(idx);
   if (points.length >= maxPoints) return;
-
   const id = points.length;
-  points.push({ id, gray: { x, y } });
+  points.push({
+    id,
+    gray: { x, y },
+  });
   selectedPointId.value = id;
+  saveWorkspaceDebounced();
 }
 
 export function updateGrayPoint(id: number | null, x: number, y: number) {
-  if (selectedGrayscaleIndex.value === null) return;
-  const points = getPointsForGray(selectedGrayscaleIndex.value);
+  const ws = appState.workspace;
+  const idx = selectedGrayscaleIndex.value;
+
+  if (!ws || idx == null || id == null) return;
+  const points = getPointsForGray(idx);
   const p = points.find(p => p.id === id);
-  if (p) p.gray = { x, y };
+  if (!p) return;
+  p.gray.x = x;
+  p.gray.y = y;
+  saveWorkspaceDebounced();
 }
 
 export function updateBasePoint(id: number | null, x: number, y: number) {
-  if (selectedGrayscaleIndex.value === null) return;
-  const points = getPointsForGray(selectedGrayscaleIndex.value);
+  const ws = appState.workspace;
+  const idx = selectedGrayscaleIndex.value;
+
+  if (!ws || idx == null || id == null) return;
+  const points = getPointsForGray(idx);
   const p = points.find(p => p.id === id);
-  if (p) p.base = { x, y };
+  if (!p) return;
+  p.base = { x, y };
+  saveWorkspaceDebounced();
 }
 
 export function selectPoint(id: number | null) {
@@ -73,17 +91,20 @@ export function deselect(){
 }
 
 export function getRotation(idx: number): number {
-  return grayscaleRotation.value[idx] ?? 0;
+  return appState.workspace?.mapping.grayscaleRotation[idx] ?? 0;
 }
 
 export function setRotation(idx: number, rot: number) {
   const snapped = Math.round(rot / 90) * 90;
   const clamped = Math.max(-180, Math.min(180, snapped));
-  grayscaleRotation.value[idx] = clamped;
-
+  const ws = appState.workspace;
+  if (ws) {
+    ws.mapping.grayscaleRotation[idx] = clamped;
+  }
   window.dispatchEvent(new CustomEvent("stitch:grayscale-prop-changed", {
     detail: { index: idx, prop: "rotation", value: clamped }
   }));
+  saveWorkspaceDebounced();
 }
 
 
@@ -91,17 +112,18 @@ export function getFlatMap<T>(
   mapper: (p: StitchPoint, grayIndex: number) => T | T[]
 ): T[] {
   const result: T[] = [];
+  const ws = appState.workspace;
+  if (ws) {
+    for (const [idxStr, points] of Object.entries(ws.mapping.grayscalePoints)) {
+      const idx = Number(idxStr);
 
-  for (const [idxStr, points] of Object.entries(grayscalePoints.value)) {
-    const idx = Number(idxStr);
-
-    for (const p of points) {
-      const mapped = mapper(p, idx);
-      if (Array.isArray(mapped)) result.push(...mapped);
-      else result.push(mapped);
+      for (const p of points) {
+        const mapped = mapper(p, idx);
+        if (Array.isArray(mapped)) result.push(...mapped);
+        else result.push(mapped);
+      }
     }
   }
-
   return result;
 }
 
@@ -117,10 +139,40 @@ export function hasBase(p: StitchPoint): p is StitchPoint & { base: { x: number;
 export const canPreview = computed(() => {
   const grays = appState.workspace?.grayscale ?? [];
   if (grays.length === 0) return false;
-
+  const grayscalePoints = appState.workspace?.mapping.grayscalePoints
+  if (!grayscalePoints) {return false}
   return grays.every((_, idx) => {
-    const points = grayscalePoints.value[idx] ?? [];
+    const points = grayscalePoints[idx] ?? [];
     return points.length === maxPoints && points.every(p => p.base?.x != null && p.base?.y != null);
   });
 });
+
+// Saves the updated workspace containing the points to the backend
+async function saveWorkspaceToBackend() {
+  const ws = appState.workspace;
+  if (!ws) return;
+
+  try {
+    await fetch(`/api/${ws.name}/workspace`, {
+      method: "POST",
+      body: JSON.stringify(ws),
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log("Workspace saved");
+  } catch (e) {
+    console.warn("Failed saving workspace", e);
+  }
+}
+
+let saveTimeout: number | null = null;
+
+// Makes sure we do not spam the back end while mapping
+function saveWorkspaceDebounced() {
+  if (saveTimeout) window.clearTimeout(saveTimeout);
+
+  saveTimeout = window.setTimeout(() => {
+    saveWorkspaceToBackend();
+    saveTimeout = null;
+  }, 500);
+}
 

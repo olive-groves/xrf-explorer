@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount} from "vue";
 import MappingWindow from "./MappingWindow.vue";
 import PreviewWindow from "./PreviewWindow.vue";
+import { appState } from "@/lib/appState";
 
 const mode = ref<'edit' | 'preview'>('edit');
 
@@ -21,6 +22,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <MappingWindow v-if="mode == 'edit'"></MappingWindow>
-  <PreviewWindow v-if="mode == 'preview'"></PreviewWindow>
+  <window title="stitching" location="right">
+    <MappingWindow v-if="mode == 'edit'"></MappingWindow>
+    <PreviewWindow v-if="mode == 'preview'"></PreviewWindow>
+  </window>
 </template>

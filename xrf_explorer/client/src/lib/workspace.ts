@@ -1,3 +1,5 @@
+import { StitchPoint } from "@/components/image-viewer/stitchPoints";
+
 /**
  * Type describing the workspace and all relevant files in it.
  */
@@ -46,7 +48,11 @@ export type WorkspaceConfig = {
    * Optional stitching mode for this workspace.
    * When set to 'partial' the stitching UI is active.
    */
-  stitchingMode?: "partial" | "full";
+  stitchingMode: "partial" | "full";
+  /**
+   * The mapping made by the user for stitching data cubes
+   */
+  mapping: StitchMapping;
 };
 
 /**
@@ -165,3 +171,13 @@ export type ElementalChannel = {
    */
   enabled: boolean;
 };
+
+/**
+ * Stores the mapping points and rotations made by the user
+ */
+export type StitchMapping = {
+  // Points per grayscale, keyed by grayscale index
+  grayscalePoints: Record<number, StitchPoint[]>;
+  // Rotation per grayscale
+  grayscaleRotation: Record<number, number>;
+}

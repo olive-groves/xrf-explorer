@@ -90,6 +90,10 @@ watch(
       if (state.value.id != "stitching") {
         windowState[state.value.id].disabled = false;
       }
+      if (state.value.id == "stitching") {
+        windowState[state.value.id].disabled = true;
+        windowState[state.value.id].opened = false;
+      }
     }
   },
   { immediate: true },

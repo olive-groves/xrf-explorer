@@ -5,7 +5,7 @@ import { snakeCase } from "change-case";
 import * as THREE from "three";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { appState } from "@/lib/appState";
-import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex, getRotation, grayscalePoints, checkSelectPoint, deselect, selectedPointId, selectPoint, updateGrayPoint } from "./stitchPoints";
+import { createGrayPoint, selectedGrayscaleIndex, setSelectedGrayscaleIndex, getRotation, checkSelectPoint, deselect, selectedPointId, selectPoint, updateGrayPoint } from "./stitchPoints";
 import { getWorkspaceGreyscaleUrl} from "./workspace";
 import Dots from "./Dots.vue";
 
@@ -42,10 +42,15 @@ const grayscaleUrl = computed(() => {
 
 // hmm
 const currentPoints = computed(() => {
-  const idx = selectedGrayscaleIndex.value ?? null;
-  if (idx === null) return [];
-  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
-  return grayscalePoints.value[idx];
+  const ws = appState.workspace;
+  if (!ws) return [];
+  const idx = selectedGrayscaleIndex.value;
+  if (idx === null || idx === undefined) return [];
+
+  if (!ws.mapping.grayscalePoints[idx]) {
+    ws.mapping.grayscalePoints[idx] = [];
+  }
+  return ws.mapping.grayscalePoints[idx];
 });
 
 // Current origin of the greyscale image
@@ -238,7 +243,7 @@ function onClick(event: MouseEvent) {
     // Prevent opening of context menu.
     event.preventDefault();
 
-    if (appState.stitching) {
+    if (appState.workspace?.stitchingMode) {
       const pointObj = getBaseImageCoords(event);
       for (const p of currentPoints.value) {
         const dx = p.gray.x - pointObj.x;
