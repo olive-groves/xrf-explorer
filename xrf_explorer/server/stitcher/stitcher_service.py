@@ -301,6 +301,7 @@ class StitchData:
         _contextual_image_name (str): Name of the contextual image.
         _contextual_image_dimensions (Dimensions): Dimensions of the contextual image.
         _points (list[tuple[WarpSelection, WarpSelection]]): List containing local and target points for all fragments.
+        _intensity_scales (list[float]): List containing all the intensitiy scales per fragment.
         fragment_data (list[FragmentData]): Metadata for the individual datacube fragments.
     """
     data_source: str
@@ -312,6 +313,7 @@ class StitchData:
     _contextual_image_name: str | None
     _contextual_image_dimensions: Dimensions | None
     _points: list[tuple[WarpSelection, WarpSelection]] | None
+    _intensity_scales: list[float] | None
 
     # Init
     def __init__(self, data: Dict[str, Any], data_source: str):
@@ -362,6 +364,22 @@ class StitchData:
 
         self._scaling = down_scaling
 
+        # Intensity scales
+        intensity_scales = data.get("intensity_scales")
+        if not intensity_scales or not isinstance(intensity_scales, list):
+            raise ValueError("intensity_scales must be a non-empty float list")
+
+        intensity_scales_arr: list[float] = []
+        for x in intensity_scales:
+            if isinstance(x, bool):
+                raise ValueError("intensity_scales must contain only numbers")
+            if isinstance(x, (int, float)):
+                intensity_scales.append(float(x))
+            else:
+                raise ValueError("intensity_scales must contain only numbers")
+
+        self._intensity_scales = intensity_scales_arr    
+        
         # Fragments
         fragments = data.get("fragments")
         if not fragments or not isinstance(fragments, list):
@@ -505,6 +523,7 @@ class StitchData:
         # Create and return stitcher.
         return DatacubeStitcher(
             self.get_fragments(),
+            self._intensity_scales,
             self.points,
             self.contextual_image_dimensions,
             scalar,
