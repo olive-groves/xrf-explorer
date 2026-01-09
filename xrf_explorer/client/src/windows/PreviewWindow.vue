@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
-import { fetchOptimalStitchInfo, stitch } from '@/components/image-viewer/stitchHelper';
+import { stitch } from '@/components/image-viewer/stitchHelper';
 import { windowState } from '@/components/ui/window/state';
 import { appState } from '@/lib/appState';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { saveWorkspaceDebounced } from '@/components/image-viewer/workspace';
 
 const workspace = computed(() => appState.workspace);
 
@@ -56,6 +57,9 @@ const estimatedSize = computed(() => {
   return Math.round(estimatedSizeOpt.value * factor * factor * 10000) / 10000;
 });
 
+// Selected contrast value per greyscale
+const grayscaleContrast = ref<number[]>([]);
+
 
 interface GreyscaleState {
     opacity: number[];
@@ -71,6 +75,28 @@ const GreyscaleMapping = ref<GreyscaleState>(
     }
 );
 
+watch(
+  () => workspace.value?.grayscale,
+  (grays) => {
+    if (!grays) return;
+    grayscaleContrast.value = grays.map(() => 1.0);
+  },
+  { immediate: true }
+);
+
+function updateGreyscaleContrast(idx: number, val: number[]) {
+  grayscaleContrast.value[idx] = val[0];
+
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-contrast-changed", {
+      detail: { index: idx, contrast: val[0] },
+    })
+  );
+}
+
+function resetContrast() {
+  grayscaleContrast.value = []
+}
 
 function updateSliderBase(val: number[]) {
   baseImageOpacity.value = val;
@@ -125,48 +151,51 @@ function confirmStitchingDialog() {
   if (!appState.workspace) return;
 
   if (includeElemental) {
-    stitch(false, "elemental");
+    stitch(false, "elemental", scalingFactor.value[0]);
   }
   
   if (includeSpectral) {
-    stitch (false, "spectral");
+    stitch (false, "spectral", scalingFactor.value[0]);
   }
 
   appState.workspace.stitchingMode = 'full';
+  saveWorkspaceDebounced();
 
   windowState["stitching"].opened = false;
   windowState["stitching"].disabled = true;
 }
 
-async function onModeChanged(e: Event | CustomEvent) {
-  const newMode = (e as CustomEvent).detail as 'edit' | 'preview';
-  
-  if (newMode === "preview") {
-    try {
-      scalingFactor.value = [1];
-      const info = await fetchOptimalStitchInfo();
-      if (!info) return;
+async function onModeChanged(e: Event) {
+  const { mode, previewInfo } = (e as CustomEvent).detail as {
+    mode: "edit" | "preview";
+    previewInfo?: {
+      losses: number[];
+      estimatedSize: number;
+      optimalScaling?: number;
+    };
+  };
 
-      lossesOpt.value = info.losses;
-      estimatedSizeOpt.value = info.estimatedSize;
+  if (mode !== "preview" || !previewInfo) return;
 
-      window.dispatchEvent(
-        new CustomEvent("stitch:gray-optimal-scale", {
-          detail: { factor: info.optimalScaling ?? 1 }
-        })
-      );
-    } catch (e) {
-      console.warn("Failed to fetch stitch preview info", e);
-    }
-  }
+  lossesOpt.value = previewInfo.losses;
+  estimatedSizeOpt.value = previewInfo.estimatedSize;
+
+  window.dispatchEvent(
+    new CustomEvent("stitch:gray-optimal-scale", {
+      detail: { factor: previewInfo.optimalScaling ?? 1 },
+    })
+  );
 }
 
 onMounted(() => {
-  window.addEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
+  window.addEventListener('stitchViewer:stichInfo', onModeChanged as EventListener);
+  window.dispatchEvent(
+    new CustomEvent("stitchViewer:requestPreviewInfo")
+  );
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
+  window.removeEventListener('stitchViewer:stichInfo', onModeChanged as EventListener);
 });
 
 watch(showConfirmation, (open) => {
@@ -203,7 +232,6 @@ watch(showConfirmation, (open) => {
           <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">X-Offset (pixels)</label>
           <div class="flex items-center space-x-2">
               <Button size="sm" @click="nudgeX(-1)">Left</Button>
-              <div class="w-12 text-center font-mono">{{ 0 }}</div>
               <Button size="sm" @click="nudgeX(1)">Right</Button>
           </div>
       </div>
@@ -214,14 +242,45 @@ watch(showConfirmation, (open) => {
           <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Y-Offset (pixels)</label>
           <div class="flex items-center space-x-2">
               <Button size="sm" @click="nudgeY(-1)">Up</Button>
-              <div class="w-12 text-center font-mono">{{ 0 }}</div>
               <Button size="sm" @click="nudgeY(1)">Down</Button>
           </div>
       </div>
+    
       <div class="space-y-1">
         <div class="flex items-center space-x-2">
           <Button size="sm" @click="resetGreyscaleOffset">
             Reset offset
+          </Button>
+        </div>
+      </div>
+
+      <div v-if="workspace?.grayscale?.length" class="space-y-3 pt-2 border-t">
+        <h4 class="font-semibold">Contrast</h4>
+        <div
+          v-for="(_, idx) in workspace.grayscale"
+          :key="idx"
+          class="space-y-1"
+        >
+          <label class="text-xs text-foreground">
+            {{ workspace.grayscale[idx]?.sourceCubeName ?? `Greyscale ${idx + 1}` }}
+          </label>
+
+          <LabeledSlider
+            :label="''"
+            :modelValue="[grayscaleContrast[idx] ?? 1]"
+            :min="0.1"
+            :max="2"
+            :step="0.05"
+            @update:modelValue="(v: number[]) => updateGreyscaleContrast(idx, v)"
+          />
+        </div>
+
+      </div>
+
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <Button size="sm" @click="resetContrast">
+            Reset contrast
           </Button>
         </div>
       </div>

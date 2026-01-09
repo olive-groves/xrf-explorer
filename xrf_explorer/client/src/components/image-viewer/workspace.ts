@@ -151,3 +151,33 @@ export function getWorkspaceGreyscaleUrl(
     imageLocation
   )}`;
 }
+
+
+// Saves the updated workspace containing the points to the backend
+async function saveWorkspaceToBackend() {
+  const ws = appState.workspace;
+  if (!ws) return;
+
+  try {
+    await fetch(`/api/${ws.name}/workspace`, {
+      method: "POST",
+      body: JSON.stringify(ws),
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log("Workspace saved");
+  } catch (e) {
+    console.warn("Failed saving workspace", e);
+  }
+}
+
+let saveTimeout: number | null = null;
+
+// Makes sure we do not spam the back end while mapping
+export function saveWorkspaceDebounced() {
+  if (saveTimeout) window.clearTimeout(saveTimeout);
+
+  saveTimeout = window.setTimeout(() => {
+    saveWorkspaceToBackend();
+    saveTimeout = null;
+  }, 500);
+}

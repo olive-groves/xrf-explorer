@@ -87,7 +87,7 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
 }
 
 // Generate geryscale preview
-export async function stitch(preview: boolean, type: "elemental" | "spectral") {
+export async function stitch(preview: boolean, type: "elemental" | "spectral", scaling_factor: number) {
   if (!appState.workspace) return;
   const ws = appState.workspace;
 
@@ -98,7 +98,7 @@ export async function stitch(preview: boolean, type: "elemental" | "spectral") {
     type,
     preview: preview,
     contextual_image: ws.baseImage.imageLocation,
-    down_scaling: 1,
+    down_scaling: scaling_factor,
     fragments,
   };
 
@@ -130,7 +130,7 @@ export async function fetchOptimalStitchInfo(): Promise<{
   if (!canPreview.value) return null;
 
   const ws = appState.workspace;
-  const type = ws.grayscale[0].sourceCubeType
+  const type = ws.grayscale[0].sourceCubeType;
   const fragments = buildFragmentsForAPI(type);
   if (fragments.length === 0) return null;
 
@@ -150,24 +150,19 @@ export async function fetchOptimalStitchInfo(): Promise<{
     }
   );
 
-  const data = await resp.json();
+  const result = await resp.json();
+
   if (!resp.ok) {
-    const message = data.error ?? JSON.stringify(data);
-    toast.error(`Stitch error`, {
-          description: message,
-    });
+    const message = result.error ?? JSON.stringify(result);
+    toast.error(`Stitch error`, { description: message });
     throw new Error(message);
   }
-
-  const result = await resp.json();
 
   return {
     losses: result.losses ?? null,
     estimatedSize:
-      Math.round(
-        (result.full_size / (1024 * 1024 * 1024)) * 10000
-      ) / 10000,
-    optimalScaling: result.optimalScaling
+      Math.round((result.full_size / (1024 * 1024 * 1024)) * 10000) / 10000,
+    optimalScaling: result.optimalScaling,
   };
 }
 

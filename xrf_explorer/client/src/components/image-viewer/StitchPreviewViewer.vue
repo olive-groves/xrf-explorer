@@ -253,7 +253,7 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-optimal-scale", onGrayOptimalScale);
   const ws = appState.workspace;
   if (!ws) return;
-  await stitch(true, ws.grayscale[0].sourceCubeType);
+  await stitch(true, ws.grayscale[0].sourceCubeType, 1);
 
   if (!glcanvas.value) return;
 
