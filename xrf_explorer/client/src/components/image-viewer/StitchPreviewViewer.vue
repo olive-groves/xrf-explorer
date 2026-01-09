@@ -9,6 +9,8 @@ import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { Layer } from "./types";
 import { stitch } from "./stitchHelper";
 
+THREE.Cache.enabled = false;
+
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 let baseLayer: Layer | null = null;
@@ -19,6 +21,10 @@ const width = bounds.width;
 const height = bounds.height;
 
 const grayOptimalScale = ref(1);
+
+// Version of the loaded preview
+// Increases when we load the preview to avoid cache issues
+const previewVersion = ref(0);
 
 let engine: StitchEngine | null = null;
 let animationFrame: number | null = null;
@@ -47,7 +53,7 @@ let grayLayerId: string | null = null;
 
 function getStitchedGreyscaleUrl() {
   if (!appState.workspace) return null;
-  return `/api/${appState.workspace.name}/stitch_datacubes/stitched_greyscale/`;
+  return `/api/${appState.workspace.name}/stitch_datacubes/stitched_greyscale/?v=${previewVersion.value}`;
 }
 
 // grayscale offset used for viewport shifting
@@ -91,19 +97,39 @@ function resetGreyscaleOffset() {
   );
 }
 
+function getGreyscaleIntensities(): number[] {
+  const ws = appState.workspace;
+  if (!ws) return [];
+
+  return ws.grayscale.map((_, idx) => {
+    return ws.mapping.grayscaleContrast?.[idx] ?? 1.0;
+  });
+}
+
+// Keep track of the most recently loaded image
+let loadToken = 0;
+
 // GL setup
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
-  // Remove previous greyscale layer
+  const token = ++loadToken;
+
+  // remove previous layer
   if (grayLayerId) {
-    const idx = engine.layers.findIndex((l) => l.id === grayLayerId);
+    const idx = engine.layers.findIndex(l => l.id === grayLayerId);
     if (idx >= 0) {
       const layer = engine.layers[idx];
       if (layer.mesh) {
-        layer.mesh.geometry.dispose();
-        (layer.mesh.material as THREE.Material).dispose();
-        engine.scene.remove(layer.mesh);
+        const mesh = layer.mesh;
+        mesh.geometry.dispose();
+
+        const mat = mesh.material as THREE.RawShaderMaterial;
+        const tex = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
+        if (tex) tex.dispose();
+
+        mat.dispose();
+        engine.scene.remove(mesh);
       }
       engine.layers.splice(idx, 1);
     }
@@ -114,20 +140,35 @@ async function loadGrayscaleLayer() {
   const url = stitchedGreyscaleUrl.value;
   if (!url) return;
 
-  grayLayerId = "stitch_preview_greyscale";
-  grayLayer = await engine.createImageLayer(
-    grayLayerId,
+  const newId = "stitch_preview_greyscale";
+  grayLayerId = newId;
+
+  const layer = await engine.createImageLayer(
+    newId,
     url,
-    {
-      width: baseWidth,
-      height: baseHeight,
-    }
+    { width: baseWidth, height: baseHeight }
   );
 
+  // Abort if a newer load started meanwhile
+  if (token !== loadToken) {
+    const mesh = layer.mesh;
+    if (mesh) {
+      mesh.geometry.dispose();
+      const mat = mesh.material as THREE.RawShaderMaterial;
+      const tex = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
+      if (tex) tex.dispose();
+      mat.dispose();
+      engine.scene.remove(mesh);
+    }
+    return;
+  }
+
+  grayLayer = layer;
   grayLayer.uniform.iIndex.value = 0;
   grayViewportOffset.x = 0;
   grayViewportOffset.y = 0;
 }
+
 
 async function resetViewport() {
   if (!engine) return;
@@ -253,8 +294,9 @@ onMounted(async () => {
   window.addEventListener("stitch:gray-optimal-scale", onGrayOptimalScale);
   const ws = appState.workspace;
   if (!ws) return;
-  await stitch(true, ws.grayscale[0].sourceCubeType, 1);
-
+  const intensities = getGreyscaleIntensities();
+  await stitch(true, ws.grayscale[0].sourceCubeType, 1, intensities);
+  previewVersion.value++;
   if (!glcanvas.value) return;
 
   engine = createStitchEngine(glcanvas.value);
@@ -277,6 +319,28 @@ onMounted(async () => {
   await resetViewport();
   startRenderLoop();
 });
+
+watch(
+  () => appState.workspace?.mapping.grayscaleContrast,
+  async () => {
+    const ws = appState.workspace;
+    if (!ws) return;
+    const intensities = getGreyscaleIntensities();
+    try {
+      await stitch(
+        true,
+        ws.grayscale[0].sourceCubeType,
+        grayOptimalScale.value,
+        intensities
+      );
+      previewVersion.value++;
+      await loadGrayscaleLayer();
+    } catch (e) {
+      console.warn("Failed to update stitch preview with contrast", e);
+    }
+  },
+  { deep: true }
+);
 
 watch(stitchedGreyscaleUrl, async () => {
   if (!engine) return;

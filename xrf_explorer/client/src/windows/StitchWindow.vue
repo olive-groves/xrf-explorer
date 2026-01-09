@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount} from "vue";
+import { ref, onMounted, onBeforeUnmount, onUnmounted} from "vue";
 import MappingWindow from "./MappingWindow.vue";
 import PreviewWindow from "./PreviewWindow.vue";
 
@@ -16,6 +16,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
+});
+
+onUnmounted(() => {
+  mode.value = "edit"
 });
 
 </script>

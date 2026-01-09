@@ -78,24 +78,49 @@ const GreyscaleMapping = ref<GreyscaleState>(
 watch(
   () => workspace.value?.grayscale,
   (grays) => {
-    if (!grays) return;
-    grayscaleContrast.value = grays.map(() => 1.0);
+    const ws = workspace.value;
+    if (!ws || !grays) return;
+
+    grayscaleContrast.value = grays.map((_, idx) => {
+      const saved = ws.mapping.grayscaleContrast?.[idx];
+      if (saved == null) {
+        ws.mapping.grayscaleContrast[idx] = 1.0;
+        return 1.0;
+      }
+      return saved;
+    });
+
+    saveWorkspaceDebounced();
   },
   { immediate: true }
 );
 
 function updateGreyscaleContrast(idx: number, val: number[]) {
-  grayscaleContrast.value[idx] = val[0];
+  const v = val[0];
+  grayscaleContrast.value[idx] = v;
+
+  const ws = workspace.value;
+  if (ws) {
+    ws.mapping.grayscaleContrast[idx] = v;
+    saveWorkspaceDebounced();
+  }
 
   window.dispatchEvent(
     new CustomEvent("stitch:gray-contrast-changed", {
-      detail: { index: idx, contrast: val[0] },
+      detail: { index: idx, contrast: v },
     })
   );
 }
 
 function resetContrast() {
-  grayscaleContrast.value = []
+  const ws = workspace.value;
+  if (!ws) return;
+  grayscaleContrast.value = ws.grayscale.map((_, idx) => {
+    ws.mapping.grayscaleContrast[idx] = 1.0;
+    return 1.0;
+  });
+  saveWorkspaceDebounced();
+  window.dispatchEvent(new CustomEvent("stitch:gray-contrast-reset"));
 }
 
 function updateSliderBase(val: number[]) {
@@ -151,11 +176,11 @@ function confirmStitchingDialog() {
   if (!appState.workspace) return;
 
   if (includeElemental) {
-    stitch(false, "elemental", scalingFactor.value[0]);
+    stitch(false, "elemental", scalingFactor.value[0], grayscaleContrast.value);
   }
   
   if (includeSpectral) {
-    stitch (false, "spectral", scalingFactor.value[0]);
+    stitch (false, "spectral", scalingFactor.value[0], grayscaleContrast.value);
   }
 
   appState.workspace.stitchingMode = 'full';

@@ -180,4 +180,6 @@ export type StitchMapping = {
   grayscalePoints: Record<number, StitchPoint[]>;
   // Rotation per grayscale
   grayscaleRotation: Record<number, number>;
+  // Intensity per greysclae
+  grayscaleContrast: Record<number, number>;
 }

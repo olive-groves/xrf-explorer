@@ -45,6 +45,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
     mapping: {
       grayscalePoints: {},
       grayscaleRotation: {},
+      grayscaleContrast: {},
     }
   };
 }

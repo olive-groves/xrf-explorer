@@ -27,6 +27,7 @@ export function clearAllPoints() {
     delete ws.mapping.grayscalePoints[Number(k)];
   }
   selectedPointId.value = null;
+  saveWorkspaceDebounced();
 }
 
 export function getPointsForGray(idx: number): StitchPoint[] {

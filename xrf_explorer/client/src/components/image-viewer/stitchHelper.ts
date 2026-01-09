@@ -87,7 +87,7 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
 }
 
 // Generate geryscale preview
-export async function stitch(preview: boolean, type: "elemental" | "spectral", scaling_factor: number) {
+export async function stitch(preview: boolean, type: "elemental" | "spectral", scaling_factor: number, intensity: number[]) {
   if (!appState.workspace) return;
   const ws = appState.workspace;
 
@@ -99,6 +99,7 @@ export async function stitch(preview: boolean, type: "elemental" | "spectral", s
     preview: preview,
     contextual_image: ws.baseImage.imageLocation,
     down_scaling: scaling_factor,
+    intensity_scales: intensity,
     fragments,
   };
 

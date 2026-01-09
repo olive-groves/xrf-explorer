@@ -69,11 +69,11 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
       },
     };
 
-    layers.push(layer);
-
     // Load texture and build mesh with SAME shader + uniforms as main viewer.
     const texture = await loadTexture(imageUrl);
     await loadLayerIntoEngine(scene, layer, texture);
+
+    layers.push(layer);
 
     return layer;
   }

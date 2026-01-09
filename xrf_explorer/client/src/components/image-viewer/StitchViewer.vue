@@ -20,6 +20,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  mode.value = "edit";
   window.removeEventListener("stitchViewer:requestPreviewInfo", onRequestPreview);
 });
 
