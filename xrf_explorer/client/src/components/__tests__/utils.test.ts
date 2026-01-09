@@ -264,6 +264,8 @@ describe("validateWorkspace Test", () => {
     grayscale: [],
     elementalChannels: [],
     spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+    stitchingMode: "full",
+    mapping: {grayscalePoints: {}, grayscaleRotation: {}} 
   };
 
   const emptyWorkspace: WorkspaceConfig = {
@@ -277,6 +279,8 @@ describe("validateWorkspace Test", () => {
     grayscale: [],
     elementalChannels: [],
     spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+    stitchingMode: "full",
+    mapping: {grayscalePoints: {}, grayscaleRotation: {}}, 
   };
 
   test("random workspace", () => {
@@ -387,6 +391,8 @@ describe("validateWorkspace Test", () => {
       grayscale: [],
       elementalChannels: [],
       spectralParams: { low: 0, high: 100, binSize: 10, binned: false },
+      stitchingMode: "full",
+      mapping: {grayscalePoints: {}, grayscaleRotation: {}}, 
     };
 
     const [isValid, errorMessage] = validateWorkspace(workspace);
