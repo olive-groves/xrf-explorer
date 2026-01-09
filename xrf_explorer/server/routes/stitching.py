@@ -46,7 +46,7 @@ def get_stitching_info(data_source: str):
 
     # Parse request data
     try:
-        stitch_configuration = StitchData(data, data_source, stitch_info=True)
+        stitch_configuration = StitchData(data, data_source)
     except (ValueError, KeyError) as e:
         LOG.error(e)
         return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
@@ -165,7 +165,7 @@ def stitching(data_source: str):
 
     # Parse request data
     try:
-        stitch_configuration = StitchData(data, data_source)
+        stitch_configuration = StitchData(data, data_source, is_stitching=True)
     except (ValueError, KeyError) as e:
         LOG.error(e)
         return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400

@@ -316,7 +316,7 @@ class StitchData:
     _intensity_scales: list[float] | None
 
     # Init
-    def __init__(self, data: Dict[str, Any], data_source: str, stitch_info: bool = False):
+    def __init__(self, data: Dict[str, Any], data_source: str, is_stitching: bool = False):
         """
         Initializes a StitchData object with provided data and data source and processes
         the data to extract relevant metadata and fragments.
@@ -364,7 +364,7 @@ class StitchData:
 
         self._scaling = down_scaling
 
-        if (not stitch_info):
+        if (is_stitching):
             # Intensity scales
             intensity_scales = data.get("intensity_scales")
             if not intensity_scales or not isinstance(intensity_scales, list):
