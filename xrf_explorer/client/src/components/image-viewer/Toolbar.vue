@@ -41,9 +41,22 @@ const points = computed({
   },
 
   set(v) {
-    appState.selection.imageViewer = { type: SelectionAreaType.Rectangle, points: v };
+    if (v[0].x < v[1].x && v[0].y < v[1].y) {
+      appState.selection.imageViewer = { type: SelectionAreaType.Rectangle, points: v };
+    }
   },
 });
+
+/**
+ * Function to handle updating a point
+ */
+function updatePoint(index: number, key: 'x' | 'y', value: number) {
+  const next = points.value.map((p, i) =>
+    i === index ? { ...p, [key]: value } : p
+  );
+
+  points.value = next;
+}
 
 /**
  * Handle double-click on the rectangle selection tool to open the popover.
@@ -84,7 +97,7 @@ function handleDblClick() {
             <!-- Top-left X -->
             <NumberField
               v-model="points[0].x"
-              @input="points[0].x = Number(($event.target as HTMLInputElement).value)"
+              @input="updatePoint(0, 'x', Number(($event.target as HTMLInputElement).value))"
               :min="0"
               :max="99999"
               :step="1"
@@ -102,7 +115,7 @@ function handleDblClick() {
             <!-- Top-left Y -->
             <NumberField
               v-model="points[0].y"
-              @input="points[0].y = Number(($event.target as HTMLInputElement).value)"
+              @input="updatePoint(0, 'y', Number(($event.target as HTMLInputElement).value))"
               :min="0"
               :max="99999"
               :step="1"
@@ -122,7 +135,7 @@ function handleDblClick() {
             <!-- Bottom-right X -->
             <NumberField
               v-model="points[1].x"
-              @input="points[0].x = Number(($event.target as HTMLInputElement).value)"
+              @input="updatePoint(1, 'x', Number(($event.target as HTMLInputElement).value))"
               :min="0"
               :max="99999"
               :step="1"
@@ -140,7 +153,7 @@ function handleDblClick() {
             <!-- Bottom-right Y -->
             <NumberField
               v-model="points[1].y"
-              @input="points[1].y = Number(($event.target as HTMLInputElement).value)"
+              @input="updatePoint(1, 'y', Number(($event.target as HTMLInputElement).value))"
               :min="0"
               :max="99999"
               :step="1"
