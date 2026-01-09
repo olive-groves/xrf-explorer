@@ -76,18 +76,6 @@ function loadWorkspace(source: string) {
         <DialogTrigger v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" class="w-full"
           ><MenubarItem>New project</MenubarItem>
         </DialogTrigger>
-        <MenubarItem
-          v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'"
-          @click="
-            () => {
-              if (appState.workspace) {
-                appState.workspace.stitchingMode = appState.workspace.stitchingMode === 'partial' ? 'full' : 'partial';
-              }
-            }
-          "
-        >
-          {{ "Stitch" }}
-        </MenubarItem>
         <MenubarSeparator v-if="appState.user.role === 'ADMIN' || appState.user.role === 'EDITOR'" />
         <MenubarItem disabled v-if="filteredSources.length <= 0">No projects available</MenubarItem>
         <MenubarItem v-for="source in filteredSources" :key="source" @click="() => loadWorkspace(source)">

@@ -1,30 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, onBeforeUnmount, watch, CSSProperties } from "vue";
-import { StitchTool, StitchState } from "./types";
+import { ref, computed, inject, onMounted, onBeforeUnmount, reactive } from "vue";
 import { FrontendConfig } from "@/lib/config";
-import { toast } from "vue-sonner";
-import { SelectionAreaType } from "@/lib/selection";
-import { scene, disposeLayer } from "./scene";
-import { createLayer, layerGroups, updateLayerGroupLayers, layers } from "./state";
-import * as THREE from "three";
-import { snakeCase } from "change-case";
 import { useElementBounding } from "@vueuse/core";
 import { appState } from "@/lib/appState";
 import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
+import { createStitchEngine, StitchEngine } from "./stitchGLEngine";
+import { StitchTool, StitchState } from "./types";
+import { SelectionAreaType } from "@/lib/selection";
+import { toast } from "vue-sonner";
+import Dots from "./Dots.vue";
+import { 
+  checkSelectPoint,
+  deselect,
+  selectedGrayscaleIndex,
+  selectedPointId,
+  selectPoint,
+  updateBasePoint,
+  hasBase
+      } from "./stitchPoints";
+
+
+
 
 const config = inject<FrontendConfig>("config")!;
 
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
-let camera: THREE.OrthographicCamera | null = null;
-let animationFrame: number | null = null;
-
-const viewport = {
-  center: { x: 0, y: 0 },
-  zoom: 0,
-};
+const canvasSize = useElementBounding(glcontainer);
+const width = canvasSize.width;
+const height = canvasSize.height;
 
 const stitchState = ref<StitchState>({
   tool: StitchTool.Grab,
@@ -34,204 +40,140 @@ const stitchState = ref<StitchState>({
 });
 
 const selectionToolActive = computed(() =>
-  Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string),
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(
+    stitchState.value.tool as string,
+  ),
 );
 
-// When outside components pick a grayscale, update shared selection (no local selectedIndex)
-window.addEventListener("stitch:selected-grayscale", (e: Event) => {
-  const i = (e as CustomEvent).detail as number;
-  setSelectedGrayscaleIndex(i);
+
+
+
+const viewbox = ref<{
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}>({
+  x: 0,
+  y: 0,
+  w: 0,
+  h: 0,
 });
 
-const canvasSize = useElementBounding(glcontainer);
-const width = canvasSize.width;
-const height = canvasSize.height;
+// Viewport in image-space coordinates
+const viewport = reactive<{
+  center: { x: number; y: number };
+  zoom: number;
+}>({
+  center: { x: 0, y: 0 },
+  zoom: 0,
+});
+
+const dragging = ref(false);
+const lensLocked = ref(false);
+let engine: StitchEngine | null = null;
+let animationFrame: number | null = null;
 
 let zoomLimitReached = false;
 
-const baseReady = ref(false);
-const baseOpacity = ref(1.0);
-const basePadding = 20;
-
-const dragging = ref(false);
-const draggingIndex = ref<number | null>(null);
-
-// Points selection
-import {
-  grayscalePoints,
-  selectedPointId,
-  selectedGrayscaleIndex,
-  updateBasePoint,
-  selectPoint,
-  deselect,
-  setSelectedGrayscaleIndex
-} from "./stitchPoints";
-
-// Points for the currently selected grayscale
-const currentPoints = computed(() => {
-  const idx = selectedGrayscaleIndex.value ?? null;
-  if (idx === null) return [];
-  if (!grayscalePoints.value[idx]) grayscalePoints.value[idx] = [];
-  return grayscalePoints.value[idx];
-});
-
-// GL Setup
 onMounted(async () => {
-  toast.info("Loading stitch viewer, this may take a few minutes...", { duration: 500 });
-  await setupGL();
+  if (!glcanvas.value) return;
+
+  engine = createStitchEngine(glcanvas.value);
+
+  // Create base image layer inside this local engine
+  const ws = appState.workspace;
+  if (!ws?.baseImage) return;
+
+  const loc = ws.baseImage.imageLocation?.includes("/")
+    ? ws.baseImage.imageLocation
+    : ws.baseImage.name;
+  const url = getWorkspaceImageUrl(loc, ws.name);
+
+  await engine.createImageLayer("stitch_base", url);
+
+  await resetViewport();
+  startRenderLoop();
 });
 
 onBeforeUnmount(() => {
-  // Dispose GL layers
-  try {
-    const g = appState.workspace?.grayscale ?? [];
-    g.forEach((entry: any) => {
-      const id = `stitch_gray_${snakeCase(entry.name)}`;
-      const layer = layers.value.find((l) => l.id === id);
-      if (layer) disposeLayer(layer);
-    });
-    const baseId = appState.workspace?.baseImage
-      ? `base_${snakeCase(appState.workspace.baseImage.name)}`
-      : null;
-    if (baseId) {
-      const b = layers.value.find((l) => l.id === baseId);
-      if (b) disposeLayer(b);
-    }
-  } catch (e) {
-    console.warn("Error disposing layers", e);
-  }
   if (animationFrame != null) {
     cancelAnimationFrame(animationFrame);
     animationFrame = null;
   }
+  engine?.dispose();
+  engine = null;
 });
 
-function createOrUpdateBaseLayer() {
-  const ws = appState.workspace;
-  if (!ws || !ws.baseImage) return;
-
-  const rawLoc = (ws.baseImage as any).imageLocation ?? "";
-  const baseLoc = rawLoc.includes("/") ? rawLoc : ws.baseImage.name;
-  const baseUrl = getWorkspaceImageUrl(baseLoc, ws.name);
-  const baseId = `base_${snakeCase(ws.baseImage.name || "base")}`;
-
-  let existing = layers.value.find((l) => l.id === baseId);
-  if (!existing) {
-    const layer = createLayer(baseId, baseUrl);
-    layerGroups.value.base = {
-      name: ws.baseImage.name,
-      description: "Base image (stitch)",
-      layers: [layer],
-      index: 0,
-      visible: true,
-      visibility: 1,
-      opacity: [1.0],
-      contrast: [1.0],
-      saturation: [1.0],
-      gamma: [1.0],
-      brightness: [0.0],
-    } as any;
-    updateLayerGroupLayers(layerGroups.value.base as any);
-  }
-}
-
-async function setupGL() {
-  try {
-    camera = new THREE.OrthographicCamera();
-    scene.renderer = new THREE.WebGLRenderer({ alpha: true, canvas: glcanvas.value! });
-    scene.renderer.setSize(width.value, height.value);
-
-    createOrUpdateBaseLayer();
-    try {
-      await resetViewport();
-    } catch (e) {
-      console.warn("resetViewport failed", e);
-    }
-
-    startRenderLoop();
-  } catch (e) {
-    console.warn("Failed to initialize GL", e);
-  }
+async function resetViewport() {
+  if (!engine) return;
+  const size = await getTargetSize();
+  const fill = 0.9;
+  viewport.center.x = size.width / 2;
+  viewport.center.y = size.height / 2;
+  viewport.zoom = Math.max(
+    Math.log((size.width / width.value) / fill),
+    Math.log((size.height / height.value) / fill),
+  );
 }
 
 function startRenderLoop() {
-  if (!scene.renderer) return;
+  if (!engine) return;
 
-  function render() {
+  const render = () => {
+    if (!engine) return;
+
     const w = width.value * Math.exp(viewport.zoom);
     const h = height.value * Math.exp(viewport.zoom);
     const x = viewport.center.x - w / 2;
     const y = viewport.center.y - h / 2;
+    viewbox.value = { x: x, y: y, w: w, h: h };
+    engine.layers.forEach((layer: { uniform: { iViewport: { value: { set: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }; }; uRadius: { value: number; }; }; }) => {
+      layer.uniform.iViewport.value.set(x, y, w, h);
 
-    layers.value.forEach((layer) => {
-      if (layer.uniform?.iViewport) layer.uniform.iViewport.value.set(x, y, w, h);
-
-      if (layer.uniform?.uRadius) {
+      if (layer.uniform.uRadius) {
         const lensSize = stitchState.value.lensSize?.[0] ?? 0;
-        layer.uniform.uRadius.value = selectionToolActive.value ? Math.max(0, lensSize) : Number.MAX_VALUE;
+        layer.uniform.uRadius.value = selectionToolActive.value
+          ? Math.max(0, lensSize)
+          : Number.MAX_VALUE;
       }
     });
 
-    scene.renderer!.setSize(width.value, height.value);
+    const halfW = width.value / 2;
+    const halfH = height.value / 2;
 
-    try {
-      const ws = appState.workspace;
-      if (ws?.baseImage) {
-        const baseId = `base_${snakeCase(ws.baseImage.name || "base")}`;
-        const baseLayer = layers.value.find((l) => l.id === baseId);
-        if (baseLayer?.mesh) baseLayer.mesh.position.set(0, 0, 0);
-      }
-    } catch (e) {}
+    engine.camera.left = -halfW;
+    engine.camera.right = halfW;
+    engine.camera.top = halfH;
+    engine.camera.bottom = -halfH;
+    engine.camera.updateProjectionMatrix();
 
-    if (camera) {
-      const halfW = width.value / 2;
-      const halfH = height.value / 2;
-      camera.left = -halfW;
-      camera.right = halfW;
-      camera.top = halfH;
-      camera.bottom = -halfH;
-      camera.updateProjectionMatrix();
-      scene.renderer!.render(scene.scene, camera);
-    }
+    engine.renderer.setSize(width.value, height.value);
+    engine.renderer.render(engine.scene, engine.camera);
 
     animationFrame = requestAnimationFrame(render);
-  }
+  };
 
   animationFrame = requestAnimationFrame(render);
 }
 
-// Base image
-const baseSrc = computed(() => {
-  const ws = appState.workspace;
-  if (!ws?.baseImage) return null;
-  const loc = ws.baseImage.imageLocation?.includes("/") ? ws.baseImage.imageLocation : ws.baseImage.name;
-  return getWorkspaceImageUrl(loc, ws.name);
-});
+function onMouseDown(event: MouseEvent) {
+  if (!engine) return;
 
-watch(baseSrc, (newVal, oldVal) => {
-  // Only reset loading state when the base source actually changes.
-  if (newVal !== oldVal) baseReady.value = false;
-});
+  if (event.button == 2) {
+    lensLocked.value = !lensLocked.value;
+    onMouseMove(event);
+  }
 
-// Viewport controls
-function resetViewport() {
-  return getTargetSize().then((size) => {
-    const fill = 0.9;
-    viewport.center.x = size.width / 2;
-    viewport.center.y = size.height / 2;
-    viewport.zoom = Math.max(
-      Math.log(size.width / width.value / fill),
-      Math.log(size.height / height.value / fill),
-    );
-  });
-}
-
-function onClick(event: MouseEvent) {
-  if (event.button === 2) event.preventDefault();
+  if (event.button == 0 && !selectionToolActive.value) {
+    dragging.value = true;
+  }
 }
 
 function onMouseUp(event: MouseEvent) {
-  if (event.button === 0 || (event.button === 2 && selectionToolActive.value)) dragging.value = false;
+  if (event.button == 0) {
+    dragging.value = false;
+  }
 }
 
 function onMouseLeave() {
@@ -239,183 +181,139 @@ function onMouseLeave() {
 }
 
 function onMouseMove(event: MouseEvent) {
+  if (!engine) return;
+
   if (dragging.value) {
     const scale = Math.exp(viewport.zoom) * stitchState.value.movementSpeed[0];
     viewport.center.x -= event.movementX * scale;
     viewport.center.y += event.movementY * scale;
   }
+
+  const rect = glcanvas.value!.getBoundingClientRect();
+  const mouseX = event.clientX - canvasSize.left.value;
+  const mouseY = event.clientY - canvasSize.top.value;
+
+  const normalizedX = (width.value * mouseX) / rect.width;
+  const normalizedY = height.value * (1 - mouseY / rect.height);
+
+  if (!lensLocked.value) {
+    engine.layers.forEach((layer: { uniform: { uMouse: { value: { set: (arg0: number, arg1: number) => void; }; }; }; }) => {
+      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+    });
+  }
 }
 
 function onWheel(event: WheelEvent) {
-  viewport.zoom += (event.deltaY / 500) * stitchState.value.scrollSpeed[0];
-  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
-    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
+  if (!engine) return;
+
+  viewport.zoom +=
+    (event.deltaY / 500.0) * stitchState.value.scrollSpeed[0];
+
+  if (
+    viewport.zoom >= config.imageViewer.zoomLimit ||
+    viewport.zoom <= -config.imageViewer.zoomLimit
+  ) {
+    viewport.zoom = Math.min(
+      config.imageViewer.zoomLimit,
+      Math.max(-config.imageViewer.zoomLimit, viewport.zoom),
+    );
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
       zoomLimitReached = true;
     }
-  } else zoomLimitReached = false;
+  } else {
+    zoomLimitReached = false;
+  }
 }
 
-// clear selected point whenever selected grayscale changes
-watch(selectedGrayscaleIndex, () => {
-  selectedPointId.value = null;
+function getBaseImageCoords(event: MouseEvent) {
+  if (!engine || !glcanvas.value) return { x: 0, y: 0 };
+
+  const rect = glcanvas.value.getBoundingClientRect();
+
+  const px = event.clientX - rect.left;
+  const py = event.clientY - rect.top;
+
+  const zoomScale = Math.exp(viewport.zoom);
+
+  const halfW = width.value / 2;
+  const halfH = height.value / 2;
+
+  const worldX = viewport.center.x + (px - halfW) * zoomScale;
+  const worldY = viewport.center.y - (py - halfH) * zoomScale;
+
+  return { x: worldX, y: worldY };
+}
+// hmm
+const currentPoints = computed(() => {
+  const ws = appState.workspace;
+  if (!ws) return [];
+  const idx = selectedGrayscaleIndex.value;
+  if (idx === null || idx === undefined) return [];
+
+  if (!ws.mapping.grayscalePoints[idx]) {
+    ws.mapping.grayscalePoints[idx] = [];
+  }
+  return ws.mapping.grayscalePoints[idx];
 });
 
-function onBaseImageClick(event: MouseEvent) {
-  const img = glcontainer.value?.querySelector("img");
-  if (!img) return;
+function onClick(event: MouseEvent) {
+  if (event.button == 2) {
+    // Prevent opening of context menu.
+    event.preventDefault();
 
-  const { x, y } = computeToImageCoords(event, img);
+    if (appState.workspace?.stitchingMode) {
+      const pointObj = getBaseImageCoords(event);
+        for (const p of currentPoints.value.filter(hasBase)) {
+          const dx = p.base.x - pointObj.x;
+          const dy = p.base.y - pointObj.y;
+          if (dx * dx + dy * dy < 20 * 20) {
+            if (checkSelectPoint(p.id)) {
+              deselect();
+              return;
+            }
+            selectPoint(p.id);
+            return;
+          }
 
-  // Check whether the user clicked near an existing *base* mapping and select it
-  for (const p of currentPoints.value) {
-    if (!p.base) continue;
-    const dx = p.base.x - x;
-    const dy = p.base.y - y;
-    if (dx * dx + dy * dy < 20 * 20) {
-      if ((selectedPointId.value === p.id) ) {
-        deselect();
-        return;
+        }
+        if (selectedPointId.value !== null) {
+          updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
+          return;
       }
-      selectPoint(p.id);
-      return;
+
+  
     }
   }
-  
-  // If there is a selected grayscale point, map it to this base position
-  if (selectedPointId.value !== null && selectedGrayscaleIndex.value !== null) {
-    // set the base mapping for the selected grayscale point
-    updateBasePoint(selectedPointId.value, x, y);
-    return;
-  }
 }
 
-function toDisplayCoords(p: { x: number; y: number }, i: number): CSSProperties {
-  const img = glcontainer.value?.querySelector("img");
-  if (!img || !img.naturalWidth) return {};
-
-  const rect = img.getBoundingClientRect();
-  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
-
-  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
-  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-
-  const screenX = rect.left + offsetX + p.x * scale;
-  const screenY = rect.top + offsetY + p.y * scale;
-
-  return {
-    position: "fixed",
-    left: `${screenX}px`,
-    top: `${screenY}px`,
-    transform: "translate(-50%, -50%)",
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    backgroundColor: i === selectedPointId.value ? "blue" : "red",
-    pointerEvents: "none",
-    zIndex: 9999
-  };
-}
-
-// Converts mouse click to image coordinates
-function computeToImageCoords(event: MouseEvent, img: HTMLImageElement) {
-  const rect = img.getBoundingClientRect();
-  const scale = Math.min(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
-  const offsetX = (rect.width - img.naturalWidth * scale) / 2;
-  const offsetY = (rect.height - img.naturalHeight * scale) / 2;
-
-  const x = (event.clientX - rect.left - offsetX) / scale;
-  const y = (event.clientY - rect.top - offsetY) / scale;
-
-  return { x, y };
-}
-
-// Label coordinates for point numbers
-function labelCoords(p: { x: number; y: number }, i: number): CSSProperties {
-  const coords = toDisplayCoords(p, i);
-  return {
-    position: "fixed",
-    left: coords.left,
-    top: coords.top,
-    transform: "translate(-50%, -120%)",
-    color: "white",
-    textShadow: "0 0 4px black, 0 0 6px black",
-    pointerEvents: "none",
-    zIndex: 10000,
-  };
-}
-
-function stopInteractions() {
-  draggingIndex.value = null;
-}
-
-const cursor = computed(() => (dragging.value ? "grabbing" : "grab"));
 </script>
 
 <template>
   <div
     ref="glcontainer"
     class="relative w-full h-full"
-    :style="{ cursor: cursor }"
+    style="cursor: crosshair"
     @click="onClick"
     @contextmenu="onClick"
     @dblclick="resetViewport"
+    @mousedown="onMouseDown"
     @mouseup="onMouseUp"
     @mouseleave="onMouseLeave"
     @mousemove="onMouseMove"
     @wheel="onWheel"
-    @mouseup.stop="stopInteractions"
   >
-    <!-- WebGL canvas -->
-    <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" style="z-index: 0;" />
+    <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
+    <Dots
+      :x="viewbox.x"
+      :y="viewbox.y"
+      :w="viewbox.w"
+      :h="viewbox.h"
+      :zoom="viewport.zoom"
+      :grayMapping="false"
+    />
 
-    <!-- Base image -->
-    <div
-      v-if="baseSrc"
-      class="absolute inset-0 flex items-center justify-center pointer-events-auto bg-white dark:bg-black"
-      :style="{
-        zIndex: 1,
-        width: '100%',
-        height: '100%',
-        paddingTop: basePadding + 'px',
-        paddingBottom: basePadding + 'px',
-        opacity: baseOpacity
-      }"
-      @click="onBaseImageClick"
-    >
-      <img
-        :src="baseSrc"
-        @load="baseReady = true"
-        class="mx-auto w-auto h-auto max-w-[calc(100%-40px)] max-h-[calc(100%-40px)] object-contain"
-      />
+    
 
-      <!-- Points overlay -->
-      <div v-for="p in currentPoints" :key="p.id">
-        <div
-          v-if="p.base"
-          class="absolute w-4 h-4 rounded-full border border-black dark:border-white"
-          :style="toDisplayCoords(p.base, p.id)"
-        ></div>
-
-        <!-- Label -->
-        <div
-          v-if="p.base"
-          class="absolute text-xs font-bold text-white dark:text-black"
-          :style="labelCoords(p.base, p.id)"
-        >
-          {{ p.id + 1 }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div
-      v-if="!baseReady"
-      class="absolute inset-0 flex items-center justify-center bg-black/40 text-white"
-      style="z-index: 3"
-    >
-      <div class="p-4 bg-black/60 rounded">Loading base image...</div>
-    </div>
   </div>
 </template>

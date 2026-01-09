@@ -373,6 +373,7 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
                 v-model="spectralArr[index - 1].rplLocation"
               />
               <FileSetupTableRow
+                v-if="UploadingPartialData === 'full'"
                 type="a recipe"
                 :options="recipeFiles"
                 v-model="spectralArr[index - 1].recipeLocation"
@@ -390,6 +391,7 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
                 v-model="elementalArr[index - 1].dataLocation"
               />
               <FileSetupTableRow
+                v-if="UploadingPartialData === 'full'"
                 type="a recipe"
                 :options="recipeFiles"
                 v-model="elementalArr[index - 1].recipeLocation"

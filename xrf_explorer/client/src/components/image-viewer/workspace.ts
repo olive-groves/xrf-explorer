@@ -139,3 +139,48 @@ export function getWorkspaceImageUrl(imageLocation: string, workspaceName?: stri
   const segments = imageLocation.split("/").map((s) => encodeURIComponent(s));
   return `${config.api.endpoint}/${ds}/image/${segments.join("/")}`;
 }
+
+/**
+ * Builds the URL to a generated partial greyscale image.
+ * @param imageLocation - Name or relative path of the greyscale in the workspace
+ * @param workspaceName - Optional workspace name
+ */
+export function getWorkspaceGreyscaleUrl(
+  imageLocation : string,
+  workspaceName?: string
+): string {
+  const ds = workspaceName ?? datasource.value;
+  return `${config.api.endpoint}/${ds}/stitch_datacubes/greyscale_image/${encodeURIComponent(
+    imageLocation
+  )}`;
+}
+
+
+// Saves the updated workspace containing the points to the backend
+async function saveWorkspaceToBackend() {
+  const ws = appState.workspace;
+  if (!ws) return;
+
+  try {
+    await fetch(`/api/${ws.name}/workspace`, {
+      method: "POST",
+      body: JSON.stringify(ws),
+      headers: { "Content-Type": "application/json" },
+    });
+    console.log("Workspace saved");
+  } catch (e) {
+    console.warn("Failed saving workspace", e);
+  }
+}
+
+let saveTimeout: number | null = null;
+
+// Makes sure we do not spam the back end while mapping
+export function saveWorkspaceDebounced() {
+  if (saveTimeout) window.clearTimeout(saveTimeout);
+
+  saveTimeout = window.setTimeout(() => {
+    saveWorkspaceToBackend();
+    saveTimeout = null;
+  }, 500);
+}

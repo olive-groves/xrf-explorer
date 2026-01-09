@@ -21,6 +21,13 @@ export type Layer = {
    * The uniforms associated with the layer.
    */
   uniform: LayerUniform;
+  // optional geometry override
+  geometrySize?: {
+    width: number;
+    height: number;
+  };
+  // The rotation of the layer
+  rotation?: number;
 };
 
 /**
