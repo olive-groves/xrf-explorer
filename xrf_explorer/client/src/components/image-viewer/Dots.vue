@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { computed} from 'vue'
-import { checkSelectPoint} from './stitchPoints';
-import {
-  selectedGrayscaleIndex,
-  getPointsForGray,
-  hasBase
-} from "./stitchPoints";
+import { computed } from "vue";
+import { checkSelectPoint } from "./stitchPoints";
+import { selectedGrayscaleIndex, getPointsForGray, hasBase } from "./stitchPoints";
 
 const props = defineProps<{
   /**
@@ -24,21 +20,15 @@ const props = defineProps<{
    * The height of the viewbox.
    */
   h: number;
-
-
+  /**
+   * The current zoom level.
+   */
   zoom: number;
-
+  /**
+   * Whether to show grayscale mapping points or base mapping points.
+   */
   grayMapping: boolean;
-
-
-
 }>();
-
-/**
- * Event handler for the onClick event on the glcanvas.
- * @param event - The mouse event.
- */
-
 
 type Cross = {
   x1: number;
@@ -48,10 +38,16 @@ type Cross = {
   strokeWidth: number;
   id: number;
 };
-
+/**
+ * Function to create a cross shape at given coordinates.
+ * @param cx X coordinate.
+ * @param cy Y coordinate.
+ * @param id Identifier for the cross.
+ * @returns Array of line segments representing the cross.
+ */
 function createCross(cx: number, cy: number, id: number) {
-  const size = Math.min(100 * Math.exp(props.zoom), 200)
-  const strokeWidth = Math.min(5 * Math.exp(props.zoom), 10)
+  const size = Math.min(100 * Math.exp(props.zoom), 200);
+  const strokeWidth = Math.min(5 * Math.exp(props.zoom), 10);
   return [
     // horizontal line
     {
@@ -60,7 +56,7 @@ function createCross(cx: number, cy: number, id: number) {
       x2: cx + size / 2,
       y2: cy,
       strokeWidth,
-      id
+      id,
     },
     // vertical line
     {
@@ -69,14 +65,14 @@ function createCross(cx: number, cy: number, id: number) {
       x2: cx,
       y2: cy + size / 2,
       strokeWidth,
-      id
-    }
+      id,
+    },
   ] satisfies Cross[];
 }
 // const crosses = computed(() => {
 //   if (!selectedGrayscaleIndex) {return}
 //   getPointsForGray(selectedGrayscaleIndex)
-  
+
 //   return grayscalePoints.getFlatMap(([x, y]) => createCross(x, y));
 // });
 
@@ -86,53 +82,50 @@ const crosses = computed(() => {
 
   const points = getPointsForGray(idx);
 
-  if(props.grayMapping) {
-    return points.flatMap(p => createCross(p.gray.x, p.gray.y, p.id));
-  }
-  else {
+  if (props.grayMapping) {
+    return points.flatMap((p) => createCross(p.gray.x, p.gray.y, p.id));
+  } else {
     // return points.flatMap(p => createCross(p.base.x, p.base.y));
-    return points
-    .filter(hasBase)
-    .flatMap(p => createCross(p.base.x, p.base.y, p.id));
+    return points.filter(hasBase).flatMap((p) => createCross(p.base.x, p.base.y, p.id));
   }
-
-  
-
 });
-
-
 </script>
 
 <template>
-    <div class="absolute left-0 top-0 size-full"
+  <div class="absolute left-0 top-0 size-full">
+    <svg
+      ref="element"
+      class="size-full -scale-y-100"
+      :viewBox="`${x} ${y} ${w} ${h}`"
+      preserveAspectRatio="none"
+      fill="none"
     >
-        <svg
-        ref="element"
-        class="size-full -scale-y-100"
-        :viewBox="`${x} ${y} ${w} ${h}`"
-        preserveAspectRatio="none"
-        fill="none"
+      <!-- DISPLAY CROSSES -->
+      <line
+        v-for="(c, i) in crosses"
+        :key="i"
+        :x1="c.x1"
+        :y1="c.y1"
+        :x2="c.x2"
+        :y2="c.y2"
+        :stroke="checkSelectPoint(c.id) ? 'green' : 'red'"
+        :stroke-width="c.strokeWidth"
+      />
+      <!-- DISPLAY LABELS -->
+      <g transform="scale(1, -1)">
+        <text
+          v-for="c in crosses"
+          :key="'label-' + c.id"
+          :x="(c.x1 + c.x2) / 2 + 5"
+          :y="-((c.y1 + c.y2) / 2 - 10)"
+          font-size="12"
+          fill="black"
+          dominant-baseline="middle"
         >
-
-        <!-- <line x1="90" y1="90" x2="91" y2="90" stroke="red" :stroke-width="zoom + 4.1" />
-        <line x1="90.5" y1="88" x2="90.5" y2="92" stroke="red" :stroke-width="1" vector-effect="scaling-stroke" /> -->
-
-        <line
-            v-for="(c, i) in crosses"
-            :key="i"
-            :x1="c.x1"
-            :y1="c.y1"
-            :x2="c.x2"
-            :y2="c.y2"
-            :stroke="checkSelectPoint(c.id) ? 'green' : 'red'"
-            :stroke-width="c.strokeWidth"
-            
-        />
-
-
-
+          {{ c.id + 1 }}
+        </text>
+      </g>
       <!-- DISPLAY FINISHED SELECTION -->
-
-        </svg>
-    </div>
+    </svg>
+  </div>
 </template>

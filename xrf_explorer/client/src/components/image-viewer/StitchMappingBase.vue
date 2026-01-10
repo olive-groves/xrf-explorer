@@ -10,18 +10,15 @@ import { StitchTool, StitchState } from "./types";
 import { SelectionAreaType } from "@/lib/selection";
 import { toast } from "vue-sonner";
 import Dots from "./Dots.vue";
-import { 
+import {
   checkSelectPoint,
   deselect,
   selectedGrayscaleIndex,
   selectedPointId,
   selectPoint,
   updateBasePoint,
-  hasBase
-      } from "./stitchPoints";
-
-
-
+  hasBase,
+} from "./stitchPoints";
 
 const config = inject<FrontendConfig>("config")!;
 
@@ -40,13 +37,8 @@ const stitchState = ref<StitchState>({
 });
 
 const selectionToolActive = computed(() =>
-  Object.values(SelectionAreaType as { [key: string]: string }).includes(
-    stitchState.value.tool as string,
-  ),
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(stitchState.value.tool as string),
 );
-
-
-
 
 const viewbox = ref<{
   x: number;
@@ -85,9 +77,7 @@ onMounted(async () => {
   const ws = appState.workspace;
   if (!ws?.baseImage) return;
 
-  const loc = ws.baseImage.imageLocation?.includes("/")
-    ? ws.baseImage.imageLocation
-    : ws.baseImage.name;
+  const loc = ws.baseImage.imageLocation?.includes("/") ? ws.baseImage.imageLocation : ws.baseImage.name;
   const url = getWorkspaceImageUrl(loc, ws.name);
 
   await engine.createImageLayer("stitch_base", url);
@@ -105,18 +95,21 @@ onBeforeUnmount(() => {
   engine = null;
 });
 
+/**
+ * Function to reset the viewport to fit the image.
+ */
 async function resetViewport() {
   if (!engine) return;
   const size = await getTargetSize();
   const fill = 0.9;
   viewport.center.x = size.width / 2;
   viewport.center.y = size.height / 2;
-  viewport.zoom = Math.max(
-    Math.log((size.width / width.value) / fill),
-    Math.log((size.height / height.value) / fill),
-  );
+  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
+/**
+ * Function to start the render loop.
+ */
 function startRenderLoop() {
   if (!engine) return;
 
@@ -128,16 +121,21 @@ function startRenderLoop() {
     const x = viewport.center.x - w / 2;
     const y = viewport.center.y - h / 2;
     viewbox.value = { x: x, y: y, w: w, h: h };
-    engine.layers.forEach((layer: { uniform: { iViewport: { value: { set: (arg0: number, arg1: number, arg2: number, arg3: number) => void; }; }; uRadius: { value: number; }; }; }) => {
-      layer.uniform.iViewport.value.set(x, y, w, h);
+    engine.layers.forEach(
+      (layer: {
+        uniform: {
+          iViewport: { value: { set: (arg0: number, arg1: number, arg2: number, arg3: number) => void } };
+          uRadius: { value: number };
+        };
+      }) => {
+        layer.uniform.iViewport.value.set(x, y, w, h);
 
-      if (layer.uniform.uRadius) {
-        const lensSize = stitchState.value.lensSize?.[0] ?? 0;
-        layer.uniform.uRadius.value = selectionToolActive.value
-          ? Math.max(0, lensSize)
-          : Number.MAX_VALUE;
-      }
-    });
+        if (layer.uniform.uRadius) {
+          const lensSize = stitchState.value.lensSize?.[0] ?? 0;
+          layer.uniform.uRadius.value = selectionToolActive.value ? Math.max(0, lensSize) : Number.MAX_VALUE;
+        }
+      },
+    );
 
     const halfW = width.value / 2;
     const halfH = height.value / 2;
@@ -156,7 +154,10 @@ function startRenderLoop() {
 
   animationFrame = requestAnimationFrame(render);
 }
-
+/**
+ * Function to handle mouse down event.
+ * @param event - The mouse event.
+ */
 function onMouseDown(event: MouseEvent) {
   if (!engine) return;
 
@@ -170,16 +171,27 @@ function onMouseDown(event: MouseEvent) {
   }
 }
 
+/**
+ * Function to handle mouse up event.
+ * @param event - The mouse event.
+ */
 function onMouseUp(event: MouseEvent) {
   if (event.button == 0) {
     dragging.value = false;
   }
 }
 
+/**
+ * Function to handle mouse leave event.
+ */
 function onMouseLeave() {
   dragging.value = false;
 }
 
+/**
+ * Function to handle mouse move event.
+ * @param event - The mouse event.
+ */
 function onMouseMove(event: MouseEvent) {
   if (!engine) return;
 
@@ -197,26 +209,25 @@ function onMouseMove(event: MouseEvent) {
   const normalizedY = height.value * (1 - mouseY / rect.height);
 
   if (!lensLocked.value) {
-    engine.layers.forEach((layer: { uniform: { uMouse: { value: { set: (arg0: number, arg1: number) => void; }; }; }; }) => {
-      layer.uniform.uMouse.value.set(normalizedX, normalizedY);
-    });
+    engine.layers.forEach(
+      (layer: { uniform: { uMouse: { value: { set: (arg0: number, arg1: number) => void } } } }) => {
+        layer.uniform.uMouse.value.set(normalizedX, normalizedY);
+      },
+    );
   }
 }
 
+/**
+ * Function to handle mouse wheel event.
+ * @param event - The wheel event.
+ */
 function onWheel(event: WheelEvent) {
   if (!engine) return;
 
-  viewport.zoom +=
-    (event.deltaY / 500.0) * stitchState.value.scrollSpeed[0];
+  viewport.zoom += (event.deltaY / 500.0) * stitchState.value.scrollSpeed[0];
 
-  if (
-    viewport.zoom >= config.imageViewer.zoomLimit ||
-    viewport.zoom <= -config.imageViewer.zoomLimit
-  ) {
-    viewport.zoom = Math.min(
-      config.imageViewer.zoomLimit,
-      Math.max(-config.imageViewer.zoomLimit, viewport.zoom),
-    );
+  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
+    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
       zoomLimitReached = true;
@@ -226,6 +237,11 @@ function onWheel(event: WheelEvent) {
   }
 }
 
+/**
+ * Function to get image coordinates from a mouse event.
+ * @param event - The mouse event.
+ * @returns The coordinates in image space.
+ */
 function getBaseImageCoords(event: MouseEvent) {
   if (!engine || !glcanvas.value) return { x: 0, y: 0 };
 
@@ -257,6 +273,10 @@ const currentPoints = computed(() => {
   return ws.mapping.grayscalePoints[idx];
 });
 
+/**
+ * Function to handle mouse click event.
+ * @param event - The mouse event.
+ */
 function onClick(event: MouseEvent) {
   if (event.button == 2) {
     // Prevent opening of context menu.
@@ -264,35 +284,31 @@ function onClick(event: MouseEvent) {
 
     if (appState.workspace?.stitchingMode) {
       const pointObj = getBaseImageCoords(event);
-        for (const p of currentPoints.value.filter(hasBase)) {
-          const dx = p.base.x - pointObj.x;
-          const dy = p.base.y - pointObj.y;
-          if (dx * dx + dy * dy < 20 * 20) {
-            if (checkSelectPoint(p.id)) {
-              deselect();
-              return;
-            }
-            selectPoint(p.id);
+      for (const p of currentPoints.value.filter(hasBase)) {
+        const dx = p.base.x - pointObj.x;
+        const dy = p.base.y - pointObj.y;
+        if (dx * dx + dy * dy < 20 * 20) {
+          if (checkSelectPoint(p.id)) {
+            deselect();
             return;
           }
-
-        }
-        if (selectedPointId.value !== null) {
-          updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
+          selectPoint(p.id);
           return;
+        }
       }
-
-  
+      if (selectedPointId.value !== null) {
+        updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
+        return;
+      }
     }
   }
 }
-
 </script>
 
 <template>
   <div
     ref="glcontainer"
-    class="relative w-full h-full"
+    class="relative size-full"
     style="cursor: crosshair"
     @click="onClick"
     @contextmenu="onClick"
@@ -303,17 +319,7 @@ function onClick(event: MouseEvent) {
     @mousemove="onMouseMove"
     @wheel="onWheel"
   >
-    <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
-    <Dots
-      :x="viewbox.x"
-      :y="viewbox.y"
-      :w="viewbox.w"
-      :h="viewbox.h"
-      :zoom="viewport.zoom"
-      :grayMapping="false"
-    />
-
-    
-
+    <canvas ref="glcanvas" class="absolute inset-0 size-full" />
+    <Dots :x="viewbox.x" :y="viewbox.y" :w="viewbox.w" :h="viewbox.h" :zoom="viewport.zoom" :gray-mapping="false" />
   </div>
 </template>

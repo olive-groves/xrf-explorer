@@ -14,6 +14,7 @@
         "dimensionality_reduction": "Analyze the dimensionality reduction of the painting or of individual elements",
         "layers": "Select what layers of the painting to show",
         "workspace": "Manage workspace of the project",
+        "stitching": "Stitch multiple datacubes together",
         "setup_workspace": "Setup the workspace data files",
         "setup_elemental_channels": "Select the elemental channels to be included",
         "data_missing": "Sidepanel unavailable due to missing data",
@@ -41,5 +42,11 @@
         "bottom_left_y": "Bottom left y coordinate",
         "top_right_x": "Top right x coordinate",
         "top_right_y": "Top right y coordinate"
+    },
+    "stitch": {
+        "edit": "Edit stitching points",
+        "preview": "Preview stitching",
+        "no_preview": "Can only preview after mapping 4 points for each greyscale",
+        "clear_points": "Clear all stitching points"
     }
 }
