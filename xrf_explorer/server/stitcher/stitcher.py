@@ -8,10 +8,19 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import os
 from os.path import join
 
-from xrf_explorer.server.stitcher.cube_fragments import DatacubeFragment, ElementalDatacubeFragment, \
-    SpectralDatacubeFragment
-from xrf_explorer.server.stitcher.helper import WarpSelection, Dimensions, split_range, transpose_spectral_datacube, \
-    rotate_cv
+from xrf_explorer.server.stitcher.cube_fragments import (
+    DatacubeFragment,
+    ElementalDatacubeFragment,
+    SpectralDatacubeFragment,
+)
+from xrf_explorer.server.stitcher.helper import (
+    WarpSelection,
+    Dimensions,
+    split_range,
+    transpose_spectral_datacube,
+    rotate_cv,
+    TransposeMode,
+)
 from xrf_explorer.server.stitcher.transpose_state import TransposeStateManager, TransposeState
 
 LOG: Logger = getLogger(__name__)
@@ -313,6 +322,7 @@ class DatacubeStitcher:
                 (self.base_cube.channels, self.scaled_height, self.scaled_width),
                 (self.scaled_height, self.scaled_width, self.base_cube.channels),
                 self.base_cube.data_type,
+                TransposeMode.CHW_TO_HWC
             )
 
             # Write RPL file

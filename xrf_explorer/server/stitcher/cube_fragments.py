@@ -9,6 +9,7 @@ from typing import Callable
 import numpy as np
 
 from xrf_explorer.server.stitcher.helper import (
+    TransposeMode,
     transpose_spectral_datacube,
     rotate_cv,
     Dimensions,
@@ -322,6 +323,7 @@ class SpectralDatacubeFragment(DatacubeFragment):
             (self.height, self.width, self.channels),
             (self.channels, self.height, self.width),
             self.data_type,
+            TransposeMode.HWC_TO_CHW,
         )
 
         # Create new fragment pointing to transposed file

@@ -33,7 +33,6 @@ from xrf_explorer.server.stitcher.transpose_state import (
 
 LOG: Logger = getLogger(__name__)
 
-
 class FragmentData:
     """Represents fragment data and its associated properties.
 
@@ -379,7 +378,7 @@ class StitchData:
                 else:
                     raise ValueError("intensity_scales must contain only numbers")
 
-            self._intensity_scales = intensity_scales_arr    
+            self._intensity_scales = intensity_scales_arr
         
         # Fragments
         fragments = data.get("fragments")
@@ -705,7 +704,6 @@ def load_greyscale_from_file(name: str, data_source: str):
     if greyscale_fragment is None:
         raise FileNotFoundError(f"Failed to load greyscale image: {path}")
     return greyscale_fragment
-
 
 def get_fragment_greyscales(data: StitchData) -> List[np.ndarray]:
     """
