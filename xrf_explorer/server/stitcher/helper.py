@@ -239,50 +239,53 @@ def transpose_spectral_datacube(
         output_shape: Shape of output data
         dtype: NumPy dtype string
         chunk_size: Number of rows/channels to process at once
+        mode: Transpose mode, either HWC_TO_CHW or CHW_TO_HWC
     """
     input_mmap = np.memmap(input_path, dtype=dtype, mode="r", shape=input_shape)
     output_mmap = np.memmap(output_path, dtype=dtype, mode="w+", shape=output_shape)
 
     dim0, dim1, dim2 = input_shape
 
-    # Case 1: (H, W, C) -> (C, H, W) - Chunk along height
-    if mode == TransposeMode.HWC_TO_CHW:
-        for i in range(0, dim0, chunk_size):
-            end_i = min(i + chunk_size, dim0)
+    try:
+        # Case 1: (H, W, C) -> (C, H, W) - Chunk along height
+        if mode == TransposeMode.HWC_TO_CHW:
+            for i in range(0, dim0, chunk_size):
+                end_i = min(i + chunk_size, dim0)
 
-            # Read chunk: (chunk_h, W, C)
-            chunk_data = input_mmap[i:end_i, :, :]
+                # Read chunk: (chunk_h, W, C)
+                chunk_data = input_mmap[i:end_i, :, :]
 
-            # Transpose to: (C, chunk_h, W)
-            chunk_transposed = chunk_data.transpose(2, 0, 1)
+                # Transpose to: (C, chunk_h, W)
+                chunk_transposed = chunk_data.transpose(2, 0, 1)
 
-            # Write: all channels, specific height slice, all width
-            output_mmap[:, i:end_i, :] = chunk_transposed
+                # Write: all channels, specific height slice, all width
+                output_mmap[:, i:end_i, :] = chunk_transposed
 
-            if i % (chunk_size * 5) == 0:
-                output_mmap.flush()
+                if i % (chunk_size * 5) == 0:
+                    output_mmap.flush()
 
-    # Case 2: (C, H, W) -> (H, W, C) - Chunk along channels
-    elif mode == TransposeMode.CHW_TO_HWC:
-        for i in range(0, dim0, chunk_size):
-            end_i = min(i + chunk_size, dim0)
+        # Case 2: (C, H, W) -> (H, W, C) - Chunk along channels
+        elif mode == TransposeMode.CHW_TO_HWC:
+            for i in range(0, dim0, chunk_size):
+                end_i = min(i + chunk_size, dim0)
 
-            # Read chunk: (chunk_c, H, W)
-            chunk_data = input_mmap[i:end_i, :, :]
+                # Read chunk: (chunk_c, H, W)
+                chunk_data = input_mmap[i:end_i, :, :]
 
-            # Transpose to: (H, W, chunk_c)
-            chunk_transposed = chunk_data.transpose(1, 2, 0)
+                # Transpose to: (H, W, chunk_c)
+                chunk_transposed = chunk_data.transpose(1, 2, 0)
 
-            # Write: all height, all width, specific channel slice
-            output_mmap[:, :, i:end_i] = chunk_transposed
+                # Write: all height, all width, specific channel slice
+                output_mmap[:, :, i:end_i] = chunk_transposed
 
-            if i % (chunk_size * 5) == 0:
-                output_mmap.flush()
+                if i % (chunk_size * 5) == 0:
+                    output_mmap.flush()
 
-    else:
+        output_mmap.flush()
+    except ValueError as e:
         raise ValueError(f"Unsupported transpose from {input_shape} to {output_shape}")
 
-    output_mmap.flush()
+
 
 
 def rotate_cv(img, rotation):

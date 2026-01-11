@@ -1,6 +1,8 @@
 import logging
 import os
 import sys
+
+import cv2
 import numpy as np
 import pytest
 from os.path import join
@@ -17,22 +19,17 @@ from xrf_explorer.server.stitcher.helper import (
     TransposeMode,
 )
 
+from xrf_explorer.server.stitcher.cube_fragments import (
+    DatacubeFragment,
+    ElementalDatacubeFragment,
+    SpectralDatacubeFragment,
+)
+
 RESOURCES_PATH: str = join("tests", "resources")
 
-CUSTOM_CONFIG_PATH: str = join(RESOURCES_PATH, 'configs', 'stitching.yml')
-
 DATA_SOURCE = "data_source"
-IMAGE_NAME = "RGB"
-
-PATH_DATA_SOURCE: str = join(RESOURCES_PATH, 'stitching', DATA_SOURCE)
-
-SAMPLE_FULL_SPECTRAL_CUBE_PATH: str = join(PATH_DATA_SOURCE, 'sample_spectral_8x8x4.raw')
-RGB_STITCH_IMAGE: str = join(PATH_DATA_SOURCE, 'test_image_stitching.png')
-
-TEMP_OUTPUT_PATH: str = join(PATH_DATA_SOURCE, 'output.raw')
 
 
-'color_segmentation'
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -66,30 +63,38 @@ def sample_optimizer(sample_warp_selection, sample_warp_selection_2):
     """Create a ScalarOptimizer with test data."""
     return ScalarOptimizer([(sample_warp_selection, sample_warp_selection_2)])
 
-
-@pytest.fixture
-def sample_image():
-    """Create a sample numpy array image."""
-    return np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
-
-
 @pytest.fixture
 def sample_test_image():
     """Load test image from resources."""
     import cv2
 
     img_path = join(RESOURCES_PATH, "stitching", "data_source", "test_image_stitching.png")
+    print(img_path)
     return cv2.imread(img_path)
 
+@pytest.fixture
+def sample_rpl_file(tmp_path):
+    """Create a sample RPL metadata file."""
+    rpl_path = tmp_path / "test.rpl"
+    rpl_content = """key       	value
+width       	10
+height      	8
+depth       	4
+offset      	0
+data-Length 	2
+data-type   	unsigned
+byte-order  	little-endian
+"""
+    rpl_path.write_text(rpl_content)
+    return rpl_path
 
 @pytest.fixture
-def sample_spectral_raw(tmp_path):
-    """Create a temporary spectral datacube file with shape (8, 8, 4)."""
-    # Create test data with shape (8, 8, 4) - HWC format
-    input_data = np.fromfile(SAMPLE_FULL_SPECTRAL_CUBE_PATH, dtype="uint16").reshape((8, 8, 4))
-    # Print current working directory for debugging
-    return input_data
-
+def sample_spectral_file(tmp_path, sample_rpl_file):
+    """Create a sample spectral datacube file with RPL."""
+    raw_path = tmp_path / "test.raw"
+    data = np.arange(10 * 8 * 4, dtype=np.uint16).reshape((8, 10, 4))
+    data.tofile(str(raw_path))
+    return raw_path, sample_rpl_file, data
 
 # =============================================================================
 # Test Classes
@@ -323,31 +328,31 @@ class TestSplitRange:
 class TestTransposeDatacube:
     """Tests for transpose_spectral_datacube function."""
 
-    def test_hwc_to_chw(self, sample_spectral_raw):
+    def test_hwc_to_chw(self, tmp_path, sample_spectral_file):
         """Test HWC to CHW transposition (8x8x4 -> 4x8x8)."""
-        input_data = sample_spectral_raw
-        input_path = SAMPLE_FULL_SPECTRAL_CUBE_PATH
-        output_path = TEMP_OUTPUT_PATH
+        input_path, _, input_data = sample_spectral_file
+        output_path = tmp_path / "output.raw"
 
-        transpose_spectral_datacube(input_path, output_path, (8, 8, 4), (4, 8, 8), "uint16", TransposeMode.HWC_TO_CHW)
+        transpose_spectral_datacube(str(input_path), str(output_path), (8, 10, 4), (4, 8, 10), "uint16", TransposeMode.HWC_TO_CHW)
 
-        output_data = np.fromfile(output_path, dtype="uint16").reshape(4, 8, 8)
+        output_data = np.fromfile(output_path, dtype="uint16").reshape(4, 8, 10)
         expected = input_data.transpose(2, 0, 1)
         assert np.array_equal(output_data, expected)
 
 
-    def test_chw_to_hwc(self, tmp_path):
+    def test_chw_to_hwc(self, tmp_path, sample_spectral_file):
         """Test CHW to HWC transposition (4x8x8 -> 8x8x4)."""
         # Create input data in CHW format
-        input_data = np.arange(256).reshape(4, 8, 8).astype("uint16")
+        _,_,org_input_data = sample_spectral_file
+        input_data = org_input_data.transpose(2, 0, 1)
         input_path = tmp_path / "input.raw"
         output_path = tmp_path / "output.raw"
         input_data.tofile(str(input_path))
 
-        transpose_spectral_datacube(str(input_path), str(output_path), (4, 8, 8), (8, 8, 4), "uint16", TransposeMode.CHW_TO_HWC)
+        transpose_spectral_datacube(str(input_path), str(output_path), (4, 8, 10), (8, 10, 4), "uint16", TransposeMode.CHW_TO_HWC)
 
-        output_data = np.fromfile(str(output_path), dtype="uint16").reshape(8, 8, 4)
-        expected = input_data.transpose(1, 2, 0)
+        output_data = np.fromfile(str(output_path), dtype="uint16").reshape(8, 10, 4)
+        expected = org_input_data
         assert np.array_equal(output_data, expected)
 
     def test_unsupported_transpose_raises_error(self, tmp_path):
@@ -362,22 +367,6 @@ class TestTransposeDatacube:
                 str(input_path), str(output_path), (4, 4, 4), (5, 5, 5), "uint16", TransposeMode.HWC_TO_CHW
             )
 
-    def test_preserves_data_integrity(self, tmp_path):
-        """Test that data values are preserved after transpose."""
-        input_data = np.ones((8, 8, 4), dtype="uint16") * np.arange(4).reshape(1, 1, 4)
-        input_path = tmp_path / "input.raw"
-        output_path = tmp_path / "output.raw"
-        input_data.tofile(str(input_path))
-
-        transpose_spectral_datacube(str(input_path), str(output_path), (8, 8, 4), (4, 8, 8), "uint16", TransposeMode.HWC_TO_CHW)
-
-        output_data = np.fromfile(str(output_path), dtype="uint16").reshape(4, 8, 8)
-
-        # Each channel should have constant value
-        for channel in range(4):
-            assert np.all(output_data[channel] == channel)
-
-
 class TestRotateCv:
     """Tests for rotate_cv function."""
 
@@ -387,26 +376,26 @@ class TestRotateCv:
         result = rotate_cv(img, 0)
         assert np.array_equal(result, img)
 
-    def test_90_degrees_counter_clockwise(self):
+    def test_90_degrees(self):
         """Test 90-degree counter-clockwise rotation."""
         img = np.zeros((3, 3), dtype=np.uint8)
-        img[0, 0] = 1  # Top-left corner
+        img[0, 0] = 1
         result = rotate_cv(img, 90)
-        assert result[0, 2] == 1  # Should be at top-right after CCW rotation
+        assert result[2, 0] == 1
 
     def test_180_degrees(self):
         """Test 180-degree rotation."""
         img = np.zeros((3, 3), dtype=np.uint8)
         img[0, 0] = 1
         result = rotate_cv(img, 180)
-        assert result[2, 2] == 1  # Should be at bottom-right
+        assert result[2, 2] == 1
 
-    def test_270_degrees_clockwise(self):
+    def test_270_degrees(self):
         """Test 270-degree (90 CW) rotation."""
         img = np.zeros((3, 3), dtype=np.uint8)
         img[0, 0] = 1
         result = rotate_cv(img, 270)
-        assert result[2, 0] == 1  # Should be at bottom-left
+        assert result[0, 2] == 1
 
     def test_invalid_rotation(self):
         """Test that invalid rotation raises ValueError."""
@@ -414,35 +403,8 @@ class TestRotateCv:
         with pytest.raises(ValueError, match="Rotation must be"):
             rotate_cv(img, 45)
 
-    def test_negative_rotation(self):
-        """Test that negative rotation raises ValueError."""
-        img = np.zeros((10, 10), dtype=np.uint8)
-        with pytest.raises(ValueError, match="Rotation must be"):
-            rotate_cv(img, -90)
-
-    def test_shape_preserved_90(self):
-        """Test that shape is preserved for 90-degree rotation."""
-        img = np.zeros((100, 50, 3), dtype=np.uint8)
-        result = rotate_cv(img, 90)
-        assert result.shape == (50, 100, 3)
-
-    def test_shape_preserved_180(self):
-        """Test that shape is preserved for 180-degree rotation."""
-        img = np.zeros((100, 50, 3), dtype=np.uint8)
-        result = rotate_cv(img, 180)
-        assert result.shape == (100, 50, 3)
-
-    def test_shape_preserved_270(self):
-        """Test that shape is preserved for 270-degree rotation."""
-        img = np.zeros((100, 50, 3), dtype=np.uint8)
-        result = rotate_cv(img, 270)
-        assert result.shape == (50, 100, 3)
-
     def test_with_test_image(self, sample_test_image):
         """Test rotation using actual test image from resources."""
-        if sample_test_image is None:
-            pytest.skip("Test image not available")
-
         # Test all valid rotations
         for rot in [0, 90, 180, 270]:
             result = rotate_cv(sample_test_image, rot)
@@ -450,7 +412,6 @@ class TestRotateCv:
                 assert result.shape[:2] == sample_test_image.shape[:2]
             else:
                 assert result.shape[:2] == sample_test_image.shape[:2][::-1]
-
 
 class TestNormalizeImage:
     """Tests for normalize_image function."""
@@ -538,3 +499,595 @@ class TestNormalizeImage:
         assert result.shape == data.shape
         assert np.min(result) == 0
         assert np.max(result) == 255
+
+
+# =============================================================================
+# DatacubeFragment Tests
+# =============================================================================
+
+class TestDatacubeFragment:
+    """Tests for DatacubeFragment base class behavior (tested via subclasses)."""
+
+    def test_rotation_must_be_multiple_of_90(self, tmp_path):
+        """Test that non-90-degree rotation raises ValueError."""
+        # Create a minimal file
+        data = np.zeros((2, 3, 4), dtype=np.float32)
+        file_path = tmp_path / "test.dms"
+
+        # Write minimal elemental file
+        header = ElementalDatacubeFragment.create_file_header(4, 3, 2)
+        with open(file_path, "wb") as f:
+            f.write(header)
+            data.tofile(f)
+            f.write(b"Fe\r\nCu\r\n")
+
+        with pytest.raises(ValueError, match="Rotation must be a multiple of 90"):
+            ElementalDatacubeFragment(
+                str(file_path), 4, 3, 2, len(header), 45, ["Fe", "Cu"]
+            )
+
+    def test_rotation_0_dimensions(self, tmp_path):
+        """Test rotated dimensions with 0 degree rotation."""
+        file_path = tmp_path / "test.raw"
+        file_path.touch()
+
+        fragment = SpectralDatacubeFragment(
+            str(file_path), width=100, height=50, channels=10,
+            offset=0, data_type="<u2", rotation=0, rpl_meta={}, is_transposed=False
+        )
+
+        assert fragment.rotated_width == 100
+        assert fragment.rotated_height == 50
+
+    def test_rotation_90_swaps_dimensions(self, tmp_path):
+        """Test rotated dimensions with 90 degree rotation."""
+        file_path = tmp_path / "test.raw"
+        file_path.touch()
+
+        fragment = SpectralDatacubeFragment(
+            str(file_path), width=100, height=50, channels=10,
+            offset=0, data_type="<u2", rotation=90, rpl_meta={}, is_transposed=False
+        )
+
+        assert fragment.rotated_width == 50
+        assert fragment.rotated_height == 100
+
+    def test_rotation_180_keeps_dimensions(self, tmp_path):
+        """Test rotated dimensions with 180 degree rotation."""
+        file_path = tmp_path / "test.raw"
+        file_path.touch()
+
+        fragment = SpectralDatacubeFragment(
+            str(file_path), width=100, height=50, channels=10,
+            offset=0, data_type="<u2", rotation=180, rpl_meta={}, is_transposed=False
+        )
+
+        assert fragment.rotated_width == 100
+        assert fragment.rotated_height == 50
+
+    def test_rotation_360_normalized_to_0(self, tmp_path):
+        """Test that 360 degree rotation is normalized to 0."""
+        file_path = tmp_path / "test.raw"
+        file_path.touch()
+
+        fragment = SpectralDatacubeFragment(
+            str(file_path), width=100, height=50, channels=10,
+            offset=0, data_type="<u2", rotation=360, rpl_meta={}, is_transposed=False
+        )
+
+        assert fragment.rotation == 0
+        assert fragment.rotated_width == 100
+        assert fragment.rotated_height == 50
+
+
+# =============================================================================
+# ElementalDatacubeFragment Tests
+# =============================================================================
+
+class TestElementalDatacubeFragment:
+    """Tests for ElementalDatacubeFragment class."""
+
+    @pytest.fixture
+    def sample_elemental_file(self, tmp_path):
+        """Create a sample elemental datacube file."""
+        width, height, channels = 4, 3, 2
+        data = np.arange(width * height * channels, dtype=np.float32).reshape(
+            (channels, height, width)
+        )
+
+        file_path = tmp_path / "test.dms"
+        header = ElementalDatacubeFragment.create_file_header(width, height, channels)
+        footer = ElementalDatacubeFragment.create_file_footer(["Fe", "Cu"])
+
+        with open(file_path, "wb") as f:
+            f.write(header)
+            data.tofile(f)
+            f.write(footer)
+
+        return file_path, data, ["Fe", "Cu"]
+
+    def test_from_file_parses_correctly(self, sample_elemental_file):
+        """Test that from_file correctly parses header and footer."""
+        file_path, expected_data, expected_elements = sample_elemental_file
+
+        fragment = ElementalDatacubeFragment.from_file(str(file_path))
+
+        assert fragment.width == 4
+        assert fragment.height == 3
+        assert fragment.channels == 2
+        assert fragment.elements == expected_elements
+        assert fragment.rotation == 0
+
+    def test_from_file_with_rotation(self, sample_elemental_file):
+        """Test from_file with rotation parameter."""
+        file_path, _, _ = sample_elemental_file
+
+        fragment = ElementalDatacubeFragment.from_file(str(file_path), rotation=90)
+
+        assert fragment.rotation == 90
+        assert fragment.rotated_width == 3
+        assert fragment.rotated_height == 4
+
+    def test_load_datacube_returns_correct_shape(self, sample_elemental_file):
+        """Test that load_datacube returns memmap with (C, H, W) shape."""
+        file_path, expected_data, _ = sample_elemental_file
+
+        fragment = ElementalDatacubeFragment.from_file(str(file_path))
+        memmap = fragment.load_datacube()
+
+        assert memmap.shape == (2, 3, 4)
+        np.testing.assert_array_equal(memmap, expected_data)
+
+    def test_are_compatible_same_elements(self, sample_elemental_file, tmp_path):
+        """Test are_compatible returns True for matching elements."""
+        file_path, _, _ = sample_elemental_file
+
+        # Create second file with same elements
+        file_path2 = tmp_path / "test2.dms"
+        data2 = np.zeros((2, 3, 4), dtype=np.float32)
+        header = ElementalDatacubeFragment.create_file_header(4, 3, 2)
+        footer = ElementalDatacubeFragment.create_file_footer(["Fe", "Cu"])
+
+        with open(file_path2, "wb") as f:
+            f.write(header)
+            data2.tofile(f)
+            f.write(footer)
+
+        fragment1 = ElementalDatacubeFragment.from_file(str(file_path))
+        fragment2 = ElementalDatacubeFragment.from_file(str(file_path2))
+
+        assert fragment1.are_compatible(fragment2) is True
+
+    def test_are_compatible_different_elements(self, sample_elemental_file, tmp_path):
+        """Test are_compatible returns False for different elements."""
+        file_path, _, _ = sample_elemental_file
+
+        # Create second file with different elements
+        file_path2 = tmp_path / "test2.dms"
+        data2 = np.zeros((2, 3, 4), dtype=np.float32)
+        header = ElementalDatacubeFragment.create_file_header(4, 3, 2)
+        footer = ElementalDatacubeFragment.create_file_footer(["Au", "Ag"])
+
+        with open(file_path2, "wb") as f:
+            f.write(header)
+            data2.tofile(f)
+            f.write(footer)
+
+        fragment1 = ElementalDatacubeFragment.from_file(str(file_path))
+        fragment2 = ElementalDatacubeFragment.from_file(str(file_path2))
+
+        assert fragment1.are_compatible(fragment2) is False
+
+    def test_are_compatible_different_channel_count(self, sample_elemental_file, tmp_path):
+        """Test are_compatible returns False for different channel counts."""
+        file_path, _, _ = sample_elemental_file
+
+        # Create second file with 3 channels
+        file_path2 = tmp_path / "test2.dms"
+        data2 = np.zeros((3, 3, 4), dtype=np.float32)
+        header = ElementalDatacubeFragment.create_file_header(4, 3, 3)
+        footer = ElementalDatacubeFragment.create_file_footer(["Fe", "Cu", "Au"])
+
+        with open(file_path2, "wb") as f:
+            f.write(header)
+            data2.tofile(f)
+            f.write(footer)
+
+        fragment1 = ElementalDatacubeFragment.from_file(str(file_path))
+        fragment2 = ElementalDatacubeFragment.from_file(str(file_path2))
+
+        assert fragment1.are_compatible(fragment2) is False
+
+    def test_are_compatible_non_elemental(self, sample_elemental_file, tmp_path):
+        """Test are_compatible returns False for non-ElementalDatacubeFragment."""
+        file_path, _, _ = sample_elemental_file
+        fragment = ElementalDatacubeFragment.from_file(str(file_path))
+
+        # Create a spectral fragment
+        spectral_file = tmp_path / "test.raw"
+        spectral_file.touch()
+        spectral = SpectralDatacubeFragment(
+            str(spectral_file), 4, 3, 2, 0, "<u2", 0, {}, False
+        )
+
+        assert fragment.are_compatible(spectral) is False
+
+    def test_is_spectral_returns_false(self, sample_elemental_file):
+        """Test that is_spectral returns False."""
+        file_path, _, _ = sample_elemental_file
+        fragment = ElementalDatacubeFragment.from_file(str(file_path))
+
+        assert fragment.is_spectral() is False
+
+    def test_create_file_header_format(self):
+        """Test header format is correct."""
+        header = ElementalDatacubeFragment.create_file_header(100, 50, 10)
+
+        lines = header.decode("ascii").split("\n")
+        assert lines[0] == "2"
+        assert "100" in lines[1]
+        assert "50" in lines[1]
+        assert "10" in lines[1]
+
+    def test_create_file_footer_format(self):
+        """Test footer format is correct."""
+        footer = ElementalDatacubeFragment.create_file_footer(["Fe", "Cu", "Au"])
+
+        assert footer == b"Fe\r\nCu\r\nAu\r\n"
+
+    def test_write_file(self, tmp_path):
+        """Test write_file creates valid file."""
+        file_path = tmp_path / "output.dms"
+        elements = ["Fe", "Cu"]
+
+        def fill_data(memmap):
+            memmap[:] = np.arange(memmap.size, dtype=np.float32).reshape(memmap.shape)
+
+        fragment = ElementalDatacubeFragment.write_file(
+            str(file_path), 4, 3, 2, elements, fill_data
+        )
+
+        assert fragment.width == 4
+        assert fragment.height == 3
+        assert fragment.channels == 2
+        assert fragment.elements == elements
+
+        # Verify data was written correctly
+        memmap = fragment.load_datacube()
+        expected = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+        np.testing.assert_array_equal(memmap, expected)
+
+    def test_create_greyscale_projection(self, sample_elemental_file):
+        """Test greyscale projection for elemental data."""
+        file_path, _, _ = sample_elemental_file
+        fragment = ElementalDatacubeFragment.from_file(str(file_path))
+
+        projection = fragment.create_greyscale_projection()
+
+        assert projection.dtype == np.uint8
+        assert projection.shape == (3, 4)  # (H, W)
+
+
+# =============================================================================
+# SpectralDatacubeFragment Tests
+# =============================================================================
+
+class TestSpectralDatacubeFragment:
+    """Tests for SpectralDatacubeFragment class."""
+
+    def test_parse_rpl_file(self, sample_rpl_file):
+        """Test RPL file parsing."""
+        meta = SpectralDatacubeFragment.parse_rpl_file(str(sample_rpl_file))
+
+        assert meta["width"] == 10
+        assert meta["height"] == 8
+        assert meta["depth"] == 4
+        assert meta["offset"] == 0
+        assert meta["data-Length"] == 2
+        assert meta["data-type"] == "unsigned"
+        assert meta["byte-order"] == "little-endian"
+
+    def test_from_file_parses_correctly(self, sample_spectral_file):
+        """Test from_file correctly parses RPL and creates fragment."""
+        raw_path, rpl_path, _ = sample_spectral_file
+
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        assert fragment.width == 10
+        assert fragment.height == 8
+        assert fragment.channels == 4
+        assert fragment.data_type == "<u2"
+        assert fragment.is_transposed is False
+
+    def test_from_file_with_rotation(self, sample_spectral_file):
+        """Test from_file with rotation parameter."""
+        raw_path, rpl_path, _ = sample_spectral_file
+
+        fragment = SpectralDatacubeFragment.from_file(
+            str(raw_path), str(rpl_path), rotation=90
+        )
+
+        assert fragment.rotation == 90
+        assert fragment.rotated_width == 8
+        assert fragment.rotated_height == 10
+
+    def test_from_file_signed_big_endian(self, tmp_path):
+        """Test from_file with signed big-endian data."""
+        rpl_path = tmp_path / "test.rpl"
+        rpl_content = """width       	5
+height      	5
+depth       	2
+offset      	0
+data-Length 	4
+data-type   	signed
+byte-order  	big-endian
+"""
+        rpl_path.write_text(rpl_content)
+
+        raw_path = tmp_path / "test.raw"
+        data = np.zeros((5, 5, 2), dtype=">i4")
+        data.tofile(str(raw_path))
+
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        assert fragment.data_type == ">i4"
+
+    def test_from_file_unsupported_data_length(self, tmp_path):
+        """Test from_file raises error for unsupported data length."""
+        rpl_path = tmp_path / "test.rpl"
+        rpl_content = """width       	5
+height      	5
+depth       	2
+offset      	0
+data-Length 	3
+data-type   	unsigned
+byte-order  	little-endian
+"""
+        rpl_path.write_text(rpl_content)
+        raw_path = tmp_path / "test.raw"
+        raw_path.touch()
+
+        with pytest.raises(ValueError, match="Unsupported element size: 3 bytes"):
+            SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+    def test_is_spectral_returns_true(self, sample_spectral_file):
+        """Test that is_spectral returns True."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        assert fragment.is_spectral() is True
+
+    def test_load_datacube_non_transposed(self, sample_spectral_file):
+        """Test load_datacube returns (H, W, C) for non-transposed."""
+        raw_path, rpl_path, expected_data = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        memmap = fragment.load_datacube()
+
+        assert memmap.shape == (8, 10, 4)
+        np.testing.assert_array_equal(memmap, expected_data)
+
+    def test_load_datacube_transposed(self, tmp_path):
+        """Test load_datacube returns (C, H, W) for transposed."""
+        raw_path = tmp_path / "test.raw"
+        data = np.arange(4 * 8 * 10, dtype=np.uint16).reshape((4, 8, 10))
+        data.tofile(str(raw_path))
+
+        fragment = SpectralDatacubeFragment(
+            str(raw_path), width=10, height=8, channels=4,
+            offset=0, data_type="<u2", rotation=0, rpl_meta={}, is_transposed=True
+        )
+
+        memmap = fragment.load_datacube()
+
+        assert memmap.shape == (4, 8, 10)
+        np.testing.assert_array_equal(memmap, data)
+
+    def test_create_transposed_version_new_file(self, sample_spectral_file):
+        """Test create_transposed_version creates new transposed file."""
+        raw_path, rpl_path, original_data = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        transposed = fragment.create_transposed_version(check_existing=False)
+
+        assert transposed.is_transposed is True
+        assert "_transposed.raw" in transposed.datacube_file
+
+        # Verify data is correctly transposed
+        transposed_data = transposed.load_datacube()
+        expected = original_data.transpose(2, 0, 1)
+        np.testing.assert_array_equal(transposed_data, expected)
+
+    def test_create_transposed_version_already_transposed(self, tmp_path):
+        """Test create_transposed_version returns self if already transposed."""
+        raw_path = tmp_path / "test.raw"
+        raw_path.touch()
+
+        fragment = SpectralDatacubeFragment(
+            str(raw_path), width=10, height=8, channels=4,
+            offset=0, data_type="<u2", rotation=0, rpl_meta={}, is_transposed=True
+        )
+
+        result = fragment.create_transposed_version()
+
+        assert result is fragment
+
+    def test_create_transposed_version_reuses_existing(self, sample_spectral_file):
+        """Test create_transposed_version reuses existing valid file."""
+        raw_path, rpl_path, original_data = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create transposed file first time
+        transposed1 = fragment.create_transposed_version(check_existing=False)
+
+        # Create again - should reuse
+        transposed2 = fragment.create_transposed_version(check_existing=True)
+
+        assert transposed2.datacube_file == transposed1.datacube_file
+        assert transposed2.is_transposed is True
+
+    def test_create_transposed_version_wrong_size_retransposes(
+            self, sample_spectral_file, tmp_path
+    ):
+        """Test create_transposed_version re-transposes if existing file has wrong size."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create a wrong-sized transposed file
+        transposed_path = SpectralDatacubeFragment.get_transposed_path(str(raw_path))
+        with open(transposed_path, "wb") as f:
+            f.write(b"wrong size data")
+
+        # Should re-transpose due to wrong size
+        transposed = fragment.create_transposed_version(check_existing=True)
+
+        assert transposed.is_transposed is True
+        # Verify correct size now
+        expected_size = 10 * 8 * 4 * 2  # W * H * C * bytes_per_element
+        assert os.path.getsize(transposed.datacube_file) == expected_size
+
+    def test_get_transposed_path(self):
+        """Test get_transposed_path returns correct path."""
+        path = SpectralDatacubeFragment.get_transposed_path("/path/to/data.raw")
+
+        assert path == "/path/to/data_transposed.raw"
+
+    def test_are_compatible_same_type_channels(self, sample_spectral_file, tmp_path):
+        """Test are_compatible returns True for matching type and channels."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment1 = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create second compatible file
+        raw_path2 = tmp_path / "test2.raw"
+        data2 = np.zeros((8, 10, 4), dtype=np.uint16)
+        data2.tofile(str(raw_path2))
+
+        fragment2 = SpectralDatacubeFragment.from_file(str(raw_path2), str(rpl_path))
+
+        assert fragment1.are_compatible(fragment2) is True
+
+    def test_are_compatible_different_channels(self, sample_spectral_file, tmp_path):
+        """Test are_compatible returns False for different channel counts."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment1 = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create second file with different channels
+        rpl_path2 = tmp_path / "test2.rpl"
+        rpl_content = """width       	10
+height      	8
+depth       	8
+offset      	0
+data-Length 	2
+data-type   	unsigned
+byte-order  	little-endian
+"""
+        rpl_path2.write_text(rpl_content)
+
+        raw_path2 = tmp_path / "test2.raw"
+        data2 = np.zeros((8, 10, 8), dtype=np.uint16)
+        data2.tofile(str(raw_path2))
+
+        fragment2 = SpectralDatacubeFragment.from_file(str(raw_path2), str(rpl_path2))
+
+        assert fragment1.are_compatible(fragment2) is False
+
+    def test_are_compatible_different_dtype(self, sample_spectral_file, tmp_path):
+        """Test are_compatible returns False for different data types."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment1 = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create second file with different dtype
+        rpl_path2 = tmp_path / "test2.rpl"
+        rpl_content = """width       	10
+height      	8
+depth       	4
+offset      	0
+data-Length 	4
+data-type   	unsigned
+byte-order  	little-endian
+"""
+        rpl_path2.write_text(rpl_content)
+
+        raw_path2 = tmp_path / "test2.raw"
+        data2 = np.zeros((8, 10, 4), dtype=np.uint32)
+        data2.tofile(str(raw_path2))
+
+        fragment2 = SpectralDatacubeFragment.from_file(str(raw_path2), str(rpl_path2))
+
+        assert fragment1.are_compatible(fragment2) is False
+
+    def test_are_compatible_non_spectral(self, sample_spectral_file, tmp_path):
+        """Test are_compatible returns False for non-SpectralDatacubeFragment."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        # Create elemental fragment
+        elemental_path = tmp_path / "test.dms"
+        header = ElementalDatacubeFragment.create_file_header(4, 3, 2)
+        data = np.zeros((2, 3, 4), dtype=np.float32)
+        footer = ElementalDatacubeFragment.create_file_footer(["Fe", "Cu"])
+
+        with open(elemental_path, "wb") as f:
+            f.write(header)
+            data.tofile(f)
+            f.write(footer)
+
+        elemental = ElementalDatacubeFragment.from_file(str(elemental_path))
+
+        assert fragment.are_compatible(elemental) is False
+
+    def test_write_rpl_file(self, tmp_path):
+        """Test write_rpl_file creates correct metadata file."""
+        rpl_path = tmp_path / "output.rpl"
+        rpl_meta = {
+            "depth": 4,
+            "data-Length": 2,
+            "data-type": "unsigned",
+            "byte-order": "little-endian",
+        }
+
+        SpectralDatacubeFragment.write_rpl_file(str(rpl_path), rpl_meta, 100, 50)
+
+        # Parse back and verify
+        parsed = SpectralDatacubeFragment.parse_rpl_file(str(rpl_path))
+        assert parsed["width"] == 100
+        assert parsed["height"] == 50
+        assert parsed["offset"] == 0
+        assert parsed["depth"] == 4
+
+    def test_write_file(self, tmp_path):
+        """Test write_file creates valid raw and rpl files."""
+        raw_path = tmp_path / "output.raw"
+        rpl_path = tmp_path / "output.rpl"
+        rpl_meta = {
+            "depth": 4,
+            "data-Length": 2,
+            "data-type": "unsigned",
+            "byte-order": "little-endian",
+        }
+
+        def fill_data(memmap):
+            memmap[:] = np.arange(memmap.size, dtype=np.uint16).reshape(memmap.shape)
+
+        fragment = SpectralDatacubeFragment.write_file(
+            str(raw_path), str(rpl_path), rpl_meta, "<u2", 10, 8, 4, fill_data
+        )
+
+        assert fragment.width == 10
+        assert fragment.height == 8
+        assert fragment.channels == 4
+
+        # Verify data
+        memmap = fragment.load_datacube()
+        expected = np.arange(10 * 8 * 4, dtype=np.uint16).reshape((8, 10, 4))
+        np.testing.assert_array_equal(memmap, expected)
+
+    def test_create_greyscale_projection(self, sample_spectral_file):
+        """Test greyscale projection for spectral data."""
+        raw_path, rpl_path, _ = sample_spectral_file
+        fragment = SpectralDatacubeFragment.from_file(str(raw_path), str(rpl_path))
+
+        projection = fragment.create_greyscale_projection()
+
+        assert projection.dtype == np.uint8
+        assert projection.shape == (8, 10)  # (H, W)

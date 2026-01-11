@@ -33,7 +33,6 @@ from xrf_explorer.server.stitcher.transpose_state import (
 
 LOG: Logger = getLogger(__name__)
 
-
 class FragmentData:
     """Represents fragment data and its associated properties.
 
@@ -365,20 +364,20 @@ class StitchData:
         self._scaling = down_scaling
 
         # Intensity scales
-        intensity_scales = data.get("intensity_scales")
-        if not intensity_scales or not isinstance(intensity_scales, list):
-            raise ValueError("intensity_scales must be a non-empty float list")
-
-        intensity_scales_arr: list[float] = []
-        for x in intensity_scales:
-            if isinstance(x, bool):
-                raise ValueError("intensity_scales must contain only numbers")
-            if isinstance(x, (int, float)):
-                intensity_scales.append(float(x))
-            else:
-                raise ValueError("intensity_scales must contain only numbers")
-
-        self._intensity_scales = intensity_scales_arr    
+        # intensity_scales = data.get("intensity_scales")
+        # if not intensity_scales or not isinstance(intensity_scales, list):
+        #     raise ValueError("intensity_scales must be a non-empty float list")
+        #
+        # # intensity_scales_arr: list[float] = []
+        # # for x in intensity_scales:
+        # #     if isinstance(x, bool):
+        # #         raise ValueError("intensity_scales must contain only numbers")
+        # #     if isinstance(x, (int, float)):
+        # #         intensity_scales.append(float(x))
+        # #     else:
+        # #         raise ValueError("intensity_scales must contain only numbers")
+        # #
+        # # self._intensity_scales = intensity_scales_arr
         
         # Fragments
         fragments = data.get("fragments")
@@ -704,7 +703,6 @@ def load_greyscale_from_file(name: str, data_source: str):
     if greyscale_fragment is None:
         raise FileNotFoundError(f"Failed to load greyscale image: {path}")
     return greyscale_fragment
-
 
 def get_fragment_greyscales(data: StitchData) -> List[np.ndarray]:
     """
