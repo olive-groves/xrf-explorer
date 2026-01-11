@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from enum import Enum
+
 import cv2 as cv
 import numpy as np
 from scipy.optimize import minimize_scalar
 
+class TransposeMode(Enum):
+    HWC_TO_CHW = "hwc_to_chw"  # (H, W, C) -> (C, H, W)
+    CHW_TO_HWC = "chw_to_hwc"  # (C, H, W) -> (H, W, C)
 
 class WarpSelection:
     """
@@ -220,6 +225,7 @@ def transpose_spectral_datacube(
     input_shape: tuple[int, int, int],
     output_shape: tuple[int, int, int],
     dtype: str,
+    mode: TransposeMode,
     chunk_size: int = 100,
 ) -> None:
     """
@@ -240,7 +246,7 @@ def transpose_spectral_datacube(
     dim0, dim1, dim2 = input_shape
 
     # Case 1: (H, W, C) -> (C, H, W) - Chunk along height
-    if input_shape[2] == output_shape[0]:
+    if mode == TransposeMode.HWC_TO_CHW:
         for i in range(0, dim0, chunk_size):
             end_i = min(i + chunk_size, dim0)
 
@@ -257,7 +263,7 @@ def transpose_spectral_datacube(
                 output_mmap.flush()
 
     # Case 2: (C, H, W) -> (H, W, C) - Chunk along channels
-    elif input_shape[0] == output_shape[2]:
+    elif mode == TransposeMode.CHW_TO_HWC:
         for i in range(0, dim0, chunk_size):
             end_i = min(i + chunk_size, dim0)
 
