@@ -116,9 +116,9 @@ const crosses = computed(() => {
         <text
           v-for="c in crosses"
           :key="'label-' + c.id"
-          :x="(c.x1 + c.x2) / 2 + 5"
-          :y="-((c.y1 + c.y2) / 2 - 10)"
-          font-size="12"
+          :x="Math.min((c.x1 + c.x2) / 2 + 5 * Math.exp(props.zoom), (c.x1 + c.x2) / 2 + 5)"
+          :y="Math.max(-(c.y1 + c.y2) / 2 - 10 * Math.exp(props.zoom), -(c.y1 + c.y2) / 2 - 15)"
+          :font-size-adjust="Math.min(1 * Math.exp(props.zoom), 3)"
           fill="black"
           dominant-baseline="middle"
         >
