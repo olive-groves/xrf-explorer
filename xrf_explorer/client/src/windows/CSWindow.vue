@@ -57,14 +57,14 @@ const {
           :variant="segmentationMode === 'complete' ? 'default' : 'ghost'"
           @click="segmentationMode = 'complete'"
         >
-          Complete Painting
+          All elements
         </Button>
         <Button
           class="flex-1"
           :variant="segmentationMode === 'elements' ? 'default' : 'ghost'"
           @click="segmentationMode = 'elements'"
         >
-          Elements
+          Selected elements
         </Button>
       </div>
 
