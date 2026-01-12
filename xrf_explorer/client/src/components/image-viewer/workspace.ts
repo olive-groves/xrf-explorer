@@ -104,7 +104,7 @@ async function createContextualLayer(image: ContextualImage) {
  * @returns The url to the image represented by the contextual image.
  */
 function getContextualImageUrl(image: ContextualImage): string {
-  return `${config.api.endpoint}/${datasource.value}/image/${image.name}?ts=${Date.now()}`;
+  return `${config.api.endpoint}/${datasource.value}/image/${image.name}`;
 }
 
 /**

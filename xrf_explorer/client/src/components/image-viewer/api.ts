@@ -18,7 +18,7 @@ export type Size = {
   height: number;
 };
 
-//const sizeCache: { [key: string]: Size } = {};
+const sizeCache: { [key: string]: Size } = {};
 
 /**
  * Gets the size of the base/target image.
@@ -34,7 +34,10 @@ export async function getTargetSize(): Promise<Size> {
  * @returns The size of the 2D object in pixels.
  */
 async function extract2DSize(url: string): Promise<Size> {
-  const size: Size = (await (await fetch(url)).json()) as Size;
+  if (!(url in sizeCache)) {
+    sizeCache[url] = (await (await fetch(url)).json()) as Size;
+  }
+  const size: Size = sizeCache[url];
   size.width = parseInt(size.width as unknown as string);
   size.height = parseInt(size.height as unknown as string);
   return size;
