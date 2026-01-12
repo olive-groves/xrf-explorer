@@ -363,7 +363,7 @@ class StitchData:
 
         self._scaling = down_scaling
 
-        if (is_stitching):
+        if is_stitching:
             # Intensity scales
             intensity_scales = data.get("intensity_scales")
             if not intensity_scales or not isinstance(intensity_scales, list):
@@ -374,7 +374,7 @@ class StitchData:
                 if isinstance(x, bool):
                     raise ValueError("intensity_scales must contain only numbers")
                 if isinstance(x, (int, float)):
-                    intensity_scales.append(float(x))
+                    intensity_scales_arr.append(float(x))
                 else:
                     raise ValueError("intensity_scales must contain only numbers")
 
