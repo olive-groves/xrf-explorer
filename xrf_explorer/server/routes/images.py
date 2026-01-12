@@ -14,6 +14,7 @@ from xrf_explorer.server.file_system.workspace import (
 )
 
 from xrf_explorer.server.image_register import load_points_dict
+from xrf_explorer.server.database.authnew import userCanAccessProject
 
 LOG: Logger = getLogger(__name__)
 
@@ -21,6 +22,7 @@ LOG: Logger = getLogger(__name__)
 
 
 @app.route("/api/<data_source>/image/<name>")
+@userCanAccessProject
 def contextual_image(data_source: str, name: str):
     """
     Get a contextual image.
@@ -57,6 +59,7 @@ def contextual_image(data_source: str, name: str):
 
 
 @app.route("/api/<data_source>/image/<name>/size")
+@userCanAccessProject
 def contextual_image_size(data_source: str, name: str):
     """
     Get the size of a contextual image.
@@ -81,6 +84,7 @@ def contextual_image_size(data_source: str, name: str):
 
 
 @app.route("/api/<data_source>/image/<name>/recipe")
+@userCanAccessProject
 def contextual_image_recipe(data_source: str, name: str):
     """
     Get the registering recipe of a contextual image.

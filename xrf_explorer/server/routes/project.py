@@ -18,8 +18,8 @@ from xrf_explorer.server.routes.helper import validate_config
 
 LOG: Logger = getLogger(__name__)
 
-
 @app.route("/api/data_sources")
+@login_required
 def list_accessible_data_sources():
     """
     Return a list of all available data sources stored in the data folder on the remote server as specified in the
@@ -29,8 +29,8 @@ def list_accessible_data_sources():
     """
     return json.dumps(get_data_sources_names())
 
-
 @app.route("/api/<data_source>/files")
+@userCanAccessProject
 def datasource_files(data_source: str):
     """
     Return a list of all available files for a data source.
@@ -180,6 +180,9 @@ def delete_data_source(data_source: str):
     return jsonify({"dataSourceDir": data_source})
 
 @app.route("/api/<data_source>/delete_files", methods=["DELETE", "POST"])
+@login_required
+@editor_required
+@userCanAccessProject
 def delete_multiple_files(data_source: str):
     """
     Delete multiple files from a data source directory.

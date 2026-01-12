@@ -28,10 +28,13 @@ from xrf_explorer.server.image_to_cube_selection import CubeType
 from xrf_explorer.server.file_system import get_config
 from xrf_explorer.server.file_system.workspace import get_base_image_name
 from xrf_explorer.server.routes.helper import validate_config, encode_selection
+from xrf_explorer.server.database.authnew import userCanAccessProject
+
 
 LOG: Logger = getLogger(__name__)
 
 @app.route('/api/<data_source>/cs/clusters/<int:k>/<uses_selection>', methods=['POST'])
+@userCanAccessProject
 def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
     """
     Gets the colors corresponding to the image-wide/element-wise color clusters, and caches them as well as the
@@ -135,6 +138,7 @@ def get_color_clusters(data_source: str, k: int, uses_selection: str = "false"):
     return json.dumps(colors)
 
 @app.route('/api/<data_source>/cs/recommend-k', methods=['POST'])
+@userCanAccessProject
 def recommend_k(data_source: str):
     """
     Computes the recommended number of clusters for the selected region.
@@ -179,6 +183,7 @@ def recommend_k(data_source: str):
     return json.dumps({"recommended_k": result})
 
 @app.route('/api/<data_source>/cs/bitmask', methods=['GET'])
+@userCanAccessProject
 def get_color_cluster_bitmask(data_source: str):
     """
     Returns the last generated bitmask for color segmentation

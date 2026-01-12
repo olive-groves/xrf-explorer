@@ -29,11 +29,15 @@ from xrf_explorer.server.file_system.workspace import (
 from xrf_explorer.server.image_register import load_points_dict
 from xrf_explorer.server.image_to_cube_selection import CubeType
 from xrf_explorer.server.routes.helper import encode_selection
+from xrf_explorer.server.database.authnew import userCanAccessProject
+
+
 
 LOG: Logger = getLogger(__name__)
 
 
 @app.route("/api/<data_source>/data/size")
+@userCanAccessProject
 def data_cube_size(data_source: str):
     """
     Get the size of the data cubes.
@@ -54,6 +58,7 @@ def data_cube_size(data_source: str):
 
 
 @app.route("/api/<data_source>/data/recipe")
+@userCanAccessProject
 def data_cube_recipe(data_source: str):
     """
     Get the registering recipe for the data cubes.
@@ -76,6 +81,7 @@ def data_cube_recipe(data_source: str):
 
 
 @app.route("/api/<data_source>/data/elements/names")
+@userCanAccessProject
 def list_element_names(data_source: str):
     """
     Get the short names of the elements stored in the elemental data cube.
@@ -87,6 +93,7 @@ def list_element_names(data_source: str):
 
 
 @app.route("/api/<data_source>/data/elements/map/<int:channel>")
+@userCanAccessProject
 def elemental_map(data_source: str, channel: int):
     """
     Get an elemental map.
@@ -118,6 +125,7 @@ def elemental_map(data_source: str, channel: int):
 
 
 @app.route("/api/<data_source>/data/convert")
+@userCanAccessProject
 def convert_elemental_cube(data_source: str):
     """
     Converts all elemental data cubes of a data source to .dms format.
@@ -143,6 +151,7 @@ def convert_elemental_cube(data_source: str):
 
 
 @app.route("/api/<data_source>/element_averages", methods=["POST", "GET"])
+@userCanAccessProject
 def list_element_averages(data_source: str):
     """
     Get the names and averages of the elements present in the painting.
@@ -159,6 +168,7 @@ def list_element_averages(data_source: str):
 
 
 @app.route("/api/<data_source>/element_averages_selection", methods=["POST"])
+@userCanAccessProject
 def list_element_averages_selection(data_source: str):
     """
     Get the names and averages of the elements present in a rectangular selection of the painting.

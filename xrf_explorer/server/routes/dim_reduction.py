@@ -10,11 +10,14 @@ from xrf_explorer.server.dim_reduction import (
     create_embedding_image,
     get_image_of_indices_to_embedding
 )
+from xrf_explorer.server.database.authnew import userCanAccessProject
+
 
 LOG: Logger = getLogger(__name__)
 
 
 @app.route("/api/<data_source>/dr/embedding/<int:element>/<int:threshold>", methods=['POST'])
+@userCanAccessProject
 def get_dr_embedding(data_source: str, element: int, threshold: int):
     """
     Generate the dimensionality reduction embedding of an element, given a threshold.
@@ -39,6 +42,7 @@ def get_dr_embedding(data_source: str, element: int, threshold: int):
 
 
 @app.route("/api/<data_source>/dr/overlay/<overlay_type>")
+@userCanAccessProject
 def get_dr_overlay(data_source: str, overlay_type: str):
     """
     Generate the dimensionality reduction overlay with a given type.
@@ -59,6 +63,7 @@ def get_dr_overlay(data_source: str, overlay_type: str):
 
 
 @app.route("/api/<data_source>/dr/embedding/mapping")
+@userCanAccessProject
 def get_dr_embedding_mapping(data_source: str):
     """
     Creates the image for polygon selection that decodes to which points in the embedding the pixels of the elemental

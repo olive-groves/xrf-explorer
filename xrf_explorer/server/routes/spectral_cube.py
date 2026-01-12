@@ -20,11 +20,12 @@ from xrf_explorer.server.file_system.workspace import get_raw_rpl_paths
 from xrf_explorer.server.image_to_cube_selection import CubeType
 from xrf_explorer.server.routes.helper import encode_selection
 from xrf_explorer.server.spectra import get_average_global, get_theoretical_data, get_average_selection, contains_nan
-
+from xrf_explorer.server.database.authnew import userCanAccessProject
 LOG: Logger = getLogger(__name__)
 
 
 @app.route("/api/<data_source>/bin_raw/", methods=["POST"])
+@userCanAccessProject
 def bin_raw_data(data_source: str):
     """
     Bins the raw data files channels to compress the file.
@@ -58,6 +59,7 @@ def bin_raw_data(data_source: str):
 
 
 @app.route("/api/<data_source>/get_offset", methods=["GET"])
+@userCanAccessProject
 def get_offset(data_source: str):
     """
     Returns the depth offset energy of the raw data, that is the energy level of channel 0.
@@ -76,6 +78,7 @@ def get_offset(data_source: str):
 
 
 @app.route('/api/<data_source>/get_average_data', methods=['GET'])
+@userCanAccessProject
 def get_average_data(data_source: str):
     """
     Computes the average of the raw data for each bin of channels in range [low, high] on the whole painting.
@@ -94,6 +97,7 @@ def get_average_data(data_source: str):
 
 
 @app.route('/api/<data_source>/get_element_spectrum/<element>/<excitation>', methods=['GET'])
+@userCanAccessProject
 def get_element_spectra(data_source: str, element: str, excitation: float):
     """
     Compute the theoretical spectrum in channel range [low, high] for an element with a bin size, as well as the
@@ -126,6 +130,7 @@ def get_element_spectra(data_source: str, element: str, excitation: float):
 
 
 @app.route('/api/<data_source>/get_selection_spectrum', methods=['POST'])
+@userCanAccessProject
 def get_selection_spectra(data_source: str):
     """
     Get the average spectrum of the selected pixels of a rectangle selection.

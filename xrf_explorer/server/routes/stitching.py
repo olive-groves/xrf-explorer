@@ -18,9 +18,13 @@ from xrf_explorer.server.stitcher import (
     get_greyscale_path
 )
 
+from xrf_explorer.server.database.authnew import userCanAccessProject
+
+
 LOG: Logger = getLogger(__name__)
 
 @app.route("/api/<data_source>/stitch_datacubes/get_stitch_info", methods=["POST"])
+@userCanAccessProject
 def get_stitching_info(data_source: str):
     """
     Provides the optimal scalar for stitching and a predicted file size for scaling predictions based on the provided JSON configuration.
@@ -65,6 +69,7 @@ def get_stitching_info(data_source: str):
         return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
 
 @app.route("/api/<data_source>/stitch_datacubes/generate_partial_greyscales", methods=["POST"])
+@userCanAccessProject
 def generate_partial_greyscales(data_source: str):
     """
     Stitches datacube fragments or greyscale images based on the provided JSON configuration.
@@ -104,6 +109,7 @@ def generate_partial_greyscales(data_source: str):
         return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
 
 @app.route("/api/<data_source>/stitch_datacubes/greyscale_image/<fragment_name>", methods=["GET"])
+@userCanAccessProject
 def get_partial_greyscale(data_source: str, fragment_name: str):
     """
     Retrieves and serves a partial fragment greyscale image as a response. The image
@@ -121,6 +127,7 @@ def get_partial_greyscale(data_source: str, fragment_name: str):
     return send_file(abspath(path), mimetype='image/png')
 
 @app.route("/api/<data_source>/stitch_datacubes/stitched_greyscale/", methods=["GET"])
+@userCanAccessProject
 def get_stitched_greyscale(data_source: str):
     """
     Retrieves and serves a stitched greyscale preview image as a response. The image
@@ -138,6 +145,7 @@ def get_stitched_greyscale(data_source: str):
 
 
 @app.route("/api/<data_source>/stitch_datacubes/stitch", methods=["POST"])
+@userCanAccessProject
 def stitching(data_source: str):
     """
     Stitches datacube fragments or greyscale images based on the provided JSON configuration.
@@ -185,6 +193,7 @@ def stitching(data_source: str):
 
 
 @app.route("/api/<data_source>/stitch_datacubes/pre_transpose_cubes", methods=["POST"])
+@userCanAccessProject
 def pre_transpose_cubes_endpoint(data_source: str):
     """
     Pre-transposes spectral datacubes in the background to speed up later stitching.
@@ -235,6 +244,7 @@ def pre_transpose_cubes_endpoint(data_source: str):
 
 
 @app.route("/api/<data_source>/stitch_datacubes/transpose_status", methods=["GET"])
+@userCanAccessProject
 def transpose_status_endpoint(data_source: str):
     """
     Returns the current status of pre-transpose operations for a data source.
