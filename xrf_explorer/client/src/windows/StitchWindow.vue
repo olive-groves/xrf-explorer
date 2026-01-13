@@ -25,8 +25,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <window title="stitching" location="right">
+  <Window title="Stitching" location="right">
     <MappingWindow v-if="mode == 'edit'"></MappingWindow>
     <PreviewWindow v-if="mode == 'preview'"></PreviewWindow>
-  </window>
+  </Window>
 </template>
