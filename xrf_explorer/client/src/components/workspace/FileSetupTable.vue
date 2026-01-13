@@ -42,45 +42,57 @@ const _lastMode = ref<string | null>(null);
  * @param mode What mode to initialize: full | partial.
  */
 function initMode(mode: string) {
-  if (mode === "partial") {
-    if (includeSpectral.value) {
-      model.value.partialSpectralCubes = model.value.partialSpectralCubes.slice(0, 2);
-      while (model.value.partialSpectralCubes.length < 2)
-        model.value.partialSpectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
-    } else model.value.partialSpectralCubes = [];
+  const partial = mode === "partial";
+  UploadingPartialData.value = mode as "full" | "partial";
+  model.value.stitchingMode = mode as "full" | "partial";
+  _lastMode.value = mode;
 
-    if (includeElemental.value) {
-      model.value.partialElementalCubes = model.value.partialElementalCubes.slice(0, 2);
-      while (model.value.partialElementalCubes.length < 2)
-        model.value.partialElementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
-    } else model.value.partialElementalCubes = [];
+  const minCubes = partial ? 2 : 1;
 
-    model.value.spectralCubes = [];
-    model.value.elementalCubes = [];
-    model.value.stitchingMode = "partial";
+  // --- Spectral ---
+  if (includeSpectral.value) {
+    const targetLength = Math.max(
+      minCubes,
+      includeElemental.value ? (partial ? model.value.partialElementalCubes.length : model.value.elementalCubes.length) : minCubes
+    );
+    const array = partial ? model.value.partialSpectralCubes : model.value.spectralCubes;
+    while (array.length < targetLength) addElementToWorkspace("spectral_cube");
   } else {
-    if (includeSpectral.value) {
-      model.value.spectralCubes = model.value.spectralCubes.slice(0, 1);
-      if (model.value.spectralCubes.length === 0)
-        model.value.spectralCubes.push({ name: "", rawLocation: "", rplLocation: "", recipeLocation: "" });
-    } else model.value.spectralCubes = [];
-
-    if (includeElemental.value) {
-      model.value.elementalCubes = model.value.elementalCubes.slice(0, 1);
-      if (model.value.elementalCubes.length === 0)
-        model.value.elementalCubes.push({ name: "", dataLocation: "", recipeLocation: "" });
-    } else model.value.elementalCubes = [];
-
-    model.value.partialSpectralCubes = [];
-    model.value.partialElementalCubes = [];
-    model.value.stitchingMode = "full";
+    (partial ? model.value.partialSpectralCubes : model.value.spectralCubes).splice(0);
   }
 
-  _lastMode.value = mode;
+  // --- Elemental ---
+  if (includeElemental.value) {
+    const targetLength = Math.max(
+      minCubes,
+      includeSpectral.value ? (partial ? model.value.partialSpectralCubes.length : model.value.spectralCubes.length) : minCubes
+    );
+    const array = partial ? model.value.partialElementalCubes : model.value.elementalCubes;
+    while (array.length < targetLength) addElementToWorkspace("elemental_cube");
+  } else {
+    (partial ? model.value.partialElementalCubes : model.value.elementalCubes).splice(0);
+  }
+
+  // Clear opposite mode arrays
+  if (partial) {
+    model.value.spectralCubes = [];
+    model.value.elementalCubes = [];
+  } else {
+    model.value.partialSpectralCubes = [];
+    model.value.partialElementalCubes = [];
+  }
 }
 
 onMounted(() => {
-  const startMode = model.value.stitchingMode ?? UploadingPartialData.value ?? "full";
+  let startMode: "full" | "partial" = "full";
+
+  // Decide initial mode based on what cubes exist
+  if (model.value.partialSpectralCubes.length > 0 || model.value.partialElementalCubes.length > 0) {
+    startMode = "partial";
+  } else if (model.value.spectralCubes.length > 0 || model.value.elementalCubes.length > 0) {
+    startMode = "full";
+  }
+
   UploadingPartialData.value = startMode;
   initMode(startMode);
 });
@@ -119,54 +131,32 @@ function addDatacube() {
  * @param value Whether the datacube type is enabled.
  */
 function handleIncludeChange(type: "spectral" | "elemental", value: boolean) {
-  // Reset the array
-  arrayReset(type, value);
+  const partial = UploadingPartialData.value === "partial";
+  const array = type === "spectral" ? (partial ? model.value.partialSpectralCubes : model.value.spectralCubes)
+                                   : (partial ? model.value.partialElementalCubes : model.value.elementalCubes);
 
-  const otherLength =
-    type === "spectral"
-      ? UploadingPartialData.value === "partial"
-        ? model.value.partialElementalCubes.length
-        : model.value.elementalCubes.length
-      : UploadingPartialData.value === "partial"
-        ? model.value.partialSpectralCubes.length
-        : model.value.spectralCubes.length;
+  // Remove if deselected
+  if (!value) {
+    array.splice(0);
+    return;
+  }
 
-  const minCubes = UploadingPartialData.value === "partial" ? 2 : 1;
-  const targetLength = Math.max(otherLength, minCubes);
+  // Determine min placeholders
+  const minCubes = partial ? 2 : 1;
 
-  const arrayToFill =
-    type === "spectral"
-      ? UploadingPartialData.value === "partial"
-        ? model.value.partialSpectralCubes
-        : model.value.spectralCubes
-      : UploadingPartialData.value === "partial"
-        ? model.value.partialElementalCubes
-        : model.value.elementalCubes;
+  // Determine target length based on the other type
+  const otherArray = type === "spectral"
+    ? (partial ? model.value.partialElementalCubes : model.value.elementalCubes)
+    : (partial ? model.value.partialSpectralCubes : model.value.spectralCubes);
 
-  while (arrayToFill.length < targetLength) {
+  const targetLength = Math.max(minCubes, otherArray.length);
+
+  // Add placeholders to reach target length
+  while (array.length < targetLength) {
     addElementToWorkspace(type === "spectral" ? "spectral_cube" : "elemental_cube");
   }
 }
 
-/**
- * Resets the datacube array of that type of datacube is disabled.
- * @param type The type of the datacube: spectral | elemental.
- * @param value Whether the datacube type is enabled.
- */
-function arrayReset(type: "spectral" | "elemental", value: boolean) {
-  if (!value) {
-    if (type === "spectral")
-      (UploadingPartialData.value === "partial" ? model.value.partialSpectralCubes : model.value.spectralCubes).splice(
-        0,
-      );
-    else
-      (UploadingPartialData.value === "partial"
-        ? model.value.partialElementalCubes
-        : model.value.elementalCubes
-      ).splice(0);
-    return;
-  }
-}
 
 /**
  * Add a new empty datacube to the workspace.
