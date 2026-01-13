@@ -49,8 +49,6 @@ function onGrayOptimalScale(e: Event) {
   grayOptimalScale.value = factor || 1;
 }
 
-let grayLayerId: string | null = null;
-
 function getStitchedGreyscaleUrl() {
   if (!appState.workspace) return null;
   return `/api/${appState.workspace.name}/stitch_datacubes/stitched_greyscale/?v=${previewVersion.value}`;
@@ -149,7 +147,6 @@ async function loadGrayscaleLayer() {
     const oldLayer = grayLayer;
 
     grayLayer = newLayer;
-    grayLayerId = newId;
     grayLayer.uniform.iIndex.value = 0;
     grayViewportOffset.x = 0;
     grayViewportOffset.y = 0;
