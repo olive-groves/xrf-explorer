@@ -316,10 +316,12 @@ async function updateWorkspace() {
 async function generatePartialGreyscales() {
   const ds = workspace.value.name;
 
-  const isElemental =
-    workspace.value.partialElementalCubes && workspace.value.partialElementalCubes.length > 0;
+  const hasElemental = workspace.value.partialElementalCubes?.length > 0;
+  const hasSpectral = workspace.value.partialSpectralCubes?.length > 0;
 
-  const fragments = isElemental
+  if (!hasElemental && !hasSpectral) return; // nothing to do
+
+  const fragments = hasElemental
     ? workspace.value.partialElementalCubes.map(cube => ({
         datacube_file: cube.dataLocation,
       }))
@@ -328,10 +330,8 @@ async function generatePartialGreyscales() {
         rpl_file: cube.rplLocation,
       }));
 
-  if (fragments.length === 0) return;
-
   const payload = {
-    type: isElemental ? "elemental" : "spectral",
+    type: hasElemental ? "elemental" : "spectral",
     fragments,
   };
 
@@ -354,7 +354,7 @@ async function generatePartialGreyscales() {
   }
 
   /* Load generated greyscales in workspace */
-  const greys = isElemental
+  const greys = hasElemental
     ? workspace.value.partialElementalCubes.map(cube => ({
         imageLocation: cube.dataLocation,
         sourceCubeName: cube.name,

@@ -73,21 +73,31 @@ function dispatchPreview(info: PreviewInfo) {
   );
 }
 
-// Whenever mode changes fetch stitchinfo
+const isLoading = ref(false);
+
+// Whenever mode changes fetch stitchinfo, and show loading screen while generating greyscales
 watch(mode, async (newMode) => {
   window.dispatchEvent(new CustomEvent("stitchViewer:modeChanged", { detail: newMode }));
+
   if (newMode !== "preview") return;
+
+  isLoading.value = true; // show loading
+
   try {
     if (!lastPreviewInfo) {
       const raw = await fetchOptimalStitchInfo();
       if (!raw) return;
       lastPreviewInfo = normalizePreviewInfo(raw);
     }
+
     dispatchPreview(lastPreviewInfo);
   } catch (e) {
     console.warn("Failed to fetch stitch preview info", e);
+  } finally {
+    isLoading.value = false; // hide loading
   }
 });
+
 </script>
 
 <template>
@@ -102,9 +112,19 @@ watch(mode, async (newMode) => {
     </ToggleGroup>
 
     <!-- Viewer -->
-    <div class="flex-1 overflow-hidden">
+    <div class="flex-1 overflow-hidden relative">
       <StitchMappingViewer v-if="mode === 'edit'" class="size-full" />
       <StitchPreviewViewer v-else class="size-full" />
+
+      <div
+        v-if="isLoading"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      >
+        <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
+          <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span class="text-sm font-medium">generating greyscales</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>

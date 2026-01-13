@@ -367,7 +367,6 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
               <Input placeholder="Name" v-model:model-value="spectralArr[index - 1].name" />
               <FileSetupTableRow type="a raw" :options="rawFiles" v-model="spectralArr[index - 1].rawLocation" />
               <FileSetupTableRow
-                v-if="UploadingPartialData === 'full'"
                 type="an rpl"
                 :options="rplFiles"
                 v-model="spectralArr[index - 1].rplLocation"
