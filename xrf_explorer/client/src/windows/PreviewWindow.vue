@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { LabeledSlider } from "@/components/ui/slider";
-import { stitch } from '@/components/image-viewer/stitchHelper';
-import { windowState } from '@/components/ui/window/state';
+import { confirmStitching} from '@/components/image-viewer/stitchHelper';
 import { appState } from '@/lib/appState';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { saveWorkspaceDebounced } from '@/components/image-viewer/workspace';
@@ -165,21 +164,8 @@ function closeDialog() {
 }
 
 function confirmStitchingDialog() {
-  if (!appState.workspace) return;
-
-  if (includeElemental) {
-    stitch(false, "elemental", scalingFactor.value[0], grayscaleContrast.value);
-  }
-  
-  if (includeSpectral) {
-    stitch (false, "spectral", scalingFactor.value[0], grayscaleContrast.value);
-  }
-
-  appState.workspace.stitchingMode = 'full';
-  saveWorkspaceDebounced();
-
-  windowState["stitching"].opened = false;
-  windowState["stitching"].disabled = true;
+  closeDialog()
+  confirmStitching(includeSpectral.value, includeElemental.value, scalingFactor.value[0])
 }
 
 async function onModeChanged(e: Event) {

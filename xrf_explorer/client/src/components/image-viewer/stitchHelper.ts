@@ -1,6 +1,9 @@
 import { appState } from "@/lib/appState";
 import { canPreview, getPointsForGray, getRotation, hasBase, maxPoints, StitchPoint } from "./stitchPoints";
 import { toast } from "vue-sonner";
+import { ref } from "vue";
+import { saveWorkspaceDebounced } from "./workspace";
+import { windowState } from "../ui/window/state";
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
@@ -166,4 +169,55 @@ export async function fetchOptimalStitchInfo(): Promise<{
     optimalScaling: result.optimalScaling,
   };
 }
+
+//Wether we are busy with stitching
+export const stitchingInProgress = ref(false);
+
+/**
+ * Start stitching the selected cubes.
+ * @param includeSpectral - Whether to stitch spectral cubes
+ * @param includeElemental - Whether to stitch elemental cubes
+ */
+export function confirmStitching(includeSpectral: boolean, includeElemental: boolean, scaling_factor: number) {
+  const ws = appState.workspace;
+  if (!ws) return;
+  windowState["stitching"].opened = false;
+  windowState["stitching"].disabled = true;
+
+  stitchingInProgress.value = true;
+
+  const intensities = ws.grayscale.map(
+    (_, idx) => ws.mapping.grayscaleContrast?.[idx] ?? 1.0
+  );
+
+  if (includeElemental) {
+    stitch(false, "elemental", scaling_factor, intensities);
+  }
+  if (includeSpectral) {
+    stitch(false, "spectral", scaling_factor, intensities);
+  }
+
+  const interval = setInterval(async () => {
+    const resp = await fetch(`/api/${ws.name}/workspace`);
+    if (!resp.ok) return;
+
+    const updated = await resp.json();
+
+    const spectralDone =
+      !includeSpectral || (updated.spectralCubes?.length ?? 0) > 0;
+    const elementalDone =
+      !includeElemental || (updated.elementalCubes?.length ?? 0) > 0;
+
+    if (spectralDone && elementalDone) {
+      clearInterval(interval);
+
+      appState.workspace = updated;
+
+      stitchingInProgress.value = false;
+      saveWorkspaceDebounced();
+    }
+  }, 2000);
+}
+
+
 

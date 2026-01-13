@@ -1,14 +1,18 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import StitchMappingViewer from "./StitchMappingViewer.vue";
 import StitchPreviewViewer from "./StitchPreviewViewer.vue";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { canPreview } from "./stitchPoints";
-import { fetchOptimalStitchInfo } from "./stitchHelper";
+import { fetchOptimalStitchInfo, stitchingInProgress } from "./stitchHelper";
 import { getTooltipByKey } from "@/lib/useToolTips";
 
 // Local mode state
 const mode = ref<"edit" | "preview">("edit");
+const stitching = computed(() => stitchingInProgress.value);
+
+// cache last preview info so late listeners can still get it
+let lastPreviewInfo: PreviewInfo | null = null;
 
 /**
  * Handle requests for preview info from other components.
@@ -55,9 +59,6 @@ function normalizePreviewInfo(info: {
   };
 }
 
-// cache last preview info so late listeners can still get it
-let lastPreviewInfo: PreviewInfo | null = null;
-
 /**
  * Function to send cached preview info.
  * @param info - The preview info to dispatch.
@@ -81,7 +82,7 @@ watch(mode, async (newMode) => {
 
   if (newMode !== "preview") return;
 
-  isLoading.value = true; // show loading
+  isLoading.value = true;
 
   try {
     if (!lastPreviewInfo) {
@@ -103,7 +104,7 @@ watch(mode, async (newMode) => {
 <template>
   <div class="flex h-full flex-col">
     <!-- Toggle Button -->
-    <ToggleGroup type="single" v-model="mode" class="mb-2 space-x-2">
+    <ToggleGroup v-if="!stitching" type="single" v-model="mode" class="mb-2 space-x-2">
       <ToggleGroupItem value="edit" variant="outline" :title="getTooltipByKey('stitch.edit')">Edit</ToggleGroupItem>
 
       <div :title="!canPreview ? getTooltipByKey('stitch.no_preview') : getTooltipByKey('stitch.preview')">
@@ -111,19 +112,19 @@ watch(mode, async (newMode) => {
       </div>
     </ToggleGroup>
 
-    <!-- Viewer -->
     <div class="flex-1 overflow-hidden relative">
-      <StitchMappingViewer v-if="mode === 'edit'" class="size-full" />
-      <StitchPreviewViewer v-else class="size-full" />
+      <StitchMappingViewer v-if="mode === 'edit' && !stitching" class="size-full" />
+      <StitchPreviewViewer v-if="mode === 'preview' && !stitching" class="size-full" />
 
-      <div
-        v-if="isLoading"
-        class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      >
-        <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
-          <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span class="text-sm font-medium">generating greyscales</span>
-        </div>
+      <!-- Preview loading -->
+      <div v-if="isLoading && !stitching" class="absolute inset-0 z-40 ...">
+        <span>Generating greyscales...</span>
+      </div>
+
+      <!-- Stitching overlay -->
+      <div v-if="stitching" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <span class="text-sm font-medium">Stitching in progress… (Do not close or change project)</span>
       </div>
     </div>
   </div>
