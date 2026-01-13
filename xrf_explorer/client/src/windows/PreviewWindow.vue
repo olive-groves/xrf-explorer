@@ -242,7 +242,7 @@ watch(showConfirmation, (open) => {
         :min="0"
         :max="1"
         :step="0.01"
-        @update:modelValue="(val: number[]) => updateGreyscaleOpacity(val)"
+        @update:modelValue="updateGreyscaleOpacity"
       />
 
       <div class="space-y-1">

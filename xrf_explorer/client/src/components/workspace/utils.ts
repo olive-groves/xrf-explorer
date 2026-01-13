@@ -7,48 +7,62 @@ import { config } from "@/main";
  * @returns A boolean indicating if the workspace is correct and a possible error message.
  */
 export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string] {
-  // Check if the base image has a name and associated image file
-  if (workspace.baseImage.name.trim() == "") return [false, "Base image must have a name"];
-  if (workspace.baseImage.imageLocation.trim() == "") return [false, "Base image must have an associated image file"];
+  // --- Base image ---
+  if (workspace.baseImage.name.trim() === "") return [false, "Base image must have a name"];
+  if (workspace.baseImage.imageLocation.trim() === "") return [false, "Base image must have an associated image file"];
 
-  // Check if the contextual images have names and associated image files, and are valid
+  // --- Contextual images ---
   for (const image of workspace.contextualImages) {
-    if (image.name.trim() == "") return [false, "Contextual image must have a name"];
-    if (image.imageLocation.trim() == "") return [false, "Contextual image must have an associated image file"];
+    if (image.name.trim() === "") return [false, "Contextual image must have a name"];
+    if (image.imageLocation.trim() === "") return [false, "Contextual image must have an associated image file"];
   }
 
-  // Only validate spectral cubes if any are present
-  if (workspace.spectralCubes.length > 0) {
-    for (const cube of workspace.spectralCubes) {
-      if (cube.name.trim() == "") return [false, "Spectral cube must have a name"];
-      if (cube.rawLocation.trim() == "") return [false, "Spectral cube must have an associated raw file"];
+  // Helper function to validate cubes
+  const validateCubes = (
+    cubes: any[],
+    type: "Spectral" | "Elemental",
+    isPartial: boolean
+  ): [boolean, string] => {
+    for (const cube of cubes) {
+      if (cube.name.trim() === "") return [false, `${type} cube must have a name`];
 
-      if (cube.rplLocation.trim() == "") return [false, "Spectral cube must have an associated rpl file"];
-      if (workspace.stitchingMode === "full") {
-          if (cube.recipeLocation.trim() == "") return [false, "Spectral cube must have an associated recipe file"];
-      }
-      
-    }
-  }
-
-  // Check if the elemental cubes have names and associated files, and are valid
-  for (const cube of workspace.elementalCubes) {
-    if (cube.name.trim() == "") return [false, "Elemental cube must have a name"];
-    if (cube.dataLocation.trim() == "") return [false, "Elemental cube must have an associated data file"];
-    // Require recipe file only if no spectral cubes are present
-    if (workspace.stitchingMode === "full") {
-      if (workspace.spectralCubes.length === 0 && cube.recipeLocation.trim() == "") {
-        return [false, "Elemental cube must have an associated recipe file if no spectral cubes are present"];
+      if (type === "Spectral") {
+        if (cube.rawLocation.trim() === "") return [false, "Spectral cube must have an associated raw file"];
+        if (cube.rplLocation.trim() === "") return [false, "Spectral cube must have an associated rpl file"];
+        if (!isPartial && workspace.stitchingMode === "full") {
+          if (cube.recipeLocation.trim() === "") return [false, "Spectral cube must have an associated recipe file"];
+        }
+      } else if (type === "Elemental") {
+        if (cube.dataLocation.trim() === "") return [false, "Elemental cube must have an associated data file"];
+        if (!isPartial && workspace.stitchingMode === "full" && workspace.spectralCubes.length === 0) {
+          if (cube.recipeLocation.trim() === "") return [false, "Elemental cube must have an associated recipe file"];
+        }
       }
     }
-  }
+    return [true, ""];
+  };
 
-  // Check if the elemental channels have names and are unique
-  const names: string[] = [];
-  names.push(workspace.baseImage.name);
-  workspace.contextualImages.forEach((image: { name: string }) => names.push(image.name));
-  workspace.spectralCubes.forEach((cube: { name: string }) => names.push(cube.name));
-  workspace.elementalCubes.forEach((cube: { name: string }) => names.push(cube.name));
+  // --- Validate full cubes ---
+  let [ok, msg] = validateCubes(workspace.spectralCubes, "Spectral", false);
+  if (!ok) return [false, msg];
+  [ok, msg] = validateCubes(workspace.elementalCubes, "Elemental", false);
+  if (!ok) return [false, msg];
+
+  // --- Validate partial cubes ---
+  [ok, msg] = validateCubes(workspace.partialSpectralCubes, "Spectral", true);
+  if (!ok) return [false, msg];
+  [ok, msg] = validateCubes(workspace.partialElementalCubes, "Elemental", true);
+  if (!ok) return [false, msg];
+
+  // --- Unique names check ---
+  const names: string[] = [
+    workspace.baseImage.name,
+    ...workspace.contextualImages.map((img) => img.name),
+    ...workspace.spectralCubes.map((c) => c.name),
+    ...workspace.elementalCubes.map((c) => c.name),
+    ...workspace.partialSpectralCubes.map((c) => c.name),
+    ...workspace.partialElementalCubes.map((c) => c.name),
+  ];
   if (new Set(names).size !== names.length) return [false, "Names must be unique"];
 
   return [true, ""];
