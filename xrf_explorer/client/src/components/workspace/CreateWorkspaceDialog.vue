@@ -47,6 +47,7 @@ function createEmptyWorkspace(): WorkspaceConfig {
       grayscalePoints: {},
       grayscaleRotation: {},
       grayscaleContrast: {},
+      mode: "edit"
     }
   };
 }

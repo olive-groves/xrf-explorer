@@ -6,10 +6,23 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { canPreview } from "./stitchPoints";
 import { fetchOptimalStitchInfo, stitchingInProgress } from "./stitchHelper";
 import { getTooltipByKey } from "@/lib/useToolTips";
+import { appState } from "@/lib/appState";
 
 // Local mode state
-const mode = ref<"edit" | "preview">("edit");
 const stitching = computed(() => stitchingInProgress.value);
+
+const workspace = computed(() => appState.workspace);
+
+// Wether we are editing or previewing
+const mode = computed<"edit" | "preview">({
+  get(): "edit" | "preview" {
+    return appState.workspace?.mapping.mode ?? "edit";
+  },
+  set(v: "edit" | "preview") {
+    if (!appState.workspace) return;
+    appState.workspace.mapping.mode = v;
+  },
+});
 
 // cache last preview info so late listeners can still get it
 let lastPreviewInfo: PreviewInfo | null = null;
@@ -18,7 +31,11 @@ let lastPreviewInfo: PreviewInfo | null = null;
  * Handle requests for preview info from other components.
  */
 function onRequestPreview() {
-  if (mode.value === "preview" && lastPreviewInfo) {
+  const ws = appState.workspace
+  if (!ws) {
+    return;
+  }
+  if (ws.mapping.mode === "preview" && lastPreviewInfo) {
     dispatchPreview(lastPreviewInfo);
   }
 }
@@ -28,8 +45,13 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  mode.value = "edit";
-  window.removeEventListener("stitchViewer:requestPreviewInfo", onRequestPreview);
+  if (workspace.value) {
+    workspace.value.mapping.mode = "edit";
+  }
+  window.removeEventListener(
+    "stitchViewer:requestPreviewInfo",
+    onRequestPreview,
+  );
 });
 
 // Store preview info for stitchwindow to load
@@ -77,27 +99,34 @@ function dispatchPreview(info: PreviewInfo) {
 const isLoading = ref(false);
 
 // Whenever mode changes fetch stitchinfo, and show loading screen while generating greyscales
-watch(mode, async (newMode) => {
-  window.dispatchEvent(new CustomEvent("stitchViewer:modeChanged", { detail: newMode }));
+watch(
+  () => workspace.value?.mapping.mode,
+  async (newMode) => {
+    if (!newMode) return;
 
-  if (newMode !== "preview") return;
+    window.dispatchEvent(
+      new CustomEvent("stitchViewer:modeChanged", { detail: newMode }),
+    );
 
-  isLoading.value = true;
+    if (newMode !== "preview") return;
 
-  try {
-    if (!lastPreviewInfo) {
-      const raw = await fetchOptimalStitchInfo();
-      if (!raw) return;
-      lastPreviewInfo = normalizePreviewInfo(raw);
+    isLoading.value = true;
+
+    try {
+      if (!lastPreviewInfo) {
+        const raw = await fetchOptimalStitchInfo();
+        if (!raw) return;
+        lastPreviewInfo = normalizePreviewInfo(raw);
+      }
+
+      dispatchPreview(lastPreviewInfo);
+    } catch (e) {
+      console.warn("Failed to fetch stitch preview info", e);
+    } finally {
+      isLoading.value = false;
     }
-
-    dispatchPreview(lastPreviewInfo);
-  } catch (e) {
-    console.warn("Failed to fetch stitch preview info", e);
-  } finally {
-    isLoading.value = false; // hide loading
-  }
-});
+  },
+);
 
 </script>
 

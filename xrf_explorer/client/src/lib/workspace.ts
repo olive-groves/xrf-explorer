@@ -186,4 +186,6 @@ export type StitchMapping = {
   grayscaleRotation: Record<number, number>;
   // Intensity per greysclae
   grayscaleContrast: Record<number, number>;
+  // Wether we are in edit or preview mode
+  mode: "edit" | "preview";
 }
