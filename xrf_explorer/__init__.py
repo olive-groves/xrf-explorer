@@ -8,6 +8,9 @@ from xrf_explorer.server.database.database import init_app
 from xrf_explorer.server.database.models import User  # Ensure models are imported
 from xrf_explorer.server.database.models import UserRole
 
+from logging import getLogger, Logger
+
+LOG: Logger = getLogger(__name__)
 # Create the Flask app
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 
@@ -42,27 +45,27 @@ with app.app_context():
         admin_user = User(username='admin', role=UserRole.ADMIN)
         admin_user.set_password('admin')  # Set a default password; should be changed after first login
         add_and_commit_user(admin_user)
-        print("Database initialized with default admin user.")
+        LOG.info("Database initialized with default admin user.")
     else:
-        print("Admin user already exists.")
+        LOG.info("Admin user already exists.")
     
     # Create a default viewer user if none exist
     if not User.query.filter_by(role=UserRole.VIEWER).first():
         viewer_user = User(username='viewer', role=UserRole.VIEWER)
         viewer_user.set_password('viewer')
         add_and_commit_user(viewer_user)
-        print("Database initialized with default viewer user.")
+        LOG.info("Database initialized with default viewer user.")
     else:
-        print("Viewer user already exists.")
+        LOG.info("Viewer user already exists.")
 
     # Create a default viewer user if none exist
     if not User.query.filter_by(role=UserRole.EDITOR).first():
         editor_user = User(username='editor', role=UserRole.EDITOR)
         editor_user.set_password('editor')
         add_and_commit_user(editor_user)
-        print("Database initialized with default editor user.")
+        LOG.info("Database initialized with default editor user.")
     else:
-        print("Editor user already exists.")
+        LOG.info("Editor user already exists.")
 
 # Import and register the routes
 from xrf_explorer.server.routes import *

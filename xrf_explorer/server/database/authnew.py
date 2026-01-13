@@ -52,7 +52,6 @@ def userCanAccessProject(func):
             return current_app.login_manager.unauthorized()
         
         project = kwargs.get("data_source")
-        print(project)
         if not (current_user.isAdmin() or current_user.checkProjectAccess(project)):
             return current_app.login_manager.unauthorized()
         # flask 1.x compatibility

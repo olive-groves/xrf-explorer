@@ -88,7 +88,7 @@ def get_average_data(data_source: str):
     try:
         datacube: np.ndarray = get_raw_data(data_source)
     except (ValueError, FileNotFoundError, RuntimeError) as e:
-        print(f"Failed to get raw data: {e}")
+        LOG.info(f"Failed to get raw data: {e}")
         return "Error occurred while getting raw data", 404
 
     average_values: list = get_average_global(datacube)
