@@ -3,6 +3,7 @@ import { createApp } from "vue";
 import "./assets/index.css";
 import App from "./App.vue";
 import { getConfig } from "./lib/config";
+import { loginFromSession } from "./lib/user"
 
 // Import global components
 // Allows for the use of these components in any file without importing them
@@ -51,6 +52,6 @@ app.component("Slider", Slider);
 app.component("Window", Window);
 
 app.directive("tooltip", vTooltip);
-
+await loginFromSession();
 // Mount the app
 app.mount("#app");
