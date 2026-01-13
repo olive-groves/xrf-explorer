@@ -35,7 +35,7 @@ const progressSteps = ref(1);
 const progressCompleted = ref(0);
 const progress = computed(() => (100 * progressCompleted.value) / progressSteps.value);
 
-const MAX_IMAGE_SIZE_MB = 300; // 5 MB
+const MAX_IMAGE_SIZE_MB = 100;
 
 const IMAGE_MIME_TYPES = [
   "image/jpeg",
