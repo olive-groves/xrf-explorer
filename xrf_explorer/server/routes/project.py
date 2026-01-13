@@ -19,7 +19,6 @@ from xrf_explorer.server.routes.helper import validate_config
 LOG: Logger = getLogger(__name__)
 
 @app.route("/api/data_sources")
-@login_required
 def list_accessible_data_sources():
     """
     Return a list of all available data sources stored in the data folder on the remote server as specified in the
