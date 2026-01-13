@@ -52,7 +52,7 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     try:
         data: np.ndarray = get_raw_data(data_source, level=level)
     except (ValueError, FileNotFoundError, RuntimeError) as e:
-        print(f"Failed to get raw data: {e}")
+        LOG.info(f"Failed to get raw data: {e}")
         raise
 
     length: int = data.shape[2]
