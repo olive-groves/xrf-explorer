@@ -1,7 +1,9 @@
 from flask import request, jsonify
-import flask_login
 from xrf_explorer import app
 from xrf_explorer.server.database.models import User
+import flask_login
+from flask_login import login_user, current_user
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -31,3 +33,20 @@ def login():
         # return jsonify({"success": True, "message": "Login successful", "role": user.role.name, "token": token}), 200
         return jsonify({"success": True, "message": "Login successful", "username": user.username, "role": user.role.name, "projects": user.getProjects()}), 200
     return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
+
+@app.route('/api/me', methods=['GET'])
+def me():
+    if not current_user.is_authenticated:
+        return jsonify({
+        "authenticated": False,
+        "username": "",
+        "role": "",
+        "projects": []
+    }), 200
+    return jsonify({
+        "authenticated": True,
+        "username": current_user.username,
+        "role": current_user.role.name,
+        "projects": current_user.getProjects()
+    }), 200
