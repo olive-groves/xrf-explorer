@@ -90,11 +90,6 @@ function applyGrayNudge(dx: number, dy: number) {
 function resetGreyscaleOffset() {
   grayViewportOffset.x = 0;
   grayViewportOffset.y = 0;
-
-  // Optional: notify the preview viewer if you want
-  window.dispatchEvent(
-    new CustomEvent("stitch:gray-nudge", { detail: { dx: 0, dy: 0 } })
-  );
 }
 
 function getGreyscaleIntensities(): number[] {
@@ -106,6 +101,10 @@ function getGreyscaleIntensities(): number[] {
   });
 }
 
+// Wether layers are being
+const isLoading = ref(false);
+const hasRenderedOnce = ref(false);
+
 // Keep track of the most recently loaded image
 let loadToken = 0;
 
@@ -114,59 +113,73 @@ async function loadGrayscaleLayer() {
   if (!engine) return;
 
   const token = ++loadToken;
+  isLoading.value = true;
+  hasRenderedOnce.value = false;
 
-  // remove previous layer
-  if (grayLayerId) {
-    const idx = engine.layers.findIndex(l => l.id === grayLayerId);
-    if (idx >= 0) {
-      const layer = engine.layers[idx];
-      if (layer.mesh) {
-        const mesh = layer.mesh;
-        mesh.geometry.dispose();
+  let newLayer: Layer | null = null;
 
-        const mat = mesh.material as THREE.RawShaderMaterial;
-        const tex = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
-        if (tex) tex.dispose();
+  try {
+    const url = stitchedGreyscaleUrl.value;
+    if (!url) return;
 
-        mat.dispose();
-        engine.scene.remove(mesh);
-      }
-      engine.layers.splice(idx, 1);
+    const newId = `stitch_preview_greyscale_${token}`;
+
+    newLayer = await engine.createImageLayer(
+      newId,
+      url,
+      { width: baseWidth, height: baseHeight }
+    );
+
+    if (token !== loadToken) return;
+
+    // wait for texture upload
+    const tex = (newLayer.mesh!.material as THREE.RawShaderMaterial)
+      .uniforms.tImage.value as THREE.Texture;
+
+    if (!tex.image) {
+      await new Promise<void>((resolve) => {
+        tex.onUpdate = () => resolve();
+      });
     }
-    grayLayerId = null;
-    grayLayer = null;
-  }
 
-  const url = stitchedGreyscaleUrl.value;
-  if (!url) return;
+    // wait one rendered frame
+    await new Promise(requestAnimationFrame);
 
-  const newId = "stitch_preview_greyscale";
-  grayLayerId = newId;
+    // Swap layers
+    const oldLayer = grayLayer;
 
-  const layer = await engine.createImageLayer(
-    newId,
-    url,
-    { width: baseWidth, height: baseHeight }
-  );
+    grayLayer = newLayer;
+    grayLayerId = newId;
+    grayLayer.uniform.iIndex.value = 0;
+    grayViewportOffset.x = 0;
+    grayViewportOffset.y = 0;
 
-  // Abort if a newer load started meanwhile
-  if (token !== loadToken) {
-    const mesh = layer.mesh;
-    if (mesh) {
+    // remove old layer
+    if (oldLayer) {
+      const idx = engine.layers.indexOf(oldLayer);
+      if (idx >= 0) engine.layers.splice(idx, 1);
+
+      const mesh = oldLayer.mesh!;
       mesh.geometry.dispose();
+
       const mat = mesh.material as THREE.RawShaderMaterial;
-      const tex = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
-      if (tex) tex.dispose();
+      const texOld = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
+      if (texOld) texOld.dispose();
+
       mat.dispose();
       engine.scene.remove(mesh);
     }
-    return;
-  }
 
-  grayLayer = layer;
-  grayLayer.uniform.iIndex.value = 0;
-  grayViewportOffset.x = 0;
-  grayViewportOffset.y = 0;
+  } catch (err) {
+    console.error("Failed to load grayscale preview", err);
+
+    // clean up failed layer
+    if (newLayer?.mesh) {
+      engine.scene.remove(newLayer.mesh);
+      newLayer.mesh.geometry.dispose();
+      (newLayer.mesh.material as THREE.Material).dispose();
+    }
+  }
 }
 
 
@@ -233,6 +246,11 @@ function startRenderLoop() {
 
     engine.renderer.render(engine.scene, engine.camera);
 
+    if (grayLayer && !hasRenderedOnce.value) {
+      hasRenderedOnce.value = true;
+      isLoading.value = false;
+    }
+
     animationFrame = requestAnimationFrame(render);
   };
 
@@ -286,6 +304,7 @@ function onKeyDown(ev: KeyboardEvent) {
 
 // lifecycle
 onMounted(async () => {
+  isLoading.value = true;
   window.addEventListener("stitch:base-opacity-changed", onBaseOpacityChanged);
   window.addEventListener("stitch:gray-opacity-changed", onGrayOpacityChanged);
   window.addEventListener("stitch:gray-nudge", onGrayNudge);
@@ -364,6 +383,7 @@ onBeforeUnmount(() => {
   <div
     ref="container"
     class="relative w-full h-full"
+    :class="{ 'pointer-events-none': isLoading }"
     :style="{ cursor: dragging ? 'grabbing' : 'grab' }"
     @mousedown="onMouseDown"
     @mouseup="onMouseUp"
@@ -371,6 +391,15 @@ onBeforeUnmount(() => {
     @mousemove="onMouseMove"
     @wheel="onWheel"
   >
+  <div
+    v-if="isLoading"
+    class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+  >
+    <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
+      <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <span class="text-sm font-medium">Updating preview…</span>
+    </div>
+  </div>
     <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
   </div>
 </template>

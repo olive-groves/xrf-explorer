@@ -32,7 +32,10 @@ const props = defineProps<{
   unit?: string;
 }>();
 
-const emit = defineEmits(["update"]);
+const emit = defineEmits<{
+  (e: "update"): void;         
+  (e: "commit", value: number[]): void;
+}>();
 
 const defaultValue = props.default ?? deepClone(model.value);
 
@@ -55,13 +58,13 @@ const unit = computed(() => props.unit ?? "");
       <div v-else-if="model.length == 2" v-text="model[0] + ' – ' + model[1] + unit" />
     </div>
     <Slider
-      :id="kebabCase(props.label)"
       v-model="model"
       :min="props.min ?? 0"
       :step="props.step ?? 0.01"
       :max="props.max ?? 1"
       class="cursor-auto pb-2"
-      @update:model-value="emit('update')"
+      @update:model-value="emit('update')"     
+      @value-commit="emit('commit', model)"        
     />
   </div>
 </template>

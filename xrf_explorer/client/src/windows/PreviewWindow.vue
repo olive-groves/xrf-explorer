@@ -95,21 +95,14 @@ watch(
   { immediate: true }
 );
 
-function updateGreyscaleContrast(idx: number, val: number[]) {
-  const v = val[0];
-  grayscaleContrast.value[idx] = v;
+function updateGreyscaleContrast(idx: number, val: number) {
+  grayscaleContrast.value[idx] = val;
 
   const ws = workspace.value;
   if (ws) {
-    ws.mapping.grayscaleContrast[idx] = v;
+    ws.mapping.grayscaleContrast[idx] = val;
     saveWorkspaceDebounced();
   }
-
-  window.dispatchEvent(
-    new CustomEvent("stitch:gray-contrast-changed", {
-      detail: { index: idx, contrast: v },
-    })
-  );
 }
 
 function resetContrast() {
@@ -120,7 +113,6 @@ function resetContrast() {
     return 1.0;
   });
   saveWorkspaceDebounced();
-  window.dispatchEvent(new CustomEvent("stitch:gray-contrast-reset"));
 }
 
 function updateSliderBase(val: number[]) {
@@ -296,10 +288,9 @@ watch(showConfirmation, (open) => {
             :min="0.1"
             :max="2"
             :step="0.05"
-            @update:modelValue="(v: number[]) => updateGreyscaleContrast(idx, v)"
+            @commit="(val: number[]) => updateGreyscaleContrast(idx, val[0])"
           />
         </div>
-
       </div>
 
       <div class="space-y-1">

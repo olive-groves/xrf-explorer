@@ -60,11 +60,8 @@ const currentPoints = computed(() => {
   return ws.mapping.grayscalePoints[idx];
 });
 
-// Current origin of the greyscale image
-// const grayImageOrigin = reactive({
-//   x: 0,
-//   y: 0,
-// });
+// Wether the greyscale layer is loading
+const isLoading = ref(false);
 
 const viewbox = ref<{
   x: number;
@@ -110,42 +107,49 @@ async function onGrayPropChanged(e: Event) {
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
-  // Remove old layer
-  if (currentLayerId) {
-    const idx = engine.layers.findIndex((l) => l.id === currentLayerId);
-    if (idx >= 0) {
-      const layer = engine.layers[idx];
-      if (layer.mesh) {
-        layer.mesh.geometry.dispose();
-        (layer.mesh.material as THREE.Material).dispose();
-        engine.scene.remove(layer.mesh);
+  isLoading.value = true;
+
+  try {
+    // Remove old layer
+    if (currentLayerId) {
+      const idx = engine.layers.findIndex((l) => l.id === currentLayerId);
+      if (idx >= 0) {
+        const layer = engine.layers[idx];
+        if (layer.mesh) {
+          layer.mesh.geometry.dispose();
+          (layer.mesh.material as THREE.Material).dispose();
+          engine.scene.remove(layer.mesh);
+        }
+        engine.layers.splice(idx, 1);
       }
-      engine.layers.splice(idx, 1);
+      currentLayerId = null;
     }
-    currentLayerId = null;
+
+    if (!grayscale.value || !grayscaleUrl.value) return;
+
+    const id = `gray_${snakeCase(grayscale.value.sourceCubeName)}`;
+    currentLayerId = id;
+
+    const rotDeg = getRotation(selectedGrayscaleIndex.value!);
+    grayRotationRad.value = (rotDeg * Math.PI) / 180;
+
+    await engine.createImageLayer(id, grayscaleUrl.value, undefined, grayRotationRad.value);
+
+    const layer = engine.layers.find((l) => l.id === currentLayerId);
+    if (!layer?.mesh) return;
+
+    // Ensure bounds exist
+    layer.mesh.geometry.computeBoundingBox();
+    const bb = layer.mesh.geometry.boundingBox!;
+
+    // Center viewport
+    viewport.center.x = (bb.min.x + bb.max.x) / 2;
+    viewport.center.y = (bb.min.y + bb.max.y) / 2;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isLoading.value = false;
   }
-
-  if (!grayscale.value || !grayscaleUrl.value) return;
-
-  const id = `gray_${snakeCase(grayscale.value.sourceCubeName)}`;
-  currentLayerId = id;
-
-  const rotDeg = getRotation(selectedGrayscaleIndex.value!);
-  grayRotationRad.value = (rotDeg * Math.PI) / 180;
-
-  await engine.createImageLayer(id, grayscaleUrl.value, undefined, grayRotationRad.value);
-  const layer = engine.layers.find((l) => l.id === currentLayerId);
-  if (!layer?.mesh) return;
-
-  // Make sure bounds exist
-  layer.mesh.geometry.computeBoundingBox();
-  const bb = layer.mesh.geometry.boundingBox!;
-
-  // Center viewport on greyscale geometry
-  viewport.center.x = (bb.min.x + bb.max.x) / 2;
-  viewport.center.y = (bb.min.y + bb.max.y) / 2;
-
-  // Update the origin
 }
 
 /**
@@ -359,6 +363,17 @@ onBeforeUnmount(() => {
     @click="onClick"
     @contextmenu="onClick"
   >
+    <div
+      v-if="isLoading"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+    >
+      <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
+        <span
+          class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"
+        />
+        <span class="text-sm font-medium">Loading grayscale…</span>
+      </div>
+    </div>
     <canvas ref="glcanvas" class="absolute inset-0 size-full" />
 
     <Dots :x="viewbox.x" :y="viewbox.y" :w="viewbox.w" :h="viewbox.h" :zoom="viewport.zoom" :gray-mapping="true" />

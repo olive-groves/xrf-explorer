@@ -68,22 +68,35 @@ let animationFrame: number | null = null;
 
 let zoomLimitReached = false;
 
+// Wether the layer is loaded
+const isLoading = ref(true);
+
 onMounted(async () => {
   if (!glcanvas.value) return;
 
-  engine = createStitchEngine(glcanvas.value);
+  try {
+    isLoading.value = true;
 
-  // Create base image layer inside this local engine
-  const ws = appState.workspace;
-  if (!ws?.baseImage) return;
+    engine = createStitchEngine(glcanvas.value);
 
-  const loc = ws.baseImage.imageLocation?.includes("/") ? ws.baseImage.imageLocation : ws.baseImage.name;
-  const url = getWorkspaceImageUrl(loc, ws.name);
+    const ws = appState.workspace;
+    if (!ws?.baseImage) return;
 
-  await engine.createImageLayer("stitch_base", url);
+    const loc = ws.baseImage.imageLocation?.includes("/")
+      ? ws.baseImage.imageLocation
+      : ws.baseImage.name;
 
-  await resetViewport();
-  startRenderLoop();
+    const url = getWorkspaceImageUrl(loc, ws.name);
+
+    await engine.createImageLayer("stitch_base", url);
+    await resetViewport();
+    startRenderLoop();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to load image");
+  } finally {
+    isLoading.value = false;
+  }
 });
 
 onBeforeUnmount(() => {
@@ -319,6 +332,15 @@ function onClick(event: MouseEvent) {
     @mousemove="onMouseMove"
     @wheel="onWheel"
   >
+    <div
+      v-if="isLoading"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+    >
+      <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
+        <span class="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+        <span class="text-sm font-medium">Loading image…</span>
+      </div>
+    </div>
     <canvas ref="glcanvas" class="absolute inset-0 size-full" />
     <Dots :x="viewbox.x" :y="viewbox.y" :w="viewbox.w" :h="viewbox.h" :zoom="viewport.zoom" :gray-mapping="false" />
   </div>
