@@ -37,6 +37,21 @@ const progress = computed(() => (100 * progressCompleted.value) / progressSteps.
 
 const MAX_IMAGE_SIZE_MB = 300; // 5 MB
 
+const IMAGE_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/bmp",
+  "image/tiff",
+  "image/x-icon",
+  "image/heic",
+  "image/heif",
+  "image/avif",
+];
+
+
 /**
  * Upload the configured files to the backend.
  */
@@ -58,7 +73,7 @@ function uploadFiles() {
   for (let i = 0; i < files?.length; i++) {
     const file = files.item(i);
     if (!file) continue;
-    if (file.type.startsWith("image/") && file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+    if (IMAGE_MIME_TYPES.includes(file.type) && file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
       toast.error("Image " + file.name + " cannot be larger than " + MAX_IMAGE_SIZE_MB + " MB");
       return;
     }
