@@ -1,36 +1,45 @@
 # Import the necessary modules and create the Flask app
 from pathlib import Path
 from flask import Flask, send_from_directory
-import flask_login
 from xrf_explorer.server.database.authnew import login_manager
 from flask_cors import CORS
 from xrf_explorer.server.database.database import init_app
 from xrf_explorer.server.database.models import User  # Ensure models are imported
 from xrf_explorer.server.database.models import UserRole
-
 from logging import getLogger, Logger
+import os
+
 
 LOG: Logger = getLogger(__name__)
 # Create the Flask app
 app: Flask = Flask(__name__, template_folder=Path('client/templates'), static_folder='client/dist')
 
-if not Path("xrf_explorer/secret_key.txt").exists():
-    # Generate a new secret key and save it to the file
-    import os
-    secret_key = os.urandom(24)
-    with open("xrf_explorer/secret_key.txt", 'wb') as file:
-        file.write(secret_key)
+def get_secret_key():
+    if not Path("xrf_explorer/secret_key.txt").exists():
+        # Generate a new secret key and save it to the file
+        secret_key = os.urandom(24)
+        with open("xrf_explorer/secret_key.txt", 'wb') as file:
+            file.write(secret_key)
 
-with open("xrf_explorer/secret_key.txt", 'r') as file:
-    app.secret_key = file.read()
+    with open("xrf_explorer/secret_key.txt", 'rb') as file:
+        return file.read()
+
+app.config.update(
+    SECRET_KEY=get_secret_key(),
+    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
 
 login_manager.init_app(app)
 
 # Enable CORS for the app
-CORS(app)
+CORS(app,
+     supports_credentials=True,
+     origins=["http://xrfexplorer2.vangoghmuseum.nl"])
 
 # Initialize the database
 db = init_app(app)
+    
 
 def add_and_commit_user(user: User):
     db.session.add(user)
