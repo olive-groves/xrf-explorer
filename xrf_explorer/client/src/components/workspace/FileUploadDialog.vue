@@ -35,6 +35,8 @@ const progressSteps = ref(1);
 const progressCompleted = ref(0);
 const progress = computed(() => (100 * progressCompleted.value) / progressSteps.value);
 
+const MAX_IMAGE_SIZE_MB = 300; // 5 MB
+
 /**
  * Upload the configured files to the backend.
  */
@@ -53,6 +55,15 @@ function uploadFiles() {
 
   // Add each selected file to the file queue
   // Loops through the selected files and adds them to the queue for processing.
+  for (let i = 0; i < files?.length; i++) {
+    const file = files.item(i);
+    if (!file) continue;
+    if (file.type.startsWith("image/") && file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      toast.error("Image " + file.name + " cannot be larger than " + MAX_IMAGE_SIZE_MB + " MB");
+      return;
+    }
+  }
+
   for (let i = 0; i < files?.length; i++) {
     fileQueue.value.push(files.item(i)!);
   }
