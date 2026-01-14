@@ -213,6 +213,10 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
       clearInterval(interval);
 
       appState.workspace = updated;
+      const ws = appState.workspace
+      if (!ws) {return}
+      ws.stitchingMode = "full"
+      ws.mapping.mode = "edit"
 
       stitchingInProgress.value = false;
       saveWorkspaceDebounced();

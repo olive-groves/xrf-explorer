@@ -402,12 +402,11 @@ watch(showConfirmation, (open) => {
 .dialog-overlay {
   text-align: center;
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
   display: flex; align-items: center; justify-content: center;
 }
 .dialog-content {
   text-align: center;
-  background: #fff; padding: 2em; border-radius: 8px;
+  padding: 2em; border-radius: 8px;
   display: flex;       
   gap: 20px;              
   justify-content: center; 
