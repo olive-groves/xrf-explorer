@@ -16,6 +16,10 @@ import numpy as np
 
 from xrf_explorer.server.file_system import get_config
 
+from xrf_explorer.server.file_system.workspace import get_workspace_dict
+from xrf_explorer.server.file_system.workspace.workspace_handler import update_workspace
+
+
 from xrf_explorer.server.stitcher.cube_fragments import (
     ElementalDatacubeFragment,
     SpectralDatacubeFragment,
@@ -850,6 +854,23 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     cv.imwrite(projection_path, projection.astype(np.uint8))
 
     output_file_name = os.path.basename(result_fragment.datacube_file)
+
+
+    workspace = get_workspace_dict(data.data_source)
+    if(data.cube_type == "spectral"):
+        workspace["spectralCubes"] = [{
+            "name": "stitched_spectral_datacube",
+            "rawLocation": output_file_name,
+            "rplLocation": rpl_file if rpl_file else "",
+            "recipeLocation": recipe_file_name
+        }]
+    else:  
+        workspace["elementalCubes"] = [{
+            "name": "stitched_elemental_datacube",
+            "dataLocation": output_file_name,
+            "recipeLocation": recipe_file_name
+        }]
+    update_workspace(data.data_source, workspace)
 
     return {
         "status": "success",

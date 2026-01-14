@@ -17,8 +17,6 @@ from xrf_explorer.server.stitcher import (
     get_transpose_status,
     get_greyscale_path
 )
-from xrf_explorer.server.file_system.workspace import get_workspace_dict
-from xrf_explorer.server.file_system.workspace.workspace_handler import update_workspace
 from xrf_explorer.server.database.authnew import userCanAccessProject
 
 
@@ -181,13 +179,6 @@ def stitching(data_source: str):
 
     try:
         result = stitch(stitch_configuration)
-        workspace = get_workspace_dict(data_source)
-        if "stitchingMode" in workspace and workspace["stitchingMode"] == "partial":
-            workspace["stitchingMode"] = "full"
-        mapping = workspace.get("mapping")
-        if isinstance(mapping, dict) and mapping.get("mode") == "preview":
-            mapping["mode"] = "edit"
-        update_workspace(data_source, workspace)
         return jsonify(result), 200
     except FileNotFoundError as e:
         LOG.error(traceback.format_exc())
