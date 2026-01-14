@@ -855,7 +855,6 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
 
     output_file_name = os.path.basename(result_fragment.datacube_file)
 
-
     workspace = get_workspace_dict(data.data_source)
     if(data.cube_type == "spectral"):
         workspace["spectralCubes"] = [{
@@ -864,7 +863,7 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
             "rplLocation": rpl_file if rpl_file else "",
             "recipeLocation": recipe_file_name
         }]
-    else:  
+    else: 
         workspace["elementalCubes"] = [{
             "name": "stitched_elemental_datacube",
             "dataLocation": output_file_name,
