@@ -63,10 +63,10 @@ function resetSliders() {
 </script>
 
 <template>
-  <VueDraggableNext class="space-y-2" v-model="groups">
-    <Button class="basis-1/2" variant="outline" @click="resetSliders()" title="Reset layer settings"
+  <Button class="basis-1/2 mb-2" variant="outline" @click="resetSliders()" title="Reset layer settings"
       ><ListRestart class="size-4" />
-    </Button>
+  </Button>
+  <VueDraggableNext class="space-y-2" v-model="groups">
     <!-- CREATES A CARD FOR EACH LAYER -->
     <Card v-for="group in groups" :key="group.name" class="cursor-move space-y-2 p-2">
       <div class="flex justify-between">

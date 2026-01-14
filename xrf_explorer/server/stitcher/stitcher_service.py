@@ -778,7 +778,8 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
 
     # Stitch greyscales
     result_image = stitcher.stitch_greyscales(preview_images)
-    result_image = normalize_image(result_image)
+    result_image = np.multiply(result_image, 0.5)
+    #result_image = normalize_image(result_image)
 
     result_width, result_height = result_image.shape[:2]
 
