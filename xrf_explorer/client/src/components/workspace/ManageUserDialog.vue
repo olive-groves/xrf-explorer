@@ -40,6 +40,7 @@ const username = ref(props.user.username); // Selected username
 const password = ref(""); // New password (optional)
 const role = ref(props.user.role.toLowerCase()); // Selected role
 const originalRole = ref(role.value);
+const changedAccess = ref(false);
 
 // Search query for filtering projects
 const projectQuery = ref("");
@@ -65,6 +66,34 @@ const computedProjects = computed(() =>
   })),
 );
 const passwordType = ref("password");
+
+/**
+ * determines if the update button should be enabled
+ */
+const determineDisabled = computed(() => {
+  if (password.value !== '' && !validPassword(password.value)) {
+    return true;
+  }
+
+  if (username.value !== originalUsername.value) {
+    if (username.value === "") {
+      return true;
+    }
+    return false;
+  }
+
+  if (role.value !== originalRole.value) {
+    return false;
+  }
+
+  console.log(changedAccess.value);
+  
+  if (changedAccess.value) {
+    return false;
+  }
+
+  return true;
+});
 
 /**
  * Get project access for the user.
@@ -141,6 +170,7 @@ async function giveAccess(projectName: string) {
     // On success, notify user; else give error message
     if (response.data.success) {
       toast.info("Access granted successfully");
+      changedAccess.value = true;
       await refreshProjects();
     } else {
       toast.error(response.data.message || "Grant Access failed");
@@ -161,6 +191,7 @@ async function giveAccessAll() {
     for (const project of projects.value) {
       if (!accessedProjects.value.includes(project)) await giveAccess(project);
     }
+    changedAccess.value = true;
   }
 }
 
@@ -183,6 +214,7 @@ async function removeAccess(projectName: string) {
     // On success, notify user; else give error message
     if (response.data.success) {
       toast.info("Access revoked successfully");
+      changedAccess.value = true;
       await refreshProjects();
     } else {
       toast.error(response.data.message || "Revoke Access failed");
@@ -203,6 +235,7 @@ async function removeAccessAll() {
     for (const project of projects.value) {
       if (accessedProjects.value.includes(project)) await removeAccess(project);
     }
+    changedAccess.value = true;
   }
 }
 </script>
@@ -281,10 +314,7 @@ async function removeAccessAll() {
     </div>
     <div class="flex items-center justify-between">
       <Button @click="emit('close')"> Cancel </Button>
-      <Button @click="updateAccount" :disabled=
-          " (username == '') ||
-          !((role != originalRole && password == '') || 
-          (validPassword(password)))">
+      <Button @click="updateAccount" :disabled=determineDisabled>
         Update Account
       </Button>
       <Button @click="deleteAccount" variant="destructive"> Delete Account </Button>
