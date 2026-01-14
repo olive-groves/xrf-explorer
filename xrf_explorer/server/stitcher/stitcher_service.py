@@ -796,6 +796,7 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
 
     # Save preview image
     preview_path = join(output_dir, preview_file_name)
+    result_image = np.clip(result_image, 0, 255)
     cv.imwrite(preview_path, result_image.astype(np.uint8))
 
     return {
