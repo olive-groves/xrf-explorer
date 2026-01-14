@@ -778,7 +778,7 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
 
     # Stitch greyscales
     result_image = stitcher.stitch_greyscales(preview_images)
-    result_image = normalize_image(result_image)
+    #result_image = normalize_image(result_image)
 
     result_width, result_height = result_image.shape[:2]
 
@@ -796,7 +796,6 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
 
     # Save preview image
     preview_path = join(output_dir, preview_file_name)
-    result_image = np.clip(result_image, 0, 255)
     cv.imwrite(preview_path, result_image.astype(np.uint8))
 
     return {
