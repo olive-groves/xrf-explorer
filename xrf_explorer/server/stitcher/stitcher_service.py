@@ -181,7 +181,10 @@ class FragmentData:
                     f"Fragment target points are out of bounds."
                 )
 
-        self._points = (self._local_points, self._target_points)
+            self._points = (self._local_points, self._target_points)
+
+        else:
+            self._points = None
 
     @property
     def rotation(self) -> int:
@@ -590,7 +593,7 @@ def get_stitch_info(data: StitchData) -> Dict[str, Any]:
     optimizer = ScalarOptimizer(data.points)
     optimal_scalar, _ = optimizer.find_best_scalar()
     reference_file_size = (
-            data.get_fragments()[0].channels + 1 # Spectral channels + 1 elemental channel
+            (data.get_fragments()[0].channels + 1) # Spectral channels + 1 elemental channel
             * data.contextual_image_dimensions.width
             * data.contextual_image_dimensions.height
     )
@@ -925,7 +928,7 @@ def pre_transpose_cubes(data: StitchData) -> Dict[str, Any]:
         fragment = fragment_data.fragment
         
         # Only process spectral fragments
-        if not isinstance(fragment, SpectralDatacubeFragment):
+        if not getattr(fragment, "is_spectral", False):
             LOG.info(f"Skipping non-spectral fragment: {cube_file}")
             cubes_skipped.append({
                 "cube_file": cube_file,

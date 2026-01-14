@@ -75,14 +75,14 @@ class WarpSelection:
             )
 
     def are_within(self, width, height) -> bool:
-        """Checks if all points are within the given width and height."""
+        """Checks if all    points are within the given width and height."""
         for x, y in (
             self.top_left,
             self.top_right,
             self.bottom_left,
             self.bottom_right,
         ):
-            if not (0 <= x < width and 0 <= y < height):
+            if not (0 <= x <= width and 0 <= y <= height):
                 return False
         return True
 
