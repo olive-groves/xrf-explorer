@@ -23,6 +23,7 @@ const filteredWindows = computed(() => {
   return Object.values(windowState).filter((window) => {
     // Only show the workspace window for admins and editors
     if (window.id === "workspace") return false;
+    if (window.id === "stitching" && appState.user.role === "VIEWER") return false;
     return true;
   });
 });

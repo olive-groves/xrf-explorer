@@ -17,7 +17,7 @@ const hasPartialElemental = computed(
 );
 
 const canRedoStitching = computed(() => {
-  if (!workspace.value) return false;
+  if (!workspace.value || appState.user.role === "VIEWER") return false;
   return (
     workspace.value.stitchingMode === "full" &&
     (hasPartialSpectral.value || hasPartialElemental.value)
