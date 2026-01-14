@@ -62,23 +62,32 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
   const ws = appState.workspace;
   if (!ws) return [];
 
-  const cubes =
-    type === "elemental" ? ws.partialElementalCubes : ws.partialSpectralCubes;
+  if (type === "elemental") {
+    return ws.partialElementalCubes.map((cube, idx) => {
+      const points = getPointsForGray(idx);
+      const { local_points, target_points } = pointsToBackendDicts(points);
 
-  return cubes.map((cube, idx) => {
-    const points = getPointsForGray(idx);
-    const { local_points, target_points } = pointsToBackendDicts(points);
+      return {
+        datacube_file: cube.dataLocation, // Now compiler knows this exists
+        rotation: (getRotation(idx) + 360) % 360,
+        local_points,
+        target_points,
+      };
+    });
+  } else {
+    return ws.partialSpectralCubes.map((cube, idx) => {
+      const points = getPointsForGray(idx);
+      const { local_points, target_points } = pointsToBackendDicts(points);
 
-    return {
-      datacube_file: type === "elemental" ? cube.dataLocation : cube.rawLocation,
-      ...(type === "spectral" && cube.rplLocation
-        ? { rpl_file: cube.rplLocation }
-        : {}),
-      rotation: (getRotation(idx) + 360) % 360,
-      local_points,
-      target_points,
-    };
-  });
+      return {
+        datacube_file: cube.rawLocation, // Now compiler knows this exists
+        ...(cube.rplLocation ? { rpl_file: cube.rplLocation } : {}),
+        rotation: (getRotation(idx) + 360) % 360,
+        local_points,
+        target_points,
+      };
+    });
+  }
 }
 
 // Generate geryscale preview
