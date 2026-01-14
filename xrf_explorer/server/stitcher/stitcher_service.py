@@ -181,10 +181,7 @@ class FragmentData:
                     f"Fragment target points are out of bounds."
                 )
 
-            self._points = (self._local_points, self._target_points)
-
-        else:
-            self._points = None
+        self._points = (self._local_points, self._target_points)
 
     @property
     def rotation(self) -> int:
