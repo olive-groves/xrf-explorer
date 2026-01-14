@@ -278,9 +278,10 @@ function onClick(event: MouseEvent) {
     if (appState.workspace?.stitchingMode) {
       const pointObj = getBaseImageCoords(event);
       for (const p of currentPoints.value) {
+        const zoomScale = Math.exp(viewport.zoom);
         const dx = p.gray.x - pointObj.x;
         const dy = p.gray.y - pointObj.y;
-        if (dx * dx + dy * dy < 20 * 20) {
+        if (dx * dx + dy * dy < 20 * 20 / zoomScale * zoomScale * zoomScale) {
           if (checkSelectPoint(p.id)) {
             deselect();
             return;
