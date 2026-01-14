@@ -22,7 +22,7 @@ const hasSlot = computed(() => {
 const filteredWindows = computed(() => {
   return Object.values(windowState).filter((window) => {
     // Only show the workspace window for admins and editors
-    if (window.id === "workspace") return false;
+    if (window.id === "workspace" || window.id === "stitching") return false;
     return true;
   });
 });
