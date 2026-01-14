@@ -76,6 +76,14 @@ with app.app_context():
     else:
         LOG.info("Editor user already exists.")
 
+    #editor_user = User(username='localeditor', role=UserRole.EDITOR)
+    #editor_user.set_password('localeditor')
+    #add_and_commit_user(editor_user)
+
+    #viewer_user = User(username='localviewer', role=UserRole.VIEWER)
+    #viewer_user.set_password('localviewer')
+    #add_and_commit_user(viewer_user)
+
 # Import and register the routes
 from xrf_explorer.server.routes import *
 

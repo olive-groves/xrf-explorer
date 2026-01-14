@@ -7,6 +7,7 @@ import { Image, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { FrontendConfig } from "@/lib/config";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { toast } from "vue-sonner";
 
 const config = inject<FrontendConfig>("config")!;
 const model = defineModel<WorkspaceConfig>({ required: true });
@@ -302,6 +303,8 @@ async function handleMultiDeleteConfirmed() {
     for (const filename of result.deleted) {
       void removeFileFromComponent(filename);
     }
+
+    toast.info("Deleted " + result.deleted.length + " files");
   } catch (error) {
     console.error("Error during multi-delete:", error);
   }
