@@ -300,7 +300,8 @@ function onClick(event: MouseEvent) {
       for (const p of currentPoints.value.filter(hasBase)) {
         const dx = p.base.x - pointObj.x;
         const dy = p.base.y - pointObj.y;
-        if (dx * dx + dy * dy < 20 * 20) {
+        const zoomScale = Math.exp(viewport.zoom);
+        if (dx * dx + dy * dy < 20 * 20 / zoomScale * zoomScale * zoomScale) {
           if (checkSelectPoint(p.id)) {
             deselect();
             return;
