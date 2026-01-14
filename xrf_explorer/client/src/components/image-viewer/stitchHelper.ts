@@ -192,9 +192,13 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
   );
 
   if (includeElemental) {
+    ws.elementalCubes = []
+    saveWorkspaceDebounced();
     stitch(false, "elemental", scaling_factor, intensities);
   }
   if (includeSpectral) {
+    ws.spectralCubes = []
+    saveWorkspaceDebounced();
     stitch(false, "spectral", scaling_factor, intensities);
   }
 

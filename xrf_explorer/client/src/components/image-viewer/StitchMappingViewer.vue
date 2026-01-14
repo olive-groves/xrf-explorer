@@ -12,6 +12,36 @@ import StitchMappingBase from "./StitchMappingBase.vue";
 import StitchMappingGreyscale from "./StitchMappingGreyscale.vue";
 import { appState } from "@/lib/appState";
 import { getTooltipByKey } from "@/lib/useToolTips";
+import { saveWorkspaceDebounced } from "./workspace";
+
+const workspace = computed(() => appState.workspace);
+
+// Full stitched cubes exist
+const hasFullSpectral = computed(
+  () => (workspace.value?.spectralCubes?.length ?? 0) > 0
+);
+
+const hasFullElemental = computed(
+  () => (workspace.value?.elementalCubes?.length ?? 0) > 0
+);
+
+// Show cancel button
+const canCancelRedoStitching = computed(() => {
+  if (!workspace.value) return false;
+
+  return (
+    workspace.value.stitchingMode === "partial" &&
+    (hasFullSpectral.value || hasFullElemental.value)
+  );
+});
+
+function cancelRedoStitching() {
+  if (!workspace.value) return;
+
+  workspace.value.stitchingMode = "full";
+
+  saveWorkspaceDebounced();
+}
 
 // --- Selected grayscale and points ---
 const selectedIndex = computed(() => selectedGrayscaleIndex.value);
@@ -151,6 +181,13 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
           </div>
         </div>
         <Button @click="clearAllPoints" :title="getTooltipByKey('stitch.clear_points')">Clear points</Button>
+        <Button
+          v-if="canCancelRedoStitching"
+          variant="outline"
+          @click="cancelRedoStitching"
+        >
+          Cancel redoing stitching
+        </Button>
       </div>
       <div v-else class="text-xs italic text-gray-600">No grayscale selected.</div>
     </div>
