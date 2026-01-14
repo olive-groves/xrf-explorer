@@ -62,27 +62,19 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
   const ws = appState.workspace;
   if (!ws) return [];
 
-  return ws.grayscale.map((gray, idx) => {
+  const cubes =
+    type === "elemental" ? ws.partialElementalCubes : ws.partialSpectralCubes;
+
+  return cubes.map((cube, idx) => {
     const points = getPointsForGray(idx);
     const { local_points, target_points } = pointsToBackendDicts(points);
 
-    let datacube_file: string;
-    let rpl_file: string | undefined;
-
-    if (type === "elemental") {
-      datacube_file =
-        ws.partialElementalCubes.find(c => c.name === gray.sourceCubeName)!.dataLocation;
-    } else {
-      const cube =
-        ws.partialSpectralCubes.find(c => c.name === gray.sourceCubeName)!;
-      datacube_file = cube.rawLocation;
-      rpl_file = cube.rplLocation;
-    }
-
     return {
-      datacube_file,
-      ...(rpl_file ? { rpl_file } : {}),
-      rotation: (getRotation(idx) + 360 ) % 360,
+      datacube_file: type === "elemental" ? cube.dataLocation : cube.rawLocation,
+      ...(type === "spectral" && cube.rplLocation
+        ? { rpl_file: cube.rplLocation }
+        : {}),
+      rotation: (getRotation(idx) + 360) % 360,
       local_points,
       target_points,
     };
