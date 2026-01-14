@@ -227,6 +227,18 @@ async function removeComponentsFromWorkspace(fragmentIndex: number | null) {
   componentNameToDelete.value = null;
 }
 
+function addContextualImage() {
+  model.value.contextualImages.push({
+    name: "",
+    imageLocation: "",
+    recipeLocation: "",
+  });
+}
+
+function removeContextualImage(index: number) {
+  model.value.contextualImages.splice(index, 1);
+}
+
 /**
  * Removes a file from the workspace.
  * @param filename The name of the file to be removed.
@@ -404,6 +416,44 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
           </template>
         </template>
 
+        <!-- Contextual images -->
+        <div v-if ="model.contextualImages.length > 0" class="col-span-full mb-2 mt-4 justify-self-start text-lg font-semibold">Contextual images</div>
+
+        <template v-for="(image, index) in model.contextualImages" :key="index">
+          <div class="col-span-full grid grid-cols-subgrid gap-2">
+            <Image class="ml-2 size-6" title="Contextual image" />
+
+            <Input
+              placeholder="Name"
+              v-model:model-value="image.name"
+            />
+
+            <FileSetupTableRow
+              type="an image"
+              :options="imageFiles"
+              v-model="image.imageLocation"
+            />
+
+            <FileSetupTableRow
+              type="a recipe"
+              :options="recipeFiles"
+              v-model="image.recipeLocation"
+            />
+
+            <Button
+              variant="destructive"
+              class="row-span-2 size-full p-2"
+              @click="removeContextualImage(index)"
+              title="Remove contextual image"
+            >
+              <Trash2 />
+            </Button>
+          </div>
+
+          <Separator class="col-span-full my-2" />
+        </template>
+        
+
         <!-- Delete component dialog -->
         <div v-if="showDeleteComponentDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div class="min-w-[320px] rounded-lg bg-background p-6 text-foreground shadow-lg">
@@ -442,12 +492,39 @@ defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
         </div>
       </div>
 
-      <div class="flex items-center space-x-2">
-        <Button v-if="UploadingPartialData === 'partial'" variant="outline" @click="addDatacube"
-          >Add partial data cube</Button
-        >
-        <FileUploadDialog :data-source="model.name" @files-uploaded="fileFetch.execute()" />
-        <Button variant="destructive" @click="showMultiDeleteDialog = true"> Delete Files </Button>
+      <div class="flex items-start space-x-4">
+        <!-- Add actions -->
+        <div class="flex flex-col space-y-2">
+          <Button
+            v-if="UploadingPartialData === 'partial'"
+            variant="outline"
+            @click="addDatacube"
+          >
+            Add partial data cube
+          </Button>
+
+          <Button
+            variant="outline"
+            @click="addContextualImage"
+          >
+            Add contextual image
+          </Button>
+        </div>
+
+        <!-- File actions -->
+        <div class="flex flex-col space-y-2">
+          <FileUploadDialog
+            :data-source="model.name"
+            @files-uploaded="fileFetch.execute()"
+          />
+
+          <Button
+            variant="destructive"
+            @click="showMultiDeleteDialog = true"
+          >
+            Delete Files
+          </Button>
+        </div>
       </div>
     </div>
 

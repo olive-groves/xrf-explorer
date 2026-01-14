@@ -2,8 +2,9 @@
 import { ref, onMounted, onBeforeUnmount, onUnmounted} from "vue";
 import MappingWindow from "./MappingWindow.vue";
 import PreviewWindow from "./PreviewWindow.vue";
+import { appState } from "@/lib/appState";
 
-const mode = ref<'edit' | 'preview'>('edit');
+const mode = ref<'edit' | 'preview'>(appState.workspace?.mapping.mode ?? 'edit' );
 
 async function onModeChanged(e: Event | CustomEvent) {
   const newMode = (e as CustomEvent).detail as 'edit' | 'preview';

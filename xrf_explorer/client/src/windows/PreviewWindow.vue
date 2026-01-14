@@ -8,8 +8,8 @@ import { saveWorkspaceDebounced } from '@/components/image-viewer/workspace';
 
 const workspace = computed(() => appState.workspace);
 
-const includeSpectral = ref(true);
-const includeElemental = ref(true);
+const includeSpectral = ref(false);
+const includeElemental = ref(false);
 
 const hasSpectralData = computed(() => {
   const ws = appState.workspace;
@@ -203,8 +203,8 @@ onBeforeUnmount(() => {
 
 watch(showConfirmation, (open) => {
   if (!open) return;
-  includeSpectral.value = true;
-  includeElemental.value = true;
+  includeSpectral.value = hasSpectralData.value;
+  includeElemental.value = hasElementalData.value;
 });
 </script>
 
@@ -400,17 +400,22 @@ watch(showConfirmation, (open) => {
 
 <style scoped>
 .dialog-overlay {
-  text-align: center;
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
 }
+
 .dialog-content {
-  text-align: center;
-  background: #fff; padding: 2em; border-radius: 8px;
-  display: flex;       
-  gap: 20px;              
-  justify-content: center; 
-  align-items: center;  
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  min-width: 280px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 </style>

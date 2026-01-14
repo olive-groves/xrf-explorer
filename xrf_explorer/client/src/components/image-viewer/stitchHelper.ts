@@ -192,9 +192,13 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
   );
 
   if (includeElemental) {
+    ws.elementalCubes = []
+    saveWorkspaceDebounced();
     stitch(false, "elemental", scaling_factor, intensities);
   }
   if (includeSpectral) {
+    ws.spectralCubes = []
+    saveWorkspaceDebounced();
     stitch(false, "spectral", scaling_factor, intensities);
   }
 
@@ -213,6 +217,10 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
       clearInterval(interval);
 
       appState.workspace = updated;
+      const ws = appState.workspace
+      if (!ws) {return}
+      ws.stitchingMode = "full"
+      ws.mapping.mode = "edit"
 
       stitchingInProgress.value = false;
       saveWorkspaceDebounced();
