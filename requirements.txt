@@ -42,6 +42,7 @@ pytest==8.2.0
 pytest-emoji==0.2.0
 pytest-md==0.2.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.2.1
 pytz==2024.1
 PyYAML==6.0.1
 requests==2.31.0

@@ -5,6 +5,8 @@ import logging
 from datetime import datetime
 from os import environ
 from sys import stdout
+from dotenv import load_dotenv
+load_dotenv()
 
 LOG: logging.Logger = logging.getLogger(__name__)
 
