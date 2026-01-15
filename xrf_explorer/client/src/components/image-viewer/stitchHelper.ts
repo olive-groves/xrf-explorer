@@ -2,7 +2,7 @@ import { appState } from "@/lib/appState";
 import { canPreview, getPointsForGray, getRotation, hasBase, maxPoints, StitchPoint } from "./stitchPoints";
 import { toast } from "vue-sonner";
 import { ref } from "vue";
-import { saveWorkspaceDebounced } from "./workspace";
+import { saveWorkspaceDebounced, saveWorkspaceToBackend } from "./workspace";
 import { windowState } from "../ui/window/state";
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
@@ -190,15 +190,14 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
   const intensities = ws.grayscale.map(
     (_, idx) => ws.mapping.grayscaleContrast?.[idx] ?? 1.0
   );
+  await saveWorkspaceToBackend();
 
   if (includeElemental) {
     ws.elementalCubes = []
-    saveWorkspaceDebounced();
     await stitch(false, "elemental", scaling_factor, intensities);
   }
   if (includeSpectral) {
     ws.spectralCubes = []
-    saveWorkspaceDebounced();
     await stitch(false, "spectral", scaling_factor, intensities);
   }
 
