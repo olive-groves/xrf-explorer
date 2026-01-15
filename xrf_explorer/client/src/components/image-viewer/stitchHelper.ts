@@ -179,7 +179,7 @@ export const stitchingInProgress = ref(false);
  * @param includeSpectral - Whether to stitch spectral cubes
  * @param includeElemental - Whether to stitch elemental cubes
  */
-export function confirmStitching(includeSpectral: boolean, includeElemental: boolean, scaling_factor: number) {
+export async function confirmStitching(includeSpectral: boolean, includeElemental: boolean, scaling_factor: number) {
   const ws = appState.workspace;
   if (!ws) return;
   windowState["stitching"].opened = false;
@@ -194,12 +194,12 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
   if (includeElemental) {
     ws.elementalCubes = []
     saveWorkspaceDebounced();
-    stitch(false, "elemental", scaling_factor, intensities);
+    await stitch(false, "elemental", scaling_factor, intensities);
   }
   if (includeSpectral) {
     ws.spectralCubes = []
     saveWorkspaceDebounced();
-    stitch(false, "spectral", scaling_factor, intensities);
+    await stitch(false, "spectral", scaling_factor, intensities);
   }
 
   let workspacePollVersion = 0;
