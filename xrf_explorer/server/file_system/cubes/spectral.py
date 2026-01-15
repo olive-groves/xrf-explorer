@@ -57,6 +57,17 @@ def parse_rpl(path: str) -> dict:
     else:
         LOG.error("Error while parsing rpl file: file empty")
 
+
+    data_len = parsed_rpl.get("data-Length", 0)
+    if data_len not in (1, 2, 4, 8):
+        raise ValueError(f"Unsupported element size: {data_len} bytes")
+
+    data_order = parsed_rpl.get("byte-order")
+    data_type = parsed_rpl.get("data-type")
+    dtype_signed = "u" if data_type == "unsigned" else "i"
+    dtype_order = ">" if data_order == "big-endian" else "<"
+    dtype = f"{dtype_order}{dtype_signed}{data_len}"
+    parsed_rpl['parsed-data-type'] = dtype
     return parsed_rpl
 
 
@@ -98,6 +109,11 @@ def mipmap_raw_cube(data_source: str, level: int) -> None:
         mipmap_raw_cube(data_source, level - 1)
 
     raw_name, _ = get_raw_rpl_names(data_source)
+    _, path_to_rpl = get_raw_rpl_paths(data_source)
+    info = parse_rpl(path_to_rpl)
+    if not info:
+        raise ValueError(f"Could not parse RPL file: {path_to_rpl}")
+    data_type = info['parsed-data-type']
 
     LOG.info("Mipmapping spectral cube %s to level %i", raw_name, level)
 
@@ -119,7 +135,7 @@ def mipmap_raw_cube(data_source: str, level: int) -> None:
     mipmapped: np.memmap = np.memmap(
         mipmap_path,
         shape=(ceil(data.shape[0] / 2.0), ceil(data.shape[1] / 2.0), data.shape[2]),
-        dtype=np.uint16,
+        dtype=data_type,
         mode="w+"
     )
 
@@ -152,7 +168,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
         raise ValueError(f"Could not parse RPL file: {path_to_rpl}")
     width: int = ceil(int(info['width']) / (2 ** level))
     height: int = ceil(int(info['height']) / (2 ** level))
-
+    data_type = info['parsed-data-type']
     # get mipmapped cube
     if level > 0:
         if not mipmap_exists(data_source, level):
@@ -180,7 +196,7 @@ def get_raw_data(data_source: str, level: int = 0) -> np.memmap | np.ndarray:
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube: np.memmap = np.memmap(path_to_raw, dtype=np.uint16, mode='r', shape=(height, width, bin_nr))
+        datacube: np.memmap = np.memmap(path_to_raw, dtype=data_type, mode='r', shape=(height, width, bin_nr))
     except OSError as err:
         raise RuntimeError(f"Failed to load raw file: {path_to_raw}.", err) from err
     return datacube
@@ -222,7 +238,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
     width: int = int(info['width'])
     height: int = int(info['height'])
     channels: int = int(info['depth'])
-
+    data_type: str = info['parsed-data-type']
     # if default settings, don't do anything
     if low == 0 and high == 4096 and bin_size == 1:
         set_binned(data_source, True)
@@ -230,7 +246,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
 
     try:
         # load raw file and parse it as 3d array with correct dimensions
-        datacube: np.ndarray = np.fromfile(path_to_raw, dtype=np.uint16)
+        datacube: np.ndarray = np.fromfile(path_to_raw, dtype=data_type)
     except OSError as err:
         LOG.error(f"error while loading raw file for binning: {err}")
         raise
@@ -247,7 +263,7 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         nr_bins: int = ceil((high - low) / bin_size)
         # initialize  array
         new_cube: np.ndarray = np.zeros(
-            shape=(height, width, nr_bins), dtype=np.uint16)
+            shape=(height, width, nr_bins), dtype=data_type)
 
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
