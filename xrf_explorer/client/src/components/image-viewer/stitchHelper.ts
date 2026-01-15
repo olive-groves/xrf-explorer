@@ -202,8 +202,15 @@ export function confirmStitching(includeSpectral: boolean, includeElemental: boo
     stitch(false, "spectral", scaling_factor, intensities);
   }
 
+  let workspacePollVersion = 0;
+
   const interval = setInterval(async () => {
-    const resp = await fetch(`/api/${ws.name}/workspace`);
+    workspacePollVersion++;
+
+    const resp = await fetch(
+      `/api/${ws.name}/workspace?version=${workspacePollVersion}`,
+      { cache: "no-store" }
+    );
     if (!resp.ok) return;
 
     const updated = await resp.json();

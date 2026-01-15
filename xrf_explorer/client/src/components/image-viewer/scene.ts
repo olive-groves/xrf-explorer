@@ -111,23 +111,30 @@ export async function loadLayerFromTexture(layer: Layer, texture: THREE.Texture)
  * @param layer - The layer to dispose of.
  */
 export function disposeLayer(layer: Layer) {
-  if (layer.mesh != undefined) {
-    const uuid = layer.mesh.uuid;
-    const child = scene.scene.children.filter((mesh) => mesh.uuid == uuid)[0];
-    scene.scene.remove(child);
+  const mesh = layer.mesh;
+  if (!mesh) return;
 
-    const mesh = child as THREE.Mesh;
+  scene.scene.remove(mesh);
+
+  // Dispose material(s)
+  if (Array.isArray(mesh.material)) {
+    mesh.material.forEach((m) => m.dispose());
+  } else {
     const material = mesh.material as THREE.RawShaderMaterial;
     const uniforms = material.uniforms as LayerUniform;
 
-    uniforms.tImage?.value.dispose();
-    uniforms.tImage = undefined;
+    const texture = uniforms.tImage?.value;
+    if (texture instanceof THREE.Texture) {
+      texture.dispose();
+    }
 
     material.dispose();
-    mesh.geometry.dispose();
-
-    layer.mesh = undefined;
   }
+
+  // Dispose geometry
+  mesh.geometry.dispose();
+
+  layer.mesh = undefined;
 }
 
 /**
