@@ -58,7 +58,7 @@ def parse_rpl(path: str) -> dict:
         LOG.error("Error while parsing rpl file: file empty")
 
 
-    data_len = parsed_rpl.get("data-Length", 0)
+    data_len = int(parsed_rpl.get("data-Length", 0))
     if data_len not in (1, 2, 4, 8):
         raise ValueError(f"Unsupported element size: {data_len} bytes")
 
