@@ -195,17 +195,26 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
     ws.elementalCubes = []
     saveWorkspaceDebounced();
     await stitch(false, "elemental", scaling_factor, intensities);
-    requestWorkspace();
   }
   if (includeSpectral) {
     ws.spectralCubes = []
     saveWorkspaceDebounced();
     await stitch(false, "spectral", scaling_factor, intensities);
-    requestWorkspace();
   }
 
+  let workspacePollVersion = 0;
+
   const interval = setInterval(async () => {
-    const updated = await requestWorkspace();
+    workspacePollVersion++;
+
+    const resp = await fetch(
+      `/api/${ws.name}/workspace?version=${workspacePollVersion}`,
+      { cache: "no-store" }
+    );
+    if (!resp.ok) return;
+
+    const updated = await resp.json();
+
     const spectralDone =
       !includeSpectral || (updated.spectralCubes?.length ?? 0) > 0;
     const elementalDone =
@@ -214,6 +223,7 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
     if (spectralDone && elementalDone) {
       clearInterval(interval);
 
+      appState.workspace = updated;
       const ws = appState.workspace
       if (!ws) {return}
       ws.stitchingMode = "full"
@@ -223,24 +233,6 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
       saveWorkspaceDebounced();
     }
   }, 2000);
-}
-
-let workspacePollVersion = 0;
-
-async function requestWorkspace() {
-  const ws = appState.workspace;
-  if (!ws) return;
-  workspacePollVersion++;
-
-  const resp = await fetch(
-    `/api/${ws.name}/workspace?version=${workspacePollVersion}`,
-    { cache: "no-store" }
-  );
-  if (!resp.ok) return;
-
-  const updated = await resp.json();
-  appState.workspace = updated;
-  return updated
 }
 
 
