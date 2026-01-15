@@ -622,11 +622,11 @@ def create_recipe_file(recipe_file: str, datacube_dimensions: Dimensions, contex
         # Top-left
         f.write(f"0|0|0|0\n")
         # Top-right
-        f.write(f"{from_width-1}|0|{to_width-1}|0\n")
+        f.write(f"{to_width-1}|0|{from_width-1}|0\n")
         # Bottom-left
-        f.write(f"0|{from_height-1}|0|{to_height-1}\n")
+        f.write(f"0|{to_height-1}|0|{from_height-1}\n")
         # Bottom-right
-        f.write(f"{from_width-1}|{from_height-1}|{to_width-1}|{to_height-1}\n")
+        f.write(f"{to_width-1}|{to_height-1}|{from_width-1}|{from_height-1}\n")
     return recipe_file
 
 def generate_partial_greyscale(frag_data: FragmentData) -> bool:
