@@ -20,11 +20,11 @@ watch(useWorkspace, (value) => loadWorkspace(value!), { deep: true });
  * Updates the layers and layer groups when changes are made to the workspace config.
  * @param workspace - The new workspace configuration.
  */
-function loadWorkspace(workspace: WorkspaceConfig) {
+async function loadWorkspace(workspace: WorkspaceConfig) {
   // Unload existing workspace
   console.info("Unloading existing workspace from layer system");
   layerGroups.value = {};
-  layers.value.forEach(disposeLayer);
+  await layers.value.forEach(disposeLayer);
   layers.value = [];
 
   console.info("Loading new workspace into layer system");
