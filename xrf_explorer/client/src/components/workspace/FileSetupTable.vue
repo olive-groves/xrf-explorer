@@ -88,10 +88,10 @@ onMounted(() => {
   let startMode: "full" | "partial" = "full";
 
   // Decide initial mode based on what cubes exist
-  if (model.value.partialSpectralCubes.length > 0 || model.value.partialElementalCubes.length > 0) {
-    startMode = "partial";
-  } else if (model.value.spectralCubes.length > 0 || model.value.elementalCubes.length > 0) {
+  if (model.value.spectralCubes.length > 0 || model.value.elementalCubes.length > 0) {
     startMode = "full";
+  } else if (model.value.partialSpectralCubes.length > 0 || model.value.partialElementalCubes.length > 0) {
+    startMode = "partial";
   }
 
   UploadingPartialData.value = startMode;
