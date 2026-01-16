@@ -1,0 +1,34 @@
+Layers
+=======
+
+NEEDS ADJUSTING
+In this section you can find how to use the layers window.
+
+With the layers menu, you can determine what layers to show, and change their properties to make it easier to analyze the painting.
+
+The different layers
+---------------------
+The different layers which can be adjusted are *Color clusters*, *Elemental maps*, *Dimensionality reduction*, *UV*, *XRAY* and *RGB*. 
+The first three correspond to layers which are modified by other windows. 
+The UV, XRAY and RGB layers are standard images imported in the project files. 
+
+Options
+--------
+For ease of use, it is possible to pin up to three layers to the sceen, you can then disable the layers view, while pinned layers remain visible. 
+These layers can then still be adjusted.
+Their pinned block can be moved to anywhere on the screen.
+
+The big slider for each layer corresponds to the opacity. 
+By viewing the additional sliders, you can also adjust contrast, saturation, gamma and brightness for each layer.
+It is also possible to toggle a layers visibility completely, or to enable visibility of a layer only inside the lens. 
+
+Example
+-------
+
+.. image:: ./Layers.png
+    :width: 600
+
+Here, the layers color clusters, elemental maps, dimensionality reduction and RGB are visible. 
+Note that the first three only show something if something is highlighted due to their window. 
+The opacity of the RGB window is set to 0.5. 
+The dimensionality reduction and elemental maps layers are also pinned and have been placed on different spots.

@@ -1,0 +1,69 @@
+Spectrum
+=============
+
+In this section you can find how to use the spectra chart visualization window. 
+
+The spectrum menu allows you to view the spectrum of the selected data point or region. 
+It shows how much each element reacts to X-ray beam. 
+This allows you to identify and analyze the elemental composition of the pigments used in the painting in detail. 
+
+This menu has a few options which are discussed in detail below.
+
+Global Average Spectrum
+------------------------
+The global average spectrum is the spectrum of the average intensity per energy bin accross the entire painting. 
+The energy bins are computed between the low and high boundaries and with the bin size specified upon loading the raw file.
+
+The spectrum can be made visible on the chart by ticking the **Global average checkbox**. 
+Note that the global average spectrum shows up as a blue line on the generated spectra chart.
+
+
+Selection Average Spectrum
+--------------------------
+When making a selection on the painting with the area selection tool, the average spectrum of the selection will be computed.
+This is the spectrum of the average intensity per energy bin accros the selected part of the painting.
+The energy bins are computed between the low and high boundaries and with the bin size specified upon loading the raw file.
+
+The spectrum can be made visible on the chart by ticking the **Selection average checkbox**.
+Note that the selection average spectrum shows up as a green line on the generated spectra chart.
+
+
+Element theoretical graph and peaks
+------------------------------------
+The spectra chart also allows the visualization of the theoretical spectrum and intensity peaks of an element.
+The theoretical intensity peaks are represented as ines at their corresponding energy values. 
+The spectrum is the theoretical intensity of the element and excitation energy per energy bin, retrieived from the xrf4u and xraydb libraries.
+The energy bins are computed between the low and high boundaries and with the bin size specified upon loading the raw file.
+
+The theoretical graph can be made visible on the chart by ticking the **Element theoretical graph checkbox**.
+Note that the element theoretical graph shows up as an orange line on the generated spectra chart.
+
+The theoretical peaks can be made visible on the chart by ticking the **Element theoretical peaks checkbox**.
+Note that the element theoretical peaks shows up as gray vertical lines on the generated spectra chart.
+
+Theoretical spectrum properties
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To make a theoretical graph or peak appear, the theoretical spectrum properties need to be entered.
+An element can be selected in the **element menu**. 
+When clicked, the menu opens a periodic table. 
+In this table elements which are present in the project's elemental data are highlighted with a yellow border.
+An excitation energy can be set in the **excitation input field**.
+
+
+Spectra chart options
+----------------------
+When the **Open Popup** button, depicted with the expand icon, is clicked, the spectra chart is expanded so data can be explored more easily.
+You can als zoom in on the spectra chart and move the chart along the x and y-axis to more clearly look at certain parts of the chart. 
+It is possible to reset this to return to the chart as it was first generated. 
+
+Example
+-------
+
+.. image:: ./Spectrum.png
+    :width: 600
+
+
+Here the global average spectrum is selected, and thus displayed in blue. 
+The theoretical elemental graph and peaks are also selected, with element iron and excitation 8. The graph is shown in orange, with the peaks being shown as gray vertical lines.
+The selection spectrum is not selected and therefore not shown. 
+The graph is also zoomed in and has been moved along the x-axis.

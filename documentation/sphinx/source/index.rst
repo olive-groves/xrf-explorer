@@ -4,15 +4,15 @@
    contain the root `toctree` directive.
 
 ********************************************
-Welcome to XRF-Explorer 2.0's documentation!
+Welcome to XRF-Explorer 3.0's documentation!
 ********************************************
 
-The XRF Explorer 2.0 is a web application aimed at conservation scientists, that facilitates the analysis of paintings composition. Here you will find information about its source code, including how it works and how to use it for future development.
+The XRF Explorer 3.0 is a web application aimed at conservation scientists, that facilitates the analysis of paintings composition. Here you will find information about its source code, including how it works and how to use it for future development. Note that the XRF-Explorer 3.0 is a continuation of the XRF-Explorer 2.0.
 
 Getting Started
 ===============
 
-In this section you will find all the necessary steps to be able to run and contribute to the XRF-Explorer 2.0 codebase.
+In this section you will find all the necessary steps to be able to run and contribute to the XRF-Explorer 3.0 codebase.
 
 
 Backend Configuration
@@ -163,6 +163,7 @@ Code Documentation
    :caption: Python Modules:
 
    modules
+   tests
 
 .. toctree::
    :maxdepth: 3

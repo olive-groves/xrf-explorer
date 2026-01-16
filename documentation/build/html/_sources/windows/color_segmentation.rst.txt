@@ -1,0 +1,62 @@
+Color Segmentation
+=============
+
+In this section you can find how to use the color segmentation window.
+
+Complete painting | Elements
+-----------------------------
+You have the option to compute the color segmentation based on the complete painting, meaning all elements present in the selected area.
+Or you can generate a color segmentation based on certain elements. 
+In this latter case, you will need to enter each wanted element, along with a threshold for each element. 
+You are able to add and remove elements as you wish, with a lower boudary of at least one element to make color segmentation possible.
+Note that when two or more elements are selected, the color segmentation will be performed on the *intersection* of these colors, not the *union*.
+
+You are also able to choose to generate a color segmentation only for a selection area. 
+This selection can be made using a selection tool on the paiting. 
+If no selection was made, the program will default to the entire painting.
+
+Recommended amount of clusters
+-------------------------------
+You are able to calculate a recommended amount of clusters for the currently selected option. 
+That being either the complete painting, or a selection of elements.
+This function estimates a suitable number of clusters by analysing the color distribution of the set of pixels.
+The goal is to approximate how many distinct color groups are present in the selected area.
+
+This estimation is done by first converting the pixel colors from LAB to RGB by using *skimage*.
+Then the RGB color space is partitioned into bins.
+Next, the pixels are divided into the bins with the help of the *NumPy* library.
+Finally, the amount of bins with a significant number of pixels in them is counted, and returned as the recommended number of clusters. 
+
+
+Color clusters
+------------------------
+Next is the task of generating the color clusters.
+
+Generate
+^^^^^^^^^^
+To generate the color clusters, you will need to select a number of clusters. 
+This can be any number in the range of 1 - 50 clusters. 
+It is also possible to calculate the recommended amount of clusters and directly using this amount of clusters.
+
+When pleased with all selected options, you can generate the color segmentation by clicking the **Generate color clusters** button.
+
+Select and Deselect
+^^^^^^^^^^^^^^^^^^^^
+Once the color cluster appear, you can select and deselect them by clicking on the colors clusters.
+Note that you can also select all, or deselect all of the color clusters.
+Each selected color cluster will be visualized in the painting. 
+
+*Note, this visualization might be hard to see without other adjusted settings.
+A recommendation is to move to the layer window, and turn down the opacity of the RGB image for a clearer view of the color segmentation.*
+
+
+Example
+-------
+
+.. image:: ./ColorSeg.png
+    :width: 600
+
+In this example, a color segmentation was generated for the intersection of chromium at a 20% threshold and copper at a 10% threshold.
+The segmentation was performed on the entire painting, and the number of clusters which was recommended was also used.
+In the example, all color clusters were selected and displayed in the painting view. 
+Note that for better visability, the opacity of the RGB layer was set to 0.5.

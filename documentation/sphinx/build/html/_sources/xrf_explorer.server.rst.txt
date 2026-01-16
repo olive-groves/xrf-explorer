@@ -14,6 +14,7 @@ Subpackages
    xrf_explorer.server.image_to_cube_selection
    xrf_explorer.server.routes
    xrf_explorer.server.spectra
+   xrf_explorer.server.stitcher
 
 Module contents
 ---------------

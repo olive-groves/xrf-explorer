@@ -1,0 +1,40 @@
+Elemental charts
+=================
+
+In this section you can find how to use the elemental charts window.
+
+Chart options
+------------------------
+The elemental charts window contains three checkboxes which provide the ability to tailor the window to the users needs. 
+The user can enable and disable a Bar and a Line chart.  
+
+The user also has the option to display all, or just selected elements.
+
+The standard settings will display the bar chart for all elements.
+
+Global elemental average
+-------------------------
+The global elemental average corresponds to the average abundance of each element accross the entire painting.
+The Bar chart depicts this global data.
+
+Selection elemental average
+---------------------------
+The selection elemental average is the average abundance of each element accross the selection.
+The Line chart depicts this selected data. 
+
+Display elements
+------------------------
+If the user does not want to display all elements, but only selected elements, they have to enable these elements in the **Elemental Channels window**. 
+If the bar of an enabled element will turn into the color as selected in the elemental channels window as well.
+
+
+Example
+-------
+
+.. image:: ./ElementalCharts.png
+    :width: 600
+
+
+Here the global elemental average is displayed for all elements.
+The line chart for a selected region is also visible.
+Note that the selected region itself is not visible in the picture.

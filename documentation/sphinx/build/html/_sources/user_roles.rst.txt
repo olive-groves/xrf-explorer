@@ -1,0 +1,22 @@
+User Roles
+============
+
+In this section you can find more information on the three different user roles.
+In order of increasing permissions they are: Viewer, Editor and Admin.
+
+Viewer
+-------
+A viewer can only view projects that have been shared with them.
+On these projects, they can use the functions provided in the view windows. 
+Like color segmentation and dimensionality reduction.
+Other data and visualizations that have not been shared are not visible.
+A viewer cannot create, edit or delete project files.
+
+Editor
+-------
+An editor can do the same things as a viewer, and can also upload, create, edit and delete projects and data files.
+
+Admin
+-------
+An admin can do the same things as an editor. Besides this, an admin can also create, manage and delete other users.
+This includes changing user names and passwords, as well as granting access to projects.

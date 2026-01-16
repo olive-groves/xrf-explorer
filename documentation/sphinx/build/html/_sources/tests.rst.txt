@@ -9,6 +9,7 @@ Subpackages
 
    tests.color_segmentation
    tests.file_system
+   tests.stitching
 
 Submodules
 ----------

@@ -4,7 +4,10 @@ windows
 .. toctree::
    :maxdepth: 4
 
-   spectra_chart
-   bar_chart
-   dim_reduction
-   color_segmentation
+   windows/spectrum
+   windows/elemental_charts
+   windows/elemental_channels
+   windows/color_segmentation
+   windows/dim_reduction
+   windows/layers
+   windows/stitching

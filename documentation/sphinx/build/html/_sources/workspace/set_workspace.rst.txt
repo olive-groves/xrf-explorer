@@ -1,0 +1,25 @@
+Setup Workspace
+===================
+
+In this section you can find how to use the setup workspace window.
+
+In this window, you can adjust the workspace data of the project you are currently working in.
+You can upload and delete files. You can also include or choose to explude the spectral and elemental datacube.
+It is also possible to adjust spectral datacube parameters in additional settings.
+
+
+Full and Partial data scans
+----------------------------
+In this setup window, there is a difference between full and partial data scans.
+When you want to enter multiple fragments of a painting instead of one fragment for a painting, you can do this in the partial data scans option of this window.
+It is possible to add and remove frangments with a lower boundary of two fragments. 
+For one fragment, move to the full data scan option. 
+
+
+Example
+-------
+
+.. image:: ./SetWorkspace.png
+    :width: 600
+
+This shows an example setup for a workspace with one fragment. Here, but a spectral and elemental datacube are included.

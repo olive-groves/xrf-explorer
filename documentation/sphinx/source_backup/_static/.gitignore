@@ -1,0 +1,4 @@
+# Ignore static references in this directory
+*
+# Except this file
+!.gitignore

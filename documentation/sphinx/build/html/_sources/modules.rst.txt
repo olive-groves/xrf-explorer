@@ -1,9 +1,7 @@
-xrf-explorer
+xrf_explorer
 ============
 
 .. toctree::
    :maxdepth: 4
 
-   run
-   tests
    xrf_explorer

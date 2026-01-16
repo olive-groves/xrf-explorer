@@ -1,0 +1,7 @@
+Export
+=============
+
+It is possible to export images of the painting.
+You can export an image of the way the painting is looking at the time of exporting.
+You can also export the spectra chart, the elemental chart and the dimensionality reduction embedding.
+

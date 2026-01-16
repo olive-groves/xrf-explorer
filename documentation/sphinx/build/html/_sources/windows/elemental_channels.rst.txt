@@ -1,0 +1,22 @@
+Elemental channels
+===================
+
+In this section you can find how to use the elemental channels window.
+
+In this window, you are able to select which elements you want to visualize in the main window.
+For each element, you are able to select their threshold and visualization color.
+This enables you to analyze where certain elements are present in the painting for a certain intensity.
+
+Note, to be able to select a color and threshold, and to visualize an element in the painting, you first need to turn an elements visibility on by clicking the **toggle visibility** button.
+
+
+Example
+-------
+
+.. image:: ./ElementalChannels.png
+    :width: 600
+
+In this picture, the presence of cobalt is highlighted in a shade of yellow. 
+Zinc is depicted with a blue color, and lead is highlightd with a bright green color.
+Different thresholds are selected for all elements.
+Note that zink is not visible in the leftside menu in this picture. 

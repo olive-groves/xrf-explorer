@@ -1,0 +1,25 @@
+Setup Elemental Channels
+=========================
+
+In this section you can find how to use the setup elemental channels window.
+
+In this window, you are able to configure which elemental channels are available in the other windows. 
+**Intitialize elements**  retrieves all available elements associated with the workspace. 
+The names of the elements are then entered into the channel list, and each channel strats off in a disabled state.
+It is possible to enable or disable each channel individually, or all at once using the **toggle all elements** button.
+Elements that are disabled, are not available in the other windows like *Elemental Channels*.
+It is also possible to change the names of the channels. 
+Note that the program does not check for duplicate or invalid names, to allow the user more freedom.
+
+If the user wants to reset all names, they can do so by clicking *initialize elements*.
+
+Example
+-------
+
+.. image:: ./SetUpElementalChannels.png
+    :width: 600
+
+In this example, all alements are toggled on. 
+A previous time, the *Other channel name* was set and saved for the channel with number 2.
+In the dark gray background, this is also visible. 
+The *New channel name* for channel 3 has not been saved yet, and hence is not visible in the window in the background yet.

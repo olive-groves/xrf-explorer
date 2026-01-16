@@ -1,0 +1,38 @@
+Stitching
+===================
+
+In this section you can find how to use the stitching window.
+
+Edit
+------
+In the *Edit* window, you can set reference points connecting fragments to the painting. 
+In the bottom of the screen, exact point coördinates are available for extra precision.
+On the right-hand side, it is possible to switch between fragments, and to rotate them.
+
+Example
+^^^^^^^^
+
+.. image:: ./Stitching.png
+    :width: 600
+
+In this partial view of the stitchig window, it can be seen how the *Edit* window looks. 
+In this case, *Frag2* is selected.
+The red markers indicate the point on both the fragment *(left)* and the reference painting *(right)*. 
+Note that the exact coordinates are not visible in this example picture.
+
+Preview
+---------
+In the *Preview* window, the resulting mapping of the *Edit* window is visible.
+It is possible to change the opacity of both the base image and the mapped data grayscale for better comparison opportunities.
+In this window, the mapping can be checked and slightly altered by chaning the X- and Y-Offset.
+It is also possible to change the contrast of each fragment to match these better.
+
+Example
+^^^^^^^^
+
+.. image:: ./StitchingPreview.png
+    :width: 600
+
+In this partial view of the stitchig window, it can be seen how the *Preview* window looks. 
+On the left-hand side, the preview of the mapping can be seen.
+In this case the opacity of the mapped data grayscale was turned down to bettwen view how the mapping turned our in comparison to the reference image.

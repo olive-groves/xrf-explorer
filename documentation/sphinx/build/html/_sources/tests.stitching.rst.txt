@@ -1,0 +1,37 @@
+tests.stitching package
+=======================
+
+Submodules
+----------
+
+tests.stitching.test\_stitch\_service module
+--------------------------------------------
+
+.. automodule:: tests.stitching.test_stitch_service
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.stitching.test\_stitcher module
+-------------------------------------
+
+.. automodule:: tests.stitching.test_stitcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.stitching.test\_stitching module
+--------------------------------------
+
+.. automodule:: tests.stitching.test_stitching
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: tests.stitching
+   :members:
+   :undoc-members:
+   :show-inheritance:

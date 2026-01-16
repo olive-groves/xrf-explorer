@@ -1,0 +1,1429 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="components" href="components.html"><link rel="prev" title="tests.file_system package" href="tests.file_system.html">
+
+    <!-- Generated with Sphinx 7.3.7 and Furo 2025.09.25 -->
+        <title>tests.stitching package - XRF-Explorer 3.0 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=acfd86a5" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">XRF-Explorer 3.0 0.3.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">XRF-Explorer 3.0 0.3.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Python Modules:</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="modules.html">xrf_explorer</a><input aria-label="Toggle navigation of xrf_explorer" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="xrf_explorer.html">xrf_explorer package</a><input aria-label="Toggle navigation of xrf_explorer package" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="xrf_explorer.server.html">xrf_explorer.server package</a><input aria-label="Toggle navigation of xrf_explorer.server package" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.color_segmentation.html">xrf_explorer.server.color_segmentation package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.dim_reduction.html">xrf_explorer.server.dim_reduction package</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="xrf_explorer.server.file_system.html">xrf_explorer.server.file_system package</a><input aria-label="Toggle navigation of xrf_explorer.server.file_system package" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="xrf_explorer.server.file_system.cubes.html">xrf_explorer.server.file_system.cubes package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="xrf_explorer.server.file_system.sources.html">xrf_explorer.server.file_system.sources package</a></li>
+<li class="toctree-l5"><a class="reference internal" href="xrf_explorer.server.file_system.workspace.html">xrf_explorer.server.file_system.workspace package</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.image_register.html">xrf_explorer.server.image_register package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.image_to_cube_selection.html">xrf_explorer.server.image_to_cube_selection package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.routes.html">xrf_explorer.server.routes package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.spectra.html">xrf_explorer.server.spectra package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="xrf_explorer.server.stitcher.html">xrf_explorer.server.stitcher package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="tests.html">tests package</a><input aria-label="Toggle navigation of tests package" checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tests.color_segmentation.html">tests.color_segmentation package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.file_system.html">tests.file_system package</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">tests.stitching package</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Vue Components:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="components.html">components</a><input aria-label="Toggle navigation of components" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="windows.html">windows</a><input aria-label="Toggle navigation of windows" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="windows/spectrum.html">Spectrum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/elemental_charts.html">Elemental charts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/elemental_channels.html">Elemental channels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/color_segmentation.html">Color Segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/dim_reduction.html">Dimensionality Reduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/layers.html">Layers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="windows/stitching.html">Stitching</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="workspace.html">Workspace</a><input aria-label="Toggle navigation of Workspace" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="workspace/set_workspace.html">Setup Workspace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workspace/set_elem_chan.html">Setup Elemental Channels</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_roles.html">User Roles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="export.html">Export</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/tests.stitching.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="tests-stitching-package">
+<h1>tests.stitching package<a class="headerlink" href="#tests-stitching-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="tests-stitching-test-stitch-service-module">
+<h2>tests.stitching.test_stitch_service module<a class="headerlink" href="#tests-stitching-test-stitch-service-module" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-tests.stitching.test_stitcher">
+<span id="tests-stitching-test-stitcher-module"></span><h2>tests.stitching.test_stitcher module<a class="headerlink" href="#module-tests.stitching.test_stitcher" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestDatacubeStitcherInit</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.__init__</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_incompatible_datacubes_raises_error">
+<span class="sig-name descname"><span class="pre">test_incompatible_datacubes_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_incompatible_datacubes_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_incompatible_datacubes_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when datacubes are incompatible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_intensity_scales_raises_error">
+<span class="sig-name descname"><span class="pre">test_mismatched_intensity_scales_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_mismatched_intensity_scales_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_intensity_scales_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when intensity_scales length doesn’t match.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_points_raises_error">
+<span class="sig-name descname"><span class="pre">test_mismatched_points_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_mismatched_points_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_points_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when points length doesn’t match.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_no_fragments_raises_error">
+<span class="sig-name descname"><span class="pre">test_no_fragments_raises_error</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_no_fragments_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_no_fragments_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when no fragments provided.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_none_fragments_raises_error">
+<span class="sig-name descname"><span class="pre">test_none_fragments_raises_error</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_none_fragments_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_none_fragments_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when fragments is None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_scalar_default_value">
+<span class="sig-name descname"><span class="pre">test_scalar_default_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_scalar_default_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_scalar_default_value" title="Link to this definition">¶</a></dt>
+<dd><p>Should use default scalar of 1.0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_too_many_fragments_raises_error">
+<span class="sig-name descname"><span class="pre">test_too_many_fragments_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_too_many_fragments_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_too_many_fragments_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when more than 32 fragments.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_valid_initialization">
+<span class="sig-name descname"><span class="pre">test_valid_initialization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestDatacubeStitcherInit.test_valid_initialization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_valid_initialization" title="Link to this definition">¶</a></dt>
+<dd><p>Should initialize correctly with valid inputs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillLayers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestFillLayers</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillLayers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillLayers" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.fill_layers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_elemental">
+<span class="sig-name descname"><span class="pre">test_orchestrates_stitching_elemental</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillLayers.test_orchestrates_stitching_elemental"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_elemental" title="Link to this definition">¶</a></dt>
+<dd><p>Should use single worker for elemental data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_spectral_multithread">
+<span class="sig-name descname"><span class="pre">test_orchestrates_stitching_spectral_multithread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillLayers.test_orchestrates_stitching_spectral_multithread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_spectral_multithread" title="Link to this definition">¶</a></dt>
+<dd><p>Should use multiple workers for spectral data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestFillSubsetLayers</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.fill_subset_layers</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers.test_applies_intensity_scale">
+<span class="sig-name descname"><span class="pre">test_applies_intensity_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers.test_applies_intensity_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_applies_intensity_scale" title="Link to this definition">¶</a></dt>
+<dd><p>Should apply intensity scaling to layers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_elemental">
+<span class="sig-name descname"><span class="pre">test_fills_channel_range_elemental</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers.test_fills_channel_range_elemental"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_elemental" title="Link to this definition">¶</a></dt>
+<dd><p>Should fill specified channel range for elemental data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_spectral">
+<span class="sig-name descname"><span class="pre">test_fills_channel_range_spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers.test_fills_channel_range_spectral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_spectral" title="Link to this definition">¶</a></dt>
+<dd><p>Should fill specified channel range for spectral data with clipping.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers.test_multiple_fragments_overlay">
+<span class="sig-name descname"><span class="pre">test_multiple_fragments_overlay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers.test_multiple_fragments_overlay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_multiple_fragments_overlay" title="Link to this definition">¶</a></dt>
+<dd><p>Should overlay multiple fragments using masks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestFillSubsetLayers.test_no_scale_when_scale_is_one">
+<span class="sig-name descname"><span class="pre">test_no_scale_when_scale_is_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestFillSubsetLayers.test_no_scale_when_scale_is_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_no_scale_when_scale_is_one" title="Link to this definition">¶</a></dt>
+<dd><p>Should not modify values when scale is 1.0.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestGetPerspectiveMatrices">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestGetPerspectiveMatrices</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestGetPerspectiveMatrices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.get_perspective_matrices</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_applies_scalar_to_destination_points">
+<span class="sig-name descname"><span class="pre">test_applies_scalar_to_destination_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestGetPerspectiveMatrices.test_applies_scalar_to_destination_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_applies_scalar_to_destination_points" title="Link to this definition">¶</a></dt>
+<dd><p>Should apply scalar when getting destination points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_matrices_are_valid_transforms">
+<span class="sig-name descname"><span class="pre">test_matrices_are_valid_transforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestGetPerspectiveMatrices.test_matrices_are_valid_transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_matrices_are_valid_transforms" title="Link to this definition">¶</a></dt>
+<dd><p>Should produce valid perspective transform matrices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_returns_correct_number_of_matrices">
+<span class="sig-name descname"><span class="pre">test_returns_correct_number_of_matrices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestGetPerspectiveMatrices.test_returns_correct_number_of_matrices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_returns_correct_number_of_matrices" title="Link to this definition">¶</a></dt>
+<dd><p>Should return one matrix per fragment.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestPrecalculateMasks">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestPrecalculateMasks</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestPrecalculateMasks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestPrecalculateMasks" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher._precalculate_masks</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestPrecalculateMasks.test_creates_correct_number_of_masks">
+<span class="sig-name descname"><span class="pre">test_creates_correct_number_of_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestPrecalculateMasks.test_creates_correct_number_of_masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestPrecalculateMasks.test_creates_correct_number_of_masks" title="Link to this definition">¶</a></dt>
+<dd><p>Should create one mask per fragment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestPrecalculateMasks.test_masks_with_rotation">
+<span class="sig-name descname"><span class="pre">test_masks_with_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestPrecalculateMasks.test_masks_with_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestPrecalculateMasks.test_masks_with_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Should handle fragment rotation in mask calculation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestStitchDatacubes</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.stitch_datacubes</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_elemental_stitching">
+<span class="sig-name descname"><span class="pre">test_elemental_stitching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_write_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_elemental_stitching"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_elemental_stitching" title="Link to this definition">¶</a></dt>
+<dd><p>Should stitch elemental datacubes correctly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_mismatched_fragments_points_raises_error">
+<span class="sig-name descname"><span class="pre">test_mismatched_fragments_points_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_mismatched_fragments_points_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_mismatched_fragments_points_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when fragments and points don’t match.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_cleanup_temp_files">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_cleanup_temp_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_cleanup_temp_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_cleanup_temp_files" title="Link to this definition">¶</a></dt>
+<dd><p>Should clean up temporary transposed files after stitching.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_failed_pretranspose_falls_through">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_failed_pretranspose_falls_through</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_state_manager_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_failed_pretranspose_falls_through"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_failed_pretranspose_falls_through" title="Link to this definition">¶</a></dt>
+<dd><p>Should transpose now if pre-transpose failed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_no_pretranspose">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_no_pretranspose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_no_pretranspose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_no_pretranspose" title="Link to this definition">¶</a></dt>
+<dd><p>Should stitch spectral datacubes without pre-transpose.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_queued_pretranspose">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_queued_pretranspose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_state_manager_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_queued_pretranspose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_queued_pretranspose" title="Link to this definition">¶</a></dt>
+<dd><p>Should wait for queued pre-transpose to complete.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_restores_original_fragments">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_restores_original_fragments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_restores_original_fragments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_restores_original_fragments" title="Link to this definition">¶</a></dt>
+<dd><p>Should restore original fragments after stitching.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_waits_for_in_progress_pretranspose">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_waits_for_in_progress_pretranspose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_state_manager_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_waits_for_in_progress_pretranspose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_waits_for_in_progress_pretranspose" title="Link to this definition">¶</a></dt>
+<dd><p>Should wait for in-progress pre-transpose to complete.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_with_completed_pretranspose">
+<span class="sig-name descname"><span class="pre">test_spectral_stitching_with_completed_pretranspose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_memmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_remove</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_exists</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_from_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_write_rpl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_transpose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_state_manager_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_spectral_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchDatacubes.test_spectral_stitching_with_completed_pretranspose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_with_completed_pretranspose" title="Link to this definition">¶</a></dt>
+<dd><p>Should use pre-transposed file when available.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestStitchGreyscales</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeStitcher.stitch_greyscales</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales.test_mismatched_images_raises_error">
+<span class="sig-name descname"><span class="pre">test_mismatched_images_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales.test_mismatched_images_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_mismatched_images_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Should raise ValueError when image count doesn’t match points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_multiple_images">
+<span class="sig-name descname"><span class="pre">test_stitch_multiple_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales.test_stitch_multiple_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_multiple_images" title="Link to this definition">¶</a></dt>
+<dd><p>Should stitch multiple images together.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_single_image">
+<span class="sig-name descname"><span class="pre">test_stitch_single_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales.test_stitch_single_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_single_image" title="Link to this definition">¶</a></dt>
+<dd><p>Should stitch a single greyscale image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_intensity_scale">
+<span class="sig-name descname"><span class="pre">test_stitch_with_intensity_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_elemental_fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales.test_stitch_with_intensity_scale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_intensity_scale" title="Link to this definition">¶</a></dt>
+<dd><p>Should apply intensity scaling to stitched greyscales.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_rotation">
+<span class="sig-name descname"><span class="pre">test_stitch_with_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_warp_selection_pair</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#TestStitchGreyscales.test_stitch_with_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Should apply rotation before warping.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.mock_elemental_fragment">
+<span class="sig-name descname"><span class="pre">mock_elemental_fragment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#mock_elemental_fragment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.mock_elemental_fragment" title="Link to this definition">¶</a></dt>
+<dd><p>Create a mock ElementalDatacubeFragment.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.mock_spectral_fragment">
+<span class="sig-name descname"><span class="pre">mock_spectral_fragment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#mock_spectral_fragment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.mock_spectral_fragment" title="Link to this definition">¶</a></dt>
+<dd><p>Create a mock SpectralDatacubeFragment.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitcher.mock_warp_selection_pair">
+<span class="sig-name descname"><span class="pre">mock_warp_selection_pair</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitcher.html#mock_warp_selection_pair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitcher.mock_warp_selection_pair" title="Link to this definition">¶</a></dt>
+<dd><p>Create a pair of mock WarpSelection objects for testing.</p>
+</dd></dl>
+
+</section>
+<section id="module-tests.stitching.test_stitching">
+<span id="tests-stitching-test-stitching-module"></span><h2>tests.stitching.test_stitching module<a class="headerlink" href="#module-tests.stitching.test_stitching" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestDatacubeFragment</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for DatacubeFragment base class behavior (tested via subclasses).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_0_dimensions">
+<span class="sig-name descname"><span class="pre">test_rotation_0_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment.test_rotation_0_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_0_dimensions" title="Link to this definition">¶</a></dt>
+<dd><p>Test rotated dimensions with 0 degree rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_180_keeps_dimensions">
+<span class="sig-name descname"><span class="pre">test_rotation_180_keeps_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment.test_rotation_180_keeps_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_180_keeps_dimensions" title="Link to this definition">¶</a></dt>
+<dd><p>Test rotated dimensions with 180 degree rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_360_normalized_to_0">
+<span class="sig-name descname"><span class="pre">test_rotation_360_normalized_to_0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment.test_rotation_360_normalized_to_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_360_normalized_to_0" title="Link to this definition">¶</a></dt>
+<dd><p>Test that 360 degree rotation is normalized to 0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_90_swaps_dimensions">
+<span class="sig-name descname"><span class="pre">test_rotation_90_swaps_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment.test_rotation_90_swaps_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_90_swaps_dimensions" title="Link to this definition">¶</a></dt>
+<dd><p>Test rotated dimensions with 90 degree rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_must_be_multiple_of_90">
+<span class="sig-name descname"><span class="pre">test_rotation_must_be_multiple_of_90</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDatacubeFragment.test_rotation_must_be_multiple_of_90"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_must_be_multiple_of_90" title="Link to this definition">¶</a></dt>
+<dd><p>Test that non-90-degree rotation raises ValueError.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDimensions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestDimensions</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDimensions" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for Dimensions class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestDimensions.test_init_basic">
+<span class="sig-name descname"><span class="pre">test_init_basic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestDimensions.test_init_basic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestDimensions.test_init_basic" title="Link to this definition">¶</a></dt>
+<dd><p>Test basic initialization.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestElementalDatacubeFragment</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for ElementalDatacubeFragment class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.sample_elemental_file">
+<span class="sig-name descname"><span class="pre">sample_elemental_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.sample_elemental_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.sample_elemental_file" title="Link to this definition">¶</a></dt>
+<dd><p>Create a sample elemental datacube file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_channel_count">
+<span class="sig-name descname"><span class="pre">test_are_compatible_different_channel_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_are_compatible_different_channel_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_channel_count" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for different channel counts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_elements">
+<span class="sig-name descname"><span class="pre">test_are_compatible_different_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_are_compatible_different_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_elements" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for different elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_non_elemental">
+<span class="sig-name descname"><span class="pre">test_are_compatible_non_elemental</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_are_compatible_non_elemental"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_non_elemental" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for non-ElementalDatacubeFragment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_same_elements">
+<span class="sig-name descname"><span class="pre">test_are_compatible_same_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_are_compatible_same_elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_same_elements" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns True for matching elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_footer_format">
+<span class="sig-name descname"><span class="pre">test_create_file_footer_format</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_create_file_footer_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_footer_format" title="Link to this definition">¶</a></dt>
+<dd><p>Test footer format is correct.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_header_format">
+<span class="sig-name descname"><span class="pre">test_create_file_header_format</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_create_file_header_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_header_format" title="Link to this definition">¶</a></dt>
+<dd><p>Test header format is correct.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_greyscale_projection">
+<span class="sig-name descname"><span class="pre">test_create_greyscale_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_create_greyscale_projection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_greyscale_projection" title="Link to this definition">¶</a></dt>
+<dd><p>Test greyscale projection for elemental data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_parses_correctly">
+<span class="sig-name descname"><span class="pre">test_from_file_parses_correctly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_from_file_parses_correctly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_parses_correctly" title="Link to this definition">¶</a></dt>
+<dd><p>Test that from_file correctly parses header and footer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_with_rotation">
+<span class="sig-name descname"><span class="pre">test_from_file_with_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_from_file_with_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_with_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Test from_file with rotation parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_is_spectral_returns_false">
+<span class="sig-name descname"><span class="pre">test_is_spectral_returns_false</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_is_spectral_returns_false"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_is_spectral_returns_false" title="Link to this definition">¶</a></dt>
+<dd><p>Test that is_spectral returns False.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_load_datacube_returns_correct_shape">
+<span class="sig-name descname"><span class="pre">test_load_datacube_returns_correct_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_elemental_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_load_datacube_returns_correct_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_load_datacube_returns_correct_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Test that load_datacube returns memmap with (C, H, W) shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestElementalDatacubeFragment.test_write_file">
+<span class="sig-name descname"><span class="pre">test_write_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestElementalDatacubeFragment.test_write_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_write_file" title="Link to this definition">¶</a></dt>
+<dd><p>Test write_file creates valid file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestNormalizeImage</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for normalize_image function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_3d_array">
+<span class="sig-name descname"><span class="pre">test_3d_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_3d_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_3d_array" title="Link to this definition">¶</a></dt>
+<dd><p>Test normalization with 3D array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_already_normalized">
+<span class="sig-name descname"><span class="pre">test_already_normalized</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_already_normalized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_already_normalized" title="Link to this definition">¶</a></dt>
+<dd><p>Test with data already in 0-255 range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_clipping_above_255">
+<span class="sig-name descname"><span class="pre">test_clipping_above_255</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_clipping_above_255"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_clipping_above_255" title="Link to this definition">¶</a></dt>
+<dd><p>Test that values above 255 are clipped.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_clipping_below_0">
+<span class="sig-name descname"><span class="pre">test_clipping_below_0</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_clipping_below_0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_clipping_below_0" title="Link to this definition">¶</a></dt>
+<dd><p>Test that values below 0 are clipped (shouldn’t happen after min shift).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_constant_array">
+<span class="sig-name descname"><span class="pre">test_constant_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_constant_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_constant_array" title="Link to this definition">¶</a></dt>
+<dd><p>Test handling of constant array (division by zero).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_dtype_is_uint8">
+<span class="sig-name descname"><span class="pre">test_dtype_is_uint8</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_dtype_is_uint8"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_dtype_is_uint8" title="Link to this definition">¶</a></dt>
+<dd><p>Test that output dtype is uint8.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_large_range">
+<span class="sig-name descname"><span class="pre">test_large_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_large_range"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_large_range" title="Link to this definition">¶</a></dt>
+<dd><p>Test with large range of values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_multidimensional_array">
+<span class="sig-name descname"><span class="pre">test_multidimensional_array</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_multidimensional_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_multidimensional_array" title="Link to this definition">¶</a></dt>
+<dd><p>Test normalization with 2D array.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_negative_values">
+<span class="sig-name descname"><span class="pre">test_negative_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_negative_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_negative_values" title="Link to this definition">¶</a></dt>
+<dd><p>Test with negative values in data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_normalize_basic">
+<span class="sig-name descname"><span class="pre">test_normalize_basic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_normalize_basic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_normalize_basic" title="Link to this definition">¶</a></dt>
+<dd><p>Test basic normalization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestNormalizeImage.test_shift_required">
+<span class="sig-name descname"><span class="pre">test_shift_required</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestNormalizeImage.test_shift_required"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestNormalizeImage.test_shift_required" title="Link to this definition">¶</a></dt>
+<dd><p>Test normalization when shift is required.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestRotateCv</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for rotate_cv function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_180_degrees">
+<span class="sig-name descname"><span class="pre">test_180_degrees</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_180_degrees"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_180_degrees" title="Link to this definition">¶</a></dt>
+<dd><p>Test 180-degree rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_270_degrees">
+<span class="sig-name descname"><span class="pre">test_270_degrees</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_270_degrees"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_270_degrees" title="Link to this definition">¶</a></dt>
+<dd><p>Test 270-degree (90 CW) rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_90_degrees">
+<span class="sig-name descname"><span class="pre">test_90_degrees</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_90_degrees"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_90_degrees" title="Link to this definition">¶</a></dt>
+<dd><p>Test 90-degree counter-clockwise rotation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_invalid_rotation">
+<span class="sig-name descname"><span class="pre">test_invalid_rotation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_invalid_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_invalid_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Test that invalid rotation raises ValueError.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_no_rotation">
+<span class="sig-name descname"><span class="pre">test_no_rotation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_no_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_no_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Test that rotation=0 returns original.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestRotateCv.test_with_test_image">
+<span class="sig-name descname"><span class="pre">test_with_test_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_test_image</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestRotateCv.test_with_test_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestRotateCv.test_with_test_image" title="Link to this definition">¶</a></dt>
+<dd><p>Test rotation using actual test image from resources.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestScalarOptimizer</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for ScalarOptimizer class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_basic">
+<span class="sig-name descname"><span class="pre">test_calculate_loss_percentage_basic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_optimizer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_calculate_loss_percentage_basic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_basic" title="Link to this definition">¶</a></dt>
+<dd><p>Test basic loss percentage calculation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_different_scalar">
+<span class="sig-name descname"><span class="pre">test_calculate_loss_percentage_different_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_optimizer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_calculate_loss_percentage_different_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_different_scalar" title="Link to this definition">¶</a></dt>
+<dd><p>Test loss calculation with different scalar.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_empty_points">
+<span class="sig-name descname"><span class="pre">test_cost_function_empty_points</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_cost_function_empty_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_empty_points" title="Link to this definition">¶</a></dt>
+<dd><p>Test cost function with empty points list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_optimal_scalar">
+<span class="sig-name descname"><span class="pre">test_cost_function_optimal_scalar</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_cost_function_optimal_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_optimal_scalar" title="Link to this definition">¶</a></dt>
+<dd><p>Test cost function with optimal scalar for matching regions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_suboptimal_scalar">
+<span class="sig-name descname"><span class="pre">test_cost_function_suboptimal_scalar</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_cost_function_suboptimal_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_suboptimal_scalar" title="Link to this definition">¶</a></dt>
+<dd><p>Test cost function with suboptimal scalar.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_identical_regions">
+<span class="sig-name descname"><span class="pre">test_get_scale_factor_identical_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_get_scale_factor_identical_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_identical_regions" title="Link to this definition">¶</a></dt>
+<dd><p>Test scale factor for identical regions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_scaled_regions">
+<span class="sig-name descname"><span class="pre">test_get_scale_factor_scaled_regions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mock_find_homography</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_get_scale_factor_scaled_regions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_scaled_regions" title="Link to this definition">¶</a></dt>
+<dd><p>Test scale factor for scaled regions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_init_empty_list">
+<span class="sig-name descname"><span class="pre">test_init_empty_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_init_empty_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_init_empty_list" title="Link to this definition">¶</a></dt>
+<dd><p>Test initialization with empty points list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestScalarOptimizer.test_init_with_points">
+<span class="sig-name descname"><span class="pre">test_init_with_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_warp_selection_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestScalarOptimizer.test_init_with_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_init_with_points" title="Link to this definition">¶</a></dt>
+<dd><p>Test initialization with valid points list.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestSpectralDatacubeFragment</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for SpectralDatacubeFragment class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_channels">
+<span class="sig-name descname"><span class="pre">test_are_compatible_different_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_are_compatible_different_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_channels" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for different channel counts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_dtype">
+<span class="sig-name descname"><span class="pre">test_are_compatible_different_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_are_compatible_different_dtype"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_dtype" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for different data types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_non_spectral">
+<span class="sig-name descname"><span class="pre">test_are_compatible_non_spectral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_are_compatible_non_spectral"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_non_spectral" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns False for non-SpectralDatacubeFragment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_same_type_channels">
+<span class="sig-name descname"><span class="pre">test_are_compatible_same_type_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_are_compatible_same_type_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_same_type_channels" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_compatible returns True for matching type and channels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_greyscale_projection">
+<span class="sig-name descname"><span class="pre">test_create_greyscale_projection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_create_greyscale_projection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_greyscale_projection" title="Link to this definition">¶</a></dt>
+<dd><p>Test greyscale projection for spectral data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_already_transposed">
+<span class="sig-name descname"><span class="pre">test_create_transposed_version_already_transposed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_create_transposed_version_already_transposed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_already_transposed" title="Link to this definition">¶</a></dt>
+<dd><p>Test create_transposed_version returns self if already transposed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_new_file">
+<span class="sig-name descname"><span class="pre">test_create_transposed_version_new_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_create_transposed_version_new_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_new_file" title="Link to this definition">¶</a></dt>
+<dd><p>Test create_transposed_version creates new transposed file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_reuses_existing">
+<span class="sig-name descname"><span class="pre">test_create_transposed_version_reuses_existing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_create_transposed_version_reuses_existing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_reuses_existing" title="Link to this definition">¶</a></dt>
+<dd><p>Test create_transposed_version reuses existing valid file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_wrong_size_retransposes">
+<span class="sig-name descname"><span class="pre">test_create_transposed_version_wrong_size_retransposes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_create_transposed_version_wrong_size_retransposes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_wrong_size_retransposes" title="Link to this definition">¶</a></dt>
+<dd><p>Test create_transposed_version re-transposes if existing file has wrong size.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_parses_correctly">
+<span class="sig-name descname"><span class="pre">test_from_file_parses_correctly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_from_file_parses_correctly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_parses_correctly" title="Link to this definition">¶</a></dt>
+<dd><p>Test from_file correctly parses RPL and creates fragment.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_signed_big_endian">
+<span class="sig-name descname"><span class="pre">test_from_file_signed_big_endian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_from_file_signed_big_endian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_signed_big_endian" title="Link to this definition">¶</a></dt>
+<dd><p>Test from_file with signed big-endian data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_unsupported_data_length">
+<span class="sig-name descname"><span class="pre">test_from_file_unsupported_data_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_from_file_unsupported_data_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_unsupported_data_length" title="Link to this definition">¶</a></dt>
+<dd><p>Test from_file raises error for unsupported data length.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_with_rotation">
+<span class="sig-name descname"><span class="pre">test_from_file_with_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_from_file_with_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_with_rotation" title="Link to this definition">¶</a></dt>
+<dd><p>Test from_file with rotation parameter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_get_transposed_path">
+<span class="sig-name descname"><span class="pre">test_get_transposed_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_get_transposed_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_get_transposed_path" title="Link to this definition">¶</a></dt>
+<dd><p>Test get_transposed_path returns correct path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_is_spectral_returns_true">
+<span class="sig-name descname"><span class="pre">test_is_spectral_returns_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_is_spectral_returns_true"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_is_spectral_returns_true" title="Link to this definition">¶</a></dt>
+<dd><p>Test that is_spectral returns True.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_non_transposed">
+<span class="sig-name descname"><span class="pre">test_load_datacube_non_transposed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_load_datacube_non_transposed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_non_transposed" title="Link to this definition">¶</a></dt>
+<dd><p>Test load_datacube returns (H, W, C) for non-transposed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_transposed">
+<span class="sig-name descname"><span class="pre">test_load_datacube_transposed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_load_datacube_transposed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_transposed" title="Link to this definition">¶</a></dt>
+<dd><p>Test load_datacube returns (C, H, W) for transposed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_parse_rpl_file">
+<span class="sig-name descname"><span class="pre">test_parse_rpl_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_rpl_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_parse_rpl_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_parse_rpl_file" title="Link to this definition">¶</a></dt>
+<dd><p>Test RPL file parsing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_file">
+<span class="sig-name descname"><span class="pre">test_write_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_write_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_file" title="Link to this definition">¶</a></dt>
+<dd><p>Test write_file creates valid raw and rpl files.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_rpl_file">
+<span class="sig-name descname"><span class="pre">test_write_rpl_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSpectralDatacubeFragment.test_write_rpl_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_rpl_file" title="Link to this definition">¶</a></dt>
+<dd><p>Test write_rpl_file creates correct metadata file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestSplitRange</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for split_range function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_even_division">
+<span class="sig-name descname"><span class="pre">test_even_division</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_even_division"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_even_division" title="Link to this definition">¶</a></dt>
+<dd><p>Test even division of range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_full_coverage">
+<span class="sig-name descname"><span class="pre">test_full_coverage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_full_coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_full_coverage" title="Link to this definition">¶</a></dt>
+<dd><p>Test that all ranges cover [start, end) without gaps.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_no_overlaps">
+<span class="sig-name descname"><span class="pre">test_no_overlaps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_no_overlaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_no_overlaps" title="Link to this definition">¶</a></dt>
+<dd><p>Test that ranges don’t overlap.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_single_part">
+<span class="sig-name descname"><span class="pre">test_single_part</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_single_part"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_single_part" title="Link to this definition">¶</a></dt>
+<dd><p>Test that single part returns full range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_start_equals_end">
+<span class="sig-name descname"><span class="pre">test_start_equals_end</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_start_equals_end"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_start_equals_end" title="Link to this definition">¶</a></dt>
+<dd><p>Test handling of zero-length range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_uneven_division">
+<span class="sig-name descname"><span class="pre">test_uneven_division</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_uneven_division"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_uneven_division" title="Link to this definition">¶</a></dt>
+<dd><p>Test uneven division of range.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestSplitRange.test_zero_parts_raises_error">
+<span class="sig-name descname"><span class="pre">test_zero_parts_raises_error</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestSplitRange.test_zero_parts_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestSplitRange.test_zero_parts_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Test that zero parts raises ValueError.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestTransposeDatacube">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestTransposeDatacube</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestTransposeDatacube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestTransposeDatacube" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for transpose_spectral_datacube function.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestTransposeDatacube.test_chw_to_hwc">
+<span class="sig-name descname"><span class="pre">test_chw_to_hwc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestTransposeDatacube.test_chw_to_hwc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_chw_to_hwc" title="Link to this definition">¶</a></dt>
+<dd><p>Test CHW to HWC transposition (4x8x8 -&gt; 8x8x4).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestTransposeDatacube.test_hwc_to_chw">
+<span class="sig-name descname"><span class="pre">test_hwc_to_chw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_spectral_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestTransposeDatacube.test_hwc_to_chw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_hwc_to_chw" title="Link to this definition">¶</a></dt>
+<dd><p>Test HWC to CHW transposition (8x8x4 -&gt; 4x8x8).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestTransposeDatacube.test_unsupported_transpose_raises_error">
+<span class="sig-name descname"><span class="pre">test_unsupported_transpose_raises_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestTransposeDatacube.test_unsupported_transpose_raises_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_unsupported_transpose_raises_error" title="Link to this definition">¶</a></dt>
+<dd><p>Test that unsupported transpose raises ValueError.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">TestWarpSelection</span></span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Tests for WarpSelection class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_are_within_all_inside">
+<span class="sig-name descname"><span class="pre">test_are_within_all_inside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_are_within_all_inside"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_are_within_all_inside" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_within when all points are inside bounds.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_are_within_one_out">
+<span class="sig-name descname"><span class="pre">test_are_within_one_out</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_are_within_one_out"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_are_within_one_out" title="Link to this definition">¶</a></dt>
+<dd><p>Test are_within when one point is outside.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_get_points_default_scalar">
+<span class="sig-name descname"><span class="pre">test_get_points_default_scalar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_get_points_default_scalar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_default_scalar" title="Link to this definition">¶</a></dt>
+<dd><p>Test get_points with default scalar 1.0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_2">
+<span class="sig-name descname"><span class="pre">test_get_points_scalar_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_get_points_scalar_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_2" title="Link to this definition">¶</a></dt>
+<dd><p>Test get_points with scalar 2.0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_half">
+<span class="sig-name descname"><span class="pre">test_get_points_scalar_half</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_get_points_scalar_half"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_half" title="Link to this definition">¶</a></dt>
+<dd><p>Test get_points with scalar 0.5.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_init_coordinates_transformation">
+<span class="sig-name descname"><span class="pre">test_init_coordinates_transformation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_init_coordinates_transformation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_init_coordinates_transformation" title="Link to this definition">¶</a></dt>
+<dd><p>Test that Y coordinates are correctly transformed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.TestWarpSelection.test_str_representation">
+<span class="sig-name descname"><span class="pre">test_str_representation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#TestWarpSelection.test_str_representation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.TestWarpSelection.test_str_representation" title="Link to this definition">¶</a></dt>
+<dd><p>Test string representation contains expected elements.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_optimizer">
+<span class="sig-name descname"><span class="pre">sample_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_warp_selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_warp_selection_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_optimizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_optimizer" title="Link to this definition">¶</a></dt>
+<dd><p>Create a ScalarOptimizer with test data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_rpl_file">
+<span class="sig-name descname"><span class="pre">sample_rpl_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_rpl_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_rpl_file" title="Link to this definition">¶</a></dt>
+<dd><p>Create a sample RPL metadata file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_spectral_file">
+<span class="sig-name descname"><span class="pre">sample_spectral_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tmp_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_rpl_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_spectral_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_spectral_file" title="Link to this definition">¶</a></dt>
+<dd><p>Create a sample spectral datacube file with RPL.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_test_image">
+<span class="sig-name descname"><span class="pre">sample_test_image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_test_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_test_image" title="Link to this definition">¶</a></dt>
+<dd><p>Load test image from resources.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_warp_selection">
+<span class="sig-name descname"><span class="pre">sample_warp_selection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_warp_selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_warp_selection" title="Link to this definition">¶</a></dt>
+<dd><p>Create a sample WarpSelection for testing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tests.stitching.test_stitching.sample_warp_selection_2">
+<span class="sig-name descname"><span class="pre">sample_warp_selection_2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/stitching/test_stitching.html#sample_warp_selection_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tests.stitching.test_stitching.sample_warp_selection_2" title="Link to this definition">¶</a></dt>
+<dd><p>Create a second sample WarpSelection for optimizer testing.</p>
+</dd></dl>
+
+</section>
+<section id="module-tests.stitching">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tests.stitching" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="components.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">components</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="tests.file_system.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">tests.file_system package</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Van Gogh Museum · Created by Lonneke van Baren, Thijs van Berkel, Pijke van Bohemen, Stan van den Boogaart, Giovanni de Keijzer, Meie Koning, Daniël Koopmans, Marijn Kouwenberg, Jarno Vlaar, Sepp Vlassak · XRF-Explorer 2.0 by Pablo Benayas Penas, Jan Bulthuis, Dirk Burgers, Ivan Ivanov, Lotte Lakeman, Massimo Leal Martel, Sonia Maxim, Diego Rivera Garrido, Ruben Savelkouls, Iliyan Teofilov, Adrien Verriéle · Prototype concept by Dominique van Berkum
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">tests.stitching package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#tests-stitching-test-stitch-service-module">tests.stitching.test_stitch_service module</a></li>
+<li><a class="reference internal" href="#module-tests.stitching.test_stitcher">tests.stitching.test_stitcher module</a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_incompatible_datacubes_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_incompatible_datacubes_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_intensity_scales_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_mismatched_intensity_scales_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_mismatched_points_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_mismatched_points_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_no_fragments_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_no_fragments_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_none_fragments_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_none_fragments_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_scalar_default_value"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_scalar_default_value()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_too_many_fragments_raises_error"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_too_many_fragments_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestDatacubeStitcherInit.test_valid_initialization"><code class="docutils literal notranslate"><span class="pre">TestDatacubeStitcherInit.test_valid_initialization()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillLayers"><code class="docutils literal notranslate"><span class="pre">TestFillLayers</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_elemental"><code class="docutils literal notranslate"><span class="pre">TestFillLayers.test_orchestrates_stitching_elemental()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillLayers.test_orchestrates_stitching_spectral_multithread"><code class="docutils literal notranslate"><span class="pre">TestFillLayers.test_orchestrates_stitching_spectral_multithread()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_applies_intensity_scale"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers.test_applies_intensity_scale()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_elemental"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers.test_fills_channel_range_elemental()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_fills_channel_range_spectral"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers.test_fills_channel_range_spectral()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_multiple_fragments_overlay"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers.test_multiple_fragments_overlay()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestFillSubsetLayers.test_no_scale_when_scale_is_one"><code class="docutils literal notranslate"><span class="pre">TestFillSubsetLayers.test_no_scale_when_scale_is_one()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices"><code class="docutils literal notranslate"><span class="pre">TestGetPerspectiveMatrices</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_applies_scalar_to_destination_points"><code class="docutils literal notranslate"><span class="pre">TestGetPerspectiveMatrices.test_applies_scalar_to_destination_points()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_matrices_are_valid_transforms"><code class="docutils literal notranslate"><span class="pre">TestGetPerspectiveMatrices.test_matrices_are_valid_transforms()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestGetPerspectiveMatrices.test_returns_correct_number_of_matrices"><code class="docutils literal notranslate"><span class="pre">TestGetPerspectiveMatrices.test_returns_correct_number_of_matrices()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestPrecalculateMasks"><code class="docutils literal notranslate"><span class="pre">TestPrecalculateMasks</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestPrecalculateMasks.test_creates_correct_number_of_masks"><code class="docutils literal notranslate"><span class="pre">TestPrecalculateMasks.test_creates_correct_number_of_masks()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestPrecalculateMasks.test_masks_with_rotation"><code class="docutils literal notranslate"><span class="pre">TestPrecalculateMasks.test_masks_with_rotation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_elemental_stitching"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_elemental_stitching()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_mismatched_fragments_points_raises_error"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_mismatched_fragments_points_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_cleanup_temp_files"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_cleanup_temp_files()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_failed_pretranspose_falls_through"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_failed_pretranspose_falls_through()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_no_pretranspose"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_no_pretranspose()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_queued_pretranspose"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_queued_pretranspose()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_restores_original_fragments"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_restores_original_fragments()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_waits_for_in_progress_pretranspose"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_waits_for_in_progress_pretranspose()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchDatacubes.test_spectral_stitching_with_completed_pretranspose"><code class="docutils literal notranslate"><span class="pre">TestStitchDatacubes.test_spectral_stitching_with_completed_pretranspose()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_mismatched_images_raises_error"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales.test_mismatched_images_raises_error()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_multiple_images"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales.test_stitch_multiple_images()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_single_image"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales.test_stitch_single_image()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_intensity_scale"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales.test_stitch_with_intensity_scale()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.TestStitchGreyscales.test_stitch_with_rotation"><code class="docutils literal notranslate"><span class="pre">TestStitchGreyscales.test_stitch_with_rotation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.mock_elemental_fragment"><code class="docutils literal notranslate"><span class="pre">mock_elemental_fragment()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.mock_spectral_fragment"><code class="docutils literal notranslate"><span class="pre">mock_spectral_fragment()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitcher.mock_warp_selection_pair"><code class="docutils literal notranslate"><span class="pre">mock_warp_selection_pair()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-tests.stitching.test_stitching">tests.stitching.test_stitching module</a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_0_dimensions"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment.test_rotation_0_dimensions()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_180_keeps_dimensions"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment.test_rotation_180_keeps_dimensions()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_360_normalized_to_0"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment.test_rotation_360_normalized_to_0()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_90_swaps_dimensions"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment.test_rotation_90_swaps_dimensions()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDatacubeFragment.test_rotation_must_be_multiple_of_90"><code class="docutils literal notranslate"><span class="pre">TestDatacubeFragment.test_rotation_must_be_multiple_of_90()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDimensions"><code class="docutils literal notranslate"><span class="pre">TestDimensions</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestDimensions.test_init_basic"><code class="docutils literal notranslate"><span class="pre">TestDimensions.test_init_basic()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.sample_elemental_file"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.sample_elemental_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_channel_count"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_are_compatible_different_channel_count()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_different_elements"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_are_compatible_different_elements()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_non_elemental"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_are_compatible_non_elemental()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_are_compatible_same_elements"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_are_compatible_same_elements()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_footer_format"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_create_file_footer_format()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_file_header_format"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_create_file_header_format()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_create_greyscale_projection"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_create_greyscale_projection()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_parses_correctly"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_from_file_parses_correctly()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_from_file_with_rotation"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_from_file_with_rotation()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_is_spectral_returns_false"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_is_spectral_returns_false()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_load_datacube_returns_correct_shape"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_load_datacube_returns_correct_shape()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestElementalDatacubeFragment.test_write_file"><code class="docutils literal notranslate"><span class="pre">TestElementalDatacubeFragment.test_write_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_3d_array"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_3d_array()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_already_normalized"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_already_normalized()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_clipping_above_255"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_clipping_above_255()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_clipping_below_0"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_clipping_below_0()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_constant_array"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_constant_array()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_dtype_is_uint8"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_dtype_is_uint8()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_large_range"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_large_range()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_multidimensional_array"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_multidimensional_array()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_negative_values"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_negative_values()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_normalize_basic"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_normalize_basic()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestNormalizeImage.test_shift_required"><code class="docutils literal notranslate"><span class="pre">TestNormalizeImage.test_shift_required()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv"><code class="docutils literal notranslate"><span class="pre">TestRotateCv</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_180_degrees"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_180_degrees()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_270_degrees"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_270_degrees()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_90_degrees"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_90_degrees()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_invalid_rotation"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_invalid_rotation()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_no_rotation"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_no_rotation()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestRotateCv.test_with_test_image"><code class="docutils literal notranslate"><span class="pre">TestRotateCv.test_with_test_image()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_basic"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_calculate_loss_percentage_basic()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_calculate_loss_percentage_different_scalar"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_calculate_loss_percentage_different_scalar()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_empty_points"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_cost_function_empty_points()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_optimal_scalar"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_cost_function_optimal_scalar()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_cost_function_suboptimal_scalar"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_cost_function_suboptimal_scalar()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_identical_regions"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_get_scale_factor_identical_regions()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_get_scale_factor_scaled_regions"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_get_scale_factor_scaled_regions()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_init_empty_list"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_init_empty_list()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestScalarOptimizer.test_init_with_points"><code class="docutils literal notranslate"><span class="pre">TestScalarOptimizer.test_init_with_points()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_channels"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_are_compatible_different_channels()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_different_dtype"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_are_compatible_different_dtype()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_non_spectral"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_are_compatible_non_spectral()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_are_compatible_same_type_channels"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_are_compatible_same_type_channels()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_greyscale_projection"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_create_greyscale_projection()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_already_transposed"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_create_transposed_version_already_transposed()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_new_file"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_create_transposed_version_new_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_reuses_existing"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_create_transposed_version_reuses_existing()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_create_transposed_version_wrong_size_retransposes"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_create_transposed_version_wrong_size_retransposes()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_parses_correctly"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_from_file_parses_correctly()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_signed_big_endian"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_from_file_signed_big_endian()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_unsupported_data_length"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_from_file_unsupported_data_length()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_from_file_with_rotation"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_from_file_with_rotation()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_get_transposed_path"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_get_transposed_path()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_is_spectral_returns_true"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_is_spectral_returns_true()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_non_transposed"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_load_datacube_non_transposed()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_load_datacube_transposed"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_load_datacube_transposed()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_parse_rpl_file"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_parse_rpl_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_file"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_write_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSpectralDatacubeFragment.test_write_rpl_file"><code class="docutils literal notranslate"><span class="pre">TestSpectralDatacubeFragment.test_write_rpl_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange"><code class="docutils literal notranslate"><span class="pre">TestSplitRange</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_even_division"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_even_division()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_full_coverage"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_full_coverage()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_no_overlaps"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_no_overlaps()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_single_part"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_single_part()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_start_equals_end"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_start_equals_end()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_uneven_division"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_uneven_division()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestSplitRange.test_zero_parts_raises_error"><code class="docutils literal notranslate"><span class="pre">TestSplitRange.test_zero_parts_raises_error()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestTransposeDatacube"><code class="docutils literal notranslate"><span class="pre">TestTransposeDatacube</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_chw_to_hwc"><code class="docutils literal notranslate"><span class="pre">TestTransposeDatacube.test_chw_to_hwc()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_hwc_to_chw"><code class="docutils literal notranslate"><span class="pre">TestTransposeDatacube.test_hwc_to_chw()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestTransposeDatacube.test_unsupported_transpose_raises_error"><code class="docutils literal notranslate"><span class="pre">TestTransposeDatacube.test_unsupported_transpose_raises_error()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection</span></code></a><ul>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_are_within_all_inside"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_are_within_all_inside()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_are_within_one_out"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_are_within_one_out()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_default_scalar"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_get_points_default_scalar()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_2"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_get_points_scalar_2()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_get_points_scalar_half"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_get_points_scalar_half()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_init_coordinates_transformation"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_init_coordinates_transformation()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.TestWarpSelection.test_str_representation"><code class="docutils literal notranslate"><span class="pre">TestWarpSelection.test_str_representation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_optimizer"><code class="docutils literal notranslate"><span class="pre">sample_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_rpl_file"><code class="docutils literal notranslate"><span class="pre">sample_rpl_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_spectral_file"><code class="docutils literal notranslate"><span class="pre">sample_spectral_file()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_test_image"><code class="docutils literal notranslate"><span class="pre">sample_test_image()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_warp_selection"><code class="docutils literal notranslate"><span class="pre">sample_warp_selection()</span></code></a></li>
+<li><a class="reference internal" href="#tests.stitching.test_stitching.sample_warp_selection_2"><code class="docutils literal notranslate"><span class="pre">sample_warp_selection_2()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-tests.stitching">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=e259d695"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

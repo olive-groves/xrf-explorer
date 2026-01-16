@@ -1,0 +1,53 @@
+xrf\_explorer.server.stitcher package
+=====================================
+
+Submodules
+----------
+
+xrf\_explorer.server.stitcher.cube\_fragments module
+----------------------------------------------------
+
+.. automodule:: xrf_explorer.server.stitcher.cube_fragments
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.stitcher.helper module
+-------------------------------------------
+
+.. automodule:: xrf_explorer.server.stitcher.helper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.stitcher.stitcher module
+---------------------------------------------
+
+.. automodule:: xrf_explorer.server.stitcher.stitcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.stitcher.stitcher\_service module
+------------------------------------------------------
+
+.. automodule:: xrf_explorer.server.stitcher.stitcher_service
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+xrf\_explorer.server.stitcher.transpose\_state module
+-----------------------------------------------------
+
+.. automodule:: xrf_explorer.server.stitcher.transpose_state
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: xrf_explorer.server.stitcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
