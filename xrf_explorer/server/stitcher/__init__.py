@@ -10,3 +10,7 @@ from .stitcher_service import (
     get_transpose_status,
     get_greyscale_path
 )
+from .stitch_jobs import (
+    start_stitch_job,
+    get_stitch_job_status
+)

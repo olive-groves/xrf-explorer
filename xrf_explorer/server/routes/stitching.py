@@ -15,10 +15,11 @@ from xrf_explorer.server.stitcher import (
     StitchData,
     pre_transpose_cubes,
     get_transpose_status,
-    get_greyscale_path
+    get_greyscale_path,
+    start_stitch_job,
+    get_stitch_job_status
 )
 from xrf_explorer.server.database.authnew import userCanAccessProject
-
 
 LOG: Logger = getLogger(__name__)
 
@@ -147,7 +148,9 @@ def get_stitched_greyscale(data_source: str):
 @userCanAccessProject
 def stitching(data_source: str):
     """
-    Stitches datacube fragments or greyscale images based on the provided JSON configuration.
+    Starts stitching datacube fragments in the background.
+
+    Returns immediately with a job_id that can be used to poll for status.
 
     Args:
         data_source (str): Identifier for the data source.
@@ -155,40 +158,49 @@ def stitching(data_source: str):
     JSON Payload:
         type (str): Must be 'elemental' or 'spectral'.
         preview (bool): If true, only generate greyscale preview without full stitching.
-        contextual_image (str): Path to contextual image for frame dimensions (or "base" for workspace base image).
+        contextual_image (str): Path to contextual image for frame dimensions.
         down_scaling (float): Scaling factor between 0 and 1.
-        fragments (list[dict]): List of fragments containing:
-            - datacube_file (str): Path to datacube file
-            - rpl_file (str): Path to RPL file (spectral only, optional if preview=true)
-            - rotation (int): Rotation in degrees (0, 90, 180, 270)
-            - local_points (dict): Points in fragment coordinates
-            - target_points (dict): Points in target frame coordinates
-            Each points dict has: top_left, top_right, bottom_left, bottom_right as [x, y] arrays.
+        fragments (list[dict]): List of fragments with datacube info and coordinates.
 
     Returns:
-        JSON response with status and result information.
+        JSON response with job_id and status 202 Accepted.
     """
     data = request.get_json()
 
-    # Parse request data
     try:
         stitch_configuration = StitchData(data, data_source, is_stitching=True)
     except (ValueError, KeyError) as e:
         LOG.error(e)
         return jsonify({"error": f"Error while parsing request data: {str(e)}"}), 400
 
-    try:
-        result = stitch(stitch_configuration)
-        return jsonify(result), 200
-    except FileNotFoundError as e:
-        LOG.error(traceback.format_exc())
-        return jsonify({"error": f"File not found: {str(e)}"}), 404
-    except ValueError as e:
-        LOG.error(traceback.format_exc())
-        return jsonify({"error": f"Validation error: {str(e)}"}), 400
-    except Exception as e:
-        LOG.error(traceback.format_exc())
-        return jsonify({"error": f"Stitching failed: {str(e)}"}), 500
+    job_id = start_stitch_job(stitch_configuration, data_source)
+
+    return jsonify({
+        "status": "started",
+        "job_id": job_id,
+        "message": "Stitching started in background"
+    }), 202
+
+
+@app.route("/api/<data_source>/stitch_datacubes/stitch_status/<job_id>", methods=["GET"])
+@userCanAccessProject
+def stitch_status(data_source: str, job_id: str):
+    """
+    Returns the current status of a stitch job.
+
+    Args:
+        data_source (str): Identifier for the data source.
+        job_id (str): The job ID returned from the stitch endpoint.
+
+    Returns:
+        JSON response with status, result (if completed), or error (if failed).
+    """
+    job_status = get_stitch_job_status(job_id, data_source)
+
+    if job_status is None:
+        return jsonify({"error": "Job not found"}), 404
+
+    return jsonify(job_status), 200
 
 
 @app.route("/api/<data_source>/stitch_datacubes/pre_transpose_cubes", methods=["POST"])

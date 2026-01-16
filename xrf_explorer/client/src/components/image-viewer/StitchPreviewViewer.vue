@@ -7,7 +7,7 @@ import { getWorkspaceImageUrl } from "./workspace";
 import { getTargetSize } from "./api";
 import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { Layer } from "./types";
-import { stitch } from "./stitchHelper";
+import { stitchAndWait } from "./stitchHelper";
 
 THREE.Cache.enabled = false;
 
@@ -311,7 +311,7 @@ onMounted(async () => {
   const ws = appState.workspace;
   if (!ws) return;
   const intensities = getGreyscaleIntensities();
-  await stitch(true, ws.grayscale[0].sourceCubeType, 1, intensities);
+  await stitchAndWait(true, ws.grayscale[0].sourceCubeType, 1, intensities);
   previewVersion.value++;
   if (!glcanvas.value) return;
 

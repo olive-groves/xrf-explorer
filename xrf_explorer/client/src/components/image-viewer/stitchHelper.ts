@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { ref } from "vue";
 import { saveWorkspaceDebounced, saveWorkspaceToBackend } from "./workspace";
 import { windowState } from "../ui/window/state";
+import { PendingJob, pollJobs, StitchType } from "./stitchJobManager.ts";
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
@@ -58,7 +59,7 @@ function pointsToBackendDicts(points: StitchPoint[]): {
   };
 }
 
-export function buildFragmentsForAPI(type: "elemental" | "spectral") {
+export function buildFragmentsForAPI(type: StitchType) {
   const ws = appState.workspace;
   if (!ws) return [];
 
@@ -68,7 +69,7 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
       const { local_points, target_points } = pointsToBackendDicts(points);
 
       return {
-        datacube_file: cube.dataLocation, // Now compiler knows this exists
+        datacube_file: cube.dataLocation,
         rotation: (getRotation(idx) + 360) % 360,
         local_points,
         target_points,
@@ -80,7 +81,7 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
       const { local_points, target_points } = pointsToBackendDicts(points);
 
       return {
-        datacube_file: cube.rawLocation, // Now compiler knows this exists
+        datacube_file: cube.rawLocation,
         ...(cube.rplLocation ? { rpl_file: cube.rplLocation } : {}),
         rotation: (getRotation(idx) + 360) % 360,
         local_points,
@@ -90,13 +91,49 @@ export function buildFragmentsForAPI(type: "elemental" | "spectral") {
   }
 }
 
-// Generate geryscale preview
-export async function stitch(preview: boolean, type: "elemental" | "spectral", scaling_factor: number, intensity: number[]) {
-  if (!appState.workspace) return;
+/**
+ * Starts a stitch job and waits for completion.
+ * Useful for quick preview stitches.
+ * Used for preview stitching
+ */
+export async function stitchAndWait(
+  preview: boolean,
+  type: StitchType,
+  scaling_factor: number,
+  intensity: number[],
+  pollIntervalMs = 500,
+): Promise<void> {
   const ws = appState.workspace;
+  if (!ws) throw new Error("No workspace");
+
+  const jobId = await startStitchJob(preview, type, scaling_factor, intensity);
+
+  await pollJobs(
+    [{ type, jobId }],
+    (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`,
+    {
+      intervalMs: pollIntervalMs,
+      onJobFailed: (job, error) => {
+        toast.error(`Stitch failed (${job.type})`, { description: error });
+      },
+    }
+  );
+}
+
+/**
+ * Starts a stitch job and returns the job_id.
+ */
+async function startStitchJob(
+  preview: boolean,
+  type: StitchType,
+  scaling_factor: number,
+  intensity: number[]
+): Promise<string> {
+  const ws = appState.workspace;
+  if (!ws) throw new Error("No workspace");
 
   const fragments = buildFragmentsForAPI(type);
-  if (fragments.length === 0) return;
+  if (fragments.length === 0) throw new Error("No fragments to stitch");
 
   const payload = {
     type,
@@ -124,6 +161,8 @@ export async function stitch(preview: boolean, type: "elemental" | "spectral", s
     });
     throw new Error(message);
   }
+
+  return data.job_id;
 }
 
 export async function fetchOptimalStitchInfo(): Promise<{
@@ -192,46 +231,54 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
   );
   await saveWorkspaceToBackend();
 
-  if (includeElemental) {
-    ws.elementalCubes = []
-    await stitch(false, "elemental", scaling_factor, intensities);
-  }
-  if (includeSpectral) {
-    ws.spectralCubes = []
-    await stitch(false, "spectral", scaling_factor, intensities);
-  }
+  const pendingJobs: PendingJob<StitchType>[] = [];
 
-  let workspacePollVersion = 0;
+  try {
+    if (includeElemental) {
+      ws.elementalCubes = [];
+      const jobId = await startStitchJob(
+        false,
+        "elemental",
+        scaling_factor,
+        intensities
+      );
+      pendingJobs.push({ type: "elemental", jobId });
+    }
 
-  const interval = setInterval(async () => {
-    workspacePollVersion++;
+    if (includeSpectral) {
+      ws.spectralCubes = [];
+      const jobId = await startStitchJob(
+        false,
+        "spectral",
+        scaling_factor,
+        intensities
+      );
+      pendingJobs.push({ type: "spectral", jobId });
+    }
 
-    const resp = await fetch(
-      `/api/${ws.name}/workspace?version=${workspacePollVersion}`,
-      { cache: "no-store" }
+    await pollJobs(
+      pendingJobs,
+      (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`,
+      {
+        onJobFailed: (job, error) => {
+          toast.error(`Stitch failed (${job.type})`, { description: error });
+        },
+      }
     );
-    if (!resp.ok) return;
 
-    const updated = await resp.json();
-
-    const spectralDone =
-      !includeSpectral || (updated.spectralCubes?.length ?? 0) > 0;
-    const elementalDone =
-      !includeElemental || (updated.elementalCubes?.length ?? 0) > 0;
-
-    if (spectralDone && elementalDone) {
-      clearInterval(interval);
-
+    // All jobs completed - fetch updated workspace
+    const resp = await fetch(`/api/${ws.name}/workspace`, { cache: "no-store" });
+    if (resp.ok) {
+      const updated = await resp.json();
       updated.stitchingMode = "full";
       updated.mapping.mode = "edit";
-
       appState.workspace = updated;
-
-      stitchingInProgress.value = false;
       saveWorkspaceDebounced();
     }
-  }, 2000);
+  } catch {
+    // Error already handled via onJobFailed
+  } finally {
+    stitchingInProgress.value = false;
+    windowState["stitching"].disabled = false;
+  }
 }
-
-
-
