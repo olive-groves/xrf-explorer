@@ -343,7 +343,7 @@ watch(
     if (!ws) return;
     const intensities = getGreyscaleIntensities();
     try {
-      await stitch(
+      await stitchAndWait(
         true,
         ws.grayscale[0].sourceCubeType,
         grayOptimalScale.value,
