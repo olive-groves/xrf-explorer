@@ -496,13 +496,13 @@ class TestHelpers:
     def test_create_recipe_file(self):
         m = mock_open()
         with patch("builtins.open", m):
-            create_recipe_file("recipe.csv", Dimensions(10, 20), Dimensions(100, 200))
+            create_recipe_file("recipe.csv", Dimensions(100, 200))
 
         handle = m()
         # Verify header and some content
         handle.write.assert_any_call("Butterfly Registrator\n")
         # Check dimensions writing (from_w-1, to_w-1) -> 9, 99
-        handle.write.assert_any_call("9|0|99|0\n")
+        handle.write.assert_any_call("99|0|99|0\n")
 
 
 # =============================================================================

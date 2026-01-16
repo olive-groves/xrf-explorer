@@ -603,11 +603,9 @@ def get_stitch_info(data: StitchData) -> Dict[str, Any]:
 
     return {"optimal_scalar": optimal_scalar, "full_size": reference_file_size, "losses": losses}
 
-def create_recipe_file(recipe_file: str, datacube_dimensions: Dimensions, contextual_image_dimensions: Dimensions) -> str:
-    from_height = datacube_dimensions.height
-    from_width = datacube_dimensions.width
-    to_height = contextual_image_dimensions.height
-    to_width = contextual_image_dimensions.width
+def create_recipe_file(recipe_file: str, contextual_image_dimensions: Dimensions) -> str:
+    height = contextual_image_dimensions.height
+    width = contextual_image_dimensions.width
 
     with open(recipe_file, "w", encoding="utf-8") as f:
         f.write("Butterfly Registrator\n")
@@ -622,11 +620,11 @@ def create_recipe_file(recipe_file: str, datacube_dimensions: Dimensions, contex
         # Top-left
         f.write(f"0|0|0|0\n")
         # Top-right
-        f.write(f"{to_width-1}|0|{from_width-1}|0\n")
+        f.write(f"{width-1}|0|{width-1}|0\n")
         # Bottom-left
-        f.write(f"0|{to_height-1}|0|{from_height-1}\n")
+        f.write(f"0|{height-1}|0|{height-1}\n")
         # Bottom-right
-        f.write(f"{to_width-1}|{to_height-1}|{from_width-1}|{from_height-1}\n")
+        f.write(f"{width-1}|{height-1}|{width-1}|{height-1}\n")
     return recipe_file
 
 def generate_partial_greyscale(frag_data: FragmentData) -> bool:
@@ -786,7 +784,6 @@ def stitch_greyscales(data: StitchData) -> Dict[str, Any]:
     recipe_file_name = "preview_recipe.csv"
     create_recipe_file(
         _build_path(recipe_file_name, data.data_source),
-        Dimensions(result_width, result_height),
         data.contextual_image_dimensions)
 
     # Prepare output directory
@@ -840,7 +837,6 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     recipe_file_name = "stitched_recipe.csv"
     create_recipe_file(
         _build_path(recipe_file_name, data.data_source),
-        Dimensions(result_fragment.width, result_fragment.height),
         data.contextual_image_dimensions)
 
     # Create a projection for verification
