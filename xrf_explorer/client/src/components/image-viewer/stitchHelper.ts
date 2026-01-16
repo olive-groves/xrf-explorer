@@ -4,7 +4,6 @@ import { toast } from "vue-sonner";
 import { ref } from "vue";
 import { saveWorkspaceDebounced, saveWorkspaceToBackend } from "./workspace";
 import { windowState } from "../ui/window/state";
-import { deepClone } from "@/lib/utils.ts";
 
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
@@ -223,14 +222,10 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
     if (spectralDone && elementalDone) {
       clearInterval(interval);
 
-      appState.workspace = updated;
-      const ws = appState.workspace;
-      if (!ws) {return}
-      const updatedWorkspace = deepClone(ws);
-      updatedWorkspace.stitchingMode = "full";
-      updatedWorkspace.mapping.mode = "edit";
+      updated.stitchingMode = "full";
+      updated.mapping.mode = "edit";
 
-      appState.workspace = updatedWorkspace;
+      appState.workspace = updated;
 
       stitchingInProgress.value = false;
       saveWorkspaceDebounced();

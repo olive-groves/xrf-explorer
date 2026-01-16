@@ -3,6 +3,7 @@ import { Layer, LayerGroup, LayerUniform } from "./types";
 import { toast } from "vue-sonner";
 import { h, markRaw } from "vue";
 import { getTargetSize } from "./api";
+import { layers } from "@/components/image-viewer/state.ts";
 
 export const scene: {
   /**
@@ -30,6 +31,9 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
 
   new THREE.TextureLoader().loadAsync(layer.image).then(
     async (texture) => {
+      // Cancel if layer destroyed before image finished loading/downloading
+      if (!layers.value.includes(layer)) return;
+
       texture.colorSpace = THREE.NoColorSpace;
 
       // Disable interpolation if required
