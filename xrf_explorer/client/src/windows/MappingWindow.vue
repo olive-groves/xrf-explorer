@@ -7,13 +7,18 @@ import { computed, onMounted, ref } from 'vue';
 
 const workspace = computed(() => appState.workspace);
 
+// The index of the currently selected greyscale
 const selectedGreyscale = ref<number | null>(0);
 
 
+/**
+ * Function the change the selected greyscale
+ * @param idx - The index of the newly selected greyscale
+ */
 function selectGreyscale(idx: number) {
   selectedGreyscale.value = idx;
 
-  // Notify the mapping viewer so it can highlight / enable editing
+  // Notify the mapping viewer so it can change shown greyscale
   window.dispatchEvent(
     new CustomEvent("stitch:selected-grayscale", { detail: idx })
   );
@@ -35,6 +40,7 @@ onMounted(() => {
 
       <h3 class="font-semibold text-lg">Select a Fragment</h3>
 
+      <!-- An image per greyscale for selection -->
       <div class="grid grid-cols-2 gap-4">
         <div
           v-for="(greyscale, idx) in workspace?.grayscale"
@@ -58,6 +64,7 @@ onMounted(() => {
           <div class="text-center text-sm p-1 bg-gray-50 dark:bg-black dark:text-gray-200">
             {{ greyscale.sourceCubeName }}
           </div>
+          <!-- A slider per greyscale for selecting rotation -->
           <div class="mt-2 p-2 border rounded-md">
             <LabeledSlider
               label="Rotation"

@@ -119,7 +119,7 @@ watch(includeSpectral, (val) => handleIncludeChange("spectral", val));
 watch(includeElemental, (val) => handleIncludeChange("elemental", val));
 
 /**
- * Add a new datacube to the workspace.
+ * Add a new full datacube to the workspace.
  */
 function addDatacube() {
   if (includeSpectral.value) addElementToWorkspace("spectral_cube");
@@ -228,6 +228,9 @@ async function removeComponentsFromWorkspace(fragmentIndex: number | null) {
   componentNameToDelete.value = null;
 }
 
+/**
+ * Adds a contextual image to the workspace
+ */
 function addContextualImage() {
   model.value.contextualImages.push({
     name: "",
@@ -236,6 +239,10 @@ function addContextualImage() {
   });
 }
 
+/**
+ * Removes a contextual image from the workspace
+ * @param index - The index of the contaxtual image in the array in the workspace that needs to be removed
+ */
 function removeContextualImage(index: number) {
   model.value.contextualImages.splice(index, 1);
 }
@@ -329,7 +336,9 @@ async function fetchFiles() {
   await fileFetch.execute();
 }
 
-// Computed arrays for stitching layout
+/**
+ * Computed arrays for stitching layout
+ */ 
 const spectralArr = computed(() =>
   UploadingPartialData.value === "partial" ? model.value.partialSpectralCubes : model.value.spectralCubes,
 );

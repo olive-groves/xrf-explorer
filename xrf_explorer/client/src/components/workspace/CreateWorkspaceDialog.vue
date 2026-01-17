@@ -278,49 +278,62 @@ async function updateWorkspace() {
       } catch (e) {
         console.warn("Error in grayscale generation", e);
       }
-
       try {
-        if (workspace.value.stitchingMode === "partial" && workspace.value.partialSpectralCubes && workspace.value.partialSpectralCubes.length > 0) {
-          const fragments = workspace.value.partialSpectralCubes.map(cube => ({
-            datacube_file: cube.rawLocation,
-            rpl_file: cube.rplLocation,
-          }));
-
-          const payload = {
-            type: "spectral",
-            contextual_image: workspace.value.baseImage.imageLocation,
-            fragments: fragments
-          };
-            
-          const resp1 = await fetch(
-          // await fetch(
-          `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          const data = await resp1.json();
-          if (!resp1.ok) {
-            const message = data.error ?? JSON.stringify(data);
-            toast.error(`Stitch error`, {
-                  description: message,
-            });
-            throw new Error(message);
-          }
-        }
+        await pretranspose();
+      } catch (e) {
+        console.warn("Error in pre transposing spectral cubes", e);
       }
-      catch (e) {
-        console.warn("Error in pretransposing", e);
-
-      }
-
       await setupWorkspace();
       resetProgress();
     }
   }
 }
 
+/**
+ * Starts pre transposing the spectral cubes
+ */
+async function pretranspose() {
+  // Start pre transposing the spectral cubes for stitching in the backend
+  try {
+    if (workspace.value.stitchingMode === "partial" && workspace.value.partialSpectralCubes && workspace.value.partialSpectralCubes.length > 0) {
+      const fragments = workspace.value.partialSpectralCubes.map(cube => ({
+        datacube_file: cube.rawLocation,
+        rpl_file: cube.rplLocation,
+      }));
+
+      const payload = {
+        type: "spectral",
+        contextual_image: workspace.value.baseImage.imageLocation,
+        fragments: fragments
+      };
+        
+      const resp1 = await fetch(
+      // await fetch
+      `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp1.json();
+      if (!resp1.ok) {
+        const message = data.error ?? JSON.stringify(data);
+        toast.error(`Stitch error`, {
+              description: message,
+        });
+        throw new Error(message);
+      }
+    }
+  }
+  catch (e) {
+    console.warn("Error in pretransposing", e);
+
+  }
+}
+
+/**
+ * Generates the neccesary greyscales for stitching in the backend, and update the workspace in the frontend
+ */
 async function generatePartialGreyscales() {
   const ds = workspace.value.name;
 
@@ -329,6 +342,7 @@ async function generatePartialGreyscales() {
 
   if (!hasElemental && !hasSpectral) return; // nothing to do
 
+  // Create the fragments for which we need to generate greyscales
   const fragments = hasElemental
     ? workspace.value.partialElementalCubes.map(cube => ({
         datacube_file: cube.dataLocation,
@@ -343,6 +357,7 @@ async function generatePartialGreyscales() {
     fragments,
   };
 
+  // Generate greyscales
   const resp = await fetch(
     `${config.api.endpoint}/${ds}/stitch_datacubes/generate_partial_greyscales`,
     {

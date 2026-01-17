@@ -16,11 +16,10 @@ import { saveWorkspaceDebounced } from "./workspace";
 
 const workspace = computed(() => appState.workspace);
 
-// Full stitched cubes exist
+// Wether a full stitched cube exist
 const hasFullSpectral = computed(
   () => (workspace.value?.spectralCubes?.length ?? 0) > 0
 );
-
 const hasFullElemental = computed(
   () => (workspace.value?.elementalCubes?.length ?? 0) > 0
 );
@@ -35,6 +34,9 @@ const canCancelRedoStitching = computed(() => {
   );
 });
 
+/**
+ * Function to cancel redoing stitching
+ */
 function cancelRedoStitching() {
   if (!workspace.value) return;
 
@@ -180,7 +182,9 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
             </label>
           </div>
         </div>
+        <!-- Button to clear all points -->
         <Button @click="clearAllPoints" :title="getTooltipByKey('stitch.clear_points')">Clear points</Button>
+        <!-- Button to cancel redoing stitching -->
         <Button
           v-if="canCancelRedoStitching"
           variant="outline"

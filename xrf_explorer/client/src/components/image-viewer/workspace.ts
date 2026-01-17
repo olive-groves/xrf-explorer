@@ -156,7 +156,9 @@ export function getWorkspaceGreyscaleUrl(
 }
 
 
-// Saves the updated workspace containing the points to the backend
+/**
+ * Saves the updated workspace to the backend
+ */ 
 export async function saveWorkspaceToBackend() {
   const ws = appState.workspace;
   if (!ws) return;
@@ -176,7 +178,9 @@ export async function saveWorkspaceToBackend() {
 
 let saveTimeout: number | null = null;
 
-// Makes sure we do not spam the back end while mapping
+/**
+ * Makes sure we do not spam the back end while mapping
+ */
 export function saveWorkspaceDebounced() {
   if (saveTimeout) window.clearTimeout(saveTimeout);
 

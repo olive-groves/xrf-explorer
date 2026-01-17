@@ -4,8 +4,10 @@ import MappingWindow from "./MappingWindow.vue";
 import PreviewWindow from "./PreviewWindow.vue";
 import { appState } from "@/lib/appState";
 
+// Wether we are currently mapping points or viewing the preview
 const mode = ref<'edit' | 'preview'>(appState.workspace?.mapping.mode ?? 'edit' );
 
+// When the mode changes in StitchViewer also update the mode here
 async function onModeChanged(e: Event | CustomEvent) {
   const newMode = (e as CustomEvent).detail as 'edit' | 'preview';
   mode.value = newMode;
@@ -19,6 +21,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('stitchViewer:modeChanged', onModeChanged as EventListener);
 });
 
+// Start in edit mode
 onUnmounted(() => {
   mode.value = "edit"
 });

@@ -39,7 +39,14 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   camera.lookAt(0, 0, 0);
   const layers: Layer[] = [];
 
-
+  /**
+   * Creates a new layer
+   * @param id - The layer ID
+   * @param imageUrl - The image rendered in the layer
+   * @param geometrySize - The layer size
+   * @param rotation - The rotation
+   * @returns - The new later object
+   */
   async function createImageLayer(
       id: string,
       imageUrl: string,
@@ -78,6 +85,9 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
     return layer;
   }
 
+  /**
+   * Destroys a layer
+   */
   function dispose() {
     layers.forEach((layer) => {
       if (layer.mesh) {
@@ -100,8 +110,11 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   };
 }
 
-// internal helpers
 
+/**
+ * Loads the texture of an image
+ * @param url - The image url
+ */
 function loadTexture(url: string): Promise<THREE.Texture> {
   return new Promise((resolve, reject) => {
     const loader = new THREE.TextureLoader();
@@ -117,6 +130,12 @@ function loadTexture(url: string): Promise<THREE.Texture> {
   });
 }
 
+/**
+ * Loads a layer into to stitch engine
+ * @param localScene - The scene
+ * @param layer - The layer to load
+ * @param texture - The texture of the image in the layer
+ */
 async function loadLayerIntoEngine(
   localScene: THREE.Scene,
   layer: Layer,

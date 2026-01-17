@@ -22,6 +22,7 @@ import {
 
 const config = inject<FrontendConfig>("config")!;
 
+// GL instance
 const glcontainer = ref<HTMLDivElement | null>(null);
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 
@@ -29,6 +30,7 @@ const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
 const height = canvasSize.height;
 
+// The tool state 
 const stitchState = ref<StitchState>({
   tool: StitchTool.Grab,
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
@@ -61,8 +63,12 @@ const viewport = reactive<{
   zoom: 0,
 });
 
+// Wether we are dragging
 const dragging = ref(false);
+// Wether the lans is locked
 const lensLocked = ref(false);
+
+// Gl engine instance
 let engine: StitchEngine | null = null;
 let animationFrame: number | null = null;
 
@@ -71,17 +77,18 @@ let zoomLimitReached = false;
 // Wether the layer is loaded
 const isLoading = ref(true);
 
+// Create the stitch engine, creates and loads  the base image layer
 onMounted(async () => {
   if (!glcanvas.value) return;
 
   try {
     isLoading.value = true;
-
+    // Create stitch engine
     engine = createStitchEngine(glcanvas.value);
 
     const ws = appState.workspace;
     if (!ws?.baseImage) return;
-
+    // Create base image layer
     const loc = ws.baseImage.imageLocation?.includes("/")
       ? ws.baseImage.imageLocation
       : ws.baseImage.name;
@@ -273,7 +280,8 @@ function getBaseImageCoords(event: MouseEvent) {
 
   return { x: worldX, y: worldY };
 }
-// hmm
+
+// The points of the currently selected greyscale
 const currentPoints = computed(() => {
   const ws = appState.workspace;
   if (!ws) return [];
@@ -291,30 +299,33 @@ const currentPoints = computed(() => {
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (event.button == 2) {
-    // Prevent opening of context menu.
-    event.preventDefault();
+  if (event.button !== 2) return;
 
-    if (appState.workspace?.stitchingMode) {
-      const pointObj = getBaseImageCoords(event);
-      for (const p of currentPoints.value.filter(hasBase)) {
-        const dx = p.base.x - pointObj.x;
-        const dy = p.base.y - pointObj.y;
-        const zoomScale = Math.exp(viewport.zoom);
-        if (dx * dx + dy * dy < 20 * 20 / zoomScale * zoomScale * zoomScale) {
-          if (checkSelectPoint(p.id)) {
-            deselect();
-            return;
-          }
-          selectPoint(p.id);
-          return;
-        }
-      }
-      if (selectedPointId.value !== null) {
-        updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
-        return;
-      }
+  // Prevent opening of context menu.
+  event.preventDefault();
+
+  if (!appState.workspace?.stitchingMode) return;
+
+  const pointObj = getBaseImageCoords(event);
+  const zoomScale = Math.exp(viewport.zoom);
+  const maxDistSq = 20 * 20 * zoomScale;
+
+  for (const p of currentPoints.value.filter(hasBase)) {
+    const dx = p.base.x - pointObj.x;
+    const dy = p.base.y - pointObj.y;
+
+    if (dx * dx + dy * dy >= maxDistSq) continue;
+
+    if (checkSelectPoint(p.id)) {
+      deselect();
+    } else {
+      selectPoint(p.id);
     }
+    return;
+  }
+
+  if (selectedPointId.value !== null) {
+    updateBasePoint(selectedPointId.value, pointObj.x, pointObj.y);
   }
 }
 </script>

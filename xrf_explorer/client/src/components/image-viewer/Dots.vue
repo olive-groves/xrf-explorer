@@ -69,13 +69,8 @@ function createCross(cx: number, cy: number, id: number) {
     },
   ] satisfies Cross[];
 }
-// const crosses = computed(() => {
-//   if (!selectedGrayscaleIndex) {return}
-//   getPointsForGray(selectedGrayscaleIndex)
 
-//   return grayscalePoints.getFlatMap(([x, y]) => createCross(x, y));
-// });
-
+// The crosses created
 const crosses = computed(() => {
   const idx = selectedGrayscaleIndex.value;
   if (idx == null) return [];
