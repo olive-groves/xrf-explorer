@@ -29,6 +29,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
   <div class="grid h-screen w-screen grid-cols-1 grid-rows-[min-content_1fr]">
     <Header />
     <WindowContainer>
+      <!-- Switch between stitch viewer and image viewer based on the stitching mode -->
       <StitchViewer v-if="appState.workspace?.stitchingMode === 'partial'" />
       <ImageViewerContainer v-else />
 

@@ -45,7 +45,7 @@ export type WorkspaceConfig = {
    */
   spectralParams: SpectralParams;
   /**
-   * Optional stitching mode for this workspace.
+   * Stitching mode for this workspace.
    * When set to 'partial' the stitching UI is active.
    */
   stitchingMode: "partial" | "full";
@@ -177,15 +177,23 @@ export type ElementalChannel = {
 };
 
 /**
- * Stores the mapping points and rotations made by the user
+ * Stores the mapping points and rotations made by the user, as well as wether we are mapping or previewing
  */
 export type StitchMapping = {
-  // Points per grayscale, keyed by grayscale index
+  /**
+   * Points per grayscale, keyed by grayscale index
+   */
   grayscalePoints: Record<number, StitchPoint[]>;
-  // Rotation per grayscale
+  /**
+   * Rotation per grayscale
+   */
   grayscaleRotation: Record<number, number>;
-  // Intensity per greysclae
+  /**
+   * Intensity per greyscale
+   */
   grayscaleContrast: Record<number, number>;
-  // Wether we are in edit or preview mode
+  /**
+   * Wether we are in edit or preview mode
+   */ 
   mode: "edit" | "preview";
 }

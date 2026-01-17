@@ -34,6 +34,9 @@ const hitArea = {
 import { watch } from "vue";
 import { appState } from "@/lib/appState";
 
+/**
+ * Disable left panel when in stitching mode
+ */
 onMounted(() => {
   watch(
     () => appState.workspace?.stitchingMode,

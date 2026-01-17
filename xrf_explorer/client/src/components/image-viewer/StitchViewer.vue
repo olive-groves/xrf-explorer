@@ -8,7 +8,7 @@ import { fetchOptimalStitchInfo, stitchingInProgress } from "./stitchHelper";
 import { getTooltipByKey } from "@/lib/useToolTips";
 import { appState } from "@/lib/appState";
 
-// Local mode state
+// Wether the backend is busy with computing the stitched datacube
 const stitching = computed(() => stitchingInProgress.value);
 
 const workspace = computed(() => appState.workspace);
@@ -28,7 +28,7 @@ const mode = computed<"edit" | "preview">({
 let lastPreviewInfo: PreviewInfo | null = null;
 
 /**
- * Handle requests for preview info from other components.
+ * Handle requests for preview info from preview window.
  */
 function onRequestPreview() {
   const ws = appState.workspace
@@ -96,6 +96,7 @@ function dispatchPreview(info: PreviewInfo) {
   );
 }
 
+// Wether we are still generating greyscales
 const isLoading = ref(false);
 
 // Whenever mode changes fetch stitchinfo, and show loading screen while generating greyscales
@@ -150,7 +151,7 @@ watch(
         <span>Generating greyscales...</span>
       </div>
 
-      <!-- Stitching overlay -->
+      <!-- Loading screen when stitching-->
       <div v-if="stitching" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
         <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <span class="text-sm font-medium">Stitching in progress… (Do not close or change project)</span>

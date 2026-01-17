@@ -8,14 +8,17 @@ import { saveWorkspaceDebounced } from "../image-viewer/workspace";
 
 const workspace = computed(() => appState.workspace);
 
+// Check wether we have partial spectral data
 const hasPartialSpectral = computed(
   () => (workspace.value?.partialSpectralCubes?.length ?? 0) > 0
 );
 
+// Check wether we have partial elemental data
 const hasPartialElemental = computed(
   () => (workspace.value?.partialElementalCubes?.length ?? 0) > 0
 );
 
+// Check wether we can redo stitching
 const canRedoStitching = computed(() => {
   if (!workspace.value || appState.user.role === "VIEWER") return false;
   return (
@@ -24,6 +27,9 @@ const canRedoStitching = computed(() => {
   );
 });
 
+/**
+ * Function to restart stitching
+ */
 function redoStitching() {
   if (!workspace.value) return;
 
@@ -43,6 +49,7 @@ function redoStitching() {
     </div>
 
     <div class="flex items-center gap-2">
+      <!-- Show redo stiching button if applicable -->
       <Button
         v-if="canRedoStitching"
         variant="outline"

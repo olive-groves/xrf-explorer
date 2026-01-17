@@ -1,5 +1,6 @@
 export type StitchType = "elemental" | "spectral";
 
+// Interfaces to keep track of the stitch jobs and their states
 export interface JobStatus<T = unknown> {
   job_id: string;
   status: "in_progress" | "completed" | "failed";

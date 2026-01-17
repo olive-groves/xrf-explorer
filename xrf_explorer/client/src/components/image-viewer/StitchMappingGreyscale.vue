@@ -42,12 +42,13 @@ window.addEventListener("stitch:selected-grayscale", (e: Event) => {
   setSelectedGrayscaleIndex(i);
 });
 
+// The computed greyscale url for the selected greyscale
 const grayscaleUrl = computed(() => {
   if (!grayscale.value) return null;
   return getWorkspaceGreyscaleUrl(grayscale.value.imageLocation, appState.workspace!.name);
 });
 
-// hmm
+// The points for the currently selected greyscale
 const currentPoints = computed(() => {
   const ws = appState.workspace;
   if (!ws) return [];

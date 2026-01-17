@@ -9,23 +9,28 @@ import { createStitchEngine, type StitchEngine } from "./stitchGLEngine";
 import { Layer } from "./types";
 import { stitchAndWait } from "./stitchHelper";
 
+// Make sure we do not cache old preview layers
 THREE.Cache.enabled = false;
 
+// Viewer
 const glcanvas = ref<HTMLCanvasElement | null>(null);
 const container = ref<HTMLDivElement | null>(null);
 let baseLayer: Layer | null = null;
 let grayLayer: Layer | null = null;
 
+// Viewer size
 const bounds = useElementBounding(container);
 const width = bounds.width;
 const height = bounds.height;
 
+// The scaling factor for generating the preview
 const grayOptimalScale = ref(1);
 
 // Version of the loaded preview
 // Increases when we load the preview to avoid cache issues
 const previewVersion = ref(0);
 
+// Render engine
 let engine: StitchEngine | null = null;
 let animationFrame: number | null = null;
 
@@ -35,6 +40,7 @@ const viewport = reactive({
   zoom: 0,
 });
 
+// The size we need to map the preview image to
 const stitchedSize = reactive({
   width: 0,
   height: 0,
@@ -44,11 +50,24 @@ let baseMesh = null;
 let baseWidth = 0;
 let baseHeight = 0;
 
+
+/**
+ * Function to change the scaling factor
+ * @param e - The event that communicates that the scaling factor has beed changed
+ */
 function onGrayOptimalScale(e: Event) {
   const { factor } = (e as CustomEvent<{ factor: number }>).detail;
   grayOptimalScale.value = factor || 1;
 }
 
+// The greyscale URL
+const stitchedGreyscaleUrl = computed(() => {
+  return getStitchedGreyscaleUrl();
+});
+
+/**
+ * Function to retrieve the stitched greyscale URL
+ */
 function getStitchedGreyscaleUrl() {
   if (!appState.workspace) return null;
   return `/api/${appState.workspace.name}/stitch_datacubes/stitched_greyscale/?v=${previewVersion.value}`;
@@ -57,26 +76,39 @@ function getStitchedGreyscaleUrl() {
 // grayscale offset used for viewport shifting
 const grayViewportOffset = { x: 0, y: 0 };
 
-const stitchedGreyscaleUrl = computed(() => {
-  return getStitchedGreyscaleUrl();
-});
-
+/**
+ * Function to change the base image opacity
+ * @param e - The event that communicates that the opacity needs to be changed
+ */
 function onBaseOpacityChanged(e: Event) {
   if (!baseLayer) return;
   baseLayer.uniform.uOpacity.value = (e as CustomEvent<number>).detail;
 }
 
+
+/**
+ * Function to change the greyscale opacity
+ * @param e - The event that communicates that the opacity needs to be changed
+ */
 function onGrayOpacityChanged(e: Event) {
   if (!grayLayer) return;
   grayLayer.uniform.uOpacity.value = (e as CustomEvent<number>).detail;
 }
 
+/**
+ * Fucntion to move the stitched greyscale
+ * @param e - The event that tells that the greyscale needs to be moved
+ */
 function onGrayNudge(e: Event) {
   const { dx, dy } = (e as CustomEvent<{ dx: number; dy: number }>).detail;
   applyGrayNudge(dx, dy);
 }
 
-// nudging updates viewport offset
+/**
+ * Update the viewport offset
+ * @param dx - The amount we shift on the x-xxis
+ * @param dy - The amount we shift in the y-axis
+ */
 function applyGrayNudge(dx: number, dy: number) {
   const scale = Math.exp(viewport.zoom);
 
@@ -85,11 +117,17 @@ function applyGrayNudge(dx: number, dy: number) {
   grayViewportOffset.y -= dy * scale;
 }
 
+/**
+ * Update the viewport to reset the greyscale offset 
+ */
 function resetGreyscaleOffset() {
   grayViewportOffset.x = 0;
   grayViewportOffset.y = 0;
 }
 
+/**
+ * Function to get contrast values from the workspace
+ */
 function getGreyscaleIntensities(): number[] {
   const ws = appState.workspace;
   if (!ws) return [];
@@ -99,14 +137,16 @@ function getGreyscaleIntensities(): number[] {
   });
 }
 
-// Wether layers are being
+// Wether image layers are busy being loaded
 const isLoading = ref(false);
 const hasRenderedOnce = ref(false);
 
 // Keep track of the most recently loaded image
 let loadToken = 0;
 
-// GL setup
+/**
+ * Function to create and load the preview greyscale layer
+ */
 async function loadGrayscaleLayer() {
   if (!engine) return;
 
@@ -179,7 +219,9 @@ async function loadGrayscaleLayer() {
   }
 }
 
-
+/**
+ * Function to reset the viewport
+ */
 async function resetViewport() {
   if (!engine) return;
   const size = await getTargetSize();
@@ -198,6 +240,9 @@ async function resetViewport() {
   );
 }
 
+/**
+ * Function for rendering the viewer
+ */
 function startRenderLoop() {
   if (!engine) return;
 
@@ -257,25 +302,52 @@ function startRenderLoop() {
 // mouse interaction
 const dragging = ref(false);
 
+/**
+ * Function for handling mouse clicks
+ * @param ev - The mouse event
+ */
 function onMouseDown(ev: MouseEvent) {
   if (ev.button === 0) dragging.value = true;
 }
+
+/**
+ * Function for handling mouse releases
+ * @param ev - The mouse event
+ */
 function onMouseUp() {
   dragging.value = false;
 }
+
+/**
+ * Function for handling the mouse leaving a component
+ */
 function onMouseLeave() {
   dragging.value = false;
 }
+
+/**
+ * Function for handling mouse movement
+ * @param ev - The mouse event
+ */
 function onMouseMove(ev: MouseEvent) {
   if (!engine || !dragging.value) return;
   const scale = Math.exp(viewport.zoom);
   viewport.center.x -= ev.movementX * scale;
   viewport.center.y += ev.movementY * scale;
 }
+
+/**
+ * Function for handling scroling the mouse wheel
+ * @param ev - The scroll event
+ */
 function onWheel(ev: WheelEvent) {
   viewport.zoom += ev.deltaY / 500;
 }
 
+/**
+ * Function for handling ket presses
+ * @param ev - The keyboard event
+ */
 function onKeyDown(ev: KeyboardEvent) {
   // Intercept arrow keys globally
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(ev.key)) {
@@ -299,7 +371,7 @@ function onKeyDown(ev: KeyboardEvent) {
   applyGrayNudge(dx, dy);
 }
 
-// lifecycle
+// lifecycle, creates engine and creates base image
 onMounted(async () => {
   isLoading.value = true;
   window.addEventListener("stitch:base-opacity-changed", onBaseOpacityChanged);
@@ -336,6 +408,7 @@ onMounted(async () => {
   startRenderLoop();
 });
 
+// Reload stitched greyscale when contrast changes
 watch(
   () => appState.workspace?.mapping.grayscaleContrast,
   async () => {
@@ -358,6 +431,7 @@ watch(
   { deep: true }
 );
 
+// Reload greyscale layer when greyscale changes
 watch(stitchedGreyscaleUrl, async () => {
   if (!engine) return;
   await loadGrayscaleLayer();

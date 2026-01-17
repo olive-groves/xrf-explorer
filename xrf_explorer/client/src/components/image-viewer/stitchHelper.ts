@@ -6,19 +6,26 @@ import { saveWorkspaceDebounced, saveWorkspaceToBackend } from "./workspace";
 import { windowState } from "../ui/window/state";
 import { PendingJob, pollJobs, StitchType } from "./stitchJobManager.ts";
 
+// Type to keep track where the point is
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
+/**
+ * Creates a datastructure with the greyscale and base images points in the format used for API calls
+ * @param points The points that need to be put in the correct format
+ * @returns A record with sorted greyscale points and a record with sorted base image points
+ */
 function pointsToBackendDicts(points: StitchPoint[]): {
   local_points: Record<CornerKey, [number, number]>;
   target_points: Record<CornerKey, [number, number]>;
 } {
+  // Check wether all points are complete
   if (points.length !== maxPoints) {
     toast.error(`Stitch error`, {
           description: `Expected ${maxPoints} points, got ${points.length}`,
     });
     throw new Error(`Expected ${maxPoints} points, got ${points.length}`);
 
-  }
+  } 
 
   if (!points.every(hasBase)) {
     toast.error(`Stitch error`, {
@@ -29,6 +36,7 @@ function pointsToBackendDicts(points: StitchPoint[]): {
 
   const pts = points as (StitchPoint & { base: { x: number; y: number } })[];
 
+  // Sort points
   const sortedByBase = [...pts].sort(
     (a, b) => (a.base.y - b.base.y) || (a.base.x - b.base.x)
   );
@@ -42,7 +50,7 @@ function pointsToBackendDicts(points: StitchPoint[]): {
     bottom_left: bottomTwo[0],
     bottom_right: bottomTwo[1],
   };
-
+  // Return ordered points in correct format
   return {
     local_points: {
       top_left: [ordered.top_left.gray.x, ordered.top_left.gray.y],
@@ -59,6 +67,11 @@ function pointsToBackendDicts(points: StitchPoint[]): {
   };
 }
 
+/**
+ * BUilds fragments in the format used for API calls
+ * @param type Wether we want to do a call for spectral or elemental data
+ * @returns - Fragments ready for an API call
+ */
 export function buildFragmentsForAPI(type: StitchType) {
   const ws = appState.workspace;
   if (!ws) return [];
@@ -165,6 +178,10 @@ async function startStitchJob(
   return data.job_id;
 }
 
+/**
+ * Fetches the stitchinfo from the backend
+ * @returns The optimal scaling, estimated file size and the loss percentages
+ */
 export async function fetchOptimalStitchInfo(): Promise<{
   losses: number[] | null;
   estimatedSize: number;
