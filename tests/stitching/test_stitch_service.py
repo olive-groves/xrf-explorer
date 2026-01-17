@@ -701,6 +701,7 @@ class TestStitching:
 
         # Test Elemental branch
         result_frag.is_spectral = False
+        data.cube_type = "elemental"
         result = perform_stitching(data)
         assert result["type"] == "elemental"
         assert result["rpl_file"] is None

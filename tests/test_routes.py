@@ -964,3 +964,489 @@ class TestRoutes:
         # verify
         assert response.status_code == 400
         assert response.text == f"No colors or bitmasks returned"
+
+    def test_get_stitch_info_success(self, client: FlaskClient):
+        # setup
+        payload = {
+            "type": "elemental",
+            "contextual_image": "base",
+            "fragments": [{
+                "datacube_file": "test.dms",
+                "rotation": 0,
+                "local_points": {
+                    "top_left": [0, 0],
+                    "top_right": [1, 0],
+                    "bottom_left": [0, 1],
+                    "bottom_right": [1, 1]
+                },
+                "target_points": {
+                    "top_left": [0, 0],
+                    "top_right": [1, 0],
+                    "bottom_left": [0, 1],
+                    "bottom_right": [1, 1]
+                }
+            }]
+        }
+        mock_result = {"optimal_scalar": 0.5, "predicted_size": 1024}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData") as mock_stitch_data, \
+             patch("xrf_explorer.server.routes.stitching.get_stitch_info", return_value=mock_result):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/get_stitch_info",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == mock_result
+
+    def test_get_stitch_info_invalid_payload(self, client: FlaskClient):
+        # setup
+        payload = {"invalid": "data"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=ValueError("Missing required field")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/get_stitch_info",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_get_stitch_info_file_not_found(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.get_stitch_info", side_effect=FileNotFoundError("test.dms")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/get_stitch_info",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 404
+        assert "File not found" in response.json["error"]
+
+    def test_get_stitch_info_validation_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.get_stitch_info", side_effect=ValueError("Invalid rotation")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/get_stitch_info",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Validation error" in response.json["error"]
+
+    def test_get_stitch_info_generic_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.get_stitch_info", side_effect=Exception("Unexpected error")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/get_stitch_info",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 500
+        assert "Stitching failed" in response.json["error"]
+
+    def test_generate_partial_greyscales_success(self, client: FlaskClient):
+        # setup
+        payload = {
+            "type": "elemental",
+            "fragments": [{"datacube_file": "test.dms"}]
+        }
+        mock_result = {"status": "success", "greyscales": ["frag1.png"]}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.generate_all_partial_greyscales", return_value=mock_result):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/generate_partial_greyscales",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == mock_result
+
+    def test_generate_partial_greyscales_invalid_payload(self, client: FlaskClient):
+        # setup
+        payload = {"invalid": "data"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=KeyError("type")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/generate_partial_greyscales",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_generate_partial_greyscales_file_not_found(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.generate_all_partial_greyscales", side_effect=FileNotFoundError("datacube.dms")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/generate_partial_greyscales",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 404
+        assert "File not found" in response.json["error"]
+
+    def test_generate_partial_greyscales_validation_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.generate_all_partial_greyscales", side_effect=ValueError("Invalid fragment")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/generate_partial_greyscales",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Validation error" in response.json["error"]
+
+    def test_generate_partial_greyscales_generic_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.generate_all_partial_greyscales", side_effect=Exception("Unexpected")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/generate_partial_greyscales",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 500
+        assert "Stitching failed" in response.json["error"]
+
+    def test_get_partial_greyscale_success(self, client: FlaskClient):
+        # setup
+        fragment_name = "test_fragment"
+        mock_path = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, "base.png")
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_greyscale_path", return_value=mock_path):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/greyscale_image/{fragment_name}"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.mimetype == "image/png"
+
+    def test_get_stitched_greyscale_success(self, client: FlaskClient):
+        # setup
+        mock_path = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, "base.png")
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_greyscale_path", return_value=mock_path):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitched_greyscale/"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.mimetype == "image/png"
+
+    def test_stitch_start_job_success(self, client: FlaskClient):
+        # setup
+        payload = {
+            "type": "elemental",
+            "preview": False,
+            "contextual_image": "base",
+            "down_scaling": 0.5,
+            "fragments": []
+        }
+        mock_job_id = "job-12345"
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.start_stitch_job", return_value=mock_job_id):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 202
+        assert response.json["status"] == "started"
+        assert response.json["job_id"] == mock_job_id
+        assert "message" in response.json
+
+    def test_stitch_start_job_invalid_payload(self, client: FlaskClient):
+        # setup
+        payload = {"invalid": "data"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=ValueError("Missing type")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_stitch_start_job_key_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "elemental"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=KeyError("fragments")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_stitch_status_success_in_progress(self, client: FlaskClient):
+        # setup
+        job_id = "job-12345"
+        mock_status = {"status": "in_progress", "progress": 50}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_stitch_job_status", return_value=mock_status):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch_status/{job_id}"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == mock_status
+
+    def test_stitch_status_success_completed(self, client: FlaskClient):
+        # setup
+        job_id = "job-12345"
+        mock_status = {"status": "completed", "result": {"output_file": "stitched.dms"}}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_stitch_job_status", return_value=mock_status):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch_status/{job_id}"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json["status"] == "completed"
+
+    def test_stitch_status_success_failed(self, client: FlaskClient):
+        # setup
+        job_id = "job-12345"
+        mock_status = {"status": "failed", "error": "Out of memory"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_stitch_job_status", return_value=mock_status):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch_status/{job_id}"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json["status"] == "failed"
+
+    def test_stitch_status_job_not_found(self, client: FlaskClient):
+        # setup
+        job_id = "nonexistent-job"
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_stitch_job_status", return_value=None):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/stitch_status/{job_id}"
+            )
+
+        # verify
+        assert response.status_code == 404
+        assert response.json["error"] == "Job not found"
+
+    def test_pre_transpose_cubes_success(self, client: FlaskClient):
+        # setup
+        payload = {
+            "type": "spectral",
+            "fragments": [
+                {"datacube_file": "cube1.raw", "rpl_file": "cube1.rpl"},
+                {"datacube_file": "cube2.raw", "rpl_file": "cube2.rpl"}
+            ]
+        }
+        mock_result = {
+            "status": "started",
+            "message": "Transpose operations started",
+            "cubes": ["cube1.raw", "cube2.raw"]
+        }
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.pre_transpose_cubes", return_value=mock_result):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 202
+        assert response.json == mock_result
+
+    def test_pre_transpose_cubes_invalid_payload(self, client: FlaskClient):
+        # setup
+        payload = {"invalid": "data"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=ValueError("type must be spectral")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_pre_transpose_cubes_key_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "spectral"}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData", side_effect=KeyError("fragments")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Error while parsing request data" in response.json["error"]
+
+    def test_pre_transpose_cubes_file_not_found(self, client: FlaskClient):
+        # setup
+        payload = {"type": "spectral", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.pre_transpose_cubes", side_effect=FileNotFoundError("cube.raw")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 404
+        assert "File not found" in response.json["error"]
+
+    def test_pre_transpose_cubes_validation_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "spectral", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.pre_transpose_cubes", side_effect=ValueError("Invalid cube format")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 400
+        assert "Validation error" in response.json["error"]
+
+    def test_pre_transpose_cubes_generic_error(self, client: FlaskClient):
+        # setup
+        payload = {"type": "spectral", "fragments": []}
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.StitchData"), \
+             patch("xrf_explorer.server.routes.stitching.pre_transpose_cubes", side_effect=Exception("Unexpected error")):
+            response: TestResponse = client.post(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/pre_transpose_cubes",
+                json=payload
+            )
+
+        # verify
+        assert response.status_code == 500
+        assert "Pre-transpose failed" in response.json["error"]
+
+    def test_transpose_status_success(self, client: FlaskClient):
+        # setup
+        mock_result = {
+            "data_source": self.DATA_SOURCE,
+            "any_in_progress": True,
+            "cubes": {
+                "cube1.raw": {
+                    "status": "completed",
+                    "transposed_path": "/path/to/transposed.raw"
+                },
+                "cube2.raw": {
+                    "status": "in_progress",
+                    "started_at": "2025-01-17T10:00:00"
+                }
+            }
+        }
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_transpose_status", return_value=mock_result):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/transpose_status"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json == mock_result
+
+    def test_transpose_status_no_operations(self, client: FlaskClient):
+        # setup
+        mock_result = {
+            "data_source": self.DATA_SOURCE,
+            "any_in_progress": False,
+            "cubes": {}
+        }
+
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_transpose_status", return_value=mock_result):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/transpose_status"
+            )
+
+        # verify
+        assert response.status_code == 200
+        assert response.json["any_in_progress"] is False
+
+    def test_transpose_status_error(self, client: FlaskClient):
+        # execute
+        with patch("xrf_explorer.server.routes.stitching.get_transpose_status", side_effect=Exception("Database error")):
+            response: TestResponse = client.get(
+                f"/api/{self.DATA_SOURCE}/stitch_datacubes/transpose_status"
+            )
+
+        # verify
+        assert response.status_code == 500
+        assert "Failed to get transpose status" in response.json["error"]
