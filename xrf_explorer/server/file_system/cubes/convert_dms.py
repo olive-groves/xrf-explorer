@@ -156,3 +156,5 @@ def to_dms(folder_path: str, name_cube: str, cube: np.ndarray, elements: list[st
     except OSError as e:
         LOG.error(f"Error while writing elemental map to dms: {e}")
         return False
+
+    return True

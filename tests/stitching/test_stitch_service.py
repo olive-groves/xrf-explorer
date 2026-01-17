@@ -658,16 +658,18 @@ class TestStitching:
         mock_recipe.assert_called_once()
         mock_imwrite.assert_called_once()
 
+    @patch("xrf_explorer.server.stitcher.stitcher_service.get_workspace_dict")
     @patch("xrf_explorer.server.stitcher.stitcher_service.cv.imwrite")
     @patch("xrf_explorer.server.stitcher.stitcher_service.os.makedirs")
     @patch("xrf_explorer.server.stitcher.stitcher_service.create_recipe_file")
     @patch("xrf_explorer.server.stitcher.stitcher_service.normalize_image")
     @patch("xrf_explorer.server.stitcher.stitcher_service._build_path")
     def test_perform_stitching(
-        self, mock_build, mock_norm, mock_recipe, mock_mkdirs, mock_imwrite
+        self, mock_build, mock_norm, mock_recipe, mock_mkdirs, mock_imwrite, mock_get_workspace
     ):
         # Setup Data
         data = MagicMock(spec=StitchData)
+        data.cube_type = "spectral"
         data.data_source = "src"
         data.contextual_image_dimensions = Dimensions(100, 100)
 
@@ -683,6 +685,8 @@ class TestStitching:
 
         mock_stitcher.stitch_datacubes.return_value = result_frag
         data.get_datacube_stitcher.return_value = mock_stitcher
+
+        mock_get_workspace.return_value = {}
 
         mock_norm.return_value = np.zeros((10, 10))
 

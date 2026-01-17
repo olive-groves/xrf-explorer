@@ -56,6 +56,7 @@ def parse_rpl(path: str) -> dict:
                 parsed_rpl[split[0].strip()] = split[1].strip()
     else:
         LOG.error("Error while parsing rpl file: file empty")
+        return parsed_rpl
 
 
     data_len = int(parsed_rpl.get("data-Length", 0))

@@ -282,7 +282,7 @@ class FragmentData:
         Raises:
             ValueError: If points tuple is not set.
         """
-        if self._points is not None:
+        if self._points is not None and all(p is not None for p in self._points):
             return self._points
         else:
             raise ValueError("'points' requested but not present in fragment data.")

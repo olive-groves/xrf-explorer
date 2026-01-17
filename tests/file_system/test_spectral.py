@@ -60,7 +60,8 @@ class TestSpectral:
             "depth2": "3000",
             "depthscaleorigin": "-0.956",
             "depthscaleincrement": "0.010002",
-            "depthscaleunits": "keV"
+            "depthscaleunits": "keV",
+            "parsed-data-type": "<u2"
         }
         
         assert info == expected_info
