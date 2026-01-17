@@ -83,6 +83,13 @@ class TestRoutes:
             db.create_all()
             yield app, db
             db.drop_all()
+
+    @pytest.fixture(autouse=True)
+    def auto_authenticate(self, client, test_app):
+        # Automatically authorizes the client before every test.
+        _, db = test_app
+        self.login_as_admin(client, db)
+        yield
     
     def sample_admin_user(self):
         def uname(name: str) -> str:
@@ -127,11 +134,6 @@ class TestRoutes:
         assert len(file) > 0
     
     def test_get_workspace_invalid_data_source(self, client: FlaskClient, test_app):
-        # Setup test app and Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # execute
         file: TestResponse = client.get("/api/this is not a data source/workspace")
 
@@ -145,7 +147,7 @@ class TestRoutes:
         })
 
         # verify
-        assert file.status_code == 401
+        assert file.status_code == 400
 
     def test_datasource_files(self, client: FlaskClient):
         # execute
@@ -155,11 +157,6 @@ class TestRoutes:
         assert response.status_code == 200
     
     def test_create_data_source_dir(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
@@ -180,11 +177,6 @@ class TestRoutes:
         rmdir(folder_path)
 
     def test_create_data_source_dir_existing_name(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # execute
         response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/create")
 
@@ -193,11 +185,6 @@ class TestRoutes:
         assert response.text == "Data source name already exists."
     
     def test_create_data_source_dir_no_config(self, client: FlaskClient, caplog, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         set_config("this is not a config file.yml")
         error_msg: str = "Error occurred while getting backend config" 
@@ -211,11 +198,6 @@ class TestRoutes:
         assert error_msg in caplog.text
     
     def test_remove_data_source(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
@@ -239,11 +221,6 @@ class TestRoutes:
         assert not isdir(folder_path)
     
     def test_remove_data_source_no_config(self, client: FlaskClient, caplog, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         set_config("this is not a config file.yml")
         error_msg: str = "Error occurred while getting backend config"
@@ -257,11 +234,6 @@ class TestRoutes:
         assert error_msg in caplog.text
 
     def test_delete_data_source(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         completely_new_data_source: str = "completely_new_data_source"
         folder_path: str = join(self.DATA_SOURCES_FOLDER, completely_new_data_source)
@@ -284,11 +256,6 @@ class TestRoutes:
         assert response.get_json() == {"dataSourceDir": completely_new_data_source}
     
     def test_delete_data_source_invalid_data_source(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # execute
         response: TestResponse = client.delete("/api/this is not a data source/delete")
 
@@ -296,11 +263,6 @@ class TestRoutes:
         assert response.status_code == 400
     
     def test_upload_chunk(self, client: FlaskClient, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         file_name: str = "test_file.txt"
         file_path: str = join(self.DATA_SOURCES_FOLDER, self.DATA_SOURCE, file_name)
@@ -357,11 +319,6 @@ class TestRoutes:
         assert not exists(path2)
     
     def test_upload_chunk_no_config(self, client: FlaskClient, caplog, test_app):
-        # Setup test app and Login as Admin user
-        app, db = test_app
-        with app.app_context():
-            self.login_as_admin(client, db)
-
         # setup
         set_config("this is not a config file.yml")
         error_msg: str = "Error occurred while getting backend config"
@@ -907,7 +864,7 @@ class TestRoutes:
         threshold = 50
 
         # execute with patch
-        with patch.dict("xrf_explorer.server.routes.get_dr_embedding.__globals__", {"generate_embedding": lambda *a, **k: "error"}):
+        with patch("xrf_explorer.server.routes.dim_reduction.generate_embedding", return_value="error"):
             response: TestResponse = client.post(f"/api/{self.DATA_SOURCE}/dr/embedding/{element}/{threshold}", json={})
 
         # verify
