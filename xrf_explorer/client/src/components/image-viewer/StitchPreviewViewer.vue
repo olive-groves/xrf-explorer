@@ -50,10 +50,9 @@ let baseMesh = null;
 let baseWidth = 0;
 let baseHeight = 0;
 
-
 /**
- * Function to change the scaling factor
- * @param e - The event that communicates that the scaling factor has beed changed
+ * Function to change the scaling factor.
+ * @param e - The event that communicates that the scaling factor has beed changed.
  */
 function onGrayOptimalScale(e: Event) {
   const { factor } = (e as CustomEvent<{ factor: number }>).detail;
@@ -66,7 +65,8 @@ const stitchedGreyscaleUrl = computed(() => {
 });
 
 /**
- * Function to retrieve the stitched greyscale URL
+ * Function to retrieve the stitched greyscale URL.
+ * @returns The stitched greyscale URL.
  */
 function getStitchedGreyscaleUrl() {
   if (!appState.workspace) return null;
@@ -77,18 +77,17 @@ function getStitchedGreyscaleUrl() {
 const grayViewportOffset = { x: 0, y: 0 };
 
 /**
- * Function to change the base image opacity
- * @param e - The event that communicates that the opacity needs to be changed
+ * Function to change the base image opacity.
+ * @param e - The event that communicates that the opacity needs to be changed.
  */
 function onBaseOpacityChanged(e: Event) {
   if (!baseLayer) return;
   baseLayer.uniform.uOpacity.value = (e as CustomEvent<number>).detail;
 }
 
-
 /**
- * Function to change the greyscale opacity
- * @param e - The event that communicates that the opacity needs to be changed
+ * Function to change the greyscale opacity.
+ * @param e - The event that communicates that the opacity needs to be changed.
  */
 function onGrayOpacityChanged(e: Event) {
   if (!grayLayer) return;
@@ -96,8 +95,8 @@ function onGrayOpacityChanged(e: Event) {
 }
 
 /**
- * Fucntion to move the stitched greyscale
- * @param e - The event that tells that the greyscale needs to be moved
+ * Fucntion to move the stitched greyscale.
+ * @param e - The event that tells that the greyscale needs to be moved.
  */
 function onGrayNudge(e: Event) {
   const { dx, dy } = (e as CustomEvent<{ dx: number; dy: number }>).detail;
@@ -105,9 +104,9 @@ function onGrayNudge(e: Event) {
 }
 
 /**
- * Update the viewport offset
- * @param dx - The amount we shift on the x-xxis
- * @param dy - The amount we shift in the y-axis
+ * Update the viewport offset.
+ * @param dx - The amount we shift on the x-xxis.
+ * @param dy - The amount we shift in the y-axis.
  */
 function applyGrayNudge(dx: number, dy: number) {
   const scale = Math.exp(viewport.zoom);
@@ -118,7 +117,7 @@ function applyGrayNudge(dx: number, dy: number) {
 }
 
 /**
- * Update the viewport to reset the greyscale offset 
+ * Update the viewport to reset the greyscale offset .
  */
 function resetGreyscaleOffset() {
   grayViewportOffset.x = 0;
@@ -126,7 +125,8 @@ function resetGreyscaleOffset() {
 }
 
 /**
- * Function to get contrast values from the workspace
+ * Function to get contrast values from the workspace.
+ * @returns The contrast values for each greyscale.
  */
 function getGreyscaleIntensities(): number[] {
   const ws = appState.workspace;
@@ -145,7 +145,7 @@ const hasRenderedOnce = ref(false);
 let loadToken = 0;
 
 /**
- * Function to create and load the preview greyscale layer
+ * Function to create and load the preview greyscale layer.
  */
 async function loadGrayscaleLayer() {
   if (!engine) return;
@@ -162,17 +162,12 @@ async function loadGrayscaleLayer() {
 
     const newId = `stitch_preview_greyscale_${token}`;
 
-    newLayer = await engine.createImageLayer(
-      newId,
-      url,
-      { width: baseWidth, height: baseHeight }
-    );
+    newLayer = await engine.createImageLayer(newId, url, { width: baseWidth, height: baseHeight });
 
     if (token !== loadToken) return;
 
     // wait for texture upload
-    const tex = (newLayer.mesh!.material as THREE.RawShaderMaterial)
-      .uniforms.tImage.value as THREE.Texture;
+    const tex = (newLayer.mesh!.material as THREE.RawShaderMaterial).uniforms.tImage.value as THREE.Texture;
 
     if (!tex.image) {
       await new Promise<void>((resolve) => {
@@ -200,13 +195,12 @@ async function loadGrayscaleLayer() {
       mesh.geometry.dispose();
 
       const mat = mesh.material as THREE.RawShaderMaterial;
-      const texOld = (mat.uniforms as any).tImage?.value as THREE.Texture | undefined;
+      const texOld = mat.uniforms.tImage?.value as THREE.Texture | undefined;
       if (texOld) texOld.dispose();
 
       mat.dispose();
       engine.scene.remove(mesh);
     }
-
   } catch (err) {
     console.error("Failed to load grayscale preview", err);
 
@@ -220,7 +214,7 @@ async function loadGrayscaleLayer() {
 }
 
 /**
- * Function to reset the viewport
+ * Function to reset the viewport.
  */
 async function resetViewport() {
   if (!engine) return;
@@ -236,12 +230,12 @@ async function resetViewport() {
   viewport.center.y = targetSize.height / 2;
   viewport.zoom = Math.max(
     Math.log(targetSize.width / width.value / fill),
-    Math.log(targetSize.height / height.value / fill)
+    Math.log(targetSize.height / height.value / fill),
   );
 }
 
 /**
- * Function for rendering the viewer
+ * Function for rendering the viewer.
  */
 function startRenderLoop() {
   if (!engine) return;
@@ -267,12 +261,7 @@ function startRenderLoop() {
       const v = layer.uniform.iViewport.value;
 
       if (layer === grayLayer) {
-        v.set(
-          vx - grayViewportOffset.x,
-          vy - grayViewportOffset.y,
-          vw,
-          vh
-        );
+        v.set(vx - grayViewportOffset.x, vy - grayViewportOffset.y, vw, vh);
       } else {
         v.set(vx, vy, vw, vh);
       }
@@ -303,31 +292,30 @@ function startRenderLoop() {
 const dragging = ref(false);
 
 /**
- * Function for handling mouse clicks
- * @param ev - The mouse event
+ * Function for handling mouse clicks.
+ * @param ev - The mouse event.
  */
 function onMouseDown(ev: MouseEvent) {
   if (ev.button === 0) dragging.value = true;
 }
 
 /**
- * Function for handling mouse releases
- * @param ev - The mouse event
+ * Function for handling mouse releases.
  */
 function onMouseUp() {
   dragging.value = false;
 }
 
 /**
- * Function for handling the mouse leaving a component
+ * Function for handling the mouse leaving a component.
  */
 function onMouseLeave() {
   dragging.value = false;
 }
 
 /**
- * Function for handling mouse movement
- * @param ev - The mouse event
+ * Function for handling mouse movement.
+ * @param ev - The mouse event.
  */
 function onMouseMove(ev: MouseEvent) {
   if (!engine || !dragging.value) return;
@@ -337,16 +325,16 @@ function onMouseMove(ev: MouseEvent) {
 }
 
 /**
- * Function for handling scroling the mouse wheel
- * @param ev - The scroll event
+ * Function for handling scroling the mouse wheel.
+ * @param ev - The scroll event.
  */
 function onWheel(ev: WheelEvent) {
   viewport.zoom += ev.deltaY / 500;
 }
 
 /**
- * Function for handling ket presses
- * @param ev - The keyboard event
+ * Function for handling ket presses.
+ * @param ev - The keyboard event.
  */
 function onKeyDown(ev: KeyboardEvent) {
   // Intercept arrow keys globally
@@ -389,12 +377,9 @@ onMounted(async () => {
 
   engine = createStitchEngine(glcanvas.value);
 
-  
   if (!ws?.baseImage) return;
 
-  const loc = ws.baseImage.imageLocation?.includes("/")
-    ? ws.baseImage.imageLocation
-    : ws.baseImage.name;
+  const loc = ws.baseImage.imageLocation?.includes("/") ? ws.baseImage.imageLocation : ws.baseImage.name;
 
   baseLayer = await engine.createImageLayer("stitch_base", getWorkspaceImageUrl(loc, ws.name));
 
@@ -416,19 +401,14 @@ watch(
     if (!ws) return;
     const intensities = getGreyscaleIntensities();
     try {
-      await stitchAndWait(
-        true,
-        ws.grayscale[0].sourceCubeType,
-        grayOptimalScale.value,
-        intensities
-      );
+      await stitchAndWait(true, ws.grayscale[0].sourceCubeType, grayOptimalScale.value, intensities);
       previewVersion.value++;
       await loadGrayscaleLayer();
     } catch (e) {
       console.warn("Failed to update stitch preview with contrast", e);
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Reload greyscale layer when greyscale changes
@@ -453,7 +433,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="container"
-    class="relative w-full h-full"
+    class="relative size-full"
     :class="{ 'pointer-events-none': isLoading }"
     :style="{ cursor: dragging ? 'grabbing' : 'grab' }"
     @mousedown="onMouseDown"
@@ -462,15 +442,12 @@ onBeforeUnmount(() => {
     @mousemove="onMouseMove"
     @wheel="onWheel"
   >
-  <div
-    v-if="isLoading"
-    class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-  >
-    <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
-      <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      <span class="text-sm font-medium">Updating preview…</span>
+    <div v-if="isLoading" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="flex items-center gap-3 rounded-lg bg-background px-6 py-4 shadow-lg">
+        <span class="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <span class="text-sm font-medium">Updating preview…</span>
+      </div>
     </div>
-  </div>
-    <canvas ref="glcanvas" class="absolute inset-0 w-full h-full" />
+    <canvas ref="glcanvas" class="absolute inset-0 size-full" />
   </div>
 </template>

@@ -57,9 +57,7 @@ const toolState = ref<ToolState>({
 });
 
 const selectionToolActive = computed(() =>
-  Object.values(SelectionAreaType as { [key: string]: string }).includes(
-    toolState.value.tool as string,
-  ),
+  Object.values(SelectionAreaType as { [key: string]: string }).includes(toolState.value.tool as string),
 );
 
 let camera: THREE.OrthographicCamera;
@@ -79,11 +77,11 @@ onMounted(setup);
 /**
  * Sets up the very basic scene in THREE for rendering.
  */
-function setup() {
+async function setup() {
   // If the workspace is not yet loaded, do not attempt resetting viewport.
   // When workspace is loaded, the viewport will be reset automatically.
   // Otherwise, reset the viewport to a home position.
-  if (appState.workspace != null) resetViewport();
+  if (appState.workspace != null) await resetViewport();
 
   camera = new THREE.OrthographicCamera();
   scene.renderer = new THREE.WebGLRenderer({
@@ -104,10 +102,7 @@ function render() {
   const x = viewport.center.x - w / 2;
   const y = viewport.center.y - h / 2;
   viewbox.value = { x: x, y: y, w: w, h: h };
-  const lensSize =
-    toolState.value.tool == Tool.Lens
-      ? toolState.value.lensSize[0]
-      : Number.MAX_VALUE;
+  const lensSize = toolState.value.tool == Tool.Lens ? toolState.value.lensSize[0] : Number.MAX_VALUE;
 
   layers.value.forEach((layer) => {
     layer.uniform.iViewport.value.set(x, y, w, h);
@@ -128,20 +123,17 @@ async function resetViewport() {
   const fill = 0.9;
   viewport.center.x = size.width / 2;
   viewport.center.y = size.height / 2;
-  viewport.zoom = Math.max(
-    Math.log((size.width / width.value) / fill),
-    Math.log((size.height / height.value) / fill),
-  );
+  viewport.zoom = Math.max(Math.log(size.width / width.value / fill), Math.log(size.height / height.value / fill));
 }
 
 /**
  * Cancels the selection made in the image viewer.
  */
-function clearSelection() {
+async function clearSelection() {
   const tool = toolState.value.tool;
   toolState.value.tool = Tool.Grab;
   appState.selection.imageViewer.type = undefined;
-  nextTick(() => (toolState.value.tool = tool));
+  await nextTick(() => (toolState.value.tool = tool));
 }
 
 const dragging = ref(false);
@@ -152,7 +144,7 @@ const lensLocked = ref(false);
  * @param event - The mouse event.
  */
 function onClick(event: MouseEvent) {
-  if (event.button == 2 ) {
+  if (event.button == 2) {
     // Prevent opening of context menu.
     event.preventDefault();
     return;
@@ -162,8 +154,6 @@ function onClick(event: MouseEvent) {
     const pointObj = getBaseImageCoords(event);
     emit("click-base", pointObj);
   }
-
-
 }
 
 /**
@@ -234,18 +224,11 @@ function onMouseMove(event: MouseEvent) {
  * @param event The wheel event containing the amount that was scrolled.
  */
 function onWheel(event: WheelEvent) {
-  viewport.zoom +=
-    (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
+  viewport.zoom += (event.deltaY / 500.0) * toolState.value.scrollSpeed[0];
 
   // Clamp zoom to a reasonable range
-  if (
-    viewport.zoom >= config.imageViewer.zoomLimit ||
-    viewport.zoom <= -config.imageViewer.zoomLimit
-  ) {
-    viewport.zoom = Math.min(
-      config.imageViewer.zoomLimit,
-      Math.max(-config.imageViewer.zoomLimit, viewport.zoom),
-    );
+  if (viewport.zoom >= config.imageViewer.zoomLimit || viewport.zoom <= -config.imageViewer.zoomLimit) {
+    viewport.zoom = Math.min(config.imageViewer.zoomLimit, Math.max(-config.imageViewer.zoomLimit, viewport.zoom));
     if (!zoomLimitReached) {
       toast.info("Zoom limit reached");
       // Prevent the toast from being shown multiple times
@@ -258,6 +241,8 @@ function onWheel(event: WheelEvent) {
 
 /**
  * Convert a mouse event (screen coords) to base-image coordinates.
+ * @param event The mouse event.
+ * @returns The base image coordinates {x, y} corresponding to the mouse event.
  */
 function getBaseImageCoords(event: MouseEvent) {
   const rect = glcanvas.value!.getBoundingClientRect();
@@ -316,21 +301,13 @@ defineExpose({
 
     <SelectionArea
       v-model="appState.selection.imageViewer"
-      :type="
-        selectionToolActive
-          ? (toolState.tool as string as SelectionAreaType)
-          : undefined
-      "
+      :type="selectionToolActive ? (toolState.tool as string as SelectionAreaType) : undefined"
       :x="viewbox.x"
       :y="viewbox.y"
       :w="viewbox.w"
       :h="viewbox.h"
     />
 
-    <Toolbar
-      v-model:state="toolState"
-      @reset-viewport="resetViewport"
-      @clear-selection="clearSelection"
-    />
+    <Toolbar v-model:state="toolState" @reset-viewport="resetViewport" @clear-selection="clearSelection" />
   </div>
 </template>

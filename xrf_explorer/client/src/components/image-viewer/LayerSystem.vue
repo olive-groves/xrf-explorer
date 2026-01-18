@@ -63,8 +63,8 @@ function resetSliders() {
 </script>
 
 <template>
-  <Button class="basis-1/2 mb-2" variant="outline" @click="resetSliders()" title="Reset layer settings"
-      ><ListRestart class="size-4" />
+  <Button class="mb-2 basis-1/2" variant="outline" @click="resetSliders()" title="Reset layer settings"
+    ><ListRestart class="size-4" />
   </Button>
   <VueDraggableNext class="space-y-2" v-model="groups">
     <!-- CREATES A CARD FOR EACH LAYER -->

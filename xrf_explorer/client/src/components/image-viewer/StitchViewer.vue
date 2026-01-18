@@ -31,7 +31,7 @@ let lastPreviewInfo: PreviewInfo | null = null;
  * Handle requests for preview info from preview window.
  */
 function onRequestPreview() {
-  const ws = appState.workspace
+  const ws = appState.workspace;
   if (!ws) {
     return;
   }
@@ -48,10 +48,7 @@ onUnmounted(() => {
   if (workspace.value) {
     workspace.value.mapping.mode = "edit";
   }
-  window.removeEventListener(
-    "stitchViewer:requestPreviewInfo",
-    onRequestPreview,
-  );
+  window.removeEventListener("stitchViewer:requestPreviewInfo", onRequestPreview);
 });
 
 // Store preview info for stitchwindow to load
@@ -105,9 +102,7 @@ watch(
   async (newMode) => {
     if (!newMode) return;
 
-    window.dispatchEvent(
-      new CustomEvent("stitchViewer:modeChanged", { detail: newMode }),
-    );
+    window.dispatchEvent(new CustomEvent("stitchViewer:modeChanged", { detail: newMode }));
 
     if (newMode !== "preview") return;
 
@@ -128,7 +123,6 @@ watch(
     }
   },
 );
-
 </script>
 
 <template>
@@ -142,18 +136,18 @@ watch(
       </div>
     </ToggleGroup>
 
-    <div class="flex-1 overflow-hidden relative">
+    <div class="relative flex-1 overflow-hidden">
       <StitchMappingViewer v-if="mode === 'edit' && !stitching" class="size-full" />
       <StitchPreviewViewer v-if="mode === 'preview' && !stitching" class="size-full" />
 
       <!-- Preview loading -->
-      <div v-if="isLoading && !stitching" class="absolute inset-0 z-40 ...">
+      <div v-if="isLoading && !stitching" class="absolute inset-0 z-40">
         <span>Generating greyscales...</span>
       </div>
 
       <!-- Loading screen when stitching-->
       <div v-if="stitching" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-        <span class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <span class="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <span class="text-sm font-medium">Stitching in progress… (Do not close or change project)</span>
       </div>
     </div>

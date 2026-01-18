@@ -246,7 +246,7 @@ export async function createElementalLayers(workspace: WorkspaceConfig) {
   const layer: Layer = createLayer("elemental_maps", "", false);
   layer.uniform.iLayerType.value = LayerType.Elemental;
   layer.uniform.tAuxiliary = { value: elementalAlphaTarget.texture, type: "t" };
-  loadLayerFromTexture(layer, elementalTarget.texture);
+  await loadLayerFromTexture(layer, elementalTarget.texture);
   registerLayer(layer, recipe);
   const layers: Layer[] = [layer];
 

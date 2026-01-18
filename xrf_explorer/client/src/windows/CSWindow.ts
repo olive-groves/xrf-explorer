@@ -347,12 +347,7 @@ export function useCSWindow() {
       recommendedStatus.value = Status.LOADING;
 
       //Read the selection for the payload
-      let activeSelection: SelectionAreaSelection;
-      if (useSelectionChecked.value) {
-        activeSelection = flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
-      } else {
-        activeSelection = await getFullImageSelection();
-      }
+      const activeSelection: SelectionAreaSelection = await setActiveSelection();
 
       // Prepare request
       const response = await fetch(`${config.api.endpoint}/${datasource.value}/cs/recommend-k`, {
@@ -381,7 +376,19 @@ export function useCSWindow() {
   }
 
   /**
-   * reset all settings in the window to defaults.
+   * Helper function to get the active selection based on whether the selection checkbox is checked.
+   * @returns - The active selection to be used.
+   */
+  async function setActiveSelection() {
+    if (useSelectionChecked.value) {
+      return flipSelectionAreaSelection(currentAreaSelection.areaSelection, (await getTargetSize()).height);
+    } else {
+      return await getFullImageSelection();
+    }
+  }
+
+  /**
+   * Reset all settings in the window to defaults.
    */
   function resetSettings() {
     recommendedStatus.value = Status.WAITING;
@@ -390,7 +397,7 @@ export function useCSWindow() {
     colors.value = [""];
     useSelectionChecked.value = false;
     status.value = Status.WAITING;
-    elementsSelected.value = [{id: 1, name: "", threshold: 20}];
+    elementsSelected.value = [{ id: 1, name: "", threshold: 20 }];
   }
 
   /**

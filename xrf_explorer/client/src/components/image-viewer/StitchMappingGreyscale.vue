@@ -282,7 +282,7 @@ function onClick(event: MouseEvent) {
         const zoomScale = Math.exp(viewport.zoom);
         const dx = p.gray.x - pointObj.x;
         const dy = p.gray.y - pointObj.y;
-        if (dx * dx + dy * dy < 20 * 20 / zoomScale * zoomScale * zoomScale) {
+        if (dx * dx + dy * dy < ((20 * 20) / zoomScale) * zoomScale * zoomScale) {
           if (checkSelectPoint(p.id)) {
             deselect();
             return;
@@ -365,14 +365,9 @@ onBeforeUnmount(() => {
     @click="onClick"
     @contextmenu="onClick"
   >
-    <div
-      v-if="isLoading"
-      class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-    >
-      <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
-        <span
-          class="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"
-        />
+    <div v-if="isLoading" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="flex items-center gap-3 rounded-lg bg-background px-6 py-4 shadow-lg">
+        <span class="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <span class="text-sm font-medium">Loading grayscale…</span>
       </div>
     </div>

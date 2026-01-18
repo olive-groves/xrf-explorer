@@ -50,7 +50,7 @@ export type WorkspaceConfig = {
    */
   stitchingMode: "partial" | "full";
   /**
-   * The mapping made by the user for stitching data cubes
+   * The mapping made by the user for stitching data cubes.
    */
   mapping: StitchMapping;
 };
@@ -87,7 +87,7 @@ export type Grayscale = {
    */
   sourceCubeName: string;
   /**
-   * The type of cube that generated this grayscale image: 'elemental' | 'spectral'
+   * The type of cube that generated this grayscale image: 'elemental' | 'spectral'.
    */
   sourceCubeType: "elemental" | "spectral";
 };
@@ -177,23 +177,23 @@ export type ElementalChannel = {
 };
 
 /**
- * Stores the mapping points and rotations made by the user, as well as wether we are mapping or previewing
+ * Stores the mapping points and rotations made by the user, as well as wether we are mapping or previewing.
  */
 export type StitchMapping = {
   /**
-   * Points per grayscale, keyed by grayscale index
+   * Points per grayscale, keyed by grayscale index.
    */
   grayscalePoints: Record<number, StitchPoint[]>;
   /**
-   * Rotation per grayscale
+   * Rotation per grayscale.
    */
   grayscaleRotation: Record<number, number>;
   /**
-   * Intensity per greyscale
+   * Intensity per greyscale.
    */
   grayscaleContrast: Record<number, number>;
   /**
-   * Wether we are in edit or preview mode
-   */ 
+   * Wether we are in edit or preview mode.
+   */
   mode: "edit" | "preview";
-}
+};

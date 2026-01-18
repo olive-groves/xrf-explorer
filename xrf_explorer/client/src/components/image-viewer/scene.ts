@@ -44,7 +44,7 @@ export function loadLayer(layer: Layer, interpolated: boolean = true) {
       }
 
       // Create layer
-      loadLayerFromTexture(layer, texture);
+      await loadLayerFromTexture(layer, texture);
     },
     (reason) => {
       console.warn(`Failed to load layer ${layer.id}`, reason);

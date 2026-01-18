@@ -7,9 +7,21 @@ import { Layer, LayerType, LayerVisibility } from "./types";
  * A completely independent GL environment for stitching viewers.
  */
 export interface StitchEngine {
+  /**
+   * Scene object.
+   */
   scene: THREE.Scene;
+  /**
+   * Renderer object.
+   */
   renderer: THREE.WebGLRenderer;
+  /**
+   * Camera object.
+   */
   camera: THREE.OrthographicCamera;
+  /**
+   * Layers in this engine.
+   */
   layers: Layer[];
 
   /**
@@ -30,6 +42,8 @@ export interface StitchEngine {
 
 /**
  * Create a new, completely independent GL engine bound to the given canvas.
+ * @param canvas - The canvas to bind the engine to.
+ * @returns - The created stitch engine.
  */
 export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   const scene = new THREE.Scene();
@@ -40,19 +54,21 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   const layers: Layer[] = [];
 
   /**
-   * Creates a new layer
-   * @param id - The layer ID
-   * @param imageUrl - The image rendered in the layer
-   * @param geometrySize - The layer size
-   * @param rotation - The rotation
-   * @returns - The new later object
+   * Creates a new layer.
+   * @param id - The layer ID.
+   * @param imageUrl - The image rendered in the layer.
+   * @param geometrySize - The layer size.
+   * @param geometrySize.width - The width.
+   * @param geometrySize.height - The height.
+   * @param rotation - The rotation.
+   * @returns - The new later object.
    */
   async function createImageLayer(
-      id: string,
-      imageUrl: string,
-      geometrySize?: { width: number; height: number },
-      rotation?: number,
-    ): Promise<Layer> {
+    id: string,
+    imageUrl: string,
+    geometrySize?: { width: number; height: number },
+    rotation?: number,
+  ): Promise<Layer> {
     console.debug("[stitch] Creating layer", id, imageUrl);
 
     const layer: Layer = {
@@ -86,7 +102,7 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   }
 
   /**
-   * Destroys a layer
+   * Destroys a layer.
    */
   function dispose() {
     layers.forEach((layer) => {
@@ -110,10 +126,10 @@ export function createStitchEngine(canvas: HTMLCanvasElement): StitchEngine {
   };
 }
 
-
 /**
- * Loads the texture of an image
- * @param url - The image url
+ * Loads the texture of an image.
+ * @param url - The image url.
+ * @returns - The loaded texture.
  */
 function loadTexture(url: string): Promise<THREE.Texture> {
   return new Promise((resolve, reject) => {
@@ -131,16 +147,12 @@ function loadTexture(url: string): Promise<THREE.Texture> {
 }
 
 /**
- * Loads a layer into to stitch engine
- * @param localScene - The scene
- * @param layer - The layer to load
- * @param texture - The texture of the image in the layer
+ * Loads a layer into to stitch engine.
+ * @param localScene - The scene.
+ * @param layer - The layer to load.
+ * @param texture - The texture of the image in the layer.
  */
-async function loadLayerIntoEngine(
-  localScene: THREE.Scene,
-  layer: Layer,
-  texture: THREE.Texture,
-) {
+async function loadLayerIntoEngine(localScene: THREE.Scene, layer: Layer, texture: THREE.Texture) {
   // Create a unit square shape
   const shape = new THREE.Shape();
   shape.moveTo(0, 0);
@@ -151,19 +163,12 @@ async function loadLayerIntoEngine(
   const geometry = new THREE.ShapeGeometry(shape);
 
   // Scale the square to targetSize
-  const imageWidth =
-    layer.geometrySize?.width ?? texture.image.width;
+  const imageWidth = layer.geometrySize?.width ?? texture.image.width;
 
-  const imageHeight =
-    layer.geometrySize?.height ?? texture.image.height;
+  const imageHeight = layer.geometrySize?.height ?? texture.image.height;
 
   const mat = new THREE.Matrix4();
-  mat.set(
-    imageWidth, 0,           0, 0,
-    0,          imageHeight, 0, 0,
-    0,          0,           1, 0,
-    0,          0,           0, 1,
-  );
+  mat.set(imageWidth, 0, 0, 0, 0, imageHeight, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
   geometry.applyMatrix4(mat);
 
   // rotate around image center if requested
@@ -186,7 +191,7 @@ async function loadLayerIntoEngine(
   geometry.computeBoundingBox();
 
   // Attach texture to uniforms
-  (layer.uniform as any).tImage = {
+  layer.uniform.tImage = {
     type: "t",
     value: texture,
   };

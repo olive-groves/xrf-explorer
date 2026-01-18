@@ -47,8 +47,8 @@ function createEmptyWorkspace(): WorkspaceConfig {
       grayscalePoints: {},
       grayscaleRotation: {},
       grayscaleContrast: {},
-      mode: "edit"
-    }
+      mode: "edit",
+    },
   };
 }
 
@@ -258,45 +258,56 @@ async function updateWorkspace() {
       fileDialog.value = false;
       channelDialog.value = true;
     } else if (setup) {
-      await binData();
-      // Complete setup
-      toast.success("Created workspace", {
-        description: "The created workspace can be opened from the file menu.",
-      });
-      // Publish the created workspace to the global app state so UI reacts immediately
-      try {
-        appState.workspace = deepClone(workspace.value);
-      } catch (e) {
-        console.warn("Failed to set appState.workspace after create", e);
-      }
-
-      // If partial stitching mode, request server to generate grayscale images for partial cubes
-      try {
-        if (workspace.value.stitchingMode === "partial") {
-          await generatePartialGreyscales();
-        }
-      } catch (e) {
-        console.warn("Error in grayscale generation", e);
-      }
-      try {
-        await pretranspose();
-      } catch (e) {
-        console.warn("Error in pre transposing spectral cubes", e);
-      }
-      await setupWorkspace();
-      resetProgress();
+      await updateWorkspace2();
     }
   }
 }
 
 /**
- * Starts pre transposing the spectral cubes
+ * Finalizes the workspace setup after files and channels have been configured.
+ */
+async function updateWorkspace2() {
+  await binData();
+  // Complete setup
+  toast.success("Created workspace", {
+    description: "The created workspace can be opened from the file menu.",
+  });
+  // Publish the created workspace to the global app state so UI reacts immediately
+  try {
+    appState.workspace = deepClone(workspace.value);
+  } catch (e) {
+    console.warn("Failed to set appState.workspace after create", e);
+  }
+
+  // If partial stitching mode, request server to generate grayscale images for partial cubes
+  try {
+    if (workspace.value.stitchingMode === "partial") {
+      await generatePartialGreyscales();
+    }
+  } catch (e) {
+    console.warn("Error in grayscale generation", e);
+  }
+  try {
+    await pretranspose();
+  } catch (e) {
+    console.warn("Error in pre transposing spectral cubes", e);
+  }
+  await setupWorkspace();
+  resetProgress();
+}
+
+/**
+ * Starts pre transposing the spectral cubes.
  */
 async function pretranspose() {
   // Start pre transposing the spectral cubes for stitching in the backend
   try {
-    if (workspace.value.stitchingMode === "partial" && workspace.value.partialSpectralCubes && workspace.value.partialSpectralCubes.length > 0) {
-      const fragments = workspace.value.partialSpectralCubes.map(cube => ({
+    if (
+      workspace.value.stitchingMode === "partial" &&
+      workspace.value.partialSpectralCubes &&
+      workspace.value.partialSpectralCubes.length > 0
+    ) {
+      const fragments = workspace.value.partialSpectralCubes.map((cube) => ({
         datacube_file: cube.rawLocation,
         rpl_file: cube.rplLocation,
       }));
@@ -304,35 +315,34 @@ async function pretranspose() {
       const payload = {
         type: "spectral",
         contextual_image: workspace.value.baseImage.imageLocation,
-        fragments: fragments
+        fragments: fragments,
       };
-        
+
       const resp1 = await fetch(
-      // await fetch
-      `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        // await fetch
+        `/api/${workspace.value.name}/stitch_datacubes/pre_transpose_cubes`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
       const data = await resp1.json();
       if (!resp1.ok) {
         const message = data.error ?? JSON.stringify(data);
         toast.error(`Stitch error`, {
-              description: message,
+          description: message,
         });
         throw new Error(message);
       }
     }
-  }
-  catch (e) {
+  } catch (e) {
     console.warn("Error in pretransposing", e);
-
   }
 }
 
 /**
- * Generates the neccesary greyscales for stitching in the backend, and update the workspace in the frontend
+ * Generates the neccesary greyscales for stitching in the backend, and update the workspace in the frontend.
  */
 async function generatePartialGreyscales() {
   const ds = workspace.value.name;
@@ -344,10 +354,10 @@ async function generatePartialGreyscales() {
 
   // Create the fragments for which we need to generate greyscales
   const fragments = hasElemental
-    ? workspace.value.partialElementalCubes.map(cube => ({
+    ? workspace.value.partialElementalCubes.map((cube) => ({
         datacube_file: cube.dataLocation,
       }))
-    : workspace.value.partialSpectralCubes.map(cube => ({
+    : workspace.value.partialSpectralCubes.map((cube) => ({
         datacube_file: cube.rawLocation,
         rpl_file: cube.rplLocation,
       }));
@@ -358,39 +368,38 @@ async function generatePartialGreyscales() {
   };
 
   // Generate greyscales
-  const resp = await fetch(
-    `${config.api.endpoint}/${ds}/stitch_datacubes/generate_partial_greyscales`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+  const resp = await fetch(`${config.api.endpoint}/${ds}/stitch_datacubes/generate_partial_greyscales`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   const data = await resp.json();
   if (!resp.ok) {
     const message = data.error ?? JSON.stringify(data);
     toast.error(`Stitch error`, {
-          description: message,
+      description: message,
     });
     throw new Error(message);
   }
 
   /* Load generated greyscales in workspace */
   const greys = hasElemental
-    ? workspace.value.partialElementalCubes.map(cube => ({
+    ? workspace.value.partialElementalCubes.map((cube) => ({
         imageLocation: cube.dataLocation,
         sourceCubeName: cube.name,
         sourceCubeType: "elemental" as const,
       }))
-    : workspace.value.partialSpectralCubes.map(cube => ({
+    : workspace.value.partialSpectralCubes.map((cube) => ({
         imageLocation: cube.rawLocation,
         sourceCubeName: cube.name,
         sourceCubeType: "spectral" as const,
       }));
 
   workspace.value.grayscale.push(...greys);
-  try { appState.workspace = deepClone(workspace.value); } catch {}
+  try {
+    appState.workspace = deepClone(workspace.value);
+  } catch {}
 }
 
 /**

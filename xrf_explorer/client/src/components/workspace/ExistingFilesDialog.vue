@@ -22,8 +22,8 @@ const files = computed<string[]>(() => JSON.parse(fileFetch.data.value ?? "[]"))
 
 watch(
   name,
-  (value) => {
-    if (value != "") fileFetch.execute();
+  async (value) => {
+    if (value != "") await fileFetch.execute();
   },
   { immediate: true, deep: true },
 );

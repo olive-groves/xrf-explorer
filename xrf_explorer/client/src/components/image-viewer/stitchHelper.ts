@@ -10,9 +10,9 @@ import { PendingJob, pollJobs, StitchType } from "./stitchJobManager.ts";
 type CornerKey = "top_left" | "top_right" | "bottom_left" | "bottom_right";
 
 /**
- * Creates a datastructure with the greyscale and base images points in the format used for API calls
- * @param points The points that need to be put in the correct format
- * @returns A record with sorted greyscale points and a record with sorted base image points
+ * Creates a datastructure with the greyscale and base images points in the format used for API calls.
+ * @param points The points that need to be put in the correct format.
+ * @returns A record with sorted greyscale points and a record with sorted base image points.
  */
 function pointsToBackendDicts(points: StitchPoint[]): {
   local_points: Record<CornerKey, [number, number]>;
@@ -21,15 +21,14 @@ function pointsToBackendDicts(points: StitchPoint[]): {
   // Check wether all points are complete
   if (points.length !== maxPoints) {
     toast.error(`Stitch error`, {
-          description: `Expected ${maxPoints} points, got ${points.length}`,
+      description: `Expected ${maxPoints} points, got ${points.length}`,
     });
     throw new Error(`Expected ${maxPoints} points, got ${points.length}`);
-
-  } 
+  }
 
   if (!points.every(hasBase)) {
     toast.error(`Stitch error`, {
-          description: "All stitch points must have base coordinates before preview.",
+      description: "All stitch points must have base coordinates before preview.",
     });
     throw new Error("All stitch points must have base coordinates before preview.");
   }
@@ -37,14 +36,12 @@ function pointsToBackendDicts(points: StitchPoint[]): {
   const pts = points as (StitchPoint & { base: { x: number; y: number } })[];
 
   // Sort points
-  const sortedByBase = [...pts].sort(
-    (a, b) => (a.base.y - b.base.y) || (a.base.x - b.base.x)
-  );
+  const sortedByBase = [...pts].sort((a, b) => a.base.y - b.base.y || a.base.x - b.base.x);
 
   const topTwo = sortedByBase.slice(0, 2).sort((a, b) => a.base.x - b.base.x);
   const bottomTwo = sortedByBase.slice(2, 4).sort((a, b) => a.base.x - b.base.x);
 
-  const ordered: Record<CornerKey, typeof pts[number]> = {
+  const ordered: Record<CornerKey, (typeof pts)[number]> = {
     top_left: topTwo[0],
     top_right: topTwo[1],
     bottom_left: bottomTwo[0],
@@ -68,9 +65,9 @@ function pointsToBackendDicts(points: StitchPoint[]): {
 }
 
 /**
- * BUilds fragments in the format used for API calls
- * @param type Wether we want to do a call for spectral or elemental data
- * @returns - Fragments ready for an API call
+ * BUilds fragments in the format used for API calls.
+ * @param type Wether we want to do a call for spectral or elemental data.
+ * @returns - Fragments ready for an API call.
  */
 export function buildFragmentsForAPI(type: StitchType) {
   const ws = appState.workspace;
@@ -107,7 +104,12 @@ export function buildFragmentsForAPI(type: StitchType) {
 /**
  * Starts a stitch job and waits for completion.
  * Useful for quick preview stitches.
- * Used for preview stitching
+ * Used for preview stitching.
+ * @param preview - Whether this is a preview stitch.
+ * @param type - The type of stitch.
+ * @param scaling_factor - The scaling factor.
+ * @param intensity - The intensity scales.
+ * @param pollIntervalMs - The polling interval in milliseconds.
  */
 export async function stitchAndWait(
   preview: boolean,
@@ -121,26 +123,27 @@ export async function stitchAndWait(
 
   const jobId = await startStitchJob(preview, type, scaling_factor, intensity);
 
-  await pollJobs(
-    [{ type, jobId }],
-    (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`,
-    {
-      intervalMs: pollIntervalMs,
-      onJobFailed: (job, error) => {
-        toast.error(`Stitch failed (${job.type})`, { description: error });
-      },
-    }
-  );
+  await pollJobs([{ type, jobId }], (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`, {
+    intervalMs: pollIntervalMs,
+    onJobFailed: (job, error) => {
+      toast.error(`Stitch failed (${job.type})`, { description: error });
+    },
+  });
 }
 
 /**
  * Starts a stitch job and returns the job_id.
+ * @param preview - Whether this is a preview stitch.
+ * @param type - The type of stitch.
+ * @param scaling_factor - The scaling factor.
+ * @param intensity - The intensity scales.
+ * @returns The job ID.
  */
 async function startStitchJob(
   preview: boolean,
   type: StitchType,
   scaling_factor: number,
-  intensity: number[]
+  intensity: number[],
 ): Promise<string> {
   const ws = appState.workspace;
   if (!ws) throw new Error("No workspace");
@@ -157,20 +160,17 @@ async function startStitchJob(
     fragments,
   };
 
-  const resp = await fetch(
-    `/api/${ws.name}/stitch_datacubes/stitch`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+  const resp = await fetch(`/api/${ws.name}/stitch_datacubes/stitch`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   const data = await resp.json();
   if (!resp.ok) {
     const message = data.error ?? JSON.stringify(data);
     toast.error(`Stitch error`, {
-          description: message,
+      description: message,
     });
     throw new Error(message);
   }
@@ -179,8 +179,8 @@ async function startStitchJob(
 }
 
 /**
- * Fetches the stitchinfo from the backend
- * @returns The optimal scaling, estimated file size and the loss percentages
+ * Fetches the stitchinfo from the backend.
+ * @returns The optimal scaling, estimated file size and the loss percentages.
  */
 export async function fetchOptimalStitchInfo(): Promise<{
   losses: number[] | null;
@@ -202,14 +202,11 @@ export async function fetchOptimalStitchInfo(): Promise<{
     fragments,
   };
 
-  const resp = await fetch(
-    `/api/${ws.name}/stitch_datacubes/get_stitch_info`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }
-  );
+  const resp = await fetch(`/api/${ws.name}/stitch_datacubes/get_stitch_info`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
   const result = await resp.json();
 
@@ -221,8 +218,7 @@ export async function fetchOptimalStitchInfo(): Promise<{
 
   return {
     losses: result.losses ?? null,
-    estimatedSize:
-      Math.round((result.full_size / (1024 * 1024 * 1024)) * 10000) / 10000,
+    estimatedSize: Math.round((result.full_size / (1024 * 1024 * 1024)) * 10000) / 10000,
     optimalScaling: result.optimalScaling,
   };
 }
@@ -232,8 +228,9 @@ export const stitchingInProgress = ref(false);
 
 /**
  * Start stitching the selected cubes.
- * @param includeSpectral - Whether to stitch spectral cubes
- * @param includeElemental - Whether to stitch elemental cubes
+ * @param includeSpectral - Whether to stitch spectral cubes.
+ * @param includeElemental - Whether to stitch elemental cubes.
+ * @param scaling_factor - The scaling factor.
  */
 export async function confirmStitching(includeSpectral: boolean, includeElemental: boolean, scaling_factor: number) {
   const ws = appState.workspace;
@@ -243,9 +240,7 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
 
   stitchingInProgress.value = true;
 
-  const intensities = ws.grayscale.map(
-    (_, idx) => ws.mapping.grayscaleContrast?.[idx] ?? 1.0
-  );
+  const intensities = ws.grayscale.map((_, idx) => ws.mapping.grayscaleContrast?.[idx] ?? 1.0);
   await saveWorkspaceToBackend();
 
   const pendingJobs: PendingJob<StitchType>[] = [];
@@ -253,35 +248,21 @@ export async function confirmStitching(includeSpectral: boolean, includeElementa
   try {
     if (includeElemental) {
       ws.elementalCubes = [];
-      const jobId = await startStitchJob(
-        false,
-        "elemental",
-        scaling_factor,
-        intensities
-      );
+      const jobId = await startStitchJob(false, "elemental", scaling_factor, intensities);
       pendingJobs.push({ type: "elemental", jobId });
     }
 
     if (includeSpectral) {
       ws.spectralCubes = [];
-      const jobId = await startStitchJob(
-        false,
-        "spectral",
-        scaling_factor,
-        intensities
-      );
+      const jobId = await startStitchJob(false, "spectral", scaling_factor, intensities);
       pendingJobs.push({ type: "spectral", jobId });
     }
 
-    await pollJobs(
-      pendingJobs,
-      (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`,
-      {
-        onJobFailed: (job, error) => {
-          toast.error(`Stitch failed (${job.type})`, { description: error });
-        },
-      }
-    );
+    await pollJobs(pendingJobs, (job) => `/api/${ws.name}/stitch_datacubes/stitch_status/${job.jobId}`, {
+      onJobFailed: (job, error) => {
+        toast.error(`Stitch failed (${job.type})`, { description: error });
+      },
+    });
 
     // All jobs completed - fetch updated workspace
     const resp = await fetch(`/api/${ws.name}/workspace`, { cache: "no-store" });

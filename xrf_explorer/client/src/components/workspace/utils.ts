@@ -7,40 +7,10 @@ import { config } from "@/main";
  * @returns A boolean indicating if the workspace is correct and a possible error message.
  */
 export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string] {
-  // --- Base image ---
-  if (workspace.baseImage.name.trim() === "") return [false, "Base image must have a name"];
-  if (workspace.baseImage.imageLocation.trim() === "") return [false, "Base image must have an associated image file"];
-
-  // --- Contextual images ---
-  for (const image of workspace.contextualImages) {
-    if (image.name.trim() === "") return [false, "Contextual image must have a name"];
-    if (image.imageLocation.trim() === "") return [false, "Contextual image must have an associated image file"];
+  const [isValid, errorMessage] = validateWorkspaceHelper(workspace);
+  if (!isValid) {
+    return [false, errorMessage];
   }
-
-  // Helper function to validate cubes
-  const validateCubes = (
-    cubes: any[],
-    type: "Spectral" | "Elemental",
-    isPartial: boolean
-  ): [boolean, string] => {
-    for (const cube of cubes) {
-      if (cube.name.trim() === "") return [false, `${type} cube must have a name`];
-
-      if (type === "Spectral") {
-        if (cube.rawLocation.trim() === "") return [false, "Spectral cube must have an associated raw file"];
-        if (cube.rplLocation.trim() === "") return [false, "Spectral cube must have an associated rpl file"];
-        if (!isPartial && workspace.stitchingMode === "full") {
-          if (cube.recipeLocation.trim() === "") return [false, "Spectral cube must have an associated recipe file"];
-        }
-      } else if (type === "Elemental") {
-        if (cube.dataLocation.trim() === "") return [false, "Elemental cube must have an associated data file"];
-        if (!isPartial && workspace.stitchingMode === "full" && workspace.spectralCubes.length === 0) {
-          if (cube.recipeLocation.trim() === "") return [false, "Elemental cube must have an associated recipe file"];
-        }
-      }
-    }
-    return [true, ""];
-  };
 
   // --- Validate full cubes ---
   let [ok, msg] = validateCubes(workspace.spectralCubes, "Spectral", false);
@@ -65,6 +35,86 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   ];
   if (new Set(names).size !== names.length) return [false, "Names must be unique"];
 
+  return [true, ""];
+}
+
+/**
+ * Helper function to validate base workspace properties.
+ * @param workspace - The workspace to validate.
+ * @returns - A boolean indicating if the workspace is correct and a possible error message.
+ */
+function validateWorkspaceHelper(workspace: WorkspaceConfig): [boolean, string] {
+  // --- Base image ---
+  if (workspace.baseImage.name.trim() === "") return [false, "Base image must have a name"];
+  if (workspace.baseImage.imageLocation.trim() === "") return [false, "Base image must have an associated image file"];
+
+  // --- Contextual images ---
+  for (const image of workspace.contextualImages) {
+    if (image.name.trim() === "") return [false, "Contextual image must have a name"];
+    if (image.imageLocation.trim() === "") return [false, "Contextual image must have an associated image file"];
+  }
+
+  return [true, ""];
+}
+
+/**
+ * Helper function to validate cubes.
+ * @param cubes - The cubes to validate.
+ * @param type - The type of cubes ("Spectral" or "Elemental").
+ * @param isPartial - Whether the cubes are partial.
+ * @returns A boolean indicating if the cubes are correct and a possible error message.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateCubes(cubes: any[], type: "Spectral" | "Elemental", isPartial: boolean): [boolean, string] {
+  for (const cube of cubes) {
+    if (cube.name.trim() === "") return [false, `${type} cube must have a name`];
+
+    if (type === "Spectral") {
+      const [isValid, errorMessage] = validateSpectralCubes(cube, isPartial, cube.workspace);
+      if (!isValid) return [false, errorMessage];
+    } else if (type === "Elemental") {
+      const [isValid, errorMessage] = validateElementalCubes(cube, isPartial, cube.workspace);
+      if (!isValid) return [false, errorMessage];
+    }
+  }
+  return [true, ""];
+}
+
+/**
+ * Helper function to validate a spectral cube.
+ * @param cube - The spectral cube to validate.
+ * @param isPartial - Whether the cube is partial.
+ * @param workspace - The workspace configuration.
+ * @returns A boolean indicating if the cube is correct and a possible error message.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateSpectralCubes(cube: any, isPartial: boolean, workspace: WorkspaceConfig): [boolean, string] {
+  if (cube.rawLocation.trim() === "") return [false, "Spectral cube must have an associated raw file"];
+  if (cube.rplLocation.trim() === "") return [false, "Spectral cube must have an associated rpl file"];
+  if (!isPartial && workspace.stitchingMode === "full" && cube.recipeLocation.trim() === "") {
+    return [false, "Spectral cube must have an associated recipe file"];
+  }
+  return [true, ""];
+}
+
+/**
+ * Helper function to validate an elemental cube.
+ * @param cube - The elemental cube to validate.
+ * @param isPartial - Whether the cube is partial.
+ * @param workspace - The workspace configuration.
+ * @returns A boolean indicating if the cube is correct and a possible error message.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function validateElementalCubes(cube: any, isPartial: boolean, workspace: WorkspaceConfig): [boolean, string] {
+  if (cube.dataLocation.trim() === "") return [false, "Elemental cube must have an associated data file"];
+  if (
+    !isPartial &&
+    workspace.stitchingMode === "full" &&
+    workspace.spectralCubes.length === 0 &&
+    cube.recipeLocation.trim() === ""
+  ) {
+    return [false, "Elemental cube must have an associated recipe file"];
+  }
   return [true, ""];
 }
 

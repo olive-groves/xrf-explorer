@@ -68,10 +68,10 @@ const computedProjects = computed(() =>
 const passwordType = ref("password");
 
 /**
- * determines if the update button should be enabled
+ * Determines if the update button should be enabled.
  */
 const determineDisabled = computed(() => {
-  if (password.value !== '' && !validPassword(password.value)) {
+  if (password.value !== "" && !validPassword(password.value)) {
     return true;
   }
 
@@ -87,7 +87,7 @@ const determineDisabled = computed(() => {
   }
 
   console.log(changedAccess.value);
-  
+
   if (changedAccess.value) {
     return false;
   }
@@ -314,9 +314,7 @@ async function removeAccessAll() {
     </div>
     <div class="flex items-center justify-between">
       <Button @click="emit('close')"> Cancel </Button>
-      <Button @click="updateAccount" :disabled=determineDisabled>
-        Update Account
-      </Button>
+      <Button @click="updateAccount" :disabled="determineDisabled"> Update Account </Button>
       <Button @click="deleteAccount" variant="destructive"> Delete Account </Button>
     </div>
   </DialogContent>

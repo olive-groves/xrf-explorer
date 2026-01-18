@@ -17,25 +17,18 @@ import { saveWorkspaceDebounced } from "./workspace";
 const workspace = computed(() => appState.workspace);
 
 // Wether a full stitched cube exist
-const hasFullSpectral = computed(
-  () => (workspace.value?.spectralCubes?.length ?? 0) > 0
-);
-const hasFullElemental = computed(
-  () => (workspace.value?.elementalCubes?.length ?? 0) > 0
-);
+const hasFullSpectral = computed(() => (workspace.value?.spectralCubes?.length ?? 0) > 0);
+const hasFullElemental = computed(() => (workspace.value?.elementalCubes?.length ?? 0) > 0);
 
 // Show cancel button
 const canCancelRedoStitching = computed(() => {
   if (!workspace.value) return false;
 
-  return (
-    workspace.value.stitchingMode === "partial" &&
-    (hasFullSpectral.value || hasFullElemental.value)
-  );
+  return workspace.value.stitchingMode === "partial" && (hasFullSpectral.value || hasFullElemental.value);
 });
 
 /**
- * Function to cancel redoing stitching
+ * Function to cancel redoing stitching.
  */
 function cancelRedoStitching() {
   if (!workspace.value) return;
@@ -185,11 +178,7 @@ const editors = Array.from({ length: maxPoints }, (_, i) => i);
         <!-- Button to clear all points -->
         <Button @click="clearAllPoints" :title="getTooltipByKey('stitch.clear_points')">Clear points</Button>
         <!-- Button to cancel redoing stitching -->
-        <Button
-          v-if="canCancelRedoStitching"
-          variant="outline"
-          @click="cancelRedoStitching"
-        >
+        <Button v-if="canCancelRedoStitching" variant="outline" @click="cancelRedoStitching">
           Cancel redoing stitching
         </Button>
       </div>

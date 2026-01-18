@@ -30,7 +30,7 @@ const canvasSize = useElementBounding(glcontainer);
 const width = canvasSize.width;
 const height = canvasSize.height;
 
-// The tool state 
+// The tool state
 const stitchState = ref<StitchState>({
   tool: StitchTool.Grab,
   movementSpeed: [config.imageViewer.defaultMovementSpeed],
@@ -89,9 +89,7 @@ onMounted(async () => {
     const ws = appState.workspace;
     if (!ws?.baseImage) return;
     // Create base image layer
-    const loc = ws.baseImage.imageLocation?.includes("/")
-      ? ws.baseImage.imageLocation
-      : ws.baseImage.name;
+    const loc = ws.baseImage.imageLocation?.includes("/") ? ws.baseImage.imageLocation : ws.baseImage.name;
 
     const url = getWorkspaceImageUrl(loc, ws.name);
 
@@ -344,12 +342,9 @@ function onClick(event: MouseEvent) {
     @mousemove="onMouseMove"
     @wheel="onWheel"
   >
-    <div
-      v-if="isLoading"
-      class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-    >
-      <div class="rounded-lg bg-background px-6 py-4 shadow-lg flex items-center gap-3">
-        <span class="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+    <div v-if="isLoading" class="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="flex items-center gap-3 rounded-lg bg-background px-6 py-4 shadow-lg">
+        <span class="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         <span class="text-sm font-medium">Loading image…</span>
       </div>
     </div>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { LabeledSlider } from "@/components/ui/slider";
-import { confirmStitching} from '@/components/image-viewer/stitchHelper';
-import { appState } from '@/lib/appState';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { saveWorkspaceDebounced } from '@/components/image-viewer/workspace';
+import { confirmStitching } from "@/components/image-viewer/stitchHelper";
+import { appState } from "@/lib/appState";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { saveWorkspaceDebounced } from "@/components/image-viewer/workspace";
 
 // The current workspace
 const workspace = computed(() => appState.workspace);
@@ -16,18 +16,13 @@ const includeElemental = ref(false);
 // Wether the workspace contains spectral partial data
 const hasSpectralData = computed(() => {
   const ws = appState.workspace;
-  return !!(
-    ws && ws.partialSpectralCubes?.length
-  );
+  return !!(ws && ws.partialSpectralCubes?.length);
 });
-
 
 // Wether the workspace contains elemental partial data
 const hasElementalData = computed(() => {
   const ws = appState.workspace;
-  return !!(
-    ws && ws.partialElementalCubes?.length
-  );
+  return !!(ws && ws.partialElementalCubes?.length);
 });
 
 // Wether we are currently displaying the confirm dialog
@@ -52,9 +47,7 @@ const scaledLosses = computed(() => {
 
   const factor = scalingFactor.value[0];
 
-  return lossesOpt.value.map(loss =>
-    Math.round(loss * factor * 100) / 100
-  );
+  return lossesOpt.value.map((loss) => Math.round(loss * factor * 100) / 100);
 });
 
 // The scaled size based on the selected scaling factor
@@ -70,17 +63,15 @@ const grayscaleContrast = ref<number[]>([]);
 
 // The selected opacity and the offset applied to the greyscale
 interface GreyscaleState {
-    opacity: number[];
-    xOffset: number[];
-    yOffset: number[];
+  opacity: number[];
+  xOffset: number[];
+  yOffset: number[];
 }
-const GreyscaleMapping = ref<GreyscaleState>(   
-    {
-        opacity: [1.0],
-        xOffset: [0],
-        yOffset: [0],
-    }
-);
+const GreyscaleMapping = ref<GreyscaleState>({
+  opacity: [1.0],
+  xOffset: [0],
+  yOffset: [0],
+});
 
 // Update workspace and contrast values when workspace changes
 watch(
@@ -100,13 +91,13 @@ watch(
 
     saveWorkspaceDebounced();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 /**
- * Function to update the contrast values in the workspace
- * @param idx - The index of the fragment for which the contrast has changed
- * @param val - The new contrast value
+ * Function to update the contrast values in the workspace.
+ * @param idx - The index of the fragment for which the contrast has changed.
+ * @param val - The new contrast value.
  */
 function updateGreyscaleContrast(idx: number, val: number) {
   grayscaleContrast.value[idx] = val;
@@ -119,7 +110,7 @@ function updateGreyscaleContrast(idx: number, val: number) {
 }
 
 /**
- * Reset contrast values
+ * Reset contrast values.
  */
 function resetContrast() {
   const ws = workspace.value;
@@ -139,9 +130,9 @@ function updateSliderBase(val: number[]) {
   baseImageOpacity.value = val;
   try {
     const v = Array.isArray(val) ? val[0] : val;
-    window.dispatchEvent(new CustomEvent('stitch:base-opacity-changed', { detail: v }));
+    window.dispatchEvent(new CustomEvent("stitch:base-opacity-changed", { detail: v }));
   } catch (e) {
-    console.warn('Could not dispatch stitch base-opacity event', e);
+    console.warn("Could not dispatch stitch base-opacity event", e);
   }
 }
 
@@ -153,48 +144,40 @@ function updateGreyscaleOpacity(val: number[]) {
   GreyscaleMapping.value.opacity = val;
 
   const opacity = val[0];
-  window.dispatchEvent(
-    new CustomEvent("stitch:gray-opacity-changed", { detail: opacity })
-  );
+  window.dispatchEvent(new CustomEvent("stitch:gray-opacity-changed", { detail: opacity }));
 }
 /**
- * Function to adjust the X-offset by a pixel delta (+1 or -1)
- * @param delta - The amount we need to nudge in the x direction
+ * Function to adjust the X-offset by a pixel delta (+1 or -1).
+ * @param delta - The amount we need to nudge in the x direction.
  */
 function nudgeX(delta: number) {
-  window.dispatchEvent(
-    new CustomEvent("stitch:gray-nudge", { detail: { dx: delta, dy: 0 } })
-  );
+  window.dispatchEvent(new CustomEvent("stitch:gray-nudge", { detail: { dx: delta, dy: 0 } }));
 }
 
 /**
- * Function to adjust the y-offset by a pixel delta (+1 or -1)
- * @param delta - The amount we need to nudge in the y direction
+ * Function to adjust the y-offset by a pixel delta (+1 or -1).
+ * @param delta - The amount we need to nudge in the y direction.
  */
 function nudgeY(delta: number) {
-  window.dispatchEvent(
-    new CustomEvent("stitch:gray-nudge", { detail: { dx: 0, dy: delta } })
-  );
+  window.dispatchEvent(new CustomEvent("stitch:gray-nudge", { detail: { dx: 0, dy: delta } }));
 }
 
 /**
- * Function to reset the scaling factor
+ * Function to reset the scaling factor.
  */
 function resetScaling() {
   scalingFactor.value = [1];
 }
 
 /**
- * Function to reset the greyscale offset
+ * Function to reset the greyscale offset.
  */
 function resetGreyscaleOffset() {
-  window.dispatchEvent(
-    new CustomEvent("stitch:reset-offset")
-  );
+  window.dispatchEvent(new CustomEvent("stitch:reset-offset"));
 }
 
 /**
- * Function to close the confirm dialog
+ * Function to close the confirm dialog.
  */
 function closeDialog() {
   showDialog.value = false;
@@ -202,17 +185,16 @@ function closeDialog() {
 }
 
 /**
- * Function for confirming the stitching
+ * Function for confirming the stitching.
  */
-function confirmStitchingDialog() {
-  closeDialog()
-  confirmStitching(includeSpectral.value, includeElemental.value, scalingFactor.value[0])
+async function confirmStitchingDialog() {
+  closeDialog();
+  await confirmStitching(includeSpectral.value, includeElemental.value, scalingFactor.value[0]);
 }
 
-
 /**
- * Function the send preview images to the preview viewer when we go to preview mode
- * @param e - The event send by the stitch viewer when the mode changes
+ * Function the send preview images to the preview viewer when we go to preview mode.
+ * @param e - The event send by the stitch viewer when the mode changes.
  */
 async function onModeChanged(e: Event) {
   const { mode, previewInfo } = (e as CustomEvent).detail as {
@@ -232,23 +214,21 @@ async function onModeChanged(e: Event) {
   window.dispatchEvent(
     new CustomEvent("stitch:gray-optimal-scale", {
       detail: { factor: previewInfo.optimalScaling ?? 1 },
-    })
+    }),
   );
 }
 
 onMounted(() => {
-  window.addEventListener('stitchViewer:stichInfo', onModeChanged as EventListener);
-  window.dispatchEvent(
-    new CustomEvent("stitchViewer:requestPreviewInfo")
-  );
+  window.addEventListener("stitchViewer:stichInfo", onModeChanged as EventListener);
+  window.dispatchEvent(new CustomEvent("stitchViewer:requestPreviewInfo"));
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('stitchViewer:stichInfo', onModeChanged as EventListener);
+  window.removeEventListener("stitchViewer:stichInfo", onModeChanged as EventListener);
 });
 
 /**
- * Function the set the include check boxes based on the available data
+ * Function the set the include check boxes based on the available data.
  */
 watch(showConfirmation, (open) => {
   if (!open) return;
@@ -263,11 +243,11 @@ watch(showConfirmation, (open) => {
       <!-- Slider for base image opacity -->
       <LabeledSlider
         label="Base Image Opacity"
-        :modelValue="baseImageOpacity"
+        :model-value="baseImageOpacity"
         :min="0.25"
         :max="1"
         :step="0.01"
-        @update:modelValue="updateSliderBase"
+        @update:model-value="updateSliderBase"
       />
 
       <h4 class="font-semibold">{{ `Mapped Data Greyscale` }}</h4>
@@ -275,56 +255,54 @@ watch(showConfirmation, (open) => {
       <!-- Slider for greyscale opacity -->
       <LabeledSlider
         label="Opacity"
-        :modelValue="GreyscaleMapping?.opacity ?? [1]"
+        :model-value="GreyscaleMapping?.opacity ?? [1]"
         :min="0"
         :max="1"
         :step="0.01"
-        @update:modelValue="updateGreyscaleOpacity"
+        @update:model-value="updateGreyscaleOpacity"
       />
 
       <!-- Buttons for changing greyscale offset -->
       <div class="space-y-1">
-          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">X-Offset (pixels)</label>
-          <div class="flex items-center space-x-2">
-              <Button size="sm" @click="nudgeX(-1)">Left</Button>
-              <Button size="sm" @click="nudgeX(1)">Right</Button>
-          </div>
-      </div>
-
-      <div class="space-y-1">
-          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Y-Offset (pixels)</label>
-          <div class="flex items-center space-x-2">
-              <Button size="sm" @click="nudgeY(-1)">Up</Button>
-              <Button size="sm" @click="nudgeY(1)">Down</Button>
-          </div>
-      </div>
-
-      <!-- Button for reseting offset -->
-    
-      <div class="space-y-1">
+        <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >X-Offset (pixels)</label
+        >
         <div class="flex items-center space-x-2">
-          <Button size="sm" @click="resetGreyscaleOffset">
-            Reset offset
-          </Button>
+          <Button size="sm" @click="nudgeX(-1)">Left</Button>
+          <Button size="sm" @click="nudgeX(1)">Right</Button>
         </div>
       </div>
 
-       <!-- Sliders for changing contrast per fragment -->
-
-      <div v-if="workspace?.grayscale?.length" class="space-y-3 pt-2 border-t">
-        <h4 class="font-semibold">Contrast</h4>
-        <div
-          v-for="(_, idx) in workspace.grayscale"
-          :key="idx"
-          class="space-y-1"
+      <div class="space-y-1">
+        <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >Y-Offset (pixels)</label
         >
+        <div class="flex items-center space-x-2">
+          <Button size="sm" @click="nudgeY(-1)">Up</Button>
+          <Button size="sm" @click="nudgeY(1)">Down</Button>
+        </div>
+      </div>
+
+      <!-- Button for reseting offset -->
+
+      <div class="space-y-1">
+        <div class="flex items-center space-x-2">
+          <Button size="sm" @click="resetGreyscaleOffset"> Reset offset </Button>
+        </div>
+      </div>
+
+      <!-- Sliders for changing contrast per fragment -->
+
+      <div v-if="workspace?.grayscale?.length" class="space-y-3 border-t pt-2">
+        <h4 class="font-semibold">Contrast</h4>
+        <div v-for="(_, idx) in workspace.grayscale" :key="idx" class="space-y-1">
           <label class="text-xs text-foreground">
             {{ workspace.grayscale[idx]?.sourceCubeName ?? `Greyscale ${idx + 1}` }}
           </label>
 
           <LabeledSlider
             :label="''"
-            :modelValue="[grayscaleContrast[idx] ?? 1]"
+            :model-value="[grayscaleContrast[idx] ?? 1]"
             :min="0.1"
             :max="2"
             :step="0.05"
@@ -333,129 +311,89 @@ watch(showConfirmation, (open) => {
         </div>
       </div>
 
-       <!-- Button for reseting contrast -->
+      <!-- Button for reseting contrast -->
 
       <div class="space-y-1">
         <div class="flex items-center space-x-2">
-          <Button size="sm" @click="resetContrast">
-            Reset contrast
-          </Button>
+          <Button size="sm" @click="resetContrast"> Reset contrast </Button>
         </div>
       </div>
 
-       <!-- Slider for the scaling factor -->
+      <!-- Slider for the scaling factor -->
 
       <LabeledSlider
         label="Scaling Factor"
-        :modelValue="scalingFactor"
+        :model-value="scalingFactor"
         :min="0.25"
         :max="2"
         :step="0.01"
-        @update:modelValue="(val: number[]) => (scalingFactor = val)"
+        @update:model-value="(val: number[]) => (scalingFactor = val)"
       />
 
-       <!-- Button for reseting scaling factor --> 
+      <!-- Button for reseting scaling factor -->
 
       <div class="space-y-1">
         <div class="flex items-center space-x-2">
-          <Button size="sm" @click="resetScaling">
-            Reset scaling
-          </Button>
+          <Button size="sm" @click="resetScaling"> Reset scaling </Button>
         </div>
       </div>
 
-       <!-- Display for the preview info -->
+      <!-- Display for the preview info -->
 
       <div class="space-y-1">
         <div>
           <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          Estimated stitched datacube size:
+            Estimated stitched datacube size:
           </label>
           <span>{{ estimatedSize }} GB</span>
         </div>
       </div>
-      <div
-        v-if="scaledLosses"
-        class="mt-2 space-y-1 text-sm"
-      >
+      <div v-if="scaledLosses" class="mt-2 space-y-1 text-sm">
         <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-        Estimated percentage of data used per fragment:
+          Estimated percentage of data used per fragment:
         </label>
-        <div
-          v-for="(loss, idx) in scaledLosses"
-          :key="idx"
-          class="flex justify-between font-mono"
-        >
+        <div v-for="(loss, idx) in scaledLosses" :key="idx" class="flex justify-between font-mono">
           <span>{{ workspace?.grayscale[idx]?.sourceCubeName }}</span>
           <span>{{ loss }} %</span>
         </div>
       </div>
 
-       <!-- Confirm button -->
-      
-      <Button
-        variant="destructive"
-        class="row-span-3 size-full p-2"
-        @click="showConfirmation = true"
-      >
-      Confirm Stitching
+      <!-- Confirm button -->
+
+      <Button variant="destructive" class="row-span-3 size-full p-2" @click="showConfirmation = true">
+        Confirm Stitching
       </Button>
 
-       <!-- Confirm dialog -->
+      <!-- Confirm dialog -->
 
+      <!-- eslint-disable-next-line tailwindcss/no-custom-classname -->
       <div v-if="showConfirmation" class="dialog-overlay">
+        <!-- eslint-disable-next-line tailwindcss/no-custom-classname -->
         <div class="dialog-content">
           <div class="flex flex-col space-y-3">
-            <label
-             class="text-sm font-medium leading-none"
-              >
-              Confirm stitching
-            </label>
+            <label class="text-sm font-medium leading-none"> Confirm stitching </label>
 
-            <div class="flex flex-col space-y-2 mt-2">
-              <div
-                v-if="hasSpectralData"
-                class="flex items-center space-x-2"
-              >
-                <Checkbox
-                  id="include-spectral"
-                  v-model:checked="includeSpectral"
-                />
-                <label
-                  for="include-spectral"
-                  class="text-sm font-medium leading-none"
-                >
+            <div class="mt-2 flex flex-col space-y-2">
+              <div v-if="hasSpectralData" class="flex items-center space-x-2">
+                <Checkbox id="include-spectral" v-model:checked="includeSpectral" />
+                <label for="include-spectral" class="text-sm font-medium leading-none">
                   Include spectral datacube
                 </label>
               </div>
 
-              <div
-                v-if="hasElementalData"
-                class="flex items-center space-x-2"
-              >
-                <Checkbox
-                  id="include-elemental"
-                  v-model:checked="includeElemental"
-                />
-                <label
-                  for="include-elemental"
-                  class="text-sm font-medium leading-none"
-                >
+              <div v-if="hasElementalData" class="flex items-center space-x-2">
+                <Checkbox id="include-elemental" v-model:checked="includeElemental" />
+                <label for="include-elemental" class="text-sm font-medium leading-none">
                   Include elemental datacube
                 </label>
               </div>
             </div>
 
-            <div class="flex gap-4 justify-center mt-4">
-              <Button
-                :disabled="!includeSpectral && !includeElemental"
-                @click="confirmStitchingDialog"
-              >
+            <div class="mt-4 flex justify-center gap-4">
+              <Button :disabled="!includeSpectral && !includeElemental" @click="confirmStitchingDialog">
                 Confirm
               </Button>
-              <Button variant="outline" @click="closeDialog">
-                Cancel
-              </Button>
+              <Button variant="outline" @click="closeDialog"> Cancel </Button>
             </div>
           </div>
         </div>
@@ -464,7 +402,7 @@ watch(showConfirmation, (open) => {
   </Window>
 </template>
 
- <!-- Confirm dialog styling -->
+<!-- Confirm dialog styling -->
 
 <style scoped>
 .dialog-overlay {

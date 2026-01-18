@@ -74,7 +74,7 @@ function save() {
         <Label>{{ constraints }}</Label>
 
         <div class="flex space-x-4">
-          <div class="space-y-2 flex-1">
+          <div class="flex-1 space-y-2">
             <Label for="low-input">Lower energy boundary (channels)</Label>
             <Input
               ref="inputComponent"
@@ -88,7 +88,7 @@ function save() {
             />
           </div>
 
-          <div class="space-y-2 flex-1">
+          <div class="flex-1 space-y-2">
             <Label for="high-input">Higher energy boundary (channels)</Label>
             <Input
               ref="inputComponent"
@@ -104,7 +104,7 @@ function save() {
         </div>
 
         <div class="flex space-x-4">
-          <div class="space-y-2 flex-1">
+          <div class="flex-1 space-y-2">
             <Label for="bin-size-input">Bin size (channels)</Label>
             <Input
               ref="inputComponent"
@@ -118,7 +118,7 @@ function save() {
             />
           </div>
 
-          <div class="space-y-2 flex-1">
+          <div class="flex-1 space-y-2">
             <Label for="offset-input">Offset (KeV)</Label>
             <Input
               ref="inputComponent"

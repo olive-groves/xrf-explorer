@@ -48,12 +48,13 @@ const points = computed({
 });
 
 /**
- * Function to handle updating a point
+ * Function to handle updating a point.
+ * @param index Index of the point to update.
+ * @param key "x" or "y" coordinate to update.
+ * @param value New value for the coordinate.
  */
-function updatePoint(index: number, key: 'x' | 'y', value: number) {
-  const next = points.value.map((p, i) =>
-    i === index ? { ...p, [key]: value } : p
-  );
+function updatePoint(index: number, key: "x" | "y", value: number) {
+  const next = points.value.map((p, i) => (i === index ? { ...p, [key]: value } : p));
 
   points.value = next;
 }

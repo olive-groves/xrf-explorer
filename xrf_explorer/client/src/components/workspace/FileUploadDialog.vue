@@ -51,11 +51,10 @@ const IMAGE_MIME_TYPES = [
   "image/avif",
 ];
 
-
 /**
  * Upload the configured files to the backend.
  */
-function uploadFiles() {
+async function uploadFiles() {
   if (!processing.value) {
     // Reset progress indicator
     fileQueue.value = [];
@@ -86,7 +85,7 @@ function uploadFiles() {
   // Clear the input value
   input.value = "";
 
-  processQueue();
+  await processQueue();
 }
 
 /**

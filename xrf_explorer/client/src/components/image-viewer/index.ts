@@ -4,4 +4,3 @@ export { default as LayerSystem } from "./LayerSystem.vue";
 export { default as Toolbar } from "./Toolbar.vue";
 export { default as StitchViewer } from "./StitchViewer.vue";
 export { default as StitchPreviewViewer } from "./StitchPreviewViewer.vue";
-

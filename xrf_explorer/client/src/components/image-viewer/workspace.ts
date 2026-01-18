@@ -33,21 +33,21 @@ async function loadWorkspace(workspace: WorkspaceConfig) {
   createBaseLayer(workspace.baseImage);
 
   // Create other contextual image layers
-  workspace.contextualImages.forEach((image) => {
-    createContextualLayer(image);
+  workspace.contextualImages.forEach(async (image) => {
+    await createContextualLayer(image);
   });
 
   // Return if there is no elemental data as the other visualizations do not work in that case.
   if (workspace.elementalCubes.length == 0) return;
 
   // Create elemental layers
-  createElementalLayers(workspace);
+  await createElementalLayers(workspace);
 
   // Create color segmentation layers
-  loadPlaceholderLayer();
+  await loadPlaceholderLayer();
 
   // Create selection layers
-  createDRSelectionLayer();
+  await createDRSelectionLayer();
 }
 
 /**
@@ -78,7 +78,7 @@ async function createContextualLayer(image: ContextualImage) {
   const id = `contextual_${snakeCase(image.name)}`;
   const layer = createLayer(id, getContextualImageUrl(image));
 
-  getRecipe(getContextualImageRecipeUrl(image)).then(async (recipe) => {
+  await getRecipe(getContextualImageRecipeUrl(image)).then(async (recipe) => {
     recipe.movingSize = await getImageSize(image.name);
     recipe.targetSize = await getTargetSize();
     registerLayer(layer, recipe);
@@ -131,8 +131,9 @@ export const layerGroupDefaults = {
 
 /**
  * Builds the URL to an image that lives in the workspace uploads folder.
- * @param imageLocation - Name or relative path of the image in the workspace
+ * @param imageLocation - Name or relative path of the image in the workspace.
  * @param workspaceName - Optional workspace name. If omitted, uses current datasource.
+ * @returns The full URL to the image.
  */
 export function getWorkspaceImageUrl(imageLocation: string, workspaceName?: string): string {
   const ds = workspaceName ?? datasource.value;
@@ -142,23 +143,18 @@ export function getWorkspaceImageUrl(imageLocation: string, workspaceName?: stri
 
 /**
  * Builds the URL to a generated partial greyscale image.
- * @param imageLocation - Name or relative path of the greyscale in the workspace
- * @param workspaceName - Optional workspace name
+ * @param imageLocation - Name or relative path of the greyscale in the workspace.
+ * @param workspaceName - Optional workspace name.
+ * @returns The full URL to the greyscale image.
  */
-export function getWorkspaceGreyscaleUrl(
-  imageLocation : string,
-  workspaceName?: string
-): string {
+export function getWorkspaceGreyscaleUrl(imageLocation: string, workspaceName?: string): string {
   const ds = workspaceName ?? datasource.value;
-  return `${config.api.endpoint}/${ds}/stitch_datacubes/greyscale_image/${encodeURIComponent(
-    imageLocation
-  )}`;
+  return `${config.api.endpoint}/${ds}/stitch_datacubes/greyscale_image/${encodeURIComponent(imageLocation)}`;
 }
 
-
 /**
- * Saves the updated workspace to the backend
- */ 
+ * Saves the updated workspace to the backend.
+ */
 export async function saveWorkspaceToBackend() {
   const ws = appState.workspace;
   if (!ws) return;
@@ -179,13 +175,13 @@ export async function saveWorkspaceToBackend() {
 let saveTimeout: number | null = null;
 
 /**
- * Makes sure we do not spam the back end while mapping
+ * Makes sure we do not spam the back end while mapping.
  */
 export function saveWorkspaceDebounced() {
   if (saveTimeout) window.clearTimeout(saveTimeout);
 
-  saveTimeout = window.setTimeout(() => {
-    saveWorkspaceToBackend();
+  saveTimeout = window.setTimeout(async () => {
+    await saveWorkspaceToBackend();
     saveTimeout = null;
   }, 500);
 }

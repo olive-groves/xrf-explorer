@@ -5,13 +5,6 @@ import * as d3 from "d3";
 import { appState, datasource, spectralDataPresent } from "@/lib/appState";
 import { SelectionAreaSelection } from "@/lib/selection";
 import { exportableElements } from "@/lib/export";
-import {
-  NumberField,
-  NumberFieldContent,
-  NumberFieldDecrement,
-  NumberFieldIncrement,
-  NumberFieldInput,
-} from "@/components/ui/number-field";
 import { flipSelectionAreaSelection } from "@/lib/utils";
 import { getTargetSize } from "@/components/image-viewer/api";
 import { LoaderPinwheel, Maximize2, RotateCcw } from "lucide-vue-next";
@@ -19,8 +12,15 @@ import { Button } from "@/components/ui/button";
 import { makeSpectraChart } from "./charts";
 import { toast } from "vue-sonner";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import PeriodicTable from "./PeriodicTable.vue";
 import { returnRequestBodyRectangle } from "./duplicates";
+import {
+  NumberField,
+  NumberFieldContent,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+  PeriodicTable,
+} from "./SpectraWindowImports";
 
 const spectraChart = ref<HTMLElement>();
 const popupSpectraChart = ref<HTMLElement>();
@@ -300,7 +300,11 @@ function resetZoom() {
           <label class="ml-1" for="globalCheck">Global average</label>
         </div>
         <div class="mt-1 flex items-center">
-          <Checkbox id="selectionCheck" v-model:checked="selectionChecked" @update:checked="getSelectionSpectrum(areaSelection)" />
+          <Checkbox
+            id="selectionCheck"
+            v-model:checked="selectionChecked"
+            @update:checked="getSelectionSpectrum(areaSelection)"
+          />
           <label class="ml-1" for="selectionCheck">Selection average</label>
         </div>
         <div class="mt-1 flex items-center">
