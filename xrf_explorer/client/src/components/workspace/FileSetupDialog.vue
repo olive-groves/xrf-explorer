@@ -13,7 +13,7 @@ import { DeleteWorkspaceDialog } from "@/windows";
 const model = defineModel<WorkspaceConfig>({ required: true });
 
 // Define the save event
-const emit = defineEmits(["save"]);
+const emit = defineEmits(["save", "update:modelValue"]);
 
 const modelValidity = computed(() => validateWorkspace(model.value));
 

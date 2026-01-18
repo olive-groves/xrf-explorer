@@ -3,6 +3,8 @@
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { resetWindow } from "@/lib/utils";
 import { TriangleAlert } from "lucide-vue-next";
+
+defineEmits(["close"]);
 </script>
 
 <template>
