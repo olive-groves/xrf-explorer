@@ -18,10 +18,10 @@ const _lastMode = ref<string | null>(null);
 
 /**
  * Filters a list of filenames by their extensions.
- * @param filenames - The filenames to filter
- * @param extensions - The allowed extensions (without dots)
- * @param empty - Whether to add an empty string to the beginning
- * @returns The filtered list of filenames
+ * @param filenames - The filenames to filter.
+ * @param extensions - The allowed extensions (without dots).
+ * @param empty - Whether to add an empty string to the beginning.
+ * @returns The filtered list of filenames.
  */
 function filterByExtension(filenames: string[], extensions: string[], empty: boolean = false) {
   const names = filenames.filter((file) => extensions.includes(file.split(".").pop()?.toLowerCase() ?? ""));
@@ -32,9 +32,9 @@ function filterByExtension(filenames: string[], extensions: string[], empty: boo
 /**
  * Main composable for FileSetupTable logic.
  * Manages workspace configuration, file operations, and datacube management.
- * @param model - The reactive workspace configuration model
- * @param config - The frontend configuration
- * @returns Object containing computed properties, state, and functions
+ * @param model - The reactive workspace configuration model.
+ * @param config - The frontend configuration.
+ * @returns Object containing computed properties, state, and functions.
  */
 export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendConfig) {
   const fileUrl = computed(() => `${config.api.endpoint}/${model.value.name}/files`);
@@ -49,7 +49,7 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
 
   /**
    * Adds a new empty datacube to the workspace.
-   * @param type - The type of datacube to add: 'spectral_cube' or 'elemental_cube'
+   * @param type - The type of datacube to add: 'spectral_cube' or 'elemental_cube'.
    */
   function addElementToWorkspace(type: string) {
     const partial = UploadingPartialData.value === "partial";
@@ -71,8 +71,8 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
   /**
    * Initializes spectral datacube array based on mode and settings.
    * Ensures minimum number of cubes and synchronization with elemental cubes.
-   * @param minCubes - Minimum number of cubes to initialize
-   * @param partial - Whether in partial mode
+   * @param minCubes - Minimum number of cubes to initialize.
+   * @param partial - Whether in partial mode.
    */
   function initModeSpectral(minCubes: number, partial: boolean) {
     if (includeSpectral.value) {
@@ -94,8 +94,8 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
   /**
    * Initializes elemental datacube array based on mode and settings.
    * Ensures minimum number of cubes and synchronization with spectral cubes.
-   * @param minCubes - Minimum number of cubes to initialize
-   * @param partial - Whether in partial mode
+   * @param minCubes - Minimum number of cubes to initialize.
+   * @param partial - Whether in partial mode.
    */
   function initModeElemental(minCubes: number, partial: boolean) {
     if (includeElemental.value) {
@@ -116,7 +116,7 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
 
   /**
    * Initializes the workspace stitching mode and clears opposite mode arrays.
-   * @param mode - The stitching mode to initialize: 'full' or 'partial'
+   * @param mode - The stitching mode to initialize: 'full' or 'partial'.
    */
   function initMode(mode: string) {
     const partial = mode === "partial";
@@ -140,9 +140,9 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
 
   /**
    * Fills an array with placeholder datacubes until reaching target length.
-   * @param array - The array to fill
-   * @param type - The datacube type: 'spectral' or 'elemental'
-   * @param targetLength - The desired final length of the array
+   * @param array - The array to fill.
+   * @param type - The datacube type: 'spectral' or 'elemental'.
+   * @param targetLength - The desired final length of the array.
    */
   function addPlaceholders(array: unknown[], type: "spectral" | "elemental", targetLength: number) {
     while (array.length < targetLength) {
@@ -153,8 +153,8 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
   /**
    * Handles enabling or disabling a datacube type.
    * Updates the array to match the other datacube type's length.
-   * @param type - The datacube type: 'spectral' or 'elemental'
-   * @param value - Whether the type is enabled
+   * @param type - The datacube type: 'spectral' or 'elemental'.
+   * @param value - Whether the type is enabled.
    */
   function handleIncludeChange(type: "spectral" | "elemental", value: boolean) {
     const partial = UploadingPartialData.value === "partial";
@@ -197,8 +197,8 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
   /**
    * Determines if a datacube fragment can be deleted.
    * Full mode requires at least 2 fragments, partial mode requires at least 3.
-   * @param index - The fragment index (1-based)
-   * @returns True if the fragment can be deleted
+   * @param index - The fragment index (1-based).
+   * @returns True if the fragment can be deleted.
    */
   function canDeleteFragment(index: number) {
     return UploadingPartialData.value === "full" ? index > 1 : index > 2;
@@ -206,7 +206,7 @@ export function useFileSetupTable(model: Ref<WorkspaceConfig>, config: FrontendC
 
   /**
    * Removes a datacube fragment from the workspace and syncs with backend.
-   * @param fragmentIndex - The index of the fragment to remove (1-based)
+   * @param fragmentIndex - The index of the fragment to remove (1-based).
    */
   async function removeComponentsFromWorkspace(fragmentIndex: number | null) {
     if (fragmentIndex === null) return;

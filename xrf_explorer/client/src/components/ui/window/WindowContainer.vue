@@ -35,7 +35,7 @@ import { watch } from "vue";
 import { appState } from "@/lib/appState";
 
 /**
- * Disable left panel when in stitching mode
+ * Disable left panel when in stitching mode.
  */
 onMounted(() => {
   watch(
@@ -47,7 +47,7 @@ onMounted(() => {
         leftPanel.value?.expand();
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 });
 </script>

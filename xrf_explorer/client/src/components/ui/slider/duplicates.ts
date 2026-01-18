@@ -24,7 +24,6 @@ export function togglePin(group: LayerGroup, numberofPinnedLayers: number): bool
 
 /**
  * Updates the visibility of the layer group outside the lens.
- * @param LayerVisibility - The LayerVisibility enum.
  * @param group - The group to toggle and update.
  */
 export function checkedOutsideLens(group: LayerGroup) {
@@ -67,8 +66,6 @@ export const properties: Property[] = [
   { name: "Gamma", min: 0, max: 5, default: 1, propertyName: "gammaProperty", nameRef: "gamma" },
   { name: "Brightness", min: -1, max: 1, default: 0, propertyName: "brightnessProperty", nameRef: "brightness" },
 ];
-
-
 
 /**
  * Watchers for LayerGroup properties.

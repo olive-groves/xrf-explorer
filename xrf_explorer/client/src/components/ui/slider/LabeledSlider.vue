@@ -33,7 +33,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "update"): void;         
+  (e: "update"): void;
   (e: "commit", value: number[]): void;
 }>();
 
@@ -63,8 +63,8 @@ const unit = computed(() => props.unit ?? "");
       :step="props.step ?? 0.01"
       :max="props.max ?? 1"
       class="cursor-auto pb-2"
-      @update:model-value="emit('update')"     
-      @value-commit="emit('commit', model)"        
+      @update:model-value="emit('update')"
+      @value-commit="emit('commit', model)"
     />
   </div>
 </template>

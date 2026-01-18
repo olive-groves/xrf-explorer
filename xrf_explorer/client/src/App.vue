@@ -42,7 +42,7 @@ console.info("XRF-Explorer client created with configuration: ", props.config);
         <DRWindow />
         <LayerWindow />
         <FAQWindow v-if="faqWindowOpen" class="absolute left-0 top-0 z-[9999] size-full bg-background"></FAQWindow>
-        <StitchWindow/>
+        <StitchWindow />
       </BaseContextMenu>
     </WindowContainer>
   </div>

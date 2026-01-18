@@ -17,7 +17,7 @@ type TitleAndHelp = {
    * String describing the help text for the window.
    */
   help: string;
-}
+};
 
 /**
  * Contains the app-wide state of a window.
