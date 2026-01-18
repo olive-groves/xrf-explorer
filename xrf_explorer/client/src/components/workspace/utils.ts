@@ -1,4 +1,4 @@
-import { WorkspaceConfig } from "@/lib/workspace";
+import { ElementalCube, SpectralCube, WorkspaceConfig } from "@/lib/workspace";
 import { config } from "@/main";
 
 /**
@@ -13,15 +13,15 @@ export function validateWorkspace(workspace: WorkspaceConfig): [boolean, string]
   }
 
   // --- Validate full cubes ---
-  let [ok, msg] = validateCubes(workspace.spectralCubes, "Spectral", false);
+  let [ok, msg] = validateCubes(workspace.spectralCubes, "Spectral", false, workspace);
   if (!ok) return [false, msg];
-  [ok, msg] = validateCubes(workspace.elementalCubes, "Elemental", false);
+  [ok, msg] = validateCubes(workspace.elementalCubes, "Elemental", false, workspace);
   if (!ok) return [false, msg];
 
   // --- Validate partial cubes ---
-  [ok, msg] = validateCubes(workspace.partialSpectralCubes, "Spectral", true);
+  [ok, msg] = validateCubes(workspace.partialSpectralCubes, "Spectral", true, workspace);
   if (!ok) return [false, msg];
-  [ok, msg] = validateCubes(workspace.partialElementalCubes, "Elemental", true);
+  [ok, msg] = validateCubes(workspace.partialElementalCubes, "Elemental", true, workspace);
   if (!ok) return [false, msg];
 
   // --- Unique names check ---
@@ -62,18 +62,23 @@ function validateWorkspaceHelper(workspace: WorkspaceConfig): [boolean, string] 
  * @param cubes - The cubes to validate.
  * @param type - The type of cubes ("Spectral" or "Elemental").
  * @param isPartial - Whether the cubes are partial.
+ * @param workspace - Workspace the cubes belong to.
  * @returns A boolean indicating if the cubes are correct and a possible error message.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateCubes(cubes: any[], type: "Spectral" | "Elemental", isPartial: boolean): [boolean, string] {
+function validateCubes(
+  cubes: ElementalCube[] | SpectralCube[],
+  type: "Spectral" | "Elemental",
+  isPartial: boolean,
+  workspace: WorkspaceConfig,
+): [boolean, string] {
   for (const cube of cubes) {
     if (cube.name.trim() === "") return [false, `${type} cube must have a name`];
 
     if (type === "Spectral") {
-      const [isValid, errorMessage] = validateSpectralCubes(cube, isPartial, cube.workspace);
+      const [isValid, errorMessage] = validateSpectralCubes(cube as SpectralCube, isPartial, workspace);
       if (!isValid) return [false, errorMessage];
     } else if (type === "Elemental") {
-      const [isValid, errorMessage] = validateElementalCubes(cube, isPartial, cube.workspace);
+      const [isValid, errorMessage] = validateElementalCubes(cube as ElementalCube, isPartial, workspace);
       if (!isValid) return [false, errorMessage];
     }
   }
@@ -87,8 +92,7 @@ function validateCubes(cubes: any[], type: "Spectral" | "Elemental", isPartial: 
  * @param workspace - The workspace configuration.
  * @returns A boolean indicating if the cube is correct and a possible error message.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateSpectralCubes(cube: any, isPartial: boolean, workspace: WorkspaceConfig): [boolean, string] {
+function validateSpectralCubes(cube: SpectralCube, isPartial: boolean, workspace: WorkspaceConfig): [boolean, string] {
   if (cube.rawLocation.trim() === "") return [false, "Spectral cube must have an associated raw file"];
   if (cube.rplLocation.trim() === "") return [false, "Spectral cube must have an associated rpl file"];
   if (!isPartial && workspace.stitchingMode === "full" && cube.recipeLocation.trim() === "") {
@@ -104,8 +108,11 @@ function validateSpectralCubes(cube: any, isPartial: boolean, workspace: Workspa
  * @param workspace - The workspace configuration.
  * @returns A boolean indicating if the cube is correct and a possible error message.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function validateElementalCubes(cube: any, isPartial: boolean, workspace: WorkspaceConfig): [boolean, string] {
+function validateElementalCubes(
+  cube: ElementalCube,
+  isPartial: boolean,
+  workspace: WorkspaceConfig,
+): [boolean, string] {
   if (cube.dataLocation.trim() === "") return [false, "Elemental cube must have an associated data file"];
   if (
     !isPartial &&

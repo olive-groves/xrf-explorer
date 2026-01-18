@@ -1,40 +1,46 @@
 <script setup lang="ts">
+import { inject } from "vue";
 import { FileSetupTableRow, FileUploadDialog } from ".";
 import { Image, AudioWaveform, Atom, Trash2 } from "lucide-vue-next";
 import { ScrollArea } from "../ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-// Import functions from FileSetupTable.ts
+import { WorkspaceConfig } from "@/lib/workspace";
+import { FrontendConfig } from "@/lib/config";
 import {
-  exportFileFetchingVariables,
-  exportDeletionVariables,
+  useFileSetupTable,
+  UploadingPartialData,
+  includeSpectral,
+  includeElemental,
+  showDeleteComponentDialog,
+  showMultiDeleteDialog,
+  showDeleteFileDialog,
+  selectedFilesToDelete,
+  componentNameToDelete,
+} from "./FileSetupTable";
+
+const config = inject<FrontendConfig>("config")!;
+const model = defineModel<WorkspaceConfig>({ required: true });
+
+const {
+  fileFetch,
+  imageFiles,
+  recipeFiles,
+  rawFiles,
+  rplFiles,
+  elementalFiles,
+  allProjectFiles,
+  spectralArr,
+  elementalArr,
+  maxCubes,
   addDatacube,
   canDeleteFragment,
   removeComponentsFromWorkspace,
   addContextualImage,
   removeContextualImage,
   handleMultiDeleteConfirmed,
-} from "./FileSetupTable";
-// Import reactive variables from FileSetupTable.ts
-import {
-  componentNameToDelete,
-  elementalArr,
-  fileFetch,
-  includeElemental,
-  includeSpectral,
-  maxCubes,
-  model,
-  selectedFilesToDelete,
-  showDeleteComponentDialog,
-  showDeleteFileDialog,
-  showMultiDeleteDialog,
-  spectralArr,
-  UploadingPartialData,
-} from "./FileSetupTable";
+} = useFileSetupTable(model, config);
 
-// File fetching
-const { imageFiles, recipeFiles, rawFiles, rplFiles, elementalFiles } = exportFileFetchingVariables();
-// Deletion state
-const { allProjectFiles } = exportDeletionVariables();
+defineExpose({ getUploadingPartialData: () => UploadingPartialData.value });
 </script>
 
 <template>
