@@ -6,12 +6,30 @@ Code documentation is at [olive-groves.github.io/xrf-explorer](https://olive-gro
 
 Technical documents for functional aspects, user requirements, and user testing are at [github.com/olive-groves/xrf-explorer-documentation](https://github.com/olive-groves/xrf-explorer-documentation).
 
-## Files to be excluded from testing
-_Test locations in the next section_
-- All files under `/xrf_explorer/client/src/components/ui` except the files under `/selection-area` and `/window`.
+## Files to be included/excluded from testing
+The following files should be included in testing:
+- All files of type .vue, .ts or .py in:
+  - `/xrf_explorer/client/src/components/image-viewer`
+  - `/xrf_explorer/client/src/components/menus`
+  - `/xrf_explorer/client/src/components/workspace`
+  - `/xrf_explorer/client/src/lib`
+  - `/xrf_explorer/client/src/windows`
+  - `/xrf_explorer/server`
+
+The following files should be excluded from testing:
+- All files that are not included in the list above
 - Any and all `index.ts` files under `/xrf_explorer/client` as these are for exporting the components.
 - Any and all `__init__.py` files under `/xrf_explorer/server` as these are for importing the components.
-- Note that directly under `/xrf_explorer/client` there are various configuration files which should also not be tested. These are the following files: `postcss.config.js`, `tailwindcss.config.js`, `vite.config.ts` as well stylecheck files and various JSON files. 
+
+## Testing code duplicate and code quality
+### Testing code duplicate
+In order to test code duplicates throughout the program, the Simian Similarity Analyzer tool is used. In order to check all the code duplicates, the `simian.jar` file is placed in the root folder of the program. Moreover, `simian_check.js` is placed in the same root folder to actually run the code duplicate check on all the designated files mentioned above. As within the .vue files only the typescript section should be checked, `simian_check.js` first extract all the typescript from the .vue files and places them in a temporary .ts file and only then checks all .py and all .ts files.
+To run this file open the terminal, navigate to the root folder of the project and run the following command: `node simian_check.js`
+
+### Testing code quality
+In the file `/xrf_explore/client/.eslintrc` a ESLint configuration is created. This file ensure that all frontend (.vue and .ts) files adhere to certain code quality standard. To verify these code quality standards in our program run the following command(s) in the terminal: 
+- `cd xrf_eplorer/client` (if your root directory is already set to this, ignore this step)
+- `npx eslint "src/components/image-viewer/**.vue" "src/components/image-viewer/**.ts" "src/components/menus/**" "src/components/workspace/**" "src/lib/**" "src/windows/**"`
 
 ## Test file locations
 - Frontend: `/xrf_explorer/client/src/components/__tests__`

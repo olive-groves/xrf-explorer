@@ -13,11 +13,22 @@ const frontendDirs = [
 ]; // all frontend folders containing .vue files
 const backendDirs = ['./xrf_explorer/server']; // all backend folders containing .py files
 const tmpDir = './.simian-temp'; // temporary folder for extracted code
+
+// Files to exclude (regex patterns)
+const excludePatterns = [
+    /__init__\.py$/,  // exclude all __init__.py files
+    /index\.ts$/      // exclude all index.ts files
+];
 // =================================
 
 // Prepare temp folder
 if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 fs.readdirSync(tmpDir).forEach(f => fs.unlinkSync(path.join(tmpDir, f)));
+
+// Utility function to check if a file should be excluded
+function isExcluded(file) {
+    return excludePatterns.some(pattern => pattern.test(file));
+}
 
 // Extract TypeScript code from Vue files
 function extractTS(filePath) {
@@ -35,6 +46,10 @@ function processVueDir(dir) {
     fs.readdirSync(dir).forEach(file => {
         const fullPath = path.join(dir, file);
         if (fs.statSync(fullPath).isDirectory()) return processVueDir(fullPath);
+        
+        // Skip excluded files
+        if (isExcluded(file)) return;
+
         if (file.endsWith('.vue')) {
             const tsCode = extractTS(fullPath);
             if (tsCode) {
@@ -50,6 +65,10 @@ function processPythonDir(dir) {
     fs.readdirSync(dir).forEach(file => {
         const fullPath = path.join(dir, file);
         if (fs.statSync(fullPath).isDirectory()) return processPythonDir(fullPath);
+        
+        // Skip excluded files
+        if (isExcluded(file)) return;
+        
         if (file.endsWith('.py')) {
             const destFile = path.join(tmpDir, path.basename(file));
             fs.copyFileSync(fullPath, destFile);

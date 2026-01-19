@@ -117,7 +117,6 @@ function validateElementalCubes(
   if (
     !isPartial &&
     workspace.stitchingMode === "full" &&
-    workspace.spectralCubes.length === 0 &&
     cube.recipeLocation.trim() === ""
   ) {
     return [false, "Elemental cube must have an associated recipe file"];
