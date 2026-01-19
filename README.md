@@ -187,8 +187,7 @@ The `workspace.json` file follows the following format:
   // Array of additional contextual images
   // Every contextual image follows the same format as baseImage
   "contextualImages": [],
-  // Array of spectral data cubes
-  // Only a single cube per workspace is currently supported
+  // Array with one spectral data cube, for storing one full datacube
   "spectralCubes": [
     {
       // Name must be unique
@@ -201,8 +200,34 @@ The `workspace.json` file follows the following format:
       "recipeLocation": "<filename>"
     }
   ],
-  // Array of elemental data cubes
-  // Only a single cube per workspace is currently supported
+  // Array of partial spectral data cubes, for storing multiple partial cubes for stitching
+  "spectralCubes": [
+    {
+      // Name must be unique
+      "name": "<name>",
+      // The filename of the raw file
+      "rawLocation": "<filename>",
+      // The filename of the rpl file
+      "rplLocation": "<filename>",
+      // The filename of the registering recipe for the data cube
+      "recipeLocation": "<filename>"
+    }
+  ],
+  // Array of one elemental data cube, for storing one full datacube
+  // Every elemental datacube must have the same channels
+  "elementalCubes": [
+    {
+      // Name must be unique
+      "name": "<name>",
+      // Must be 'csv' or 'dms'
+      "fileType": "<filetype>",
+      // Filename of the data cube
+      "dataLocation": "<filename>",
+      // The filename of the registering recipe for the data cube
+      "recipeLocation": "<filename>"
+    }
+  ],
+  // Array of partial elemental data cubes, for storing multiple partial cubes for stitching
   // Every elemental datacube must have the same channels
   "elementalCubes": [
     {
@@ -227,7 +252,79 @@ The `workspace.json` file follows the following format:
       // Disabled channels will not be visible in the client
       "enabled": false,
     }
-  ]
+  ],
+  // All grayscale images generated from partial cubes for stitching
+  "grayscale": [
+    {
+    // Filename of the grayscale image.
+    "imageLocation": "<filename>",
+    // Filename of the data cube that generated this grayscale image.
+    "sourceCubeName": "<filename>",
+    // The type of cube that generated this grayscale image, must be: 'elemental' | 'spectral'.
+    "sourceCubeType": "<filetype>",
+    }
+  ],
+  // The parameters to read the spectral data.
+  "spectralParams": {
+    // The lower channel boundary to be used.
+    "low": 0,
+    // The higher channel boundary to be used.
+    "high": 0,
+    // The bin size to be used while reading the raw data.
+    "binSize": 0,
+    // The offset mapping the channels to the right eV.
+    "offset": 0,
+    // Indicating whether the data has already been binned.
+    "binned": false,
+  },
+  // Stitching mode for this workspace. Must be 'partial' | 'full'.
+  // When set to 'partial' the stitching UI is active.
+  "stitchingMode": "<mode>",
+  // The mapping made by the user for stitching data cubes.
+  "mapping": {
+    /**
+    * Points per grayscale, keyed by grayscale index.
+    */
+    "grayscalePoints": 
+      {
+      //Greyscale index.
+      "greyscale index": 0,
+        "Stichpoint": {
+          //Greyscale index.
+          "id": 0,
+          //Points in the greyscale.
+          "gray": {
+            //X coordinate of the point in the greyscale.
+            "x": 0,
+            //Y coordinate of the point in the greyscale.
+            "y": 0,
+            },
+          //Corresponding base image points.
+          "base": {
+            // X coordinate of the point in the base image.
+            "x": 0,
+            // Y coordinate of the point in the base image.
+            "y": 0,
+          },
+        }
+      },
+    // Rotation per grayscale.
+    "grayscaleRotation": {
+      //Greyscale index.
+      "id": 0, 
+      // The amount this fragment should be rotated, must be in 90 degrees intervals: '0', '90', '180, '270', '360'.
+      "rotation": 0,
+    }, 
+    // Intensity per greyscale.
+    "grayscaleContrast": { 
+      //Greyscale index.
+      "id": 0, 
+      // The amount the intensiy of the fragment should be scaled by
+      "contrast": 0,
+    },
+    // Wether we are in edit or preview mode. Must be 'edit' | 'preview'.
+    "mode": "<mode>",
+  }
 }
 ```
 
