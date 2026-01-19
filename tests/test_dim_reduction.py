@@ -118,7 +118,7 @@ class TestDimReduction:
         set_config(self.CUSTOM_CONFIG_PATH)
         
         if isdir(path_generated):
-            rmtree(path_generated, onerror=remove)
+            rmtree(path_generated, ignore_errors=True)
 
         # execute
         result: str = generate_embedding(self.TEST_DATA_SOURCE, element, threshold, new_umap_parameters=umap_args)
