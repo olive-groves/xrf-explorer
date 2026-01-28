@@ -55,7 +55,7 @@ const estimatedSize = computed(() => {
   if (estimatedSizeOpt.value === null) return null;
 
   const factor = scalingFactor.value[0];
-  return Math.round(estimatedSizeOpt.value * factor * factor * 10000) / 10000;
+  return Math.round(estimatedSizeOpt.value * factor * factor * 100) / 100;
 });
 
 // Selected contrast value per greyscale
@@ -345,7 +345,7 @@ watch(showConfirmation, (open) => {
           <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Estimated stitched datacube size:
           </label>
-          <span>{{ estimatedSize }} GB</span>
+          <span>≈{{ estimatedSize }} GB</span>
         </div>
       </div>
       <div v-if="scaledLosses" class="mt-2 space-y-1 text-sm">

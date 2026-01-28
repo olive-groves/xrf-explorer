@@ -594,10 +594,18 @@ def get_stitch_info(data: StitchData) -> Dict[str, Any]:
 
     optimizer = ScalarOptimizer(data.points)
     optimal_scalar, _ = optimizer.find_best_scalar()
+
+    fragment: DatacubeFragment = data.get_fragments()[0]
+    dtype_size = np.dtype('float32').itemsize
+    if isinstance(fragment, SpectralDatacubeFragment):
+        dtype_size = np.dtype(fragment.data_type).itemsize
+
     reference_file_size = (
-            (data.get_fragments()[0].channels + 1) # Spectral channels + 1 elemental channel
+            fragment.channels
             * data.contextual_image_dimensions.width
             * data.contextual_image_dimensions.height
+            * dtype_size
+            * (optimal_scalar ** 2) # Squared because both width and height are scaled
     )
 
     losses = optimizer.calculate_loss_percentage(optimal_scalar)

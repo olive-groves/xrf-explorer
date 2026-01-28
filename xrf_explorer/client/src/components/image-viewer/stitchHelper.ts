@@ -191,7 +191,7 @@ export async function fetchOptimalStitchInfo(): Promise<{
   if (!canPreview.value) return null;
 
   const ws = appState.workspace;
-  const type = ws.grayscale[0].sourceCubeType;
+  const type = ws.partialSpectralCubes.length > 0 ? "spectral" : "elemental";
   const fragments = buildFragmentsForAPI(type);
   if (fragments.length === 0) return null;
 
@@ -218,7 +218,7 @@ export async function fetchOptimalStitchInfo(): Promise<{
 
   return {
     losses: result.losses ?? null,
-    estimatedSize: Math.round((result.full_size / (1024 * 1024 * 1024)) * 10000) / 10000,
+    estimatedSize: Math.round((result.full_size / (1024 * 1024 * 1024)) * 100) / 100,
     optimalScaling: result.optimalScaling,
   };
 }
