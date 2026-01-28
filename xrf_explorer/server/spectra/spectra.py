@@ -58,8 +58,12 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     length: int = data.shape[2]
     total: np.ndarray = np.zeros(length)
 
-    scaled_mask: np.ndarray = np.empty((ceil(mask.shape[0] / 2 ** level), ceil(mask.shape[1] / 2 ** level)))
-    scaled_mask.fill(False)
+    scaled_mask: np.ndarray = np.zeros(
+        (
+            ceil(mask.shape[0] / 2 ** level),
+            ceil(mask.shape[1] / 2 ** level)
+        ),
+        dtype = bool)
 
     indices: np.ndarray = np.argwhere(mask)
 
@@ -74,8 +78,6 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
 
     indices: np.ndarray = np.argwhere(scaled_mask)
 
-    LOG.info(f"shape of indices: {indices.shape} ")
-
     # Function to vectorize to calculate the average data
     def add_row(index: np.ndarray):
         nonlocal total
@@ -86,7 +88,6 @@ def get_average_selection(data_source: str, mask: np.ndarray) -> list[float]:
     if indices.size > 0:
         np.vectorize(add_row, signature="(2)->()")(indices)
         average: np.ndarray = total / indices.shape[0]
-        LOG.info(f"Average of averages is: {np.mean(average)} ")
 
         # Normalize the average to be in the range [0, 100]
         total_sum = np.sum(average)

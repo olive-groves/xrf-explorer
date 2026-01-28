@@ -29,6 +29,6 @@ from .project import (
     delete_data_source,
     upload_chunk
 )
-from .spectral_cube import bin_raw_data, get_offset, get_average_data, get_element_spectra, get_selection_spectra
+from .spectral_cube import bin_raw_data_endpoint, get_offset, get_average_data, get_element_spectra, get_selection_spectra
 from .update_account import update_account
 from .stitching import stitch

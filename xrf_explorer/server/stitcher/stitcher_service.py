@@ -15,6 +15,7 @@ import cv2 as cv
 import numpy as np
 
 from xrf_explorer.server.file_system import get_config
+from xrf_explorer.server.file_system.cubes import bin_raw_data, get_element_names
 
 from xrf_explorer.server.file_system.workspace import get_workspace_dict
 from xrf_explorer.server.file_system.workspace.workspace_handler import update_workspace
@@ -282,7 +283,7 @@ class FragmentData:
         Raises:
             ValueError: If points tuple is not set.
         """
-        if self._points is not None and all(p is not None for p in self._points):
+        if self._points is not None:
             return self._points
         else:
             raise ValueError("'points' requested but not present in fragment data.")
@@ -853,7 +854,7 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
     output_file_name = os.path.basename(result_fragment.datacube_file)
 
     workspace = get_workspace_dict(data.data_source)
-    if(data.cube_type == "spectral"):
+    if data.cube_type == "spectral":
         workspace["spectralCubes"] = [{
             "name": "stitched_spectral_datacube",
             "rawLocation": output_file_name,
@@ -866,7 +867,24 @@ def perform_stitching(data: StitchData) -> Dict[str, Any]:
             "dataLocation": output_file_name,
             "recipeLocation": recipe_file_name
         }]
+
     update_workspace(data.data_source, workspace)
+    workspace = get_workspace_dict(data.data_source)
+
+    if data.cube_type == "spectral":
+        bin_raw_data(data.data_source)
+    else:
+        # Initialize elements
+        elements = get_element_names(data.data_source)
+
+        workspace["elementalChannels"] = []
+        for (index, element) in enumerate(elements):
+            workspace["elementalChannels"].append({
+                "channel": index,
+                "name": element,
+                "enabled": True
+            })
+        update_workspace(data.data_source, workspace)
 
     return {
         "status": "success",

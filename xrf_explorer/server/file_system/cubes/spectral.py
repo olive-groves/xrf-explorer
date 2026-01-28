@@ -137,12 +137,12 @@ def mipmap_raw_cube(data_source: str, level: int) -> None:
         mipmap_path,
         shape=(ceil(data.shape[0] / 2.0), ceil(data.shape[1] / 2.0), data.shape[2]),
         dtype=data_type,
-        mode="w+"
+        mode="w+",
     )
 
     for y in range(mipmapped.shape[0]):
         for x in range(mipmapped.shape[1]):
-            mipmapped[y, x, :] = np.mean(data[2 * y:2 * y + 2, 2 * x:2 * x + 2, :], axis=(0, 1))
+            mipmapped[y, x, :] = np.round(np.mean(data[2 * y:2 * y + 2, 2 * x:2 * x + 2, :], axis=(0, 1))).astype(data_type)
 
     # Write to disk
     mipmapped.flush()
@@ -269,8 +269,9 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         for i in range(nr_bins):
             # convert bin number to start channel in original data (i.e. in range [0, 4096])
             start_channel = low + i * bin_size
-            bin_average = np.mean(
-                datacube[:, :, start_channel:start_channel + bin_size], axis=2)
+            bin_average = np.round(np.mean(
+                datacube[:, :, start_channel : start_channel + bin_size], axis=2
+            )).astype(data_type)
             new_cube[:, :, i] = bin_average
 
     # overwrite file
@@ -280,6 +281,27 @@ def bin_data(data_source: str, low: int, high: int, bin_size: int):
         LOG.error("Failed to write binned data: {%s}", e)
     set_binned(data_source, True)
 
+
+def bin_raw_data(data_source: str):
+    """
+    Bins the raw data files channels to compress the file.
+
+    :param data_source: the data source containing the raw data to bin
+    :return: A boolean indicating if the binning was successful
+    """
+    try:
+        update_bin_params(data_source)
+        params: dict = get_spectra_params(data_source)
+        low: int = params["low"]
+        high: int = params["high"]
+        bin_size: int = params["binSize"]
+
+        bin_data(data_source, low, high, bin_size)
+        LOG.info("binned")
+        return "Binned data", 200
+
+    except FileNotFoundError as err:
+        return f"error while loading workspace to retrieve spectra params: {str(err)}", 5000
 
 def update_bin_params(data_source: str):
     """Converts the low, high and binsize parameters in the workspace from energy to channel.

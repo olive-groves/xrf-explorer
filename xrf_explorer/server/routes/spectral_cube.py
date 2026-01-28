@@ -10,8 +10,7 @@ from xrf_explorer import app
 
 from xrf_explorer.server.file_system.cubes import (
     get_spectra_params,
-    update_bin_params,
-    bin_data,
+    bin_raw_data,
     parse_rpl,
     get_raw_data
 )
@@ -26,9 +25,9 @@ LOG: Logger = getLogger(__name__)
 
 @app.route("/api/<data_source>/bin_raw/", methods=["POST"])
 @userCanAccessProject
-def bin_raw_data(data_source: str):
+def bin_raw_data_endpoint(data_source: str):
     """
-    Bins the raw data files channels to compress the file.
+    Endpoint for binning raw data files channels to compress the file.
 
     :param data_source: the data source containing the raw data to bin
     :return: A boolean indicating if the binning was successful
@@ -41,19 +40,7 @@ def bin_raw_data(data_source: str):
     binned: bool = params["binned"]
 
     if not binned:
-        try:
-            update_bin_params(data_source)
-            params: dict = get_spectra_params(data_source)
-            low: int = params["low"]
-            high: int = params["high"]
-            bin_size: int = params["binSize"]
-
-            bin_data(data_source, low, high, bin_size)
-            LOG.info("binned")
-            return "Binned data", 200
-
-        except FileNotFoundError as err:
-            return f"error while loading workspace to retrieve spectra params: {str(err)}", 5000
+        return bin_raw_data(data_source)
     else:
         return "Data already binned", 200
 

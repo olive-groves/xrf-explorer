@@ -195,8 +195,7 @@ class TestFragmentData:
             _ = fd.local_points
         with pytest.raises(ValueError, match="requested but not present"):
             _ = fd.target_points
-        with pytest.raises(ValueError, match="requested but not present"):
-            _ = fd.points
+        assert fd.points == (None, None)
 
     @patch("xrf_explorer.server.stitcher.stitcher_service._build_path")
     @patch("xrf_explorer.server.stitcher.stitcher_service.ElementalDatacubeFragment")
