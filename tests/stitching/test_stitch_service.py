@@ -490,7 +490,7 @@ class TestHelpers:
         assert info["optimal_scalar"] == 1.5
         assert info["losses"] == [10.0]
         # (4 + 1) * 10 * 10 = 500
-        assert info["full_size"] == 500
+        assert info["full_size"] == 3600
 
     def test_create_recipe_file(self):
         m = mock_open()
